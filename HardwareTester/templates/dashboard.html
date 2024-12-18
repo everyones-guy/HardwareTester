@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <nav id="sidebar" class="col-md-3 bg-light">
+            <div class="p-3">
+                <h5>Quick Actions</h5>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#peripherals">Add Peripherals</a>
+                    </li>
+                    <li class="nav-item">
+                        <button id="save-config" class="btn btn-primary w-100 mt-2">Save Configuration</button>
+                    </li>
+                    <li class="nav-item">
+                        <button id="load-config" class="btn btn-secondary w-100 mt-2">Load Configuration</button>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Main Canvas -->
+        <main class="col-md-9">
+            <h3 class="text-center">Valve System Visualization</h3>
+            <div id="canvas-container" class="border bg-light position-relative" style="height: 500px;">
+                <!-- Dynamic items will be inserted here -->
+            </div>
+        </main>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+<script>
+    $(document).ready(function () {
+        const canvas = $("#canvas-container");
+        const socket = io();
+
+        // Mock data for real-time updates
+        const valveStates = {};
+
+        // Function to add a valve or peripheral visually
+        function addComponent(id, type, x = 50, y = 50) {
+            const element = $(`
+                <div id="component-${id}" class="draggable"
+                     data-id="${id}" data-type="${type}"
+                     style="position: absolute; left: ${x}px; top: ${y}px;">
+                    <div class="component-body p-2 text-white bg-primary rounded">${type}</div>
+                </div>
+            `);
+            canvas.append(element);
+            enableDrag(element);
+        }
+
+        // Real-time updates using Socket.IO
+        socket.on("valve_update", (data) => {
+            const { id, state, value } = data; // state: 'open', 'closed', 'flow'
+            const component = $(`#component-${id}`);
+            if (component.length) {
+                animateValve(component, state, value);
+            }
+        });
+
+        // Function to animate valves
+        function animateValve(element, state, value) {
+            if (state === "open") {
+                anime({
+                    targets: element[0],
+                    scale: 1.2,
+                    duration: 800,
+                    direction: "alternate",
+                    easing: "easeInOutQuad",
+                });
+                element.find(".component-body").text(`Valve Open (${value}%)`);
+            } else if (state === "closed") {
+                anime({
+                    targets: element[0],
+                    scale: 1.0,
+                    duration: 800,
+                    easing: "easeInOutQuad",
+                });
+                element.find(".component-body").text("Valve Closed");
+            } else if (state === "flow") {
+                anime({
+                    targets: element[0],
+                    rotate: 360,
+                    duration: 1000,
+                    easing: "linear",
+                    loop: true,
+                });
+                element.find(".component-body").text(`Flow: ${value} L/s`);
+            }
+        }
+
+        // Drag-and-drop functionality
+        function enableDrag(element) {
+            interact(element[0]).draggable({
+                listeners: {
+                    move(event) {
+                        const target = event.target;
+                        const x = (parseFloat(target.getAttribute("data-x")) || 0) + event.dx;
+                        const y = (parseFloat(target.getAttribute("data-y")) || 0) + event.dy;
+                        target.style.transform = `translate(${x}px, ${y}px)`;
+                        target.setAttribute("data-x", x);
+                        target.setAttribute("data-y", y);
+                    },
+                },
+            });
+        }
+
+        // Mock adding components on load
+        addComponent(1, "Valve");
+        addComponent(2, "Temperature Sensor", 200, 200);
+
+        // Save Configuration
+        $("#save-config").click(function () {
+            const layout = [];
+            $(".draggable").each(function () {
+                const id = $(this).data("id");
+                const type = $(this).data("type");
+                const x = $(this).position().left;
+                const y = $(this).position().top;
+                layout.push({ id, type, x, y });
+            });
+
+            $.post("/save-configuration", { layout: JSON.stringify(layout) }, function (response) {
+                alert(response.message);
+            });
+        });
+
+        // Load Configuration
+        $("#load-config").click(function () {
+            $.get("/load-configuration", function (data) {
+                if (data.success) {
+                    canvas.empty();
+                    data.layout.forEach(item => addComponent(item.id, item.type, item.x, item.y));
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}
