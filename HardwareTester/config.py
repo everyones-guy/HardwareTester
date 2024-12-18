@@ -9,6 +9,8 @@ class Config:
     ALLOWED_SPEC_SHEET_EXTENSIONS = {"pdf", "docx", "xlsx"}
     ALLOWED_TEST_PLAN_EXTENSIONS = {"pdf", "csv", "txt"}
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16 MB upload limit
+    BASE_URL = os.environ.get("BASE_URL", " http://127.0.0.1:5000")  # Default value if not set
+
 
     # Add logging for better observability
     LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO")
