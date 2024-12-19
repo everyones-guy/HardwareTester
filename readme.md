@@ -56,7 +56,7 @@ Hardware Tester is a Flask-based application for testing and managing hardware d
 
 1. **Clone the Repository**
    ```bash
-   git clone https://github.com/your-repo-name/hardware-tester.git
+   git clone https://github.com/everyones-guy/HardwareTester.git
    cd hardware-tester
    ```
 
