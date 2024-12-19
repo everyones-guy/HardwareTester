@@ -1,6 +1,9 @@
 from HardwareTester.extensions import db
 from HardwareTester.models import Configuration
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 def save_configuration(name, layout):
     """
@@ -10,12 +13,18 @@ def save_configuration(name, layout):
     :return: Dictionary with success message or error.
     """
     try:
-        config = Configuration(name=name, layout=layout)
+        # Validate layout
+        if not isinstance(layout, dict):
+            return {"success": False, "error": "Invalid layout format. Must be a JSON object."}
+
+        config = Configuration(name=name, layout=json.dumps(layout))
         db.session.add(config)
         db.session.commit()
+        logger.info(f"Configuration '{name}' saved successfully.")
         return {"success": True, "message": f"Configuration '{name}' saved successfully."}
     except Exception as e:
         db.session.rollback()
+        logger.error(f"Error saving configuration: {e}")
         return {"success": False, "error": str(e)}
 
 def load_configuration(config_id):
@@ -27,9 +36,11 @@ def load_configuration(config_id):
     try:
         config = Configuration.query.get(config_id)
         if config:
+            logger.info(f"Loaded configuration '{config.name}' successfully.")
             return {"success": True, "configuration": {"name": config.name, "layout": json.loads(config.layout)}}
         return {"success": False, "message": "Configuration not found."}
     except Exception as e:
+        logger.error(f"Error loading configuration: {e}")
         return {"success": False, "error": str(e)}
 
 def list_configurations():
@@ -39,6 +50,8 @@ def list_configurations():
     """
     try:
         configs = Configuration.query.all()
+        logger.info("Fetched all configurations successfully.")
         return {"success": True, "configurations": [{"id": config.id, "name": config.name} for config in configs]}
     except Exception as e:
+        logger.error(f"Error listing configurations: {e}")
         return {"success": False, "error": str(e)}

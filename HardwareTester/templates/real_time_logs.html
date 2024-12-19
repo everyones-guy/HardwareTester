@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Real-Time Logs</h1>
+
+<div id="log-container" class="border bg-light p-3" style="height: 400px; overflow-y: auto;">
+    <!-- Logs will appear here -->
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    const logContainer = $("#log-container");
+    const socket = io();
+
+    socket.on("log_message", function (data) {
+        logContainer.append(`<div>${data.message}</div>`);
+        logContainer.scrollTop(logContainer.prop("scrollHeight"));
+    });
+</script>
+{% endblock %}

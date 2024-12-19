@@ -13,6 +13,7 @@ class MQTTService:
         self.tls = tls
         self.client = mqtt.Client()
         self._setup_client()
+        self.device_responses = {}  # Store responses from devices
 
     def _setup_client(self):
         if self.username and self.password:
@@ -31,6 +32,12 @@ class MQTTService:
 
     def on_message(self, client, userdata, msg):
         logger.info(f"Received message from topic {msg.topic}: {msg.payload.decode()}")
+        try:
+            payload = json.loads(msg.payload.decode())
+            if "device_id" in payload:
+                self.device_responses[payload["device_id"]] = payload
+        except json.JSONDecodeError:
+            logger.warning("Received non-JSON payload.")
 
     def connect(self):
         try:
@@ -39,6 +46,14 @@ class MQTTService:
             logger.info("MQTT connection established.")
         except Exception as e:
             logger.error(f"Error connecting to MQTT broker: {e}")
+
+    def disconnect(self):
+        try:
+            self.client.loop_stop()
+            self.client.disconnect()
+            logger.info("MQTT connection closed.")
+        except Exception as e:
+            logger.error(f"Error disconnecting from MQTT broker: {e}")
 
     def publish(self, topic, payload):
         try:
@@ -54,12 +69,11 @@ class MQTTService:
         except Exception as e:
             logger.error(f"Failed to subscribe to {topic}: {e}")
 
-    def disconnect(self):
-        self.client.loop_stop()
-        self.client.disconnect()
-        logger.info("MQTT connection closed.")
     def discover_device(self, device_id):
-        """Query device metadata and settings."""
+        """
+        Query device metadata and settings.
+        :param device_id: Device ID to discover.
+        """
         try:
             topic = f"device/{device_id}/info"
             self.subscribe(topic)
@@ -67,3 +81,11 @@ class MQTTService:
             logger.info(f"Sent discovery request to {topic}")
         except Exception as e:
             logger.error(f"Failed to query device: {e}")
+
+    def get_device_response(self, device_id):
+        """
+        Fetch the response for a discovered device.
+        :param device_id: Device ID to fetch the response for.
+        :return: Response data or None if no response received.
+        """
+        return self.device_responses.get(device_id)

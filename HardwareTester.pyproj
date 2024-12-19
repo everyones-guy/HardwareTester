@@ -55,6 +55,12 @@
     <Compile Include="HardwareTester\views\configuration_views.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="HardwareTester\views\error_views.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="HardwareTester\views\mqqt_views.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="old\scripts\manage_test_plans.py">
       <SubType>Code</SubType>
     </Compile>
@@ -219,8 +225,13 @@
     <Content Include="HardwareTester\templates\auth\profile.html" />
     <Content Include="HardwareTester\templates\auth\register.html" />
     <Content Include="HardwareTester\templates\base.html" />
+    <Content Include="HardwareTester\templates\configuration_management.html" />
     <Content Include="HardwareTester\templates\dashboard.html" />
     <Content Include="HardwareTester\templates\auth\login.html" />
+    <Content Include="HardwareTester\templates\error.html" />
+    <Content Include="HardwareTester\templates\mqtt_management.html" />
+    <Content Include="HardwareTester\templates\real_time_logs.html" />
+    <Content Include="HardwareTester\templates\test_plan_management.html" />
     <Content Include="HardwareTester\templates\upload_test_plan.html" />
     <Content Include="HardwareTester\templates\valve_management.html" />
     <Content Include="logs\app.log" />

@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Error</h1>
+<p>An error occurred while processing your request.</p>
+<p>{{ error_message }}</p>
+<a href="{{ url_for('main.dashboard') }}" class="btn btn-primary">Back to Dashboard</a>
+{% endblock %}
