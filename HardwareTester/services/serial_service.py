@@ -82,13 +82,13 @@ class SerialService:
         self.disconnect()
 
 # Example usage
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
-    
-    port = "COM3"  # Update with your serial port
-    baudrate = 9600
-
-    with SerialService(port, baudrate) as serial_service:
-        serial_service.send_data("Test Command")
-        response = serial_service.read_data()
-        print(f"Response: {response}")
+#if __name__ == "__main__":
+#    logging.basicConfig(level=logging.INFO)
+#    
+#    port = "COM3"  # Update with your serial port
+#    baudrate = 9600#
+#
+#    with SerialService(port, baudrate) as serial_service:
+#        serial_service.send_data("Test Command")
+#        response = serial_service.read_data()
+#        print(f"Response: {response}")
