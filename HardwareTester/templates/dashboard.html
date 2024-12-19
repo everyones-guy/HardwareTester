@@ -24,35 +24,30 @@
         <!-- Main Canvas -->
         <main class="col-md-9">
             <h3 class="text-center">Valve System Visualization</h3>
-            <div id="canvas-container" class="border bg-light position-relative" style="height: 500px;">
+            <div id="canvas-container" class="border bg-light position-relative" style="height: 500px; overflow: hidden;">
                 <!-- Dynamic items will be inserted here -->
             </div>
         </main>
     </div>
 </div>
-
 {% endblock %}
 
 {% block extra_scripts %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
 <script>
     $(document).ready(function () {
         const canvas = $("#canvas-container");
         const socket = io();
 
-        // Mock data for real-time updates
-        const valveStates = {};
-
         // Function to add a valve or peripheral visually
         function addComponent(id, type, x = 50, y = 50) {
-            const element = $(`
-                <div id="component-${id}" class="draggable"
-                     data-id="${id}" data-type="${type}"
-                     style="position: absolute; left: ${x}px; top: ${y}px;">
+            const element = $(`<div id="component-${id}" class="draggable"
+                    data-id="${id}" data-type="${type}"
+                    style="position: absolute; left: ${x}px; top: ${y}px;">
                     <div class="component-body p-2 text-white bg-primary rounded">${type}</div>
-                </div>
-            `);
+                </div>`);
             canvas.append(element);
             enableDrag(element);
         }
@@ -105,17 +100,17 @@
                         const target = event.target;
                         const x = (parseFloat(target.getAttribute("data-x")) || 0) + event.dx;
                         const y = (parseFloat(target.getAttribute("data-y")) || 0) + event.dy;
-                        target.style.transform = `translate(${x}px, ${y}px)`;
-                        target.setAttribute("data-x", x);
-                        target.setAttribute("data-y", y);
+
+                        // Restrict movement to canvas bounds
+                        if (x >= 0 && y >= 0 && x <= canvas.width() - 100 && y <= canvas.height() - 50) {
+                            target.style.transform = `translate(${x}px, ${y}px)`;
+                            target.setAttribute("data-x", x);
+                            target.setAttribute("data-y", y);
+                        }
                     },
                 },
             });
         }
-
-        // Mock adding components on load
-        addComponent(1, "Valve");
-        addComponent(2, "Temperature Sensor", 200, 200);
 
         // Save Configuration
         $("#save-config").click(function () {
@@ -130,7 +125,7 @@
 
             $.post("/save-configuration", { layout: JSON.stringify(layout) }, function (response) {
                 alert(response.message);
-            });
+            }).fail(() => alert("Failed to save configuration."));
         });
 
         // Load Configuration
@@ -139,9 +134,15 @@
                 if (data.success) {
                     canvas.empty();
                     data.layout.forEach(item => addComponent(item.id, item.type, item.x, item.y));
+                } else {
+                    alert(data.error || "Failed to load configuration.");
                 }
-            });
+            }).fail(() => alert("Failed to load configuration."));
         });
+
+        // Add initial components for demo
+        addComponent(1, "Valve");
+        addComponent(2, "Temperature Sensor", 200, 200);
     });
 </script>
 {% endblock %}

@@ -33,11 +33,21 @@ class SerialService:
             self.connection.close()
             logger.info(f"Disconnected from {self.port}.")
 
+    def reconnect(self):
+        """Reconnect to the serial port."""
+        self.disconnect()
+        logger.info(f"Attempting to reconnect to {self.port}...")
+        self.connect()
+
     def send_data(self, data):
-        """Send data to the device."""
+        """
+        Send data to the device.
+        :param data: String data to send.
+        :return: True if successful, False otherwise.
+        """
         if not self.connection or not self.connection.is_open:
-            logger.error("Serial connection is not open.")
-            return False
+            logger.warning("Serial connection is not open. Attempting to reconnect...")
+            self.reconnect()
         try:
             self.connection.write(data.encode())
             logger.info(f"Sent data: {data}")
@@ -47,10 +57,13 @@ class SerialService:
             return False
 
     def read_data(self):
-        """Read data from the device."""
+        """
+        Read data from the device.
+        :return: Decoded data as a string, or None if an error occurred.
+        """
         if not self.connection or not self.connection.is_open:
-            logger.error("Serial connection is not open.")
-            return None
+            logger.warning("Serial connection is not open. Attempting to reconnect...")
+            self.reconnect()
         try:
             data = self.connection.readline().decode().strip()
             logger.info(f"Received data: {data}")
@@ -58,3 +71,24 @@ class SerialService:
         except Exception as e:
             logger.error(f"Failed to read data: {e}")
             return None
+
+    def __enter__(self):
+        """Context manager entry."""
+        self.connect()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Context manager exit."""
+        self.disconnect()
+
+# Example usage
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
+    
+    port = "COM3"  # Update with your serial port
+    baudrate = 9600
+
+    with SerialService(port, baudrate) as serial_service:
+        serial_service.send_data("Test Command")
+        response = serial_service.read_data()
+        print(f"Response: {response}")

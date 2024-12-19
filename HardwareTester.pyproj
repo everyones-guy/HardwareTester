@@ -46,6 +46,9 @@
     <Compile Include="HardwareTester\services\configuration_service.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="HardwareTester\utils\serial_comm.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="HardwareTester\views\auth_views.py">
       <SubType>Code</SubType>
     </Compile>

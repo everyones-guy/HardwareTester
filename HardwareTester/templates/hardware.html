@@ -1,58 +1,96 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Hardware Devices</h1>
+<div class="container">
+    <h1 class="mt-4">Hardware Devices</h1>
 
-<div>
-    <h3>Discover Device</h3>
-    <form id="discover-device-form">
-        <label for="device-id">Device ID:</label>
-        <input type="text" id="device-id" name="device_id" required>
-        <button type="submit">Discover</button>
-    </form>
-</div>
+    <div class="card mt-4">
+        <div class="card-header">
+            <h3>Discover Device</h3>
+        </div>
+        <div class="card-body">
+            <form id="discover-device-form" class="row g-3">
+                <div class="col-md-8">
+                    <label for="device-id" class="form-label">Device ID:</label>
+                    <input type="text"
+                           id="device-id"
+                           name="device_id"
+                           class="form-control"
+                           placeholder="Enter Device ID"
+                           required>
+                </div>
+                <div class="col-md-4 align-self-end">
+                    <button type="submit" class="btn btn-primary w-100">Discover</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
-<div id="device-details" class="mt-4">
-    <h3>Device Details</h3>
-    <div id="device-info"></div>
-    <div id="device-settings"></div>
+    <div id="device-details" class="card mt-4 d-none">
+        <div class="card-header">
+            <h3>Device Details</h3>
+        </div>
+        <div class="card-body">
+            <div id="device-info"></div>
+            <div id="device-settings"></div>
+        </div>
+    </div>
 </div>
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
-    // Discover device
-    $("#discover-device-form").on("submit", function (event) {
-        event.preventDefault();
-        const deviceId = $("#device-id").val();
+    $(document).ready(function () {
+        // Discover device
+        $("#discover-device-form").on("submit", function (event) {
+            event.preventDefault();
+            const deviceId = $("#device-id").val();
 
-        $.ajax({
-            url: "/hardware/discover-device",
-            type: "POST",
-            contentType: "application/json",
-            data: JSON.stringify({ device_id: deviceId }),
-            success: function (response) {
-                const device = response.device;
-                $("#device-info").html(`
-                    <p><strong>Name:</strong> ${device.name}</p>
-                    <p><strong>Firmware:</strong> ${device.metadata.firmware}</p>
-                    <p><strong>Model:</strong> ${device.metadata.model}</p>
-                `);
+            if (!deviceId) {
+                alert("Please enter a Device ID.");
+                return;
+            }
 
-                const settings = device.settings.menu.map(
-                    (menu) =>
-                        `<div>
-                            <strong>${menu.name}</strong>
-                            <ul>
-                                ${menu.options.map((opt) => `<li>${opt}</li>`).join("")}
+            // Show a loading indicator
+            const discoverButton = $(this).find("button[type='submit']");
+            discoverButton.prop("disabled", true).text("Discovering...");
+
+            $.ajax({
+                url: "/hardware/discover-device",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify({ device_id: deviceId }),
+                success: function (response) {
+                    const device = response.device;
+                    const deviceInfo = `
+                        <p><strong>Name:</strong> ${device.name}</p>
+                        <p><strong>Firmware:</strong> ${device.metadata.firmware}</p>
+                        <p><strong>Model:</strong> ${device.metadata.model}</p>
+                    `;
+                    const deviceSettings = device.settings.menu.map(menu => `
+                        <div class="mt-3">
+                            <h5>${menu.name}</h5>
+                            <ul class="list-group">
+                                ${menu.options.map(opt => `<li class="list-group-item">${opt}</li>`).join("")}
                             </ul>
-                        </div>`
-                );
-                $("#device-settings").html(settings.join(""));
-            },
-            error: function (xhr) {
-                alert(`Error: ${xhr.responseJSON.error}`);
-            },
+                        </div>
+                    `).join("");
+
+                    // Populate device details and settings
+                    $("#device-info").html(deviceInfo);
+                    $("#device-settings").html(deviceSettings);
+
+                    // Show the details card
+                    $("#device-details").removeClass("d-none");
+                },
+                error: function (xhr) {
+                    alert(`Error: ${xhr.responseJSON?.error || "Failed to discover device."}`);
+                },
+                complete: function () {
+                    // Restore the discover button
+                    discoverButton.prop("disabled", false).text("Discover");
+                }
+            });
         });
     });
 </script>

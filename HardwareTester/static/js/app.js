@@ -7,6 +7,7 @@ function showAlert(message, type = "success") {
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>`
     );
+    setTimeout(() => $(".alert").alert("close"), 5000); // Auto-dismiss after 5 seconds
 }
 
 // Utility function to append logs to a real-time log viewer
@@ -14,6 +15,23 @@ function appendLog(message) {
     const logContainer = $("#real-time-logs");
     logContainer.append(`<div>${message}</div>`);
     logContainer.scrollTop(logContainer.prop("scrollHeight"));
+}
+
+// Utility function for AJAX requests
+function ajaxRequest(url, method = "GET", data = null, successCallback, errorCallback) {
+    $.ajax({
+        url,
+        method,
+        data,
+        processData: false,
+        contentType: false,
+    })
+        .done(successCallback)
+        .fail((xhr) => {
+            const errorMessage = xhr.responseJSON?.message || "An error occurred.";
+            showAlert(errorMessage, "danger");
+            if (errorCallback) errorCallback(xhr);
+        });
 }
 
 // Real-time log updates using Socket.IO
@@ -24,15 +42,18 @@ function setupSocketIO() {
 
 // Fetch uploaded test plans and display them
 function updateTestPlansList() {
-    $.get("/get-uploaded-test-plans")
-        .done(function (data) {
+    ajaxRequest(
+        "/get-uploaded-test-plans",
+        "GET",
+        null,
+        function (data) {
             const list = $("#uploaded-test-plans-list");
             list.empty();
 
             if (data.success) {
                 const plans = data.testPlans;
                 if (plans.length > 0) {
-                    plans.forEach(plan => {
+                    plans.forEach((plan) => {
                         list.append(
                             `<li class="list-group-item">
                                 <strong>${plan.name}</strong> - Uploaded by ${plan.uploaded_by}
@@ -46,21 +67,24 @@ function updateTestPlansList() {
             } else {
                 showAlert(data.message, "danger");
             }
-        })
-        .fail(() => showAlert("Failed to fetch test plans.", "danger"));
+        }
+    );
 }
 
 // Fetch list of valves and display them
 function updateValveList() {
-    $.get("/get-valves")
-        .done(function (data) {
+    ajaxRequest(
+        "/get-valves",
+        "GET",
+        null,
+        function (data) {
             const list = $("#valve-list");
             list.empty();
 
             if (data.success) {
                 const valves = data.valves;
                 if (valves.length > 0) {
-                    valves.forEach(valve => {
+                    valves.forEach((valve) => {
                         list.append(
                             `<li class="list-group-item">
                                 <strong>${valve.name}</strong> - ${valve.type}
@@ -74,20 +98,23 @@ function updateValveList() {
             } else {
                 showAlert(data.message, "danger");
             }
-        })
-        .fail(() => showAlert("Failed to fetch valves.", "danger"));
+        }
+    );
 }
 
 // Fetch valve statuses and display them
 function refreshValveStatus() {
-    $.get("/get-valve-status")
-        .done(function (data) {
+    ajaxRequest(
+        "/get-valve-status",
+        "GET",
+        null,
+        function (data) {
             const container = $("#valve-status-container");
             container.empty();
 
             if (data.success) {
                 const statuses = data.statuses;
-                statuses.forEach(status => {
+                statuses.forEach((status) => {
                     container.append(
                         `<div>
                             <strong>Valve ${status.id}</strong>: ${status.status}
@@ -98,8 +125,8 @@ function refreshValveStatus() {
             } else {
                 showAlert(data.message, "danger");
             }
-        })
-        .fail(() => showAlert("Failed to fetch valve statuses.", "danger"));
+        }
+    );
 }
 
 // Handle test plan upload form submission
@@ -107,22 +134,15 @@ function handleTestPlanUpload() {
     $("#upload-test-plan-form").on("submit", function (event) {
         event.preventDefault();
         const formData = new FormData(this);
-
-        $.ajax({
-            url: "/upload-test-plan",
-            type: "POST",
-            data: formData,
-            processData: false,
-            contentType: false,
-        })
-            .done(function (response) {
+        ajaxRequest(
+            "/upload-test-plan",
+            "POST",
+            formData,
+            function (response) {
                 showAlert(response.message, "success");
                 updateTestPlansList();
-            })
-            .fail(function (xhr) {
-                const errorMessage = xhr.responseJSON?.message || "An error occurred.";
-                showAlert(errorMessage, "danger");
-            });
+            }
+        );
     });
 }
 
@@ -131,22 +151,15 @@ function handleSpecSheetUpload() {
     $("#upload-spec-sheet-form").on("submit", function (event) {
         event.preventDefault();
         const formData = new FormData(this);
-
-        $.ajax({
-            url: "/upload-spec-sheet",
-            type: "POST",
-            data: formData,
-            processData: false,
-            contentType: false,
-        })
-            .done(function (response) {
+        ajaxRequest(
+            "/upload-spec-sheet",
+            "POST",
+            formData,
+            function (response) {
                 showAlert(response.message, "success");
                 updateValveList();
-            })
-            .fail(function (xhr) {
-                const errorMessage = xhr.responseJSON?.message || "An error occurred.";
-                showAlert(errorMessage, "danger");
-            });
+            }
+        );
     });
 }
 
@@ -156,11 +169,14 @@ function handleTestPlanExecution() {
         event.preventDefault();
         const testPlanId = $("#testPlanId").val();
 
-        $.post(`/run-test-plan/${testPlanId}`)
-            .done(function (data) {
+        ajaxRequest(
+            `/run-test-plan/${testPlanId}`,
+            "POST",
+            null,
+            function (data) {
                 if (data.success) {
                     let resultsHtml = "<ul>";
-                    data.results.forEach(result => {
+                    data.results.forEach((result) => {
                         resultsHtml += `<li>${result.step.Step}: ${result.result}</li>`;
                     });
                     resultsHtml += "</ul>";
@@ -168,8 +184,8 @@ function handleTestPlanExecution() {
                 } else {
                     showAlert(data.message, "danger");
                 }
-            })
-            .fail(() => showAlert("Failed to execute test plan.", "danger"));
+            }
+        );
     });
 }
 
