@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Hardware Devices</h1>
+
+<div>
+    <h3>Discover Device</h3>
+    <form id="discover-device-form">
+        <label for="device-id">Device ID:</label>
+        <input type="text" id="device-id" name="device_id" required>
+        <button type="submit">Discover</button>
+    </form>
+</div>
+
+<div id="device-details" class="mt-4">
+    <h3>Device Details</h3>
+    <div id="device-info"></div>
+    <div id="device-settings"></div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Discover device
+    $("#discover-device-form").on("submit", function (event) {
+        event.preventDefault();
+        const deviceId = $("#device-id").val();
+
+        $.ajax({
+            url: "/hardware/discover-device",
+            type: "POST",
+            contentType: "application/json",
+            data: JSON.stringify({ device_id: deviceId }),
+            success: function (response) {
+                const device = response.device;
+                $("#device-info").html(`
+                    <p><strong>Name:</strong> ${device.name}</p>
+                    <p><strong>Firmware:</strong> ${device.metadata.firmware}</p>
+                    <p><strong>Model:</strong> ${device.metadata.model}</p>
+                `);
+
+                const settings = device.settings.menu.map(
+                    (menu) =>
+                        `<div>
+                            <strong>${menu.name}</strong>
+                            <ul>
+                                ${menu.options.map((opt) => `<li>${opt}</li>`).join("")}
+                            </ul>
+                        </div>`
+                );
+                $("#device-settings").html(settings.join(""));
+            },
+            error: function (xhr) {
+                alert(`Error: ${xhr.responseJSON.error}`);
+            },
+        });
+    });
+</script>
+{% endblock %}

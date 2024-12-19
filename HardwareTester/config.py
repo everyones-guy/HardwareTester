@@ -10,6 +10,14 @@ class Config:
     ALLOWED_TEST_PLAN_EXTENSIONS = {"pdf", "csv", "txt"}
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16 MB upload limit
     BASE_URL = os.environ.get("BASE_URL", " http://127.0.0.1:5000")  # Default value if not set
+    MQTT_BROKER = os.environ.get("MQTT_BROKER", "test.mosquitto.org")
+    MQTT_PORT = int(os.environ.get("MQTT_PORT", 1883))
+    MQTT_USERNAME = os.environ.get("MQTT_USERNAME", None)
+    MQTT_PASSWORD = os.environ.get("MQTT_PASSWORD", None)
+    MQTT_TLS = os.environ.get("MQTT_TLS", "False") == "True"
+    DEFAULT_SERIAL_PORT = os.getenv("DEFAULT_SERIAL_PORT", "COM3")
+    DEFAULT_BAUDRATE = int(os.getenv("DEFAULT_BAUDRATE", 9600))
+
 
 
     # Add logging for better observability

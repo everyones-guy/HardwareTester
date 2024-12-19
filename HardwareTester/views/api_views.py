@@ -5,6 +5,21 @@ from HardwareTester.services.api_service import (
     push_data_to_api,
     list_available_endpoints,
 )
+from HardwareTester.utils.serial_comm import read_serial_data
+
+from flask import Blueprint, jsonify
+
+
+device_bp = Blueprint("device", __name__)
+
+@device_bp.route("/device-config", methods=["GET"])
+def get_device_config():
+    """Fetch the device configuration over serial."""
+    config_data = read_serial_data(port="/dev/ttyUSB0")
+    if "error" in config_data:
+        return jsonify({"success": False, "error": config_data["error"]}), 500
+    return jsonify({"success": True, "config": config_data})
+
 
 api_bp = Blueprint("api", __name__)
 

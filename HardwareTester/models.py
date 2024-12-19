@@ -62,3 +62,17 @@ class Configuration(db.Model, TimestampMixin):
 
     def __repr__(self):
         return f"<Configuration {self.name}>"
+
+class Device(db.Model):
+    __tablename__ = "devices"
+
+    id = db.Column(db.Integer, primary_key=True)
+    device_id = db.Column(db.String(255), nullable=False, unique=True)
+    name = db.Column(db.String(255), nullable=False)
+    metadata = db.Column(db.JSON, nullable=True)  # Device metadata
+    settings = db.Column(db.JSON, nullable=True)  # Device settings and submenus
+    
+def subscribe_to_device_updates(self, device_id):
+    topic = f"device/{device_id}/updates"
+    self.subscribe(topic)
+

@@ -43,7 +43,7 @@
     <Compile Include="HardwareTester\models.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\services\configuration_services.py">
+    <Compile Include="HardwareTester\services\configuration_service.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="HardwareTester\views\auth_views.py">
