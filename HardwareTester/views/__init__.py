@@ -20,5 +20,5 @@ def register_blueprints(app):
     app.register_blueprint(api_bp, url_prefix="/api")
     app.register_blueprint(serial_bp, url_prefix="/serial")
     app.register_blueprint(configuration_bp, url_prefix="/configurations")
-    
+    app.register_blueprint(mqtt_bp)
     

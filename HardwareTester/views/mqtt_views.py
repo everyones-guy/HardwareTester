@@ -1,37 +1,94 @@
-from flask import Blueprint, render_template, request, jsonify
-from HardwareTester.services.mqtt_service import connect_mqtt, publish_message, subscribe_topic
+from flask import Blueprint, jsonify, request
+from HardwareTester.services.mqtt_service import MQTTService
 
-mqtt_bp = Blueprint("mqtt", __name__)
+mqtt_bp = Blueprint("mqtt", __name__, url_prefix="/mqtt")
 
-@mqtt_bp.route("/", methods=["GET"])
-def mqtt_management():
-    """Render the MQTT Management page."""
-    return render_template("mqtt_management.html")
+# Initialize MQTT service (update with your broker details)
+mqtt_service = MQTTService(broker="mqtt.example.com", port=1883)
 
 @mqtt_bp.route("/connect", methods=["POST"])
-def connect_to_broker():
-    """Connect to an MQTT broker."""
-    data = request.json
-    result = connect_mqtt(data)
-    if result["success"]:
-        return jsonify({"success": True, "message": "Connected to MQTT broker successfully."})
-    return jsonify({"success": False, "error": result["error"]}), 500
+def connect_mqtt():
+    """
+    Connect to the MQTT broker.
+    """
+    try:
+        mqtt_service.connect()
+        return jsonify({"success": True, "message": "Connected to MQTT broker."})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@mqtt_bp.route("/disconnect", methods=["POST"])
+def disconnect_mqtt():
+    """
+    Disconnect from the MQTT broker.
+    """
+    try:
+        mqtt_service.disconnect()
+        return jsonify({"success": True, "message": "Disconnected from MQTT broker."})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
 
 @mqtt_bp.route("/publish", methods=["POST"])
-def publish():
-    """Publish a message to an MQTT topic."""
+def publish_message():
+    """
+    Publish a message to an MQTT topic.
+    Request Body:
+        {
+            "topic": "device/123/status",
+            "payload": {"key": "value"}
+        }
+    """
     data = request.json
-    result = publish_message(data["topic"], data["message"])
-    if result["success"]:
-        return jsonify({"success": True, "message": "Message published successfully."})
-    return jsonify({"success": False, "error": result["error"]}), 500
+    topic = data.get("topic")
+    payload = data.get("payload")
+
+    if not topic or not payload:
+        return jsonify({"success": False, "error": "Topic and payload are required"}), 400
+
+    try:
+        mqtt_service.publish(topic, payload)
+        return jsonify({"success": True, "message": f"Message published to {topic}"})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
 
 @mqtt_bp.route("/subscribe", methods=["POST"])
-def subscribe():
-    """Subscribe to an MQTT topic."""
+def subscribe_topic():
+    """
+    Subscribe to an MQTT topic.
+    Request Body:
+        {
+            "topic": "device/123/#"
+        }
+    """
     data = request.json
-    result = subscribe_topic(data["topic"])
-    if result["success"]:
-        return jsonify({"success": True, "message": "Subscribed to topic successfully."})
-    return jsonify({"success": False, "error": result["error"]}), 500
+    topic = data.get("topic")
 
+    if not topic:
+        return jsonify({"success": False, "error": "Topic is required"}), 400
+
+    try:
+        mqtt_service.subscribe(topic)
+        return jsonify({"success": True, "message": f"Subscribed to topic {topic}"})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@mqtt_bp.route("/discover-device", methods=["POST"])
+def discover_device():
+    """
+    Discover a device via MQTT.
+    Request Body:
+        {
+            "device_id": "123"
+        }
+    """
+    data = request.json
+    device_id = data.get("device_id")
+
+    if not device_id:
+        return jsonify({"success": False, "error": "Device ID is required"}), 400
+
+    try:
+        mqtt_service.discover_device(device_id)
+        return jsonify({"success": True, "message": f"Discovery request sent for device {device_id}"})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
