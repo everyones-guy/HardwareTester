@@ -21,7 +21,7 @@ def discover_device():
     device_data = {
         "device_id": device_id,
         "name": "EcoLab Hero",
-        "metadata": {"firmware": "1.2.3", "model": "Hero", "serial_number": "123456"},
+        "device_metadata": {"firmware": "1.2.3", "model": "Hero", "serial_number": "123456"},
         "settings": {
             "menu": [
                 {"name": "Network", "options": ["WiFi", "Ethernet"]},
@@ -36,12 +36,12 @@ def discover_device():
         device = Device(
             device_id=device_id,
             name=device_data["name"],
-            metadata=device_data["metadata"],
+            metadata=device_data["device_metadata"],
             settings=device_data["settings"],
         )
         db.session.add(device)
     else:
-        device.metadata = device_data["metadata"]
+        device.device_metadata = device_data["device_metadata"]
         device.settings = device_data["settings"]
     db.session.commit()
 
@@ -61,7 +61,7 @@ def get_device(device_id):
             "device": {
                 "device_id": device.device_id,
                 "name": device.name,
-                "metadata": device.metadata,
+                "metadata": device.device_metadata,
                 "settings": device.settings,
             },
         }

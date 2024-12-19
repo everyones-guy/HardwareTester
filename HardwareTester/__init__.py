@@ -1,9 +1,9 @@
 from flask import Flask, jsonify
-from HardwareTester.config import config
+from HardwareTester import config
 from HardwareTester.extensions import db, migrate, socketio, csrf, login_manager
 from HardwareTester.views import register_blueprints
 from HardwareTester.models import User
-from HardwareTester.views.configuration_views import config_bp
+from HardwareTester.views.configuration_views import configuration_bp
 from HardwareTester.views.auth_views import auth_bp
 import logging
 
@@ -35,7 +35,7 @@ def create_app(config_name="default"):
 
     # Register blueprints
     register_blueprints(app)
-    app.register_blueprint(config_bp)  # Register configuration blueprint
+    app.register_blueprint(configuration_bp)  # Register configuration blueprint
     app.register_blueprint(auth_bp)  # Register authentication blueprint
 
     # Register error handlers

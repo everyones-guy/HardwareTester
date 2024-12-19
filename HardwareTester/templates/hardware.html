@@ -64,8 +64,8 @@
                     const device = response.device;
                     const deviceInfo = `
                         <p><strong>Name:</strong> ${device.name}</p>
-                        <p><strong>Firmware:</strong> ${device.metadata.firmware}</p>
-                        <p><strong>Model:</strong> ${device.metadata.model}</p>
+                        <p><strong>Firmware:</strong> ${device.device_metadata.firmware}</p>
+                        <p><strong>Model:</strong> ${device.device_metadata.model}</p>
                     `;
                     const deviceSettings = device.settings.menu.map(menu => `
                         <div class="mt-3">
