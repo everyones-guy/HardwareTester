@@ -33,6 +33,33 @@ $(document).ready(function () {
         };
     }
 
+    // Function to add a new component dynamically
+    function addComponent(name, type, x = 50, y = 50) {
+        const component = $(`<div class="component" style="left: ${x}px; top: ${y}px;">
+        <strong>${name}</strong> (${type})
+        <div class="options">
+            <button class="btn btn-sm btn-info simulate">Simulate</button>
+            <button class="btn btn-sm btn-danger remove">Remove</button>
+        </div>
+    </div>`);
+
+        // Add drag-and-drop functionality
+        component.draggable({
+            containment: "#canvas-container",
+        });
+
+        // Add options behavior
+        component.find(".simulate").click(() => simulateComponent(name));
+        component.find(".remove").click(() => component.remove());
+
+        $("#canvas-container").append(component);
+    }
+
+    // Example usage
+    addComponent("Valve A", "Valve");
+    addComponent("Sensor X", "Temperature Sensor", 200, 100);
+
+
     // Simulate property behavior
     function simulatePropertyBehavior(property) {
         if (property.behavior === "oscillate") {

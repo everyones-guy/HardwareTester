@@ -1,37 +1,49 @@
 import os
-from datetime import datetime
+import logging
+from flask_socketio import emit
+from flask import jsonify
 
-def get_log_history(log_file="logs/application.log"):
+# Logger setup
+LOG_FILE = "hardware_tester.log"
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[
+        logging.FileHandler(LOG_FILE),
+        logging.StreamHandler()  # Also logs to console
+    ]
+)
+
+logger = logging.getLogger("HardwareTester")
+
+def add_log_entry(level, message):
     """
-    Fetch log history from a specified log file.
-    :param log_file: Path to the log file.
-    :return: Log contents or an error message.
+    Add a log entry with the specified level and message.
     """
-    try:
-        if not os.path.exists(log_file):
-            return {"success": False, "error": f"Log file '{log_file}' not found."}
+    if level.lower() == "info":
+        logger.info(message)
+    elif level.lower() == "warning":
+        logger.warning(message)
+    elif level.lower() == "error":
+        logger.error(message)
+    elif level.lower() == "debug":
+        logger.debug(message)
+    else:
+        logger.info(message)  # Default to info if level is invalid
 
-        with open(log_file, "r") as f:
-            logs = f.readlines()
-        return {"success": True, "logs": logs}
+    # Emit the log to the UI via Socket.IO
+    emit("log_update", {"level": level.upper(), "message": message}, broadcast=True)
 
-    except Exception as e:
-        return {"success": False, "error": str(e)}
+    return {"success": True, "message": "Log added successfully."}
 
-
-def stream_logs(log_file="logs/application.log"):
+def fetch_logs():
     """
-    Simulate real-time log streaming.
-    :param log_file: Path to the log file.
-    :return: Generator for real-time logs.
+    Fetch logs from the log file.
     """
-    try:
-        with open(log_file, "r") as f:
-            # Move to the end of the file
-            f.seek(0, os.SEEK_END)
-            while True:
-                line = f.readline()
-                if line:
-                    yield {"timestamp": datetime.now().isoformat(), "message": line.strip()}
-    except Exception as e:
-        yield {"timestamp": datetime.now().isoformat(), "error": str(e)}
+    if not os.path.exists(LOG_FILE):
+        return {"success": False, "error": "Log file does not exist."}
+
+    with open(LOG_FILE, "r") as log_file:
+        logs = log_file.readlines()
+    return {"success": True, "logs": logs}

@@ -4,32 +4,36 @@
 <div class="container-fluid">
     <div class="row">
         <!-- Sidebar -->
-        <nav id="sidebar" class="col-md-3 bg-light">
+        <nav class="col-md-3 bg-light sidebar">
             <div class="p-3">
-                <h5>Quick Actions</h5>
+                <h5>Navigation</h5>
                 <ul class="nav flex-column">
                     <li class="nav-item">
-                        <a class="nav-link" href="#peripherals">Add Peripherals</a>
+                        <a class="nav-link active" href="#dashboard">Dashboard</a>
                     </li>
                     <li class="nav-item">
-                        <button id="save-config" class="btn btn-primary w-100 mt-2">Save Configuration</button>
+                        <a class="nav-link" href="#devices">Devices</a>
                     </li>
                     <li class="nav-item">
-                        <button id="load-config" class="btn btn-secondary w-100 mt-2">Load Configuration</button>
+                        <a class="nav-link" href="#test-plans">Test Plans</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#logs">Logs</a>
                     </li>
                 </ul>
             </div>
         </nav>
 
-        <!-- Main Canvas -->
+        <!-- Main Content -->
         <main class="col-md-9">
-            <h3 class="text-center">Valve System Visualization</h3>
-            <div id="canvas-container" class="border bg-light position-relative" style="height: 500px; overflow: hidden;">
+            <h3 class="text-center">Hardware Tester Dashboard</h3>
+            <div id="canvas-container" class="border bg-light position-relative" style="height: 500px;">
                 <!-- Dynamic items will be inserted here -->
             </div>
         </main>
     </div>
 </div>
+
 {% endblock %}
 
 {% block extra_scripts %}

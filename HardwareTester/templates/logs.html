@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar for filters -->
+        <div class="col-md-3 bg-light p-3">
+            <h5>Filter Logs</h5>
+            <form id="log-filter-form">
+                <div class="mb-3">
+                    <label for="log-level" class="form-label">Log Level</label>
+                    <select id="log-level" class="form-select">
+                        <option value="ALL">All</option>
+                        <option value="DEBUG">Debug</option>
+                        <option value="INFO">Info</option>
+                        <option value="WARNING">Warning</option>
+                        <option value="ERROR">Error</option>
+                        <option value="CRITICAL">Critical</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="log-keyword" class="form-label">Keyword</label>
+                    <input type="text" id="log-keyword" class="form-control" placeholder="Search keyword">
+                </div>
+                <div class="mb-3">
+                    <label for="log-date-range" class="form-label">Date Range</label>
+                    <input type="date" id="log-start-date" class="form-control mb-1" placeholder="Start Date">
+                    <input type="date" id="log-end-date" class="form-control" placeholder="End Date">
+                </div>
+                <button type="button" id="filter-logs" class="btn btn-primary w-100">Apply Filters</button>
+            </form>
+        </div>
+
+        <!-- Logs display -->
+        <div class="col-md-9">
+            <h3 class="text-center">Application Logs</h3>
+            <div id="log-container" class="border bg-light p-3" style="height: 600px; overflow-y: scroll;">
+                <!-- Logs will be dynamically inserted here -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    $(document).ready(function () {
+        const logContainer = $("#log-container");
+
+        // Fetch and display logs
+        function fetchLogs(filters = {}) {
+            $.get("/logs", filters, function (response) {
+                logContainer.empty();
+                if (response.success) {
+                    response.logs.forEach(log => {
+                        logContainer.append(`
+                            <div>
+                                <strong>${log.level}</strong> [${log.timestamp}]: ${log.message}
+                                <pre>${log.context || ""}</pre>
+                            </div>
+                            <hr>
+                        `);
+                    });
+                } else {
+                    logContainer.html("<p class='text-danger'>Failed to load logs.</p>");
+                }
+            });
+        }
+
+        // Initial load
+        fetchLogs();
+
+        // Apply filters
+        $("#filter-logs").click(function () {
+            const filters = {
+                level: $("#log-level").val(),
+                keyword: $("#log-keyword").val(),
+                start_date: $("#log-start-date").val(),
+                end_date: $("#log-end-date").val(),
+            };
+            fetchLogs(filters);
+        });
+    });
+</script>
+{% endblock %}

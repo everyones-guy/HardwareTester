@@ -254,7 +254,7 @@
     <Content Include="HardwareTester\templates\error.html" />
     <Content Include="HardwareTester\templates\mqtt_management.html" />
     <Content Include="HardwareTester\templates\peripherals.html" />
-    <Content Include="HardwareTester\templates\real_time_logs.html" />
+    <Content Include="HardwareTester\templates\logs.html" />
     <Content Include="HardwareTester\templates\test_plan_management.html" />
     <Content Include="HardwareTester\templates\upload_test_plan.html" />
     <Content Include="HardwareTester\templates\valve_management.html" />
