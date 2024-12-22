@@ -1,4 +1,4 @@
-from HardwareTester.db_utils import DatabaseManager
+from HardwareTester.utils.db_utils import DatabaseManager
 
 def initialize_database():
     db_manager = DatabaseManager()

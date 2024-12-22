@@ -3,10 +3,11 @@ import click
 from HardwareTester.utils.db_utils import init_db, migrate_db, upgrade_db
 from HardwareTester.services.configuration_service import save_configuration, load_configuration, list_configurations
 from HardwareTester.services.emulator_service import run_emulator
+from HardwareTester.services.mqtt_client import FirmwareMQTTClient
 
 @click.group()
 def cli():
-    """Hardware Tester CLI"""
+    """Firmware CLI for device management."""
     pass
 
 # Database Commands
@@ -132,5 +133,25 @@ def run_test(test_plan_id):
     else:
         click.echo(f"Error: {result['error']}")
 
+@cli.command()
+@click.argument("device_id")
+@click.argument("firmware_path")
+def upload_firmware(device_id, firmware_path):
+    """Upload firmware to the device."""
+    client = FirmwareMQTTClient(broker="test.mosquitto.org")
+    client.connect()
+    client.upload_firmware(device_id, firmware_path)
+    client.disconnect()
+
+@cli.command()
+@click.argument("device_id")
+def validate_firmware(device_id):
+    """Validate firmware on the device."""
+    client = FirmwareMQTTClient(broker="test.mosquitto.org")
+    client.connect()
+    client.validate_firmware(device_id)
+    client.disconnect()
+
 if __name__ == "__main__":
     cli()
+

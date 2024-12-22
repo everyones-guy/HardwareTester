@@ -3,6 +3,7 @@ import os
 import hashlib
 import logging
 from pathlib import Path
+from HardwareTester.utils.firmware_utils import validate_firmware_file
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -66,14 +67,14 @@ class FirmwareMQTTClient:
     def upload_firmware(self, device_id, firmware_path):
         """Upload firmware to the device."""
         topic = f"device/{device_id}/firmware/update"
-        if not Path(firmware_path).is_file():
-            logger.error("Firmware file not found.")
+        firmware_hash = validate_firmware_file(firmware_path)
+        if not firmware_hash:
+            logger.error("Firmware validation failed.")
             return
 
         try:
             with open(firmware_path, "rb") as f:
                 firmware_data = f.read()
-                firmware_hash = hashlib.sha256(firmware_data).hexdigest()
                 payload = {
                     "action": "upload",
                     "firmware_hash": firmware_hash,
@@ -96,3 +97,32 @@ class FirmwareMQTTClient:
         topic = f"device/{device_id}/firmware/status"
         self.subscribe(topic)
         logger.info(f"Subscribed to firmware status updates for {device_id}.")
+        
+    def validate_firmware_file(firmware_path):
+        """Validate firmware file for supported formats."""
+        try:
+            with open(firmware_path, "rb") as f:
+                firmware_data = f.read()
+
+            # Binary validation
+            if firmware_path.endswith(".bin"):
+                logger.info("Validating binary firmware file.")
+                return hashlib.sha256(firmware_data).hexdigest()
+
+            # Hex validation
+            elif firmware_path.endswith(".hex"):
+                logger.info("Validating hex firmware file.")
+                return hashlib.sha256(bytes.fromhex(firmware_data.decode())).hexdigest()
+
+            # Text-based validation
+            elif firmware_path.endswith(".txt"):
+                logger.info("Validating text-based firmware file.")
+                return hashlib.sha256(firmware_data).hexdigest()
+
+            else:
+                logger.error("Unsupported firmware format.")
+                return None
+        except Exception as e:
+            logger.error(f"Failed to validate firmware file: {e}")
+            return None
+        
