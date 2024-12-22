@@ -4,6 +4,8 @@ from HardwareTester.extensions import db, migrate, socketio, csrf, login_manager
 from HardwareTester.views import register_blueprints
 from HardwareTester.models import User
 from HardwareTester.views.configuration_views import configuration_bp
+from HardwareTester.config import config
+
 from HardwareTester.views.auth_views import auth_bp
 import logging
 

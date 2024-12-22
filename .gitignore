@@ -361,3 +361,9 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/HardwareTester/secrets/access_token
+/HardwareTester/secrets/password
+/HardwareTester/secrets/username
+/secrets/username
+/secrets/password
+/secrets/access_token

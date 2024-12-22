@@ -1,18 +1,18 @@
 import argparse
-from dotenv import load_dotenv
 from HardwareTester import create_app, socketio
-import os
+from HardwareTester.utils import initialize_database
 
 def main():
-    # Load environment variables from the .env file
-    load_dotenv()
-
-    parser = argparse.ArgumentParser(description="Run the Hardware Tester Flask App")
-    parser.add_argument("--config", default=os.getenv("FLASK_CONFIG", "default"), help="Specify the configuration to use")
+    parser = argparse.ArgumentParser(description="Run the Hardware Tester server.")
+    parser.add_argument("--config", help="Configuration to use (default: development)", default="development")
     args = parser.parse_args()
 
     app = create_app(args.config)
-    socketio.run(app, host=os.getenv("HOST", "0.0.0.0"), port=int(os.getenv("PORT", 5000)))
+    socketio.run(app, host="0.0.0.0", port=5000)
+    
+    db_manager = initialize_database()
+    # Inspect database schema
+    db_manager.inspect_database()
 
 if __name__ == "__main__":
     main()

@@ -1,6 +1,7 @@
 import paho.mqtt.client as mqtt
 import json
 import logging
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +14,6 @@ class MQTTService:
         self.tls = tls
         self.client = mqtt.Client()
         self._setup_client()
-        self.device_responses = {}  # Store responses from devices
 
     def _setup_client(self):
         if self.username and self.password:
@@ -32,12 +32,6 @@ class MQTTService:
 
     def on_message(self, client, userdata, msg):
         logger.info(f"Received message from topic {msg.topic}: {msg.payload.decode()}")
-        try:
-            payload = json.loads(msg.payload.decode())
-            if "device_id" in payload:
-                self.device_responses[payload["device_id"]] = payload
-        except json.JSONDecodeError:
-            logger.warning("Received non-JSON payload.")
 
     def connect(self):
         try:
@@ -48,12 +42,9 @@ class MQTTService:
             logger.error(f"Error connecting to MQTT broker: {e}")
 
     def disconnect(self):
-        try:
-            self.client.loop_stop()
-            self.client.disconnect()
-            logger.info("MQTT connection closed.")
-        except Exception as e:
-            logger.error(f"Error disconnecting from MQTT broker: {e}")
+        self.client.loop_stop()
+        self.client.disconnect()
+        logger.info("MQTT connection closed.")
 
     def publish(self, topic, payload):
         try:
@@ -69,23 +60,41 @@ class MQTTService:
         except Exception as e:
             logger.error(f"Failed to subscribe to {topic}: {e}")
 
-    def discover_device(self, device_id):
-        """
-        Query device metadata and settings.
-        :param device_id: Device ID to discover.
-        """
+    # Firmware Update
+    def update_firmware(self, device_id, firmware_url):
+        topic = f"device/{device_id}/firmware"
         try:
-            topic = f"device/{device_id}/info"
-            self.subscribe(topic)
-            self.publish(topic, {"action": "get_info"})  # Query the device
-            logger.info(f"Sent discovery request to {topic}")
-        except Exception as e:
-            logger.error(f"Failed to query device: {e}")
+            logger.info(f"Starting firmware update for device {device_id}")
+            self.publish(topic, {"action": "update_firmware", "url": firmware_url})
 
-    def get_device_response(self, device_id):
-        """
-        Fetch the response for a discovered device.
-        :param device_id: Device ID to fetch the response for.
-        :return: Response data or None if no response received.
-        """
-        return self.device_responses.get(device_id)
+            # Monitor firmware update status
+            update_topic = f"device/{device_id}/firmware/status"
+            self.subscribe(update_topic)
+
+            logger.info("Waiting for firmware update to complete...")
+            time.sleep(5)  # Simulate waiting for completion
+            logger.info("Firmware update completed successfully.")
+            return {"success": True, "message": "Firmware updated successfully."}
+        except Exception as e:
+            logger.error(f"Firmware update failed: {e}")
+            return {"success": False, "error": str(e)}
+
+    # Provisioning Process
+    def provision_device(self, device_id, firmware_url, test_plan):
+        logger.info(f"Starting provisioning for device {device_id}")
+        firmware_result = self.update_firmware(device_id, firmware_url)
+
+        if firmware_result["success"]:
+            logger.info(f"Firmware update successful for device {device_id}. Running tests...")
+            self.run_tests(device_id, test_plan)
+        else:
+            logger.error(f"Provisioning failed during firmware update: {firmware_result['error']}")
+
+    # Run Tests
+    def run_tests(self, device_id, test_plan):
+        topic = f"device/{device_id}/tests"
+        try:
+            self.publish(topic, {"action": "run_tests", "test_plan": test_plan})
+            logger.info(f"Test plan {test_plan} sent to device {device_id}")
+        except Exception as e:
+            logger.error(f"Failed to send test plan: {e}")

@@ -28,10 +28,13 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="HardwareTester\cli.py">
+    <Compile Include="cli.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="HardwareTester\config.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="HardwareTester\db_setup.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="HardwareTester\extensions.py">
@@ -46,6 +49,19 @@
     <Compile Include="HardwareTester\services\configuration_service.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="HardwareTester\services\firmware_mqtt_client.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="HardwareTester\services\peripheral_service.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="HardwareTester\utils\db_utils.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="HardwareTester\init.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="HardwareTester\utils\secrets.py" />
     <Compile Include="HardwareTester\utils\serial_comm.py">
       <SubType>Code</SubType>
     </Compile>
@@ -56,9 +72,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="HardwareTester\views\error_views.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="HardwareTester\views\mqqt_views.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="old\scripts\manage_test_plans.py">
@@ -187,6 +200,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="HardwareTester\" />
+    <Folder Include="secrets\" />
     <Folder Include="HardwareTester\templates\auth\" />
     <Folder Include="HardwareTester\views\" />
     <Folder Include="HardwareTester\services\" />
@@ -216,9 +230,12 @@
   <ItemGroup>
     <Content Include=".env" />
     <Content Include=".flaskenv" />
+    <Content Include="docker-compose.yml" />
+    <Content Include="Docker.txt" />
     <Content Include="HardwareTester\static\css\styles.css" />
     <Content Include="HardwareTester\static\js\app.js" />
     <Content Include="HardwareTester\static\js\dashboard.js" />
+    <Content Include="HardwareTester\static\js\emulator.js" />
     <Content Include="HardwareTester\static\js\jest.config.js" />
     <Content Include="HardwareTester\static\js\test\setup.js" />
     <Content Include="HardwareTester\static\js\valve_management.js" />
@@ -230,6 +247,7 @@
     <Content Include="HardwareTester\templates\auth\login.html" />
     <Content Include="HardwareTester\templates\error.html" />
     <Content Include="HardwareTester\templates\mqtt_management.html" />
+    <Content Include="HardwareTester\templates\peripherals.html" />
     <Content Include="HardwareTester\templates\real_time_logs.html" />
     <Content Include="HardwareTester\templates\test_plan_management.html" />
     <Content Include="HardwareTester\templates\upload_test_plan.html" />

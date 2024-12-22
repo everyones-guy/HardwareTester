@@ -145,4 +145,16 @@
         addComponent(2, "Temperature Sensor", 200, 200);
     });
 </script>
+
+<script>
+    const socket = io();
+
+    socket.on("peripheral_update", (data) => {
+        const peripheral = $(`.peripheral-node:contains('${data.name}')`);
+        if (peripheral.length) {
+            peripheral.find(`.property-value:contains('${data.property}')`).text(data.value);
+        }
+    });
+</script>
+
 {% endblock %}
