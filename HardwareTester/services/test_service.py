@@ -2,66 +2,105 @@ import os
 from HardwareTester.utils.logger import Logger
 from HardwareTester.utils.api_manager import create_api_manager
 
-logger = Logger(name="TestPlanService", log_file="logs/test_plan_service.log", level="INFO")
+logger = Logger(name="TestService", log_file="logs/test_service.log", level="INFO")
 api_manager = create_api_manager("https://example.com/api")
 
+class TestService:
+    @staticmethod
+    def list_tests():
+        """
+        Fetch and return a list of all available tests (not limited to test plans).
+        :return: List of available tests.
+        """
+        logger.info("Fetching list of available tests...")
+        response = api_manager.get("tests")
+        if "error" in response:
+            logger.error(f"Failed to fetch tests: {response['error']}")
+            return {"success": False, "error": response["error"]}
+        logger.info(f"Retrieved {len(response.get('tests', []))} tests.")
+        return {"success": True, "tests": response.get("tests", [])}
 
-def list_test_plans():
-    """Fetch and return all test plans."""
-    logger.info("Fetching list of test plans...")
-    response = api_manager.get("test-plans")
-    if "error" in response:
-        logger.error(f"Failed to fetch test plans: {response['error']}")
-        return {"success": False, "error": response["error"]}
-    logger.info(f"Retrieved {len(response.get('testPlans', []))} test plans.")
-    return {"success": True, "testPlans": response.get("testPlans", [])}
+    @staticmethod
+    def run_test(test_id, parameters=None):
+        """
+        Run a specific test by ID with optional parameters.
+        :param test_id: ID of the test to execute.
+        :param parameters: Optional parameters for test execution.
+        :return: Execution results.
+        """
+        logger.info(f"Running test ID {test_id} with parameters: {parameters}...")
+        payload = {"parameters": parameters} if parameters else {}
+        response = api_manager.post(f"tests/{test_id}/run", payload=payload)
+        if "error" in response:
+            logger.error(f"Failed to run test {test_id}: {response['error']}")
+            return {"success": False, "error": response["error"]}
+        logger.info(f"Test executed successfully: {response}")
+        return {"success": True, "results": response.get("results", [])}
 
+    @staticmethod
+    def stress_test(device_id, duration, load):
+        """
+        Perform a stress test on a device.
+        :param device_id: ID of the target device.
+        :param duration: Duration of the stress test (in seconds).
+        :param load: Load level for the stress test (e.g., percentage or specific value).
+        :return: Stress test results.
+        """
+        logger.info(f"Starting stress test on device {device_id} for {duration}s at {load}% load...")
+        payload = {"duration": duration, "load": load}
+        response = api_manager.post(f"devices/{device_id}/stress-test", payload=payload)
+        if "error" in response:
+            logger.error(f"Failed to perform stress test on device {device_id}: {response['error']}")
+            return {"success": False, "error": response["error"]}
+        logger.info(f"Stress test completed successfully: {response}")
+        return {"success": True, "results": response.get("results", [])}
 
-def upload_test_plan(file, uploaded_by):
-    """
-    Upload a test plan file.
-    :param file: File object.
-    :param uploaded_by: The user uploading the file.
-    :return: Success or failure message.
-    """
-    logger.info(f"Uploading test plan by {uploaded_by}...")
-    if not file:
-        logger.error("No file provided for upload.")
-        return {"success": False, "error": "No file provided."}
+    @staticmethod
+    def save_test_results(test_id, results):
+        """
+        Save the results of a test to the database or an external storage system.
+        :param test_id: ID of the test.
+        :param results: Results data to save.
+        :return: Success or failure message.
+        """
+        logger.info(f"Saving results for test ID {test_id}...")
+        try:
+            file_path = os.path.join("results", f"test_{test_id}_results.json")
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
+            with open(file_path, "w") as file:
+                file.write(results)
+            logger.info(f"Results saved successfully to {file_path}.")
+            return {"success": True, "message": f"Results saved to {file_path}."}
+        except Exception as e:
+            logger.error(f"Error saving test results: {e}")
+            return {"success": False, "error": str(e)}
 
-    try:
-        # Example: Save locally and send to API
-        file_path = os.path.join("uploads/test_plans", file.filename)
-        file.save(file_path)
-        logger.info(f"Saved test plan locally: {file_path}")
+    @staticmethod
+    def fetch_test_logs(test_id):
+        """
+        Fetch logs related to a specific test.
+        :param test_id: ID of the test.
+        :return: Logs for the specified test.
+        """
+        logger.info(f"Fetching logs for test ID {test_id}...")
+        response = api_manager.get(f"tests/{test_id}/logs")
+        if "error" in response:
+            logger.error(f"Failed to fetch logs for test {test_id}: {response['error']}")
+            return {"success": False, "error": response["error"]}
+        logger.info(f"Logs retrieved successfully for test ID {test_id}.")
+        return {"success": True, "logs": response.get("logs", [])}
 
-        # Send to API (if applicable)
-        payload = {"uploaded_by": uploaded_by}
-        with open(file_path, "rb") as f:
-            files = {"file": f}
-            response = api_manager.post("test-plans/upload", payload=payload, headers={"files": files})
-            if "error" in response:
-                logger.error(f"Failed to upload test plan to API: {response['error']}")
-                return {"success": False, "error": response["error"]}
-
-        logger.info(f"Test plan uploaded successfully: {response}")
-        return {"success": True, "message": "Test plan uploaded successfully."}
-
-    except Exception as e:
-        logger.error(f"Error uploading test plan: {e}")
-        return {"success": False, "error": str(e)}
-
-
-def run_test_plan(test_plan_id):
-    """
-    Run a specific test plan by ID.
-    :param test_plan_id: ID of the test plan to execute.
-    :return: Execution results.
-    """
-    logger.info(f"Running test plan ID {test_plan_id}...")
-    response = api_manager.post(f"test-plans/{test_plan_id}/run")
-    if "error" in response:
-        logger.error(f"Failed to run test plan {test_plan_id}: {response['error']}")
-        return {"success": False, "error": response["error"]}
-    logger.info(f"Test plan executed successfully: {response}")
-    return {"success": True, "results": response.get("results", [])}
+    @staticmethod
+    def validate_test_configuration(configuration):
+        """
+        Validate a test configuration before execution.
+        :param configuration: Test configuration data.
+        :return: Validation results.
+        """
+        logger.info("Validating test configuration...")
+        response = api_manager.post("tests/validate-configuration", payload=configuration)
+        if "error" in response:
+            logger.error(f"Configuration validation failed: {response['error']}")
+            return {"success": False, "error": response["error"]}
+        logger.info("Configuration validated successfully.")
+        return {"success": True, "validation": response.get("validation", {})}

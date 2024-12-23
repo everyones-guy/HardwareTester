@@ -4,10 +4,13 @@ from HardwareTester.utils.db_utils import init_db, migrate_db, upgrade_db
 from HardwareTester.services.configuration_service import save_configuration, load_configuration, list_configurations
 from HardwareTester.services.emulator_service import run_emulator
 from HardwareTester.services.mqtt_client import FirmwareMQTTClient
+from HardwareTester.services.test_service import execute_test_plan, list_tests, create_test_plan
+from HardwareTester.utils.firmware_utils import validate_firmware_file
+import os
 
 @click.group()
 def cli():
-    """Firmware CLI for device management."""
+    """Firmware CLI for device management and testing."""
     pass
 
 # Database Commands
@@ -79,9 +82,10 @@ def emulator():
 
 @emulator.command("run")
 @click.option("--machine", required=True, help="Machine name to emulate.")
-def run_emulator_cli(machine):
+@click.option("--config", default=None, help="Path to configuration file for the emulator.")
+def run_emulator_cli(machine, config):
     """Run the hardware emulator."""
-    run_emulator(machine)
+    run_emulator(machine, config=config)
     click.echo(f"Emulator for {machine} started.")
 
 # MQTT Commands
@@ -125,33 +129,65 @@ def test():
 @click.argument("test_plan_id", type=int)
 def run_test(test_plan_id):
     """Run a specific test plan."""
-    from HardwareTester.services.test_service import execute_test_plan
-
     result = execute_test_plan(test_plan_id)
     if result["success"]:
         click.echo("Test plan executed successfully.")
+        for step_result in result["results"]:
+            click.echo(f"{step_result['step']}: {step_result['result']}")
     else:
         click.echo(f"Error: {result['error']}")
 
-@cli.command()
+@test.command("list")
+def list_test_plans():
+    """List all test plans."""
+    result = list_tests()
+    if result["success"]:
+        click.echo("Available Test Plans:")
+        for test in result["tests"]:
+            click.echo(f"ID: {test['id']} Name: {test['name']}")
+    else:
+        click.echo(f"Error: {result['error']}")
+
+@test.command("create")
+@click.argument("name")
+@click.argument("steps")
+def create_test(name, steps):
+    """Create a new test plan."""
+    result = create_test_plan(name, steps)
+    if result["success"]:
+        click.echo(f"Test plan '{name}' created successfully.")
+    else:
+        click.echo(f"Error: {result['error']}")
+
+# Firmware Commands
+@cli.group()
+def firmware():
+    """Firmware management commands."""
+    pass
+
+@firmware.command("upload")
 @click.argument("device_id")
 @click.argument("firmware_path")
 def upload_firmware(device_id, firmware_path):
     """Upload firmware to the device."""
-    client = FirmwareMQTTClient(broker="test.mosquitto.org")
+    if not os.path.exists(firmware_path):
+        click.echo(f"Firmware file {firmware_path} not found.")
+        return
+    client = FirmwareMQTTClient()
     client.connect()
     client.upload_firmware(device_id, firmware_path)
     client.disconnect()
+    click.echo(f"Firmware uploaded to device {device_id}.")
 
-@cli.command()
+@firmware.command("validate")
 @click.argument("device_id")
 def validate_firmware(device_id):
     """Validate firmware on the device."""
-    client = FirmwareMQTTClient(broker="test.mosquitto.org")
+    client = FirmwareMQTTClient()
     client.connect()
     client.validate_firmware(device_id)
     client.disconnect()
+    click.echo(f"Firmware validation for device {device_id} completed.")
 
 if __name__ == "__main__":
     cli()
-

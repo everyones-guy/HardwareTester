@@ -58,6 +58,9 @@
     <Compile Include="HardwareTester\services\peripheral_service.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="HardwareTester\services\test_service.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="HardwareTester\utils\db_utils.py">
       <SubType>Code</SubType>
     </Compile>
@@ -95,7 +98,7 @@
     <Compile Include="HardwareTester\services\log_service.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\services\test_service.py">
+    <Compile Include="HardwareTester\services\test_plan_service.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="HardwareTester\services\valve_service.py">
