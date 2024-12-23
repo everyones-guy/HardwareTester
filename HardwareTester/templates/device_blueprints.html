@@ -1,11 +1,25 @@
-<!DOCTYPE html>
+{% extends "base.html" %}
 
-<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
-<head>
-    <meta charset="utf-8" />
-    <title></title>
-</head>
-<body>
+{% block content %}
+<h1>Device Blueprints</h1>
+<form id="upload-blueprint-form" enctype="multipart/form-data">
+    <div class="mb-3">
+        <label for="blueprintFile" class="form-label">Upload Blueprint</label>
+        <input type="file" id="blueprintFile" name="blueprintFile" class="form-control">
+    </div>
+    <button type="submit" class="btn btn-primary">Upload</button>
+</form>
+<ul id="blueprints-list" class="list-group mt-4">
+    <!-- Dynamically populated list -->
+</ul>
+{% endblock %}
 
-</body>
-</html>
+{% block extra_scripts %}
+<script>
+    // Script to handle blueprint uploads and retrieval
+    document.getElementById("upload-blueprint-form").addEventListener("submit", (e) => {
+        e.preventDefault();
+        alert("Blueprint Uploaded!"); // Placeholder for actual implementation
+    });
+</script>
+{% endblock %}

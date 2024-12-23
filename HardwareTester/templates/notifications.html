@@ -1,11 +1,23 @@
-<!DOCTYPE html>
+{% extends "base.html" %}
 
-<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
-<head>
-    <meta charset="utf-8" />
-    <title></title>
-</head>
-<body>
+{% block content %}
+<h1>Notifications</h1>
+<ul id="notifications-list" class="list-group">
+    <!-- Dynamically populate -->
+</ul>
+{% endblock %}
 
-</body>
-</html>
+{% block extra_scripts %}
+<script>
+    // Example: Fetch notifications
+    fetch("/api/notifications").then(res => res.json()).then(data => {
+        const list = document.getElementById("notifications-list");
+        data.forEach(notification => {
+            const item = document.createElement("li");
+            item.className = "list-group-item";
+            item.textContent = notification.message;
+            list.appendChild(item);
+        });
+    });
+</script>
+{% endblock %}
