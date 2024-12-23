@@ -1,11 +1,30 @@
-<!DOCTYPE html>
+{% extends "base.html" %}
 
-<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
-<head>
-    <meta charset="utf-8" />
-    <title></title>
-</head>
-<body>
+{% block content %}
+<h1>Analytics Dashboard</h1>
+<div id="analytics-charts" class="row">
+    <div class="col-md-6">
+        <canvas id="performanceChart"></canvas>
+    </div>
+    <div class="col-md-6">
+        <canvas id="usageChart"></canvas>
+    </div>
+</div>
+{% endblock %}
 
-</body>
-</html>
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Example: Chart.js setup for performance analytics
+    const performanceChart = new Chart(document.getElementById("performanceChart"), {
+        type: 'line',
+        data: { labels: ["Jan", "Feb", "Mar"], datasets: [{ label: "Performance", data: [65, 59, 80] }] },
+        options: { responsive: true }
+    });
+    const usageChart = new Chart(document.getElementById("usageChart"), {
+        type: 'bar',
+        data: { labels: ["Test1", "Test2"], datasets: [{ label: "Usage", data: [12, 19] }] },
+        options: { responsive: true }
+    });
+</script>
+{% endblock %}

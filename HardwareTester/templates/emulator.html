@@ -1,11 +1,16 @@
-<!DOCTYPE html>
+{% extends "base.html" %}
 
-<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
-<head>
-    <meta charset="utf-8" />
-    <title></title>
-</head>
-<body>
+{% block content %}
+<h1>Hardware Emulator</h1>
+<div id="emulator-canvas" class="border bg-light" style="height: 500px;">
+    <!-- Drag-and-drop components -->
+</div>
+<button id="start-emulator" class="btn btn-primary mt-3">Start Emulator</button>
+{% endblock %}
 
-</body>
-</html>
+{% block extra_scripts %}
+<script>
+    // Placeholder for emulator interaction
+    document.getElementById("start-emulator").addEventListener("click", () => alert("Emulator started!"));
+</script>
+{% endblock %}

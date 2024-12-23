@@ -1,11 +1,12 @@
-<!DOCTYPE html>
+{% extends "base.html" %}
 
-<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
-<head>
-    <meta charset="utf-8" />
-    <title></title>
-</head>
-<body>
-
-</body>
-</html>
+{% block content %}
+<h1>Settings</h1>
+<form id="settings-form">
+    <div class="mb-3">
+        <label for="settingName" class="form-label">Setting</label>
+        <input type="text" class="form-control" id="settingName" value="Example Value">
+    </div>
+    <button type="submit" class="btn btn-primary">Save</button>
+</form>
+{% endblock %}
