@@ -1,3 +1,4 @@
+
 from HardwareTester.extensions import db
 from HardwareTester.models import Configuration
 import json
@@ -55,3 +56,4 @@ def list_configurations():
     except Exception as e:
         logger.error(f"Error listing configurations: {e}")
         return {"success": False, "error": str(e)}
+

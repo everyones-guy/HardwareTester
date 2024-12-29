@@ -1,3 +1,4 @@
+
 from flask import Blueprint, jsonify, request
 from HardwareTester.services.mqtt_service import MQTTService
 from HardwareTester.models import Device, db
@@ -66,3 +67,4 @@ def get_device(device_id):
             },
         }
     )
+

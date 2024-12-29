@@ -1,7 +1,12 @@
-from datetime import datetime
-import logging
 
-logger = logging.getLogger(__name__)
+import os
+from datetime import datetime
+from HardwareTester.utils.logger import Logger
+
+logger = Logger(name="LogService", log_file="logs/log_service.log", level="INFO")
+
+# Directory to store logs
+LOG_DIRECTORY = "logs"
 
 class LogService:
     """A service for managing logs."""
@@ -47,3 +52,65 @@ class LogService:
             "level": parts[1],
             "message": parts[3].strip() if len(parts) > 3 else "",
         }
+
+    @staticmethod
+    def list_log_files():
+        """List all log files in the log directory."""
+        try:
+            files = os.listdir(LOG_DIRECTORY)
+            log_files = [f for f in files if f.endswith(".log")]
+            logger.info(f"Listed {len(log_files)} log files.")
+            return {"success": True, "log_files": log_files}
+        except Exception as e:
+            logger.error(f"Error listing log files: {e}")
+            return {"success": False, "error": str(e)}
+
+    @staticmethod
+    def fetch_log_file(file_name):
+        """Fetch the content of a specific log file."""
+        try:
+            file_path = os.path.join(LOG_DIRECTORY, file_name)
+            if not os.path.exists(file_path):
+                logger.warning(f"Log file {file_name} does not exist.")
+                return {"success": False, "error": "Log file does not exist."}
+
+            with open(file_path, "r") as file:
+                content = file.readlines()
+            logger.info(f"Fetched content of log file: {file_name}")
+            return {"success": True, "content": content}
+        except Exception as e:
+            logger.error(f"Error fetching log file {file_name}: {e}")
+            return {"success": False, "error": str(e)}
+
+    @staticmethod
+    def delete_log_file(file_name):
+        """Delete a specific log file."""
+        try:
+            file_path = os.path.join(LOG_DIRECTORY, file_name)
+            if not os.path.exists(file_path):
+                logger.warning(f"Log file {file_name} does not exist.")
+                return {"success": False, "error": "Log file does not exist."}
+
+            os.remove(file_path)
+            logger.info(f"Deleted log file: {file_name}")
+            return {"success": True, "message": f"Log file {file_name} deleted successfully."}
+        except Exception as e:
+            logger.error(f"Error deleting log file {file_name}: {e}")
+            return {"success": False, "error": str(e)}
+
+    @staticmethod
+    def clear_all_logs():
+        """Delete all log files."""
+        try:
+            files = os.listdir(LOG_DIRECTORY)
+            log_files = [f for f in files if f.endswith(".log")]
+
+            for log_file in log_files:
+                os.remove(os.path.join(LOG_DIRECTORY, log_file))
+
+            logger.info("Cleared all log files.")
+            return {"success": True, "message": "All log files cleared."}
+        except Exception as e:
+            logger.error(f"Error clearing all log files: {e}")
+            return {"success": False, "error": str(e)}
+

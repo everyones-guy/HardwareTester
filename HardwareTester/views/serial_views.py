@@ -1,3 +1,4 @@
+
 from flask import Blueprint, jsonify, request
 from HardwareTester.services.serial_service import SerialService
 
@@ -61,3 +62,4 @@ def read_data():
     if data:
         return jsonify({"success": True, "data": data})
     return jsonify({"success": False, "error": "Failed to read data."})
+

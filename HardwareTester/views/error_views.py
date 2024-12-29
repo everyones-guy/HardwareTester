@@ -1,3 +1,4 @@
+
 from flask import Blueprint, render_template
 
 error_bp = Blueprint("error", __name__)
@@ -11,3 +12,4 @@ def not_found_error(error):
 def internal_server_error(error):
     """Render the 500 error page."""
     return render_template("error.html", message="An internal server error occurred!"), 500
+

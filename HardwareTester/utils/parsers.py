@@ -1,3 +1,4 @@
+
 import pdfplumber
 import csv
 import os
@@ -89,3 +90,4 @@ def parse_file(file_path):
     else:
         logging.error(f"Unsupported file type: {extension}")
         return {"error": f"Unsupported file type: {extension}"}
+

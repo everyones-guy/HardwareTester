@@ -1,8 +1,11 @@
+
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
-from flask_login import login_user, logout_user, login_required, current_user
+from flask_login import login_user, logout_user, current_user, login_required, current_user
 from HardwareTester.models import User
 from HardwareTester.extensions import db, login_manager
 from werkzeug.security import generate_password_hash, check_password_hash
+from HardwareTester.forms import RegisterForm
+
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
@@ -25,25 +28,29 @@ def login():
 
 @auth_bp.route("/register", methods=["GET", "POST"])
 def register():
-    if request.method == "POST":
-        data = request.json or request.form
-        email = data.get("email")
-        password = data.get("password")
-        confirm_password = data.get("confirm_password")
+    if current_user.is_authenticated:
+        return redirect(url_for("dashboard.dashboard_home"))
 
-        if password != confirm_password:
-            return jsonify({"success": False, "message": "Passwords do not match."}), 400
+    form = RegisterForm()
+    if form.validate_on_submit():
+        # Check if the user already exists
+        existing_user = User.query.filter_by(email=form.email.data).first()
+        if existing_user:
+            flash("Email already registered.", "danger")
+            return redirect(url_for("auth.register"))
 
-        if User.query.filter_by(email=email).first():
-            return jsonify({"success": False, "message": "Email is already registered."}), 400
-
-        hashed_password = generate_password_hash(password)
-        user = User(email=email, password=hashed_password)
-        db.session.add(user)
+        # Create a new user
+        hashed_password = generate_password_hash(form.password.data, method="sha256")
+        new_user = User(email=form.email.data, password=hashed_password, role="user") # Assign default role
+        db.session.add(new_user)
         db.session.commit()
-        return jsonify({"success": True, "message": "Registration successful."})
 
-    return render_template("auth/register.html")
+        # Automatically log in the new user
+        login_user(new_user)
+        flash("Registration successful! You are now logged in.", "success")
+        return redirect(url_for("dashboard.dashboard_home"))
+
+    return render_template("auth/register.html", form=form)
 
 
 @auth_bp.route("/logout")
@@ -70,3 +77,4 @@ def profile():
 @login_manager.unauthorized_handler
 def unauthorized():
     return redirect(url_for("auth.login"))
+

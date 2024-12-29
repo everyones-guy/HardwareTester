@@ -1,3 +1,4 @@
+
 import requests
 from flask import current_app
 from requests.adapters import HTTPAdapter
@@ -82,3 +83,4 @@ def list_available_endpoints():
     except Exception as e:
         logger.error(f"Unexpected error while listing endpoints: {e}")
         return {"success": False, "error": f"Unexpected error: {e}"}
+

@@ -1,137 +1,130 @@
+
 $(document).ready(function () {
-    const machine = {
-        id: "Machine1",
-        name: "Test Machine",
-        state: "idle",
-        peripherals: [],
-    };
+    // Fetch blueprints
+    function fetchBlueprints() {
+        $.get("/emulator/blueprints", function (data) {
+            const blueprintList = $("#blueprint-list");
+            const blueprintSelect = $("#blueprint-select");
+            blueprintList.empty();
+            blueprintSelect.empty().append('<option value="">Select Blueprint</option>');
 
-    const peripheralContainer = $("#peripheral-container");
-    const peripheralTemplate = $("#peripheral-template").html();
+            if (data.success) {
+                data.blueprints.forEach((blueprint) => {
+                    blueprintList.append(`<li class="list-group-item">${blueprint}</li>`);
+                    blueprintSelect.append(`<option value="${blueprint}">${blueprint}</option>`);
+                });
+            } else {
+                blueprintList.append('<li class="list-group-item">No blueprints available.</li>');
+            }
+        });
+    }
 
-    // Add a new peripheral to the machine
-    $("#add-peripheral").click(function () {
-        const peripheralName = prompt("Enter peripheral name (e.g., Temperature Sensor):");
-        if (peripheralName) {
-            const newPeripheral = createPeripheral(peripheralName);
-            machine.peripherals.push(newPeripheral);
-            updateMachineView();
-        }
+    // Fetch active emulations
+    function fetchActiveEmulations() {
+        $.get("/emulator/list", function (data) {
+            const emulationsList = $("#active-emulations-list");
+            emulationsList.empty();
+
+            if (data.success) {
+                data.emulations.forEach((emulation) => {
+                    emulationsList.append(`
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            ${emulation.machine_name} (${emulation.blueprint})
+                            <button class="btn btn-danger btn-sm stop-emulation" data-machine="${emulation.machine_name}">
+                                Stop
+                            </button>
+                        </li>
+                    `);
+                });
+            } else {
+                emulationsList.append('<li class="list-group-item">No active emulations.</li>');
+            }
+        });
+    }
+
+    // Fetch emulator logs
+    function fetchLogs() {
+        $.get("/emulator/logs", function (data) {
+            const logsContainer = $("#emulator-logs");
+            logsContainer.empty();
+
+            if (data.success) {
+                data.logs.forEach((log) => {
+                    logsContainer.append(`<div>${log}</div>`);
+                });
+            } else {
+                logsContainer.append('<div>No logs available.</div>');
+            }
+        });
+    }
+
+    // Handle blueprint upload
+    $("#blueprint-upload-form").on("submit", function (event) {
+        event.preventDefault();
+        const formData = new FormData(this);
+
+        $.ajax({
+            url: "/emulator/load-blueprint",
+            type: "POST",
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function () {
+                alert("Blueprint uploaded successfully.");
+                fetchBlueprints();
+            },
+            error: function () {
+                alert("Failed to upload blueprint.");
+            }
+        });
     });
 
-    // Create a peripheral with default properties
-    function createPeripheral(name) {
-        return {
-            id: `Peripheral${machine.peripherals.length + 1}`,
-            name: name,
-            properties: [],
-            addProperty(propertyName, behavior) {
-                const property = { name: propertyName, value: "N/A", behavior: behavior || "constant" };
-                this.properties.push(property);
-                simulatePropertyBehavior(property);
+    // Handle starting a new emulation
+    $("#start-emulation-form").on("submit", function (event) {
+        event.preventDefault();
+        const machineName = $("#machine-name").val();
+        const blueprint = $("#blueprint-select").val();
+        const stressTest = $("#stress-test").is(":checked");
+
+        $.ajax({
+            url: "/emulator/start",
+            type: "POST",
+            contentType: "application/json",
+            data: JSON.stringify({ machine_name: machineName, blueprint, stress_test: stressTest }),
+            success: function () {
+                alert("Emulation started successfully.");
+                fetchActiveEmulations();
             },
-        };
-    }
-
-    // Function to add a new component dynamically
-    function addComponent(name, type, x = 50, y = 50) {
-        const component = $(`<div class="component" style="left: ${x}px; top: ${y}px;">
-        <strong>${name}</strong> (${type})
-        <div class="options">
-            <button class="btn btn-sm btn-info simulate">Simulate</button>
-            <button class="btn btn-sm btn-danger remove">Remove</button>
-        </div>
-    </div>`);
-
-        // Add drag-and-drop functionality
-        component.draggable({
-            containment: "#canvas-container",
+            error: function () {
+                alert("Failed to start emulation.");
+            }
         });
+    });
 
-        // Add options behavior
-        component.find(".simulate").click(() => simulateComponent(name));
-        component.find(".remove").click(() => component.remove());
+    // Handle stopping an emulation
+    $(document).on("click", ".stop-emulation", function () {
+        const machineName = $(this).data("machine");
 
-        $("#canvas-container").append(component);
-    }
-
-    // Example usage
-    addComponent("Valve A", "Valve");
-    addComponent("Sensor X", "Temperature Sensor", 200, 100);
-
-
-    // Simulate property behavior
-    function simulatePropertyBehavior(property) {
-        if (property.behavior === "oscillate") {
-            let value = Math.random() * 100;
-            setInterval(() => {
-                value += Math.random() * 2 - 1;
-                property.value = value.toFixed(2);
-                updateMachineView();
-            }, 1000);
-        } else if (property.behavior === "alarm") {
-            let value = 0;
-            const target = Math.random() * 100;
-            const increment = Math.random() * 5;
-            setInterval(() => {
-                if (value < target) {
-                    value += increment;
-                } else {
-                    console.log(`ALARM: ${property.name} exceeded target (${target.toFixed(2)})!`);
-                }
-                property.value = value.toFixed(2);
-                updateMachineView();
-            }, 1000);
-        }
-    }
-
-    // Update the machine view in the UI
-    function updateMachineView() {
-        peripheralContainer.empty();
-        machine.peripherals.forEach((peripheral) => {
-            const peripheralElement = $(peripheralTemplate).clone();
-            peripheralElement.find(".peripheral-name").text(peripheral.name);
-            const propertyList = peripheralElement.find(".property-list");
-
-            // Add properties to the peripheral
-            peripheral.properties.forEach((property) => {
-                propertyList.append(
-                    `<li>${property.name}: <span class="property-value">${property.value}</span></li>`
-                );
-            });
-
-            // Add the property behavior dynamically
-            peripheralElement.find(".add-property").click(function () {
-                const propertyName = prompt("Enter property name (e.g., pH, pressure):");
-                const behavior = prompt("Enter behavior (e.g., constant, oscillate, alarm):", "constant");
-                if (propertyName) {
-                    peripheral.addProperty(propertyName, behavior);
-                }
-            });
-
-            peripheralContainer.append(peripheralElement);
+        $.ajax({
+            url: "/emulator/stop",
+            type: "POST",
+            contentType: "application/json",
+            data: JSON.stringify({ machine_name: machineName }),
+            success: function () {
+                alert("Emulation stopped successfully.");
+                fetchActiveEmulations();
+            },
+            error: function () {
+                alert("Failed to stop emulation.");
+            }
         });
-    }
+    });
 
-    // Simulate machine-wide actions
-    function simulateMachineActions() {
-        setInterval(() => {
-            const state = Math.random() > 0.5 ? "idle" : "active";
-            machine.state = state;
-            console.log(`Machine state updated: ${machine.state}`);
-        }, 5000);
-    }
-
-    // Initialize the emulator
-    function initializeEmulator() {
-        const defaultPeripheral = createPeripheral("Default Sensor");
-        defaultPeripheral.addProperty("temperature", "oscillate");
-        defaultPeripheral.addProperty("pressure", "constant");
-        machine.peripherals.push(defaultPeripheral);
-
-        simulateMachineActions();
-        updateMachineView();
-    }
-
-    initializeEmulator();
+    // Initialize
+    fetchBlueprints();
+    fetchActiveEmulations();
+    fetchLogs();
+    setInterval(fetchLogs, 5000); // Update logs every 5 seconds
 });
+
+

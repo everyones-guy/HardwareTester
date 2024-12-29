@@ -1,3 +1,4 @@
+
 # utils/secrets.py
 def read_secret(file_path):
     """
@@ -15,3 +16,4 @@ def read_secret(file_path):
     except Exception as e:
         print(f"Failed to read secret from {file_path}: {e}")
         return None
+

@@ -1,8 +1,31 @@
+
 {% extends "base.html" %}
 
 {% block content %}
-<h1>System Status</h1>
-<div id="status-display" class="p-3 border">
-    <!-- Real-time system status -->
+<div class="container mt-4">
+    <h2>System Status</h2>
+    <div class="row">
+        <!-- Summary Section -->
+        <div class="col-md-6">
+            <h5>System Summary</h5>
+            <ul id="system-summary" class="list-group">
+                <li class="list-group-item">Loading...</li>
+            </ul>
+        </div>
+
+        <!-- Metrics Section -->
+        <div class="col-md-6">
+            <h5>Detailed Metrics</h5>
+            <ul id="system-metrics" class="list-group">
+                <li class="list-group-item">Loading...</li>
+            </ul>
+        </div>
+    </div>
 </div>
 {% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/scripts/system_status.js') }}"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/system_status.css') }}">
+{% endblock %}
+

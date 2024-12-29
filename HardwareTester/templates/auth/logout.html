@@ -1,11 +1,14 @@
-<!DOCTYPE html>
 
-<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
-<head>
-    <meta charset="utf-8" />
-    <title></title>
-</head>
-<body>
+{% extends "layout.html" %}
 
-</body>
-</html>
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center">You have been logged out</h1>
+    <p class="text-center">Thank you for using Hardware Tester.</p>
+    <div class="d-flex justify-content-center mt-4">
+        <a href="{{ url_for('index') }}" class="btn btn-primary btn-lg mx-2">Return to Home</a>
+        <a href="{{ url_for('auth.login') }}" class="btn btn-secondary btn-lg mx-2">Login Again</a>
+    </div>
+</div>
+{% endblock %}
+

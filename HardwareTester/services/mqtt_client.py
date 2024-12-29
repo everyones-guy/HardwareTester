@@ -1,3 +1,5 @@
+
+
 import paho.mqtt.client as mqtt
 import os
 import hashlib
@@ -125,4 +127,5 @@ class FirmwareMQTTClient:
         except Exception as e:
             logger.error(f"Failed to validate firmware file: {e}")
             return None
-        
+
+

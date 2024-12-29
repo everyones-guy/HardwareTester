@@ -1,53 +1,14 @@
+
 {% extends "base.html" %}
-
 {% block content %}
-<h1>Valve Management</h1>
-
-<div class="row mt-4">
-    <!-- Upload Spec Sheet Section -->
-    <div class="col-md-6">
-        <h3>Upload Spec Sheet</h3>
-        <form id="upload-spec-sheet-form" enctype="multipart/form-data">
-            <div class="mb-3">
-                <label for="specSheetFile" class="form-label">Select Spec Sheet File</label>
-                <input type="file" id="specSheetFile" name="file" class="form-control" required>
-                <small class="form-text text-muted">
-                    Allowed file types: PDF, DOCX, XLSX. Max file size: 16 MB.
-                </small>
-            </div>
-            <div class="mb-3">
-                <label for="valveId" class="form-label">Valve ID (Optional)</label>
-                <input type="text" id="valveId" name="valveId" class="form-control">
-                <small class="form-text text-muted">
-                    Provide a Valve ID to associate the spec sheet with a specific valve.
-                </small>
-            </div>
-            <button type="submit" class="btn btn-primary">Upload</button>
-        </form>
-        <div id="upload-spec-sheet-results" class="mt-3"></div>
-    </div>
-
-    <!-- Valve Status Section -->
-    <div class="col-md-6">
-        <h3>Valve Status</h3>
-        <div id="valve-status-container" class="border p-3" style="height: 300px; overflow-y: auto;">
-            <!-- Valve statuses will be displayed here -->
-        </div>
-        <button id="refresh-valve-status" class="btn btn-secondary mt-3">Refresh Status</button>
-    </div>
-</div>
-
-<!-- List of Valves Section -->
-<div class="row mt-4">
-    <div class="col-md-12">
-        <h3>Manage Valves</h3>
-        <ul id="valve-list" class="list-group">
-            <!-- List of valves will appear here -->
-        </ul>
-    </div>
+<div class="container">
+    <h1>Valve Management</h1>
+    <button id="add-valve-btn" class="btn btn-primary">Add Valve</button>
+    <ul id="valve-list" class="list-group mt-3"></ul>
 </div>
 {% endblock %}
 
+
 {% block extra_scripts %}
-<script src="{{ url_for('static', filename='js/valve_management.js') }}"></script>
+<script src="{{ url_for('static', filename='js/scripts/valve_management.js') }}"></script>
 {% endblock %}

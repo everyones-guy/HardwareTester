@@ -1,14 +1,42 @@
-<div id="peripheral-controls">
-    <button id="add-peripheral" class="btn btn-primary">Add Peripheral</button>
-    <div id="peripheral-container" class="mt-3"></div>
-</div>
 
-<template id="peripheral-template">
-    <div class="peripheral-node">
-        <h5>Peripheral: <span class="peripheral-name"></span></h5>
-        <div class="properties">
-            <ul class="property-list"></ul>
-            <button class="btn btn-secondary add-property">+ Add Property</button>
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Peripherals Management</h1>
+
+    <!-- Add Peripheral Form -->
+    <div class="card mb-4">
+        <div class="card-header">Add New Peripheral</div>
+        <div class="card-body">
+            <form id="add-peripheral-form">
+                <div class="mb-3">
+                    <label for="peripheral-name" class="form-label">Peripheral Name</label>
+                    <input type="text" id="peripheral-name" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label for="peripheral-properties" class="form-label">Properties (JSON Format)</label>
+                    <textarea id="peripheral-properties" class="form-control" rows="3" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Add Peripheral</button>
+            </form>
         </div>
     </div>
-</template>
+
+    <!-- Peripherals List -->
+    <div class="card">
+        <div class="card-header">Existing Peripherals</div>
+        <div class="card-body">
+            <ul id="peripherals-list" class="list-group">
+                <!-- Dynamic list of peripherals -->
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/scripts/peripherals.js') }}"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+{% endblock %}
+

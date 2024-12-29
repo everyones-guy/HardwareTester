@@ -1,3 +1,5 @@
+
+
 from flask import Blueprint, jsonify, request
 from HardwareTester.services.api_service import (
     test_api_connection,
@@ -82,3 +84,4 @@ def get_available_endpoints():
     if result["success"]:
         return jsonify({"success": True, "endpoints": result["endpoints"]})
     return jsonify({"success": False, "error": result["error"]}), 500
+

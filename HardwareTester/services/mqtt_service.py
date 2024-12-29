@@ -1,3 +1,5 @@
+
+
 import paho.mqtt.client as mqtt
 import json
 import logging
@@ -98,3 +100,4 @@ class MQTTService:
             logger.info(f"Test plan {test_plan} sent to device {device_id}")
         except Exception as e:
             logger.error(f"Failed to send test plan: {e}")
+

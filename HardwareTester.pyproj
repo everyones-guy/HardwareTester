@@ -240,7 +240,6 @@
     <Content Include=".env" />
     <Content Include=".flaskenv" />
     <Content Include="docker-compose.yml" />
-    <Content Include="Docker.txt" />
     <Content Include="HardwareTester\static\css\styles.css" />
     <Content Include="HardwareTester\static\js\app.js" />
     <Content Include="HardwareTester\static\js\dashboard.js" />
@@ -249,6 +248,7 @@
     <Content Include="HardwareTester\static\js\test\setup.js" />
     <Content Include="HardwareTester\static\js\valve_management.js" />
     <Content Include="HardwareTester\templates\analytics.html" />
+    <Content Include="HardwareTester\templates\auth\base.html" />
     <Content Include="HardwareTester\templates\auth\forgot_password.html" />
     <Content Include="HardwareTester\templates\auth\logout.html" />
     <Content Include="HardwareTester\templates\auth\profile.html" />

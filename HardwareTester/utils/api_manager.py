@@ -1,3 +1,4 @@
+
 import requests
 from requests.exceptions import RequestException
 from HardwareTester.utils.logger import Logger
@@ -133,3 +134,4 @@ def create_api_manager(base_url):
     :return: APIManager instance.
     """
     return APIManager(base_url=base_url)
+

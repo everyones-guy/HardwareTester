@@ -1,3 +1,4 @@
+
 import logging
 from logging.handlers import RotatingFileHandler
 import os
@@ -71,3 +72,4 @@ def init_flask_logging(app, level="INFO"):
     logger = Logger(name="FlaskApp", log_file="logs/flask_app.log", level=level)
     app.logger.handlers = logger.logger.handlers
     app.logger.setLevel(logger.logger.level)
+

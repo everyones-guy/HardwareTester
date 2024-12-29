@@ -1,17 +1,40 @@
+
 {% extends "base.html" %}
 
 {% block content %}
-<h1>User Management</h1>
-<table class="table">
-    <thead>
-        <tr>
-            <th>Username</th>
-            <th>Email</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody id="user-list">
-        <!-- Dynamic content -->
-    </tbody>
-</table>
+<div class="container mt-4">
+    <h2>User Management</h2>
+    <div class="row">
+        <!-- User List -->
+        <div class="col-md-8">
+            <h5>Registered Users</h5>
+            <ul id="user-list" class="list-group">
+                <li class="list-group-item">Loading...</li>
+            </ul>
+        </div>
+
+        <!-- Add User Form -->
+        <div class="col-md-4">
+            <h5>Add New User</h5>
+            <form id="add-user-form">
+                <div class="mb-3">
+                    <input type="text" name="username" class="form-control" placeholder="Username" required>
+                </div>
+                <div class="mb-3">
+                    <input type="email" name="email" class="form-control" placeholder="Email" required>
+                </div>
+                <div class="mb-3">
+                    <input type="password" name="password" class="form-control" placeholder="Password" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Add User</button>
+            </form>
+        </div>
+    </div>
+</div>
 {% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/scripts/user_management.js') }}"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/user_management.css') }}">
+{% endblock %}
+

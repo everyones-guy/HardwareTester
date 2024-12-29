@@ -1,23 +1,45 @@
+
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Notifications</h1>
-<ul id="notifications-list" class="list-group">
-    <!-- Dynamically populate -->
-</ul>
+<div class="container mt-4">
+    <h2>Notifications</h2>
+    <div class="row">
+        <!-- Notifications List -->
+        <div class="col-md-8">
+            <h5>All Notifications</h5>
+            <ul id="notifications-list" class="list-group">
+                <li class="list-group-item">Loading notifications...</li>
+            </ul>
+        </div>
+
+        <!-- Add Notification Form -->
+        <div class="col-md-4">
+            <h5>Add New Notification</h5>
+            <form id="add-notification-form">
+                <div class="mb-3">
+                    <input type="text" name="title" class="form-control" placeholder="Title" required>
+                </div>
+                <div class="mb-3">
+                    <textarea name="message" class="form-control" placeholder="Message" required></textarea>
+                </div>
+                <div class="mb-3">
+                    <select name="type" class="form-select">
+                        <option value="info">Info</option>
+                        <option value="success">Success</option>
+                        <option value="warning">Warning</option>
+                        <option value="error">Error</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Add Notification</button>
+            </form>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_scripts %}
-<script>
-    // Example: Fetch notifications
-    fetch("/api/notifications").then(res => res.json()).then(data => {
-        const list = document.getElementById("notifications-list");
-        data.forEach(notification => {
-            const item = document.createElement("li");
-            item.className = "list-group-item";
-            item.textContent = notification.message;
-            list.appendChild(item);
-        });
-    });
-</script>
+<script src="{{ url_for('static', filename='js/scripts/notifications.js') }}"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/notifications.css') }}">
 {% endblock %}
+

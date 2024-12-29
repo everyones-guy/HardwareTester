@@ -1,3 +1,4 @@
+
 # utils/testing.py
 # using subprocess we run pytest to test the project with the run_pytest 
 # function that runs the pytest command and prints the output if the tests pass or fail
@@ -15,3 +16,4 @@ def run_pytest():
             print("All tests passed successfully!")
     except Exception as e:
         print(f"Error running tests: {e}")
+

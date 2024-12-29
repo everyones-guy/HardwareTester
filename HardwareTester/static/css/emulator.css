@@ -1,0 +1,24 @@
+
+/* Emulator Dashboard */
+.emulator-header {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #343a40;
+    margin-bottom: 1.5rem;
+}
+
+.blueprint-list {
+    list-style: none;
+    padding: 0;
+}
+
+.blueprint-list-item {
+    padding: 0.75rem 1rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+

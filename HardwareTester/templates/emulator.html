@@ -1,16 +1,61 @@
+
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Hardware Emulator</h1>
-<div id="emulator-canvas" class="border bg-light" style="height: 500px;">
-    <!-- Drag-and-drop components -->
+<div class="container mt-4">
+    <h1>Hardware Emulator</h1>
+
+    <!-- Section: Available Blueprints -->
+    <div class="card mb-4">
+        <div class="card-header">Available Blueprints</div>
+        <div class="card-body">
+            <ul id="blueprint-list" class="list-group">
+                <!-- Blueprint items will be dynamically loaded here -->
+            </ul>
+            <button class="btn btn-primary mt-3" id="refresh-blueprints">Refresh Blueprints</button>
+        </div>
+    </div>
+
+    <!-- Section: Emulated Devices -->
+    <div class="card mb-4">
+        <div class="card-header">Emulated Devices</div>
+        <div class="card-body">
+            <ul id="device-list" class="list-group">
+                <!-- Device items will be dynamically loaded here -->
+            </ul>
+            <button class="btn btn-primary mt-3" id="refresh-devices">Refresh Devices</button>
+        </div>
+    </div>
+
+    <!-- Section: Load Blueprint -->
+    <div class="card mb-4">
+        <div class="card-header">Load Blueprint</div>
+        <div class="card-body">
+            <form id="load-blueprint-form">
+                <div class="mb-3">
+                    <label for="blueprint-name" class="form-label">Blueprint Name</label>
+                    <input type="text" id="blueprint-name" name="blueprint_name" class="form-control" required>
+                </div>
+                <button type="submit" class="btn btn-success">Load Blueprint</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Section: Emulator Logs -->
+    <div class="card">
+        <div class="card-header">Emulator Logs</div>
+        <div class="card-body">
+            <div id="emulator-logs" class="border p-3" style="height: 300px; overflow-y: auto;">
+                <!-- Logs will be dynamically added here -->
+            </div>
+            <button class="btn btn-secondary mt-3" id="refresh-logs">Refresh Logs</button>
+        </div>
+    </div>
 </div>
-<button id="start-emulator" class="btn btn-primary mt-3">Start Emulator</button>
 {% endblock %}
 
 {% block extra_scripts %}
-<script>
-    // Placeholder for emulator interaction
-    document.getElementById("start-emulator").addEventListener("click", () => alert("Emulator started!"));
-</script>
+<script src="{{ url_for('static', filename='js/scripts/emulator.js') }}"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/emulator.css') }}">
 {% endblock %}
+

@@ -1,3 +1,4 @@
+
 import os
 import shutil
 
@@ -37,3 +38,4 @@ def package_project(build_dir="build", output_file="project_package.zip"):
         print("Project packaged successfully.")
     else:
         print("Build directory does not exist. Cannot package project.")
+

@@ -1,12 +1,45 @@
+
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Settings</h1>
-<form id="settings-form">
-    <div class="mb-3">
-        <label for="settingName" class="form-label">Setting</label>
-        <input type="text" class="form-control" id="settingName" value="Example Value">
+<div class="container mt-4">
+    <h1>Settings</h1>
+    <div class="row">
+        <!-- User Settings Section -->
+        <div class="col-md-6">
+            <h3>User Settings</h3>
+            <form id="user-settings-form">
+                <div id="user-settings">
+                    <!-- User-specific settings will be loaded dynamically here -->
+                </div>
+                <button type="submit" class="btn btn-primary mt-2">Save User Settings</button>
+            </form>
+        </div>
+
+        <!-- Global Settings Section -->
+        <div class="container">
+            <h1>Global Settings</h1>
+            <div id="global-settings-container">
+                <ul id="global-settings-list" class="list-group"></ul>
+            </div>
+            <form id="update-global-setting-form" class="mt-4">
+                <div class="mb-3">
+                    <label for="key" class="form-label">Key</label>
+                    <input type="text" class="form-control" id="key" name="key" required>
+                </div>
+                <div class="mb-3">
+                    <label for="value" class="form-label">Value</label>
+                    <textarea class="form-control" id="value" name="value" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Update Setting</button>
+            </form>
+        </div>
     </div>
-    <button type="submit" class="btn btn-primary">Save</button>
-</form>
-{% endblock %}
+
+    {% endblock %}
+
+    {% block extra_scripts %}
+    <script src="{{ url_for('static', filename='js/scripts/settings.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/settings.css') }}">
+    {% endblock %}
+

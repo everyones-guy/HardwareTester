@@ -1,5 +1,8 @@
+
+const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+
 // Utility function to display alerts
-function showAlert(message, type = "success", autoClose = true, duration = 5000) {
+function showAlert(message, type = "success") {
     const alertContainer = $("#alert-container");
     alertContainer.html(
         `<div class="alert alert-${type} alert-dismissible fade show" role="alert">
@@ -7,129 +10,207 @@ function showAlert(message, type = "success", autoClose = true, duration = 5000)
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>`
     );
-    if (autoClose) setTimeout(() => $(".alert").alert("close"), duration); // Auto-dismiss
+    setTimeout(() => $(".alert").alert("close"), 5000); // Auto-dismiss after 5 seconds
 }
 
-// Utility function to append logs
+// Utility function to append logs to a real-time log viewer
 function appendLog(message) {
     const logContainer = $("#real-time-logs");
     logContainer.append(`<div>${message}</div>`);
     logContainer.scrollTop(logContainer.prop("scrollHeight"));
 }
 
-// Centralized AJAX request handler
+// Utility function for AJAX requests
 function ajaxRequest(url, method = "GET", data = null, successCallback, errorCallback) {
     $.ajax({
         url,
         method,
         data,
+        headers: {
+            "X-CSRFToken": csrfToken  // Ensure CSRF token is sent
+        },
         processData: false,
         contentType: false,
     })
         .done(successCallback)
         .fail((xhr) => {
-            const errorMessage = xhr.responseJSON?.message || "An unexpected error occurred.";
+            const errorMessage = xhr.responseJSON?.message || "An error occurred.";
             showAlert(errorMessage, "danger");
-            console.error(`Error during AJAX request: ${errorMessage}`);
             if (errorCallback) errorCallback(xhr);
         });
 }
 
-// Real-time Socket.IO integration
+// Real-time log updates using Socket.IO
 function setupSocketIO() {
     const socket = io();
-
-    // Real-time log updates
     socket.on("log_message", (data) => appendLog(data.message));
-
-    // Real-time notifications
-    socket.on("notification", (data) => {
-        showAlert(data.message, "info");
-        updateNotifications();
-    });
-
-    // System status updates
-    socket.on("system_status", (data) => updateSystemStatus(data));
 }
 
-// Update dynamic notifications
-function updateNotifications() {
-    ajaxRequest("/api/notifications", "GET", null, (data) => {
-        const notificationList = $("#notification-list");
-        notificationList.empty();
-        if (data.success) {
-            data.notifications.forEach((notification) => {
-                notificationList.append(`<li>${notification.message} - <small>${notification.date}</small></li>`);
-            });
-        } else {
-            notificationList.append("<li>No notifications available.</li>");
+// Fetch uploaded test plans and display them
+function updateTestPlansList() {
+    ajaxRequest(
+        "/get-uploaded-test-plans",
+        "GET",
+        null,
+        function (data) {
+            const list = $("#uploaded-test-plans-list");
+            list.empty();
+
+            if (data.success) {
+                const plans = data.testPlans;
+                if (plans.length > 0) {
+                    plans.forEach((plan) => {
+                        list.append(
+                            `<li class="list-group-item">
+                                <strong>${plan.name}</strong> - Uploaded by ${plan.uploaded_by}
+                                <span class="badge bg-info float-end">ID: ${plan.id}</span>
+                            </li>`
+                        );
+                    });
+                } else {
+                    list.append('<li class="list-group-item">No test plans uploaded yet.</li>');
+                }
+            } else {
+                showAlert(data.message, "danger");
+            }
         }
-    });
+    );
 }
 
-// Update system status
-function updateSystemStatus(status = null) {
-    if (status) {
-        // Use real-time data
-        renderSystemStatus(status);
-    } else {
-        // Fetch status from API
-        ajaxRequest("/api/system-status", "GET", null, (data) => {
-            if (data.success) renderSystemStatus(data);
-        });
-    }
-}
+// Fetch list of valves and display them
+function updateValveList() {
+    ajaxRequest(
+        "/get-valves",
+        "GET",
+        null,
+        function (data) {
+            const list = $("#valve-list");
+            list.empty();
 
-// Render system status on the page
-function renderSystemStatus(data) {
-    const statusContainer = $("#system-status-container");
-    statusContainer.html(`
-        <p><strong>CPU Usage:</strong> ${data.cpu}%</p>
-        <p><strong>Memory Usage:</strong> ${data.memory}%</p>
-        <p><strong>Disk Space:</strong> ${data.disk}</p>
-    `);
-}
-
-// Update reports
-function updateReports() {
-    ajaxRequest("/api/reports", "GET", null, (data) => {
-        const reportTable = $("#report-table tbody");
-        reportTable.empty();
-        if (data.success) {
-            data.reports.forEach((report) => {
-                reportTable.append(`
-                    <tr>
-                        <td>${report.name}</td>
-                        <td>${report.date}</td>
-                        <td>${report.status}</td>
-                        <td><a href="${report.link}" target="_blank">View</a></td>
-                    </tr>
-                `);
-            });
-        } else {
-            reportTable.append("<tr><td colspan='4'>No reports available.</td></tr>");
+            if (data.success) {
+                const valves = data.valves;
+                if (valves.length > 0) {
+                    valves.forEach((valve) => {
+                        list.append(
+                            `<li class="list-group-item">
+                                <strong>${valve.name}</strong> - ${valve.type}
+                                <span class="badge bg-info float-end">ID: ${valve.id}</span>
+                            </li>`
+                        );
+                    });
+                } else {
+                    list.append('<li class="list-group-item">No valves found.</li>');
+                }
+            } else {
+                showAlert(data.message, "danger");
+            }
         }
+    );
+}
+
+// Fetch valve statuses and display them
+function refreshValveStatus() {
+    ajaxRequest(
+        "/get-valve-status",
+        "GET",
+        null,
+        function (data) {
+            const container = $("#valve-status-container");
+            container.empty();
+
+            if (data.success) {
+                const statuses = data.statuses;
+                statuses.forEach((status) => {
+                    container.append(
+                        `<div>
+                            <strong>Valve ${status.id}</strong>: ${status.status}
+                            <small class="text-muted">(Last updated: ${status.last_updated})</small>
+                        </div>`
+                    );
+                });
+            } else {
+                showAlert(data.message, "danger");
+            }
+        }
+    );
+}
+
+// Handle test plan upload form submission
+function handleTestPlanUpload() {
+    $("#upload-test-plan-form").on("submit", function (event) {
+        event.preventDefault();
+        const formData = new FormData(this);
+        ajaxRequest(
+            "/upload-test-plan",
+            "POST",
+            formData,
+            function (response) {
+                showAlert(response.message, "success");
+                updateTestPlansList();
+            }
+        );
     });
 }
 
-// Initialize the app on document ready
+// Handle spec sheet upload form submission
+function handleSpecSheetUpload() {
+    $("#upload-spec-sheet-form").on("submit", function (event) {
+        event.preventDefault();
+        const formData = new FormData(this);
+        ajaxRequest(
+            "/upload-spec-sheet",
+            "POST",
+            formData,
+            function (response) {
+                showAlert(response.message, "success");
+                updateValveList();
+            }
+        );
+    });
+}
+
+// Handle test plan execution form submission
+function handleTestPlanExecution() {
+    $("#run-test-plan-form").on("submit", function (event) {
+        event.preventDefault();
+        const testPlanId = $("#testPlanId").val();
+
+        ajaxRequest(
+            `/run-test-plan/${testPlanId}`,
+            "POST",
+            null,
+            function (data) {
+                if (data.success) {
+                    let resultsHtml = "<ul>";
+                    data.results.forEach((result) => {
+                        resultsHtml += `<li>${result.step.Step}: ${result.result}</li>`;
+                    });
+                    resultsHtml += "</ul>";
+                    $("#run-test-plan-results").html(resultsHtml);
+                } else {
+                    showAlert(data.message, "danger");
+                }
+            }
+        );
+    });
+}
+
+// Initialize all functions on document ready
 $(document).ready(function () {
-    // Initialize real-time socket updates
+    // Set up real-time logging
     setupSocketIO();
 
-    // Fetch and update dynamic data
+    // Initialize dynamic updates
     updateTestPlansList();
     updateValveList();
     refreshValveStatus();
-    updateNotifications();
-    updateReports();
-    updateSystemStatus();
 
-    // Setup form handlers
+    // Set up form handlers
     handleTestPlanUpload();
     handleSpecSheetUpload();
     handleTestPlanExecution();
 
-    // Refresh statuses periodically
-    setInterval(refreshValveStatus, 30000); // Refresh valve status every 30 seconds
+    // Refresh valve statuses on button click
+    $("#refresh-valve-status").click(refreshValveStatus);
 });
+

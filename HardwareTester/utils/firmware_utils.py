@@ -1,3 +1,4 @@
+
 import hashlib
 import logging
 
@@ -30,3 +31,4 @@ def validate_firmware_file(firmware_path):
     except Exception as e:
         logger.error(f"Failed to validate firmware file: {e}")
         return None
+

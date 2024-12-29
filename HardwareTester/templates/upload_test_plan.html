@@ -1,90 +1,24 @@
-{% extends "base.html" %}
 
 {% block content %}
-<h1>Upload Test Plan</h1>
-
-<div class="row mt-4">
-    <div class="col-md-6">
-        <h3>Upload Test Plan</h3>
-        <form id="upload-test-plan-form" enctype="multipart/form-data">
-            <div class="mb-3">
-                <label for="testPlanFile" class="form-label">Select Test Plan File</label>
-                <input type="file" id="testPlanFile" name="file" class="form-control" required>
-                <small class="form-text text-muted">
-                    Allowed file types: PDF, CSV, TXT. Max file size: 16 MB.
-                </small>
-            </div>
-            <button type="submit" class="btn btn-primary">Upload</button>
-        </form>
-        <div id="upload-test-plan-results" class="mt-3"></div>
-    </div>
-
-    <div class="col-md-6">
-        <h3>Uploaded Test Plans</h3>
-        <ul id="uploaded-test-plans-list" class="list-group">
-            <!-- List of uploaded test plans will appear here -->
-        </ul>
-    </div>
+<div class="container mt-4">
+    <h2>Upload Test Plan</h2>
+    <form id="upload-test-plan-form" method="POST" enctype="multipart/form-data">
+        <div class="mb-3">
+            <label for="testPlanFile" class="form-label">Test Plan File</label>
+            <input type="file" class="form-control" id="testPlanFile" name="file" required>
+        </div>
+        <div class="mb-3">
+            <label for="uploadedBy" class="form-label">Uploaded By</label>
+            <input type="text" class="form-control" id="uploadedBy" name="uploaded_by" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Upload</button>
+    </form>
+    <div id="alert-container" class="mt-3"></div>
 </div>
-
-<script>
-    $(document).ready(function () {
-        // Function to update the list of uploaded test plans
-        function updateTestPlansList() {
-            $.get("/get-uploaded-test-plans", function (data) {
-                if (data.success) {
-                    const plans = data.testPlans;
-                    const list = $("#uploaded-test-plans-list");
-                    list.empty();
-
-                    if (plans.length > 0) {
-                        plans.forEach(plan => {
-                            list.append(
-                                `<li class="list-group-item">
-                                    <strong>${plan.name}</strong> - Uploaded by ${plan.uploaded_by}
-                                    <span class="badge bg-info float-end">ID: ${plan.id}</span>
-                                </li>`
-                            );
-                        });
-                    } else {
-                        list.append('<li class="list-group-item">No test plans uploaded yet.</li>');
-                    }
-                } else {
-                    $("#uploaded-test-plans-list").html(
-                        `<li class="list-group-item text-danger">${data.message}</li>`
-                    );
-                }
-            });
-        }
-
-        // Call the update function on page load
-        updateTestPlansList();
-
-        // Handle test plan upload form submission
-        $("#upload-test-plan-form").on("submit", function (event) {
-            event.preventDefault();
-            const formData = new FormData(this);
-
-            $.ajax({
-                url: "/upload-test-plan",
-                type: "POST",
-                data: formData,
-                processData: false,
-                contentType: false,
-                success: function (response) {
-                    $("#upload-test-plan-results").html(
-                        `<div class="alert alert-success">${response.message}</div>`
-                    );
-                    updateTestPlansList(); // Refresh the test plans list
-                },
-                error: function (xhr) {
-                    const errorMessage = xhr.responseJSON?.message || "An error occurred";
-                    $("#upload-test-plan-results").html(
-                        `<div class="alert alert-danger">${errorMessage}</div>`
-                    );
-                },
-            });
-        });
-    });
-</script>
 {% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/scripts/upload_test_plan.js') }}"></script>
+{% endblock %}
+
+

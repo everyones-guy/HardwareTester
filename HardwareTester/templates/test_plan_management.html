@@ -1,36 +1,45 @@
+
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Test Plan Management</h1>
+<div class="container mt-4">
+    <h2>Test Plan Management</h2>
+    <div class="row">
+        <!-- Test Plans Section -->
+        <div class="col-md-8">
+            <h5>Uploaded Test Plans</h5>
+            <ul id="test-plans-list" class="list-group">
+                <li class="list-group-item">Loading...</li>
+            </ul>
+        </div>
 
-<div>
-    <h3>Upload Test Plan</h3>
-    <form id="upload-test-plan-form" enctype="multipart/form-data">
-        <label for="test-plan-file">Select Test Plan File:</label>
-        <input type="file" id="test-plan-file" name="file" required>
-        <button type="submit">Upload</button>
-    </form>
-    <div id="upload-test-plan-results" class="mt-3"></div>
-</div>
+        <!-- Upload Section -->
+        <div class="col-md-4">
+            <h5>Upload New Test Plan</h5>
+            <form id="upload-test-plan-form">
+                <div class="mb-3">
+                    <input type="file" name="file" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <input type="text" name="uploaded_by" class="form-control" placeholder="Your Name" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Upload</button>
+            </form>
+        </div>
+    </div>
 
-<div class="mt-4">
-    <h3>Uploaded Test Plans</h3>
-    <ul id="uploaded-test-plans-list" class="list-group">
-        <!-- Test plans will appear here -->
-    </ul>
-</div>
-
-<div class="mt-4">
-    <h3>Execute Test Plan</h3>
-    <form id="execute-test-plan-form">
-        <label for="test-plan-id">Test Plan ID:</label>
-        <input type="text" id="test-plan-id" name="test_plan_id" required>
-        <button type="submit">Execute</button>
-    </form>
-    <div id="test-plan-execution-results" class="mt-3"></div>
+    <!-- Test Results Section -->
+    <div class="mt-4">
+        <h5>Test Results</h5>
+        <div id="test-results">
+            <p>No test results to display.</p>
+        </div>
+    </div>
 </div>
 {% endblock %}
 
 {% block extra_scripts %}
-<script src="{{ url_for('static', filename='js/test_plan_management.js') }}"></script>
+<script src="{{ url_for('static', filename='js/scripts/test_plan_management.js') }}"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/test_plan_management.css') }}">
 {% endblock %}
+

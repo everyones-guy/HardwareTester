@@ -1,49 +1,77 @@
-from HardwareTester.utils.api_manager import create_api_manager
+
+from HardwareTester.models import Valve, db
 from HardwareTester.utils.logger import Logger
-from flask_socketio import emit
-from HardwareTester.extensions import socketio
 
-
-# Initialize Logger
 logger = Logger(name="ValveService", log_file="logs/valve_service.log", level="INFO")
 
-# Initialize APIManager
-api_manager = create_api_manager("https://example.com/api")
+def get_all_valves():
+    """Retrieve all valves from the database."""
+    try:
+        valves = Valve.query.all()
+        valve_list = [
+            {"id": valve.id, "name": valve.name, "type": valve.type, "specifications": valve.specifications}
+            for valve in valves
+        ]
+        return {"success": True, "valves": valve_list}
+    except Exception as e:
+        logger.error(f"Error retrieving valves: {e}")
+        return {"success": False, "error": str(e)}
 
-def list_valves():
-    """Fetch and return all valves."""
-    logger.info("Fetching list of valves...")
-    response = api_manager.get("valves")
-    if "error" in response:
-        logger.error(f"Failed to fetch valves: {response['error']}")
-        return {"success": False, "error": response["error"]}
-    logger.info(f"Retrieved {len(response.get('valves', []))} valves.")
-    return {"success": True, "valves": response.get("valves", [])}
-
-def add_valve(name, valve_type, api_endpoint=None):
-    """Add a new valve."""
-    logger.info(f"Adding a new valve: {name}, Type: {valve_type}")
-    payload = {"name": name, "type": valve_type, "api_endpoint": api_endpoint}
-    response = api_manager.post("valves", payload=payload)
-    if "error" in response:
-        logger.error(f"Failed to add valve: {response['error']}")
-        return {"success": False, "error": response["error"]}
-    logger.info(f"Valve added successfully: {response}")
-    return {"success": True, "valve": response}
+def add_valve(data):
+    """Add a new valve to the database."""
+    try:
+        valve = Valve(
+            name=data.get("name"),
+            type=data.get("type"),
+            specifications=data.get("specifications")
+        )
+        db.session.add(valve)
+        db.session.commit()
+        logger.info(f"Added valve: {valve.name}")
+        return {"success": True, "message": "Valve added successfully"}
+    except Exception as e:
+        logger.error(f"Error adding valve: {e}")
+        return {"success": False, "error": str(e)}
 
 def delete_valve(valve_id):
-    """Delete a valve."""
-    logger.info(f"Deleting valve ID {valve_id}...")
-    response = api_manager.delete(f"valves/{valve_id}")
-    if "error" in response:
-        logger.error(f"Failed to delete valve {valve_id}: {response['error']}")
-        return {"success": False, "error": response["error"]}
-    logger.info(f"Valve deleted successfully.")
-    return {"success": True}
+    """Delete a valve from the database."""
+    try:
+        valve = Valve.query.get(valve_id)
+        if not valve:
+            return {"success": False, "error": "Valve not found"}
+        db.session.delete(valve)
+        db.session.commit()
+        logger.info(f"Deleted valve: {valve.name}")
+        return {"success": True, "message": "Valve deleted successfully"}
+    except Exception as e:
+        logger.error(f"Error deleting valve: {e}")
+        return {"success": False, "error": str(e)}
 
-def update_valve_state(valve_id, state, value=None):
-    """
-    Update the valve state and emit the changes.
-    """
-    # Emit real-time updates
-    emit("valve_update", {"id": valve_id, "state": state, "value": value}, broadcast=True)
+def update_valve(valve_id, data):
+    """Update valve details."""
+    try:
+        valve = Valve.query.get(valve_id)
+        if not valve:
+            return {"success": False, "error": "Valve not found"}
+        valve.name = data.get("name", valve.name)
+        valve.type = data.get("type", valve.type)
+        valve.specifications = data.get("specifications", valve.specifications)
+        db.session.commit()
+        logger.info(f"Updated valve: {valve.name}")
+        return {"success": True, "message": "Valve updated successfully"}
+    except Exception as e:
+        logger.error(f"Error updating valve: {e}")
+        return {"success": False, "error": str(e)}
+
+def get_valve_status(valve_id):
+    """Get the status of a specific valve."""
+    try:
+        valve = Valve.query.get(valve_id)
+        if not valve:
+            return {"success": False, "error": "Valve not found"}
+        # Mocking status for now
+        status = {"id": valve.id, "status": "Operational"}
+        return {"success": True, "status": status}
+    except Exception as e:
+        logger.error(f"Error retrieving valve status: {e}")
+        return {"success": False, "error": str(e)}

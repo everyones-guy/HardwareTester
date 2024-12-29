@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Authenticated Area{% endblock %}
+
+{% block additional_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+{% endblock %}
+
+{% block content %}
+<header>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{{ url_for('dashboard') }}">Dashboard</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#authNavbar" aria-controls="authNavbar" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="authNavbar">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('user_management') }}">User Management</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('settings') }}">Settings</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.logout') }}">Logout</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</header>
+
+<aside class="bg-light p-3">
+    <ul class="list-unstyled">
+        <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+        <li><a href="{{ url_for('emulator') }}">Emulator</a></li>
+        <li><a href="{{ url_for('notifications') }}">Notifications</a></li>
+        <li><a href="{{ url_for('reports') }}">Reports</a></li>
+        <li><a href="{{ url_for('system_status') }}">System Status</a></li>
+    </ul>
+</aside>
+
+<section>
+    {% block auth_content %}{% endblock %}
+</section>
+
+<footer class="text-center py-3">
+    <p>&copy; 2024 Hardware Tester | Authenticated Area</p>
+</footer>
+{% endblock %}

@@ -1,3 +1,4 @@
+
 from HardwareTester.models import TestPlan
 
 def run_test_plan(test_plan_id):
@@ -28,4 +29,5 @@ def simulate_step(step):
     :return: Simulated result.
     """
     return f"Executed step: {step.get('Action')} with parameter {step.get('Parameter')}"
+
 

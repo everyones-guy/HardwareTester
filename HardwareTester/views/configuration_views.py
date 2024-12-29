@@ -1,3 +1,4 @@
+
 from flask import Blueprint, render_template, request, jsonify
 from HardwareTester.services.configuration_service import save_configuration, load_configuration
 
@@ -24,3 +25,4 @@ def load_config():
     if result["success"]:
         return jsonify({"success": True, "configurations": result["data"]})
     return jsonify({"success": False, "error": result["error"]}), 500
+

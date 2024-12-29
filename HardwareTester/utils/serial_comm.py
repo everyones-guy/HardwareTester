@@ -1,3 +1,4 @@
+
 import serial
 import json
 import logging
@@ -141,3 +142,4 @@ if __name__ == "__main__":
         logger.info(f"Discovery Response: {discovery}")
     finally:
         comm.disconnect()
+

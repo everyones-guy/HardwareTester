@@ -1,0 +1,24 @@
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Upload Spec Sheet</h2>
+    <form id="upload-spec-sheet-form" method="POST" enctype="multipart/form-data">
+        <div class="mb-3">
+            <label for="specSheetFile" class="form-label">Spec Sheet File</label>
+            <input type="file" class="form-control" id="specSheetFile" name="file" required>
+        </div>
+        <div class="mb-3">
+            <label for="uploadedBy" class="form-label">Uploaded By</label>
+            <input type="text" class="form-control" id="uploadedBy" name="uploaded_by" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Upload</button>
+    </form>
+    <div id="alert-container" class="mt-3"></div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/scripts/upload_spec_sheet.js') }}"></script>
+{% endblock %}
+
+

@@ -1,3 +1,4 @@
+
 import serial
 import logging
 
@@ -92,3 +93,4 @@ class SerialService:
 #        serial_service.send_data("Test Command")
 #        response = serial_service.read_data()
 #        print(f"Response: {response}")
+
