@@ -1,7 +1,7 @@
-
-from flask import Blueprint, render_template, request, jsonify, session
+from flask import Blueprint, render_template, request, jsonify
 from flask_login import login_required, current_user
 from HardwareTester.services.dashboard_service import DashboardService
+from HardwareTester.models import UserRole
 
 dashboard_bp = Blueprint("dashboard", __name__, url_prefix="/dashboard")
 
@@ -10,6 +10,8 @@ dashboard_bp = Blueprint("dashboard", __name__, url_prefix="/dashboard")
 @login_required
 def dashboard_home():
     """Render the dashboard homepage."""
+    if current_user.role not in [UserRole.ADMIN.value, UserRole.USER.value]:
+        return render_template("error.html", message="Access denied")
     return render_template("dashboard.html")
 
 
@@ -17,6 +19,9 @@ def dashboard_home():
 @login_required
 def get_dashboard_data():
     """Fetch dashboard data for the current user."""
+    if current_user.role not in [UserRole.ADMIN.value, UserRole.USER.value]:
+        return jsonify({"success": False, "error": "Access denied"})
+
     result = DashboardService.get_dashboard_data(user_id=current_user.id)
     if result["success"]:
         return jsonify({"success": True, "data": result["data"]})
@@ -27,6 +32,9 @@ def get_dashboard_data():
 @login_required
 def create_dashboard_item():
     """Create a new dashboard item."""
+    if current_user.role != UserRole.ADMIN.value:
+        return jsonify({"success": False, "error": "Access denied"})
+
     title = request.form.get("title")
     description = request.form.get("description")
     if not title:
@@ -42,6 +50,9 @@ def create_dashboard_item():
 @login_required
 def update_dashboard_item(item_id):
     """Update an existing dashboard item."""
+    if current_user.role != UserRole.ADMIN.value:
+        return jsonify({"success": False, "error": "Access denied"})
+
     title = request.form.get("title")
     description = request.form.get("description")
     result = DashboardService.update_dashboard_item(
@@ -54,6 +65,21 @@ def update_dashboard_item(item_id):
 @login_required
 def delete_dashboard_item(item_id):
     """Delete a dashboard item."""
+    if current_user.role != UserRole.ADMIN.value:
+        return jsonify({"success": False, "error": "Access denied"})
+
     result = DashboardService.delete_dashboard_item(item_id=item_id)
     return jsonify(result)
 
+
+@dashboard_bp.route("/aggregate", methods=["GET"])
+@login_required
+def get_aggregate_metrics():
+    """Fetch aggregate metrics for the dashboard."""
+    if current_user.role not in [UserRole.ADMIN.value, UserRole.USER.value]:
+        return jsonify({"success": False, "error": "Access denied"})
+
+    result = DashboardService.get_aggregate_metrics(user_id=current_user.id)
+    if result["success"]:
+        return jsonify({"success": True, "metrics": result["metrics"]})
+    return jsonify({"success": False, "error": result["error"]})

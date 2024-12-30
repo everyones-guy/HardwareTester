@@ -118,3 +118,115 @@ class ProfileForm(FlaskForm):
     name = StringField("Name", validators=[DataRequired()])
     email = StringField("Email", validators=[DataRequired(), Email()])
     submit = SubmitField("Update Profile")
+
+# Custom password complexity validator
+class PasswordComplexity:
+    def __init__(self, message=None):
+        if not message:
+            message = (
+                "Password must include at least one uppercase letter, one lowercase letter, "
+                "one digit, and one special character."
+            )
+        self.message = message
+
+    def __call__(self, form, field):
+        password = field.data
+        if not re.match(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$', password):
+            raise ValueError(self.message)
+
+# User Registration Form
+class RegisterForm(FlaskForm):
+    username = StringField(
+        "Username",
+        validators=[
+            DataRequired(),
+            Length(min=3, max=80, message="Username must be between 3 and 80 characters.")
+        ]
+    )
+    email = StringField("Email", validators=[DataRequired(), Email()])
+    password = PasswordField(
+        "Password",
+        validators=[
+            DataRequired(),
+            PasswordComplexity(),
+            Length(min=8, message="Password must be at least 8 characters long."),
+        ]
+    )
+    confirm_password = PasswordField(
+        "Confirm Password",
+        validators=[DataRequired(), EqualTo("password", message="Passwords must match.")]
+    )
+    submit = SubmitField("Register")
+
+# User Login Form
+class LoginForm(FlaskForm):
+    email = StringField("Email", validators=[DataRequired(), Email()])
+    password = PasswordField("Password", validators=[DataRequired()])
+    submit = SubmitField("Login")
+
+# Profile Update Form
+class ProfileForm(FlaskForm):
+    username = StringField("Username", validators=[DataRequired()])
+    email = StringField("Email", validators=[DataRequired(), Email()])
+    bio = TextAreaField("Bio", validators=[Optional()])
+    submit = SubmitField("Update Profile")
+
+# Upload Spec Sheet Form
+class UploadSpecSheetForm(FlaskForm):
+    spec_sheet = FileField(
+        "Spec Sheet",
+        validators=[
+            FileRequired(message="Please upload a spec sheet."),
+            FileAllowed({"pdf", "docx", "xlsx"}, "Allowed file types: PDF, DOCX, XLSX.")
+        ]
+    )
+    submit = SubmitField("Upload")
+
+# Upload Test Plan Form
+class UploadTestPlanForm(FlaskForm):
+    test_plan_file = FileField(
+        "Test Plan File",
+        validators=[
+            FileRequired(message="Please upload a test plan."),
+            FileAllowed({"pdf", "csv", "txt"}, "Allowed file types: PDF, CSV, TXT.")
+        ]
+    )
+    submit = SubmitField("Upload")
+
+# Add Valve Form
+class AddValveForm(FlaskForm):
+    name = StringField(
+        "Valve Name",
+        validators=[
+            DataRequired(),
+            Length(max=255, message="Name must not exceed 255 characters.")
+        ]
+    )
+    valve_type = StringField(
+        "Valve Type",
+        validators=[
+            DataRequired(),
+            Length(max=255, message="Type must not exceed 255 characters.")
+        ]
+    )
+    api_endpoint = StringField(
+        "API Endpoint",
+        validators=[Optional(), Regexp(r'^https?://', message="Must be a valid URL.")]
+    )
+    specifications = TextAreaField("Specifications", validators=[Optional()])
+    submit = SubmitField("Add Valve")
+
+# Run Test Plan Form
+class RunTestPlanForm(FlaskForm):
+    test_plan_id = IntegerField(
+        "Test Plan ID",
+        validators=[DataRequired(), Regexp(r'^\d+$', message="Must be a valid ID.")]
+    )
+    submit = SubmitField("Run Test Plan")
+
+# General Settings Form
+class SettingsForm(FlaskForm):
+    key = StringField("Setting Key", validators=[DataRequired()])
+    value = StringField("Setting Value", validators=[DataRequired()])
+    submit = SubmitField("Save Setting")
+    
