@@ -1,25 +1,35 @@
 from flask import Flask, jsonify
-from HardwareTester import config
+from HardwareTester.config import config
 from HardwareTester.extensions import db, migrate, socketio, csrf, login_manager
 from HardwareTester.views import register_blueprints
 from HardwareTester.models import User
 from HardwareTester.utils.db_utils import initialize_database  # Ensure this exists
 from HardwareTester.views.configuration_views import configuration_bp
 from HardwareTester.views.auth_views import auth_bp
+
 import logging
 
+from flask_migrate import Migrate
+migrate = Migrate()
 
-def create_app(config_name=None):
-    """Application factory to create a Flask app."""
-    # Determine config dynamically if not provided
-    config_name = config_name or "default"
-
+def create_app(config_name="default"):
     # Configure logging
-    configure_logging(config_name)
+    logging.basicConfig(
+        level=logging.DEBUG if config_name == "development" else logging.INFO,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        handlers=[
+            logging.StreamHandler(),  # Log to console
+            logging.FileHandler("hardware_tester.log"),  # Log to file
+        ],
+    )
+    logger = logging.getLogger(__name__)
+    logger.info(f"Initializing app with config: {config_name}")
 
     # Initialize Flask app
     app = Flask(__name__)
-    app.config.from_object(config[config_name])
+    if config_name not in config:
+        raise ValueError(f"Invalid config name: {config_name}")
+    app.config.from_object(config[config_name])  # Use the appropriate config class
 
     # Initialize extensions
     db.init_app(app)
@@ -27,26 +37,20 @@ def create_app(config_name=None):
     socketio.init_app(app, cors_allowed_origins="*")
     csrf.init_app(app)
     login_manager.init_app(app)
-    login_manager.login_view = "auth.login"
-
-    # Initialize database
-    with app.app_context():
-        initialize_database(app)
+    login_manager.login_view = "auth.login"  # Replace with actual login route if applicable
 
     # Register blueprints
     register_blueprints(app)
-    app.register_blueprint(configuration_bp)
-    app.register_blueprint(auth_bp)
 
     # Register error handlers
     register_error_handlers(app)
 
-    logging.info("App initialized successfully")
+    logger.info("App initialized successfully")
 
     # User loader callback
     @login_manager.user_loader
     def load_user(user_id):
-        logging.debug(f"Loading user with ID: {user_id}")
+        logger.debug(f"Loading user with ID: {user_id}")
         return User.query.get(int(user_id))
 
     return app
@@ -87,3 +91,4 @@ def register_error_handlers(app):
     def unauthorized_error(error):
         logging.warning(f"401 error: {error}")
         return jsonify({"error": "Unauthorized"}), 401
+    

@@ -3,7 +3,7 @@ from sqlalchemy import create_engine, inspect
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import OperationalError, IntegrityError, SQLAlchemyError
 from HardwareTester.models import Base
-from HardwareTester.models import db
+#from HardwareTester.models import db
 import logging
 
 # Logging configuration
@@ -89,15 +89,15 @@ class DatabaseManager:
         finally:
             session.close()
 
-    # New function to initialize the database
-    def initialize_database(app):
-        """
-        Initialize the database for the given Flask app.
-        This function creates all necessary tables if they don't already exist.
-        """
-        try:
-            with app.app_context():
-                db.create_all()
-                print("Database initialized successfully.")
-        except SQLAlchemyError as e:
-            print(f"Error initializing database: {e}")
+# New function to initialize the database
+def initialize_database(app):
+    """
+    Initialize the database for the given Flask app.
+    This function creates all necessary tables if they don't already exist.
+    """
+    try:
+        with app.app_context():
+            db.create_all()
+            print("Database initialized successfully.")
+    except SQLAlchemyError as e:
+        print(f"Error initializing database: {e}")

@@ -10,7 +10,7 @@ def main():
     app = create_app(args.config)
     socketio.run(app, host="0.0.0.0", port=5000)
     
-    db_manager = initialize_database()
+    db_manager = initialize_database(app)
     # Inspect database schema
     db_manager.inspect_database()
 
