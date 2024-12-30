@@ -1,5 +1,6 @@
 # cli.py: Main CLI Entrypoint
 import click
+from flask.cli import with_appcontext
 from HardwareTester.utils.db_utils import init_db, migrate_db, upgrade_db
 from HardwareTester.services.configuration_service import save_configuration, load_configuration, list_configurations
 from HardwareTester.services.emulator_service import run_emulator
@@ -36,6 +37,41 @@ def db_upgrade():
     """Apply database migrations."""
     upgrade_db()
     click.echo("Database upgraded.")
+    
+@db.command("seed-data")
+def seed_data():
+    """Seed the database with initial data."""
+    click.echo("Seeding the database...")
+
+@db.command("create-admin")
+@click.option("--username", prompt=True, help="Admin username")
+@click.option("--password", prompt=True, hide_input=True, help="Admin password")
+def create_admin(username, password):
+    """Create an admin user."""
+    click.echo(f"Creating admin user: {username}")
+    
+@db.command("init-db")
+@with_appcontext
+def init_db():
+    """Initialize the database."""
+    db.create_all()
+    click.echo("Database initialized successfully.")
+    # Add default admin
+    if not User.query.filter_by(email="admin@example.com").first():
+        hashed_password = bcrypt.generate_password_hash("admin123").decode("utf-8")
+        admin = User(email="admin@example.com", password=hashed_password, role="admin")
+        db.session.add(admin)
+        db.session.commit()
+        click.echo("Default admin user created.")
+    else:
+        click.echo("Admin user already exists.")
+
+@db.command("drop-db")
+@with_appcontext
+def drop_db():
+    """Drop all tables in the database."""
+    db.drop_all()
+    click.echo("Database dropped.")
 
 # Configuration Commands
 @cli.group()
@@ -87,6 +123,16 @@ def run_emulator_cli(machine, config):
     """Run the hardware emulator."""
     run_emulator(machine, config=config)
     click.echo(f"Emulator for {machine} started.")
+    
+@emulator.command("start")
+def start_emulator():
+    """Start the emulator."""
+    click.echo("Starting the emulator...")
+
+@emulator.command("stop")
+def stop_emulator():
+    """Stop the emulator."""
+    click.echo("Stopping the emulator...")
 
 # MQTT Commands
 @cli.group()
@@ -158,6 +204,11 @@ def create_test(name, steps):
         click.echo(f"Test plan '{name}' created successfully.")
     else:
         click.echo(f"Error: {result['error']}")
+        
+@test.command("coverage")
+def test_coverage():
+    """Generate test coverage report."""
+    click.echo("Generating test coverage report...")
 
 # Firmware Commands
 @cli.group()
@@ -188,6 +239,11 @@ def validate_firmware(device_id):
     client.validate_firmware(device_id)
     client.disconnect()
     click.echo(f"Firmware validation for device {device_id} completed.")
+    
+# Register the master group
+def register_commands(app):
+    """Register CLI commands."""
+    app.cli.add_command(cli)
 
 if __name__ == "__main__":
     cli()

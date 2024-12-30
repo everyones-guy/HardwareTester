@@ -1,8 +1,18 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from datetime import datetime
+from werkzeug.security import generate_password_hash, check_password_hash
 
+# Initialize SQLAlchemy
 db = SQLAlchemy()
+
+# User Roles Enum
+from enum import Enum
+
+class UserRole(Enum):
+    ADMIN = 'admin'
+    USER = 'user'
+    GUEST = 'guest'
 
 class TimestampMixin:
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -48,13 +58,26 @@ class TestResult(db.Model, TimestampMixin):
         return f"<TestResult Valve {self.valve_id} Plan {self.test_plan_id} Status {'Pass' if self.status else 'Fail'}>"
 
 
-class User(db.Model, UserMixin, TimestampMixin):
-    __tablename__ = "users"
+# User Model
+class User(UserMixin, db.Model):
+    __tablename__ = 'users'
+
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(150), nullable=False, unique=True)
-    password = db.Column(db.String(150), nullable=False)  # Store hashed password
-    email = db.Column(db.String(255), nullable=False, unique=True)
-    role = db.Column(db.String(50), default="user")  # User roles: admin, technician, etc.
+    email = db.Column(db.String(150), unique=True, nullable=False)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    password_hash = db.Column(db.String(200), nullable=False)
+    role = db.Column(db.Enum(UserRole), default=UserRole.USER, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
+    def is_admin(self):
+        return self.role == UserRole.ADMIN
 
     def __repr__(self):
         return f"<User {self.username}>"
@@ -116,4 +139,62 @@ class Metric(db.Model, TimestampMixin):
         return f"<Metric {self.metric_type} Value={self.value}>"
 
 
-# TODO - Add hooks or utility methods if needed for validation or schema changes 
+class Post(db.Model):
+    __tablename__ = 'posts'
+
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    body = db.Column(db.Text, nullable=False)
+    author_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
+
+    # Relationships
+    author = db.relationship('User', backref=db.backref('posts', lazy=True))
+
+    def __repr__(self):
+        return f"<Post {self.title} by {self.author.username}>"
+    
+# Token Model for Password Reset or Email Confirmation
+class Token(db.Model):
+    __tablename__ = 'tokens'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    token = db.Column(db.String(200), unique=True, nullable=False)
+    expiration = db.Column(db.DateTime, nullable=False)
+
+    # Relationships
+    user = db.relationship('User', backref=db.backref('tokens', lazy=True))
+
+    def is_valid(self):
+        return datetime.utcnow() < self.expiration
+
+    def __repr__(self):
+        return f"<Token {self.token} for {self.user.username}>"
+
+# Activity Log Model for User Actions
+class ActivityLog(db.Model):
+    __tablename__ = 'activity_logs'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    action = db.Column(db.String(200), nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Relationships
+    user = db.relationship('User', backref=db.backref('activity_logs', lazy=True))
+
+    def __repr__(self):
+        return f"<ActivityLog {self.action} by {self.user.username}>"
+    
+# Settings Model for storing application settings
+class Settings(db.Model):
+    __tablename__ = 'settings'
+
+    id = db.Column(db.Integer, primary_key=True)
+    key = db.Column(db.String(100), unique=True, nullable=False)
+    value = db.Column(db.Text, nullable=False)
+
+    def __repr__(self):
+        return f"<Settings {self.key}: {self.value}>"
