@@ -1,6 +1,8 @@
 import argparse
 from HardwareTester import create_app, socketio
 from HardwareTester.utils import initialize_database
+from cli import register_commands
+
 
 def main():
     parser = argparse.ArgumentParser(description="Run the Hardware Tester server.")

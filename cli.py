@@ -7,6 +7,7 @@ from HardwareTester.services.emulator_service import run_emulator
 from HardwareTester.services.mqtt_client import FirmwareMQTTClient
 from HardwareTester.services.test_service import execute_test_plan, list_tests, create_test_plan
 from HardwareTester.utils.firmware_utils import validate_firmware_file
+from HardwareTester.models import db, bcrypt, User
 import os
 
 @click.group()
@@ -37,11 +38,24 @@ def db_upgrade():
     """Apply database migrations."""
     upgrade_db()
     click.echo("Database upgraded.")
-    
-@db.command("seed-data")
-def seed_data():
-    """Seed the database with initial data."""
-    click.echo("Seeding the database...")
+
+@db.command("seed")
+@with_appcontext
+def seed_db():
+    from HardwareTester.models import User  # Local import to avoid circular dependency
+    click.echo("Seeding database...")
+    if not User.query.filter_by(email="admin@example.com").first():
+        admin = User(
+            email="admin@example.com",
+            username="admin",
+            role="admin",
+        )
+        admin.set_password("admin123")
+        db.session.add(admin)
+        db.session.commit()
+        click.echo("Default admin user created.")
+    else:
+        click.echo("Admin user already exists.")        
 
 @db.command("create-admin")
 @click.option("--username", prompt=True, help="Admin username")
