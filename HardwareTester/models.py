@@ -1,4 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.ext.declarative import declarative_base
 from flask_login import UserMixin
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -6,6 +7,9 @@ from enum import Enum
 
 # Initialize SQLAlchemy
 db = SQLAlchemy()
+
+# Base declarative object
+Base = declarative_base()
 
 # Enums for Roles and Access Levels
 class UserRole(Enum):

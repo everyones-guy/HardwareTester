@@ -1,8 +1,9 @@
 import os
 from sqlalchemy import create_engine, inspect
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.exc import OperationalError, IntegrityError
-from HardwareTester.models import Base  # Assuming your models inherit from a `Base` declarative
+from sqlalchemy.exc import OperationalError, IntegrityError, SQLAlchemyError
+from HardwareTester.models import Base
+from HardwareTester.models import db
 import logging
 
 # Logging configuration
@@ -88,15 +89,15 @@ class DatabaseManager:
         finally:
             session.close()
 
-# New function to initialize the database
-def initialize_database():
-    """
-    Initialize the database by creating tables.
-    """
-    db_url = get_database_url()
-    engine = create_engine(db_url, echo=False)
-    try:
-        Base.metadata.create_all(engine)
-        logger.info("Database initialized successfully.")
-    except OperationalError as e:
-        logger.error(f"Error initializing database: {e}")
+    # New function to initialize the database
+    def initialize_database(app):
+        """
+        Initialize the database for the given Flask app.
+        This function creates all necessary tables if they don't already exist.
+        """
+        try:
+            with app.app_context():
+                db.create_all()
+                print("Database initialized successfully.")
+        except SQLAlchemyError as e:
+            print(f"Error initializing database: {e}")
