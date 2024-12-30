@@ -1,4 +1,3 @@
-
 import os
 from sqlalchemy import create_engine, inspect
 from sqlalchemy.orm import sessionmaker
@@ -16,7 +15,6 @@ def get_database_url():
     Fallback to SQLite for local development if not set.
     """
     return os.getenv("DATABASE_URL", "sqlite:///app.db")
-
 
 class DatabaseManager:
     def __init__(self, db_url=None):
@@ -90,3 +88,15 @@ class DatabaseManager:
         finally:
             session.close()
 
+# New function to initialize the database
+def initialize_database():
+    """
+    Initialize the database by creating tables.
+    """
+    db_url = get_database_url()
+    engine = create_engine(db_url, echo=False)
+    try:
+        Base.metadata.create_all(engine)
+        logger.info("Database initialized successfully.")
+    except OperationalError as e:
+        logger.error(f"Error initializing database: {e}")
