@@ -101,16 +101,4 @@ class DatabaseManager:
         finally:
             session.close()
 
-    # function to initialize the database
-    def initialize_database(app):
-        """
-        Initialize the database for the given Flask app.
-        This function creates all necessary tables if they don't already exist.
-        """
-        try:
-            with app.app_context():
-                db.create_all()
-                print("Database initialized successfully.")
-        except SQLAlchemyError as e:
-            print(f"Error initializing database: {e}")
     
