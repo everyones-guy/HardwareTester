@@ -368,3 +368,4 @@ FodyWeavers.xsd
 /secrets/password
 /secrets/access_token
 /decode.py
+/venv
