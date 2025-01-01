@@ -2,8 +2,7 @@ import os
 from sqlalchemy import create_engine, inspect
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import OperationalError, IntegrityError, SQLAlchemyError
-from HardwareTester.models import Base
-#from HardwareTester.models import db
+from HardwareTester.models import db
 import logging
 
 # Logging configuration
@@ -25,7 +24,7 @@ def initialize_database(app):
     """
     try:
         with app.app_context():
-            Base.create_all()
+            db.create_all()
             print("Database initialized successfully.")
     except SQLAlchemyError as e:
         print(f"Error initializing database: {e}")
@@ -40,7 +39,7 @@ class DatabaseManager:
     def create_tables(self):
         """Create all tables defined in models."""
         try:
-            Base.metadata.create_all(self.engine)
+            db.metadata.create_all(self.engine)
             logger.info("All tables created successfully.")
         except OperationalError as e:
             logger.error(f"Error creating tables: {e}")
@@ -48,7 +47,7 @@ class DatabaseManager:
     def drop_tables(self):
         """Drop all tables defined in models."""
         try:
-            Base.metadata.drop_all(self.engine)
+            db.metadata.drop_all(self.engine)
             logger.info("All tables dropped successfully.")
         except OperationalError as e:
             logger.error(f"Error dropping tables: {e}")
