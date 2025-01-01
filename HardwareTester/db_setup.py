@@ -16,7 +16,7 @@ def run_command(command):
 def initialize_db():
     """Initialize the database."""
     # Set FLASK_APP environment variable
-    os.environ["FLASK_APP"] = "HardwareTester"
+    os.environ["FLASK_APP"] = "runserver.py"
 
     print("Initializing database...")
     # Initialize migrations folder
