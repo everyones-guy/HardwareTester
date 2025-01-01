@@ -21,12 +21,6 @@ def db():
     """Database management commands."""
     pass
 
-#@db.command("init")
-#def db_init():
-#    """Initialize the database."""
-#    init_db()
-#    click.echo("Database initialized.")
-
 @db.command("migrate")
 def db_migrate():
     """Generate migration scripts."""
@@ -64,7 +58,7 @@ def create_admin(username, password):
     """Create an admin user."""
     click.echo(f"Creating admin user: {username}")
     
-@db.command("init-db")
+@db.command("init")
 @with_appcontext
 def init_db():
     """Initialize the database."""

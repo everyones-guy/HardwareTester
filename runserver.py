@@ -1,6 +1,6 @@
 import argparse
 from HardwareTester import create_app, socketio
-from HardwareTester.utils import initialize_database
+from HardwareTester.utils.db_utils import initialize_database
 from cli import register_commands
 
 
