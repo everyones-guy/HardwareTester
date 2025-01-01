@@ -20,18 +20,6 @@ from wtforms.validators import (
 from flask_wtf.file import FileAllowed, FileRequired
 import re
 
-# Custom password validator
-class PasswordComplexity:
-    def __init__(self, message=None):
-        if not message:
-            message = "Password must include at least one uppercase letter, one lowercase letter, one digit, and one special character."
-        self.message = message
-
-    def __call__(self, form, field):
-        password = field.data
-        if not re.match(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$', password):
-            raise ValueError(self.message)
-
 class UploadSpecSheetForm(FlaskForm):
     spec_sheet = FileField(
         "Spec Sheet",
