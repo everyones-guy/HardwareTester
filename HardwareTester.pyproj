@@ -32,6 +32,9 @@
     <Compile Include="cli.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="decode.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="HardwareTester\config.py">
       <SubType>Code</SubType>
     </Compile>
@@ -174,6 +177,9 @@
     <Compile Include="tests\setup\setup_windows.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="tests\unit\services\test_dashboard_service.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="tests\unit\test_api_manager.py">
       <SubType>Code</SubType>
     </Compile>
@@ -232,6 +238,7 @@
     <Folder Include="tests\e2e\" />
     <Folder Include="tests\setup\" />
     <Folder Include="tests\unit\" />
+    <Folder Include="tests\unit\services\" />
     <Folder Include="uploads\" />
     <Folder Include="tests\" />
     <Folder Include="uploads\test_plans\" />

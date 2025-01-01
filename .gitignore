@@ -367,3 +367,4 @@ FodyWeavers.xsd
 /secrets/username
 /secrets/password
 /secrets/access_token
+/decode.py
