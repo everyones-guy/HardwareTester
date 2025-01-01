@@ -21,11 +21,11 @@ def db():
     """Database management commands."""
     pass
 
-#@db.command("init")
-#def db_init():
-#    """Initialize the database."""
-#    init_db()
-#    click.echo("Database initialized.")
+@db.command("init")
+def db_init():
+    """Initialize the database."""
+    init_db()
+    click.echo("Database initialized.")
 
 @db.command("migrate")
 def db_migrate():
