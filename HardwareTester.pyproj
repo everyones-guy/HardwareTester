@@ -237,13 +237,14 @@
     <Folder Include="migrations\" />
     <Folder Include="logs\" />
     <Folder Include="old\" />
+    <Folder Include="tests\" />
     <Folder Include="tests\integration\" />
     <Folder Include="tests\e2e\" />
     <Folder Include="tests\setup\" />
     <Folder Include="tests\unit\" />
     <Folder Include="tests\unit\services\" />
     <Folder Include="uploads\" />
-    <Folder Include="tests\" />
+    <Folder Include="hold_tests\" />
     <Folder Include="uploads\test_plans\" />
     <Folder Include="uploads\spec_sheets\" />
   </ItemGroup>
