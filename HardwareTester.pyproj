@@ -168,9 +168,6 @@
     <Compile Include="runserver.py" />
     <Compile Include="HardwareTester\__init__.py" />
     <Compile Include="old\views.py" />
-    <Compile Include="tests\e2e\test_user_workflows.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="tests\integration\test_api_endpoints.py">
       <SubType>Code</SubType>
     </Compile>
