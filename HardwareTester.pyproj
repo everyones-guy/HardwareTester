@@ -35,6 +35,9 @@
     <Compile Include="decode.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="dynamic_test_gui.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="HardwareTester\config.py">
       <SubType>Code</SubType>
     </Compile>
