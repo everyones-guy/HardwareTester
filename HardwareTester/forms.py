@@ -84,6 +84,21 @@ class RunTestPlanForm(FlaskForm):
         ]
     )
     submit = SubmitField("Run Test Plan")
+    
+# Custom password complexity validator
+class PasswordComplexity:
+    def __init__(self, message=None):
+        if not message:
+            message = (
+                "Password must include at least one uppercase letter, one lowercase letter, "
+                "one digit, and one special character."
+            )
+        self.message = message
+
+    def __call__(self, form, field):
+        password = field.data
+        if not re.match(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$', password):
+            raise ValueError(self.message)
 
 class LoginForm(FlaskForm):
     email = StringField("Email", validators=[DataRequired(), Email()])
@@ -106,21 +121,6 @@ class ProfileForm(FlaskForm):
     name = StringField("Name", validators=[DataRequired()])
     email = StringField("Email", validators=[DataRequired(), Email()])
     submit = SubmitField("Update Profile")
-
-# Custom password complexity validator
-class PasswordComplexity:
-    def __init__(self, message=None):
-        if not message:
-            message = (
-                "Password must include at least one uppercase letter, one lowercase letter, "
-                "one digit, and one special character."
-            )
-        self.message = message
-
-    def __call__(self, form, field):
-        password = field.data
-        if not re.match(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$', password):
-            raise ValueError(self.message)
 
 # User Registration Form
 class RegisterForm(FlaskForm):
