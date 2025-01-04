@@ -1,178 +1,256 @@
-import os
-import importlib.util
-from tkinter import Tk, Frame, Listbox, Text, Label, Entry, Button, END, PanedWindow
-from faker import Faker
-from flask import render_template_string
+# cli.py: Main CLI Entrypoint
+import click
 from flask.cli import with_appcontext
-from HardwareTester import create_app, db
+from HardwareTester.services.configuration_service import save_configuration, load_configuration, list_configurations
+from HardwareTester.services.emulator_service import run_emulator
+from HardwareTester.services.mqtt_client import FirmwareMQTTClient
+from HardwareTester.services.test_service import execute_test_plan, list_tests, create_test_plan
+from HardwareTester.utils.firmware_utils import validate_firmware_file
+from HardwareTester.models import db, bcrypt, User
+import os
 
-# Initialize Flask app
-app = create_app('testing')
-fake = Faker()
+@click.group()
+def cli():
+    """Firmware CLI for device management and testing."""
+    pass
 
-# Paths
-TESTS_FOLDER = os.path.join(os.getcwd(), 'tests')
-SERVICES_FOLDER = os.path.join(os.getcwd(), 'HardwareTester', 'services')
-VIEWS_FOLDER = os.path.join(os.getcwd(), 'HardwareTester', 'views')
+# Database Commands
+@cli.group()
+def db():
+    """Database management commands."""
+    pass
 
-# Ensure the tests folder exists
-os.makedirs(TESTS_FOLDER, exist_ok=True)
+@db.command("migrate")
+def db_migrate():
+    """Generate migration scripts."""
+    db.migrate_db()
+    click.echo("Database migration scripts generated.")
 
+@db.command("upgrade")
+def db_upgrade():
+    """Apply database migrations."""
+    db.upgrade_db()
+    click.echo("Database upgraded.")
 
-class TestRunnerApp:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("Dynamic Test Runner - GUI")
+@db.command("seed")
+@with_appcontext
+def seed_db():
+    from HardwareTester.models import User  # Local import to avoid circular dependency
+    click.echo("Seeding database...")
+    if not User.query.filter_by(email="admin@example.com").first():
+        admin = User(
+            email="admin@example.com",
+            username="admin",
+            role="admin",
+        )
+        admin.set_password("admin123")
+        db.session.add(admin)
+        db.session.commit()
+        click.echo("Default admin user created.")
+    else:
+        click.echo("Admin user already exists.")        
 
-        # Discover tests
-        self.all_tests = self.discover_tests()
-        self.filtered_tests = self.all_tests.copy()
+@db.command("create-admin")
+@click.option("--username", prompt=True, help="Admin username")
+@click.option("--password", prompt=True, hide_input=True, help="Admin password")
+def create_admin(username, password):
+    """Create an admin user."""
+    click.echo(f"Creating admin user: {username}")
+    
+@db.command("init")
+@with_appcontext
+def init_db():
+    """Initialize the database."""
+    db.create_all()
+    click.echo("Database initialized successfully.")
+    # Add default admin
+    if not User.query.filter_by(email="admin@example.com").first():
+        hashed_password = bcrypt.generate_password_hash("admin123").decode("utf-8")
+        admin = User(email="admin@example.com", password=hashed_password, role="admin")
+        db.session.add(admin)
+        db.session.commit()
+        click.echo("Default admin user created.")
+    else:
+        click.echo("Admin user already exists.")
 
-        # PanedWindow for resizable sidebar
-        self.paned_window = PanedWindow(root, orient='horizontal')
-        self.paned_window.pack(fill='both', expand=True)
+@db.command("drop-db")
+@with_appcontext
+def drop_db():
+    """Drop all tables in the database."""
+    db.drop_all()
+    click.echo("Database dropped.")
 
-        # Sidebar
-        self.sidebar = Frame(self.paned_window, width=200, bg='lightgrey')
-        self.paned_window.add(self.sidebar)
+# Configuration Commands
+@cli.group()
+def config():
+    """Configuration management commands."""
+    pass
 
-        # Search Bar and Button
-        self.search_label = Label(self.sidebar, text="Search Tests:", bg='lightgrey', font=("Arial", 12))
-        self.search_label.pack(pady=5)
+@config.command("save")
+@click.argument("name")
+@click.argument("layout")
+def save_config(name, layout):
+    """Save a new configuration."""
+    result = save_configuration(name, layout)
+    if result["success"]:
+        click.echo(result["message"])
+    else:
+        click.echo(f"Error: {result['error']}")
 
-        self.search_entry = Entry(self.sidebar, width=25)
-        self.search_entry.pack(pady=5)
+@config.command("load")
+@click.argument("config_id", type=int)
+def load_config(config_id):
+    """Load a configuration by ID."""
+    result = load_configuration(config_id)
+    if result["success"]:
+        click.echo(result["configuration"])
+    else:
+        click.echo(f"Error: {result['error']}")
 
-        self.search_button = Button(self.sidebar, text="Search", command=self.search_tests)
-        self.search_button.pack(pady=5)
+@config.command("list")
+def list_configs():
+    """List all configurations."""
+    result = list_configurations()
+    if result["success"]:
+        for config in result["configurations"]:
+            click.echo(f"ID: {config['id']}, Name: {config['name']}")
+    else:
+        click.echo(f"Error: {result['error']}")
 
-        self.reset_button = Button(self.sidebar, text="Reset", command=self.reset_search)
-        self.reset_button.pack(pady=5)
+# Emulator Commands
+@cli.group()
+def emulator():
+    """Hardware emulator commands."""
+    pass
 
-        # Test List
-        self.sidebar_label = Label(self.sidebar, text="Tests", bg='lightgrey', font=("Arial", 14))
-        self.sidebar_label.pack(pady=10)
+@emulator.command("run")
+@click.option("--machine", required=True, help="Machine name to emulate.")
+@click.option("--config", default=None, help="Path to configuration file for the emulator.")
+def run_emulator_cli(machine, config):
+    """Run the hardware emulator."""
+    run_emulator(machine, config=config)
+    click.echo(f"Emulator for {machine} started.")
+    
+@emulator.command("start")
+def start_emulator():
+    """Start the emulator."""
+    click.echo("Starting the emulator...")
 
-        self.test_list = Listbox(self.sidebar)
-        self.test_list.pack(fill='both', expand=True, padx=10, pady=10)
-        self.populate_test_list()
+@emulator.command("stop")
+def stop_emulator():
+    """Stop the emulator."""
+    click.echo("Stopping the emulator...")
 
-        self.test_list.bind('<<ListboxSelect>>', self.run_selected_test)
+# MQTT Commands
+@cli.group()
+def mqtt():
+    """MQTT commands."""
+    pass
 
-        # Main Area
-        self.main_area = Frame(self.paned_window, bg='white')
-        self.paned_window.add(self.main_area)
+@mqtt.command("publish")
+@click.argument("topic")
+@click.argument("message")
+def mqtt_publish(topic, message):
+    """Publish a message to an MQTT topic."""
+    from HardwareTester.services.mqtt_service import publish_message
 
-        self.output_label = Label(self.main_area, text="Test Output", font=("Arial", 14), bg='white')
-        self.output_label.pack(pady=10)
+    result = publish_message(topic, message)
+    if result["success"]:
+        click.echo("Message published successfully.")
+    else:
+        click.echo(f"Error: {result['error']}")
 
-        self.output_text = Text(self.main_area, wrap='word', bg='lightyellow', fg='black', font=("Arial", 12))
-        self.output_text.pack(fill='both', expand=True, padx=10, pady=10)
+@mqtt.command("subscribe")
+@click.argument("topic")
+def mqtt_subscribe(topic):
+    """Subscribe to an MQTT topic."""
+    from HardwareTester.services.mqtt_service import subscribe_to_topic
 
-        # Initialize the database
-        self.init_db()
+    result = subscribe_to_topic(topic)
+    if result["success"]:
+        click.echo(f"Subscribed to topic {topic}")
+    else:
+        click.echo(f"Error: {result['error']}")
 
-    def discover_tests(self):
-        """Discover all test scripts in the tests folder, and mock missing ones."""
-        tests = []
+# Testing Commands
+@cli.group()
+def test():
+    """Testing commands."""
+    pass
 
-        # Check for service and view test files
-        for folder, prefix in [(SERVICES_FOLDER, 'service'), (VIEWS_FOLDER, 'view')]:
-            if os.path.exists(folder):
-                for file in os.listdir(folder):
-                    if file.endswith('.py'):
-                        base_name = os.path.splitext(file)[0]
-                        test_file = os.path.join(TESTS_FOLDER, f'test_{base_name}.py')
-                        if not os.path.exists(test_file):
-                            self.mock_test_file(test_file, prefix, base_name)
-                        tests.append(f'test_{base_name}.py')
+@test.command("run")
+@click.argument("test_plan_id", type=int)
+def run_test(test_plan_id):
+    """Run a specific test plan."""
+    result = execute_test_plan(test_plan_id)
+    if result["success"]:
+        click.echo("Test plan executed successfully.")
+        for step_result in result["results"]:
+            click.echo(f"{step_result['step']}: {step_result['result']}")
+    else:
+        click.echo(f"Error: {result['error']}")
 
-        # Include existing test files in the tests folder
-        for test in os.listdir(TESTS_FOLDER):
-            if test.endswith('.py') and test not in tests:
-                tests.append(test)
+@test.command("list")
+def list_test_plans():
+    """List all test plans."""
+    result = list_tests()
+    if result["success"]:
+        click.echo("Available Test Plans:")
+        for test in result["tests"]:
+            click.echo(f"ID: {test['id']} Name: {test['name']}")
+    else:
+        click.echo(f"Error: {result['error']}")
 
-        return tests
+@test.command("create")
+@click.argument("name")
+@click.argument("steps")
+def create_test(name, steps):
+    """Create a new test plan."""
+    result = create_test_plan(name, steps)
+    if result["success"]:
+        click.echo(f"Test plan '{name}' created successfully.")
+    else:
+        click.echo(f"Error: {result['error']}")
+        
+@test.command("coverage")
+def test_coverage():
+    """Generate test coverage report."""
+    click.echo("Generating test coverage report...")
 
-    def mock_test_file(self, test_file, test_type, base_name):
-        """Mock a test file dynamically if missing."""
-        mock_test_content = f"""
-from flask import render_template_string
+# Firmware Commands
+@cli.group()
+def firmware():
+    """Firmware management commands."""
+    pass
 
-# Mock {test_type.capitalize()} Function
-def {test_type}_function(data):
-    return render_template_string('<h1>{{{{ title }}}}</h1><p>{{{{ description }}}}</p>', **data)
+@firmware.command("upload")
+@click.argument("device_id")
+@click.argument("firmware_path")
+def upload_firmware(device_id, firmware_path):
+    """Upload firmware to the device."""
+    if not os.path.exists(firmware_path):
+        click.echo(f"Firmware file {firmware_path} not found.")
+        return
+    client = FirmwareMQTTClient()
+    client.connect()
+    client.upload_firmware(device_id, firmware_path)
+    client.disconnect()
+    click.echo(f"Firmware uploaded to device {device_id}.")
 
-# Test Function
-def run_test(fake):
-    mock_data = {{
-        "title": fake.word().title(),
-        "description": fake.sentence(),
-    }}
-    return {test_type}_function(mock_data)
-"""
-        with open(test_file, 'w') as f:
-            f.write(mock_test_content)
+@firmware.command("validate")
+@click.argument("device_id")
+def validate_firmware(device_id):
+    """Validate firmware on the device."""
+    client = FirmwareMQTTClient()
+    client.connect()
+    client.validate_firmware(device_id)
+    client.disconnect()
+    click.echo(f"Firmware validation for device {device_id} completed.")
+    
+# Register the master group
+def register_commands(app):
+    """Register CLI commands."""
+    app.cli.add_command(cli)
 
-    def init_db(self):
-        """Initialize the database."""
-        with app.app_context():
-            try:
-                db.create_all()
-                self.output_text.insert(END, "Database initialized successfully.\n")
-            except Exception as e:
-                self.output_text.insert(END, f"Error initializing database: {e}\n")
-
-    def populate_test_list(self):
-        """Populate the test list with filtered tests."""
-        self.test_list.delete(0, END)
-        for test in self.filtered_tests:
-            self.test_list.insert(END, test)
-
-    def search_tests(self):
-        """Filter the tests based on the search query."""
-        query = self.search_entry.get().lower()
-        self.filtered_tests = [test for test in self.all_tests if query in test.lower()]
-        self.populate_test_list()
-
-    def reset_search(self):
-        """Reset the test list to show all tests."""
-        self.search_entry.delete(0, END)
-        self.filtered_tests = self.all_tests.copy()
-        self.populate_test_list()
-
-    def run_selected_test(self, event):
-        """Run the selected test."""
-        selection = self.test_list.curselection()
-        if not selection:
-            return
-
-        test_file = self.test_list.get(selection[0])
-        test_path = os.path.join(TESTS_FOLDER, test_file)
-
-        try:
-            self.output_text.delete(1.0, END)
-            self.output_text.insert(END, f"Running test: {test_file}\n")
-
-            # Dynamically import the test module
-            spec = importlib.util.spec_from_file_location("test_module", test_path)
-            test_module = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(test_module)
-
-            # Execute the test function within app_context
-            with app.app_context():
-                if hasattr(test_module, "run_test"):
-                    output = test_module.run_test(fake)
-                    self.output_text.insert(END, f"Test Output:\n{output}\n")
-                else:
-                    self.output_text.insert(END, "Error: No 'run_test' function found in the test file.\n")
-        except Exception as e:
-            self.output_text.insert(END, f"Error running test: {e}\n")
-
-
-# Run the application
 if __name__ == "__main__":
-    root = Tk()
-    app = TestRunnerApp(root)
-    root.geometry("800x600")
-    root.mainloop()
+    cli()
