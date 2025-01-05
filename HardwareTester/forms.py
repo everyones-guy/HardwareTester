@@ -15,7 +15,8 @@ from wtforms.validators import (
     Optional, 
     Regexp, 
     Email, 
-    EqualTo
+    EqualTo,
+    ValidationError
 )
 from flask_wtf.file import FileAllowed, FileRequired
 import re
@@ -100,22 +101,71 @@ class PasswordComplexity:
         if not re.match(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$', password):
             raise ValueError(self.message)
 
+class PasswordValidator:
+    """
+    Custom validator for password complexity.
+    Ensures the password contains:
+    - At least one uppercase letter
+    - At least one lowercase letter
+    - At least one digit
+    - At least one special character
+    """
+    def __init__(self, message=None):
+        if not message:
+            message = (
+                "Password must include at least one uppercase letter, one lowercase letter, "
+                "one digit, and one special character."
+            )
+        self.message = message
+
+    def __call__(self, form, field):
+        password = field.data
+        if not password:
+            raise ValidationError("Password cannot be empty.")
+
+        # Define the regex for password validation
+        password_regex = (
+            r"^(?=.*[A-Z])"      # At least one uppercase letter
+            r"(?=.*[a-z])"       # At least one lowercase letter
+            r"(?=.*\d)"          # At least one digit
+            r"(?=.*[@$!%*?&])"   # At least one special character
+        )
+
+        if not re.match(password_regex, password):
+            raise ValidationError(self.message)
+
 class LoginForm(FlaskForm):
     email = StringField("Email", validators=[DataRequired(), Email()])
     password = PasswordField("Password", validators=[DataRequired()])
     submit = SubmitField("Login")
-
+    
 class RegistrationForm(FlaskForm):
-    email = StringField("Email", validators=[DataRequired(), Email()])
+    username = StringField(
+        'Username', 
+        validators=[
+            DataRequired(), 
+            Length(min=3, max=25, message="Username must be between 3 and 25 characters.")
+        ]
+    )
+    email = StringField(
+        'Email', 
+        validators=[
+            DataRequired(), 
+            Email(message="Please enter a valid email address.")
+        ]
+    )
     password = PasswordField(
-        "Password",
-        validators=[DataRequired(), Length(min=6), PasswordComplexity()],
+        'Password', 
+        validators=[DataRequired()]
     )
     confirm_password = PasswordField(
-        "Confirm Password",
-        validators=[DataRequired(), EqualTo("password", message="Passwords must match.")],
+        'Confirm Password', 
+        validators=[
+            DataRequired(),
+            EqualTo('password', message='Passwords must match.')
+        ]
     )
-    submit = SubmitField("Register")
+    submit = SubmitField('Register')
 
 class ProfileForm(FlaskForm):
     name = StringField("Name", validators=[DataRequired()])

@@ -50,7 +50,31 @@
     <Compile Include="HardwareTester\forms.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\models.py">
+    <Compile Include="HardwareTester\models\configuration_models.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="HardwareTester\models\dashboard_models.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="HardwareTester\models\db.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="HardwareTester\models\device_models.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="HardwareTester\models\log_models.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="HardwareTester\models\metric_models.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="HardwareTester\models\project_models.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="HardwareTester\models\report_models.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="HardwareTester\models\user_models.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="HardwareTester\services\configuration_service.py">
@@ -66,6 +90,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="HardwareTester\services\test_service.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="HardwareTester\utils\bcrypt_utils.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="HardwareTester\utils\db_utils.py">
@@ -216,6 +243,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="HardwareTester\" />
+    <Folder Include="HardwareTester\models\" />
     <Folder Include="secrets\" />
     <Folder Include="HardwareTester\templates\auth\" />
     <Folder Include="HardwareTester\views\" />

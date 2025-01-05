@@ -1,13 +1,20 @@
 # cli.py: Main CLI Entrypoint
 import click
 from flask.cli import with_appcontext
-from HardwareTester.services.configuration_service import save_configuration, load_configuration, list_configurations
-from HardwareTester.services.emulator_service import run_emulator
+from HardwareTester.services.configuration_service import ConfigurationService #save_configuration, load_configuration, list_configurations
+from HardwareTester.services.emulator_service import EmulatorService
 from HardwareTester.services.mqtt_client import FirmwareMQTTClient
-from HardwareTester.services.test_service import execute_test_plan, list_tests, create_test_plan
+from HardwareTester.services.test_service import TestService
+from HardwareTester.services.test_plan_service import TestPlanService
 from HardwareTester.utils.firmware_utils import validate_firmware_file
-from HardwareTester.models import db, bcrypt, User
+from HardwareTester.models.db import db
+from HardwareTester.utils.bcrypt_utils import bcrypt
+from HardwareTester.models.user_models import User
+
 import os
+
+
+
 
 @click.group()
 def cli():
@@ -91,7 +98,7 @@ def config():
 @click.argument("layout")
 def save_config(name, layout):
     """Save a new configuration."""
-    result = save_configuration(name, layout)
+    result = ConfigurationService.save_configuration(name, layout)
     if result["success"]:
         click.echo(result["message"])
     else:
@@ -101,7 +108,7 @@ def save_config(name, layout):
 @click.argument("config_id", type=int)
 def load_config(config_id):
     """Load a configuration by ID."""
-    result = load_configuration(config_id)
+    result = ConfigurationService.load_configuration(config_id)
     if result["success"]:
         click.echo(result["configuration"])
     else:
@@ -110,7 +117,7 @@ def load_config(config_id):
 @config.command("list")
 def list_configs():
     """List all configurations."""
-    result = list_configurations()
+    result = ConfigurationService.list_configurations()
     if result["success"]:
         for config in result["configurations"]:
             click.echo(f"ID: {config['id']}, Name: {config['name']}")
@@ -182,7 +189,7 @@ def test():
 @click.argument("test_plan_id", type=int)
 def run_test(test_plan_id):
     """Run a specific test plan."""
-    result = execute_test_plan(test_plan_id)
+    result = TestService.run_test_plan(test_plan_id)
     if result["success"]:
         click.echo("Test plan executed successfully.")
         for step_result in result["results"]:
@@ -193,7 +200,7 @@ def run_test(test_plan_id):
 @test.command("list")
 def list_test_plans():
     """List all test plans."""
-    result = list_tests()
+    result = TestService.list_tests()
     if result["success"]:
         click.echo("Available Test Plans:")
         for test in result["tests"]:
@@ -206,7 +213,7 @@ def list_test_plans():
 @click.argument("steps")
 def create_test(name, steps):
     """Create a new test plan."""
-    result = create_test_plan(name, steps)
+    result = TestPlanService.create_test_plan(name, steps)
     if result["success"]:
         click.echo(f"Test plan '{name}' created successfully.")
     else:

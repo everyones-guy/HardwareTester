@@ -6,6 +6,7 @@ from HardwareTester.models import User
 from HardwareTester.utils.db_utils import initialize_database  # Ensure this exists
 from HardwareTester.views.configuration_views import configuration_bp
 from HardwareTester.views.auth_views import auth_bp
+from HardwareTester.utils.bcrypt_utils import bcrypt
 
 import logging
 
@@ -36,8 +37,10 @@ def create_app(config_name="default"):
     migrate.init_app(app, db)
     socketio.init_app(app, cors_allowed_origins="*")
     csrf.init_app(app)
+    bcrypt.init_app(app)
     login_manager.init_app(app)
     login_manager.login_view = "auth.login"  # Replace with actual login route if applicable
+    #initialize_database(app)
 
     # Register blueprints
     register_blueprints(app)
