@@ -1,6 +1,6 @@
 # models/dashboard_models.py
-
-from . import db
+from sqlalchemy import Column, Integer, String
+from HardwareTester.models.db import db
 
 class DashboardData(db.Model):
     __tablename__ = 'dashboard_data'

@@ -3,34 +3,23 @@ from HardwareTester.config import config
 from HardwareTester.extensions import db, migrate, socketio, csrf, login_manager
 from HardwareTester.views import register_blueprints
 from HardwareTester.models import User
-from HardwareTester.utils.db_utils import initialize_database  # Ensure this exists
-from HardwareTester.views.configuration_views import configuration_bp
-from HardwareTester.views.auth_views import auth_bp
 from HardwareTester.utils.bcrypt_utils import bcrypt
-
 import logging
 
-from flask_migrate import Migrate
-migrate = Migrate()
-
 def create_app(config_name="default"):
-    # Configure logging
+    # Logging setup
     logging.basicConfig(
         level=logging.DEBUG if config_name == "development" else logging.INFO,
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-        handlers=[
-            logging.StreamHandler(),  # Log to console
-            logging.FileHandler("hardware_tester.log"),  # Log to file
-        ],
+        handlers=[logging.StreamHandler(), logging.FileHandler("hardware_tester.log")],
     )
     logger = logging.getLogger(__name__)
     logger.info(f"Initializing app with config: {config_name}")
 
-    # Initialize Flask app
     app = Flask(__name__)
     if config_name not in config:
         raise ValueError(f"Invalid config name: {config_name}")
-    app.config.from_object(config[config_name])  # Use the appropriate config class
+    app.config.from_object(config[config_name])
 
     # Initialize extensions
     db.init_app(app)
@@ -39,25 +28,20 @@ def create_app(config_name="default"):
     csrf.init_app(app)
     bcrypt.init_app(app)
     login_manager.init_app(app)
-    login_manager.login_view = "auth.login"  # Replace with actual login route if applicable
-    #initialize_database(app)
+    login_manager.login_view = "auth.login"
 
-    # Register blueprints
+    # Register blueprints and error handlers
     register_blueprints(app)
-
-    # Register error handlers
     register_error_handlers(app)
 
     logger.info("App initialized successfully")
 
-    # User loader callback
     @login_manager.user_loader
     def load_user(user_id):
         logger.debug(f"Loading user with ID: {user_id}")
         return User.query.get(int(user_id))
 
     return app
-
 
 def configure_logging(config_name):
     """Configure logging based on environment."""

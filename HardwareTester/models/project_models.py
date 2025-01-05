@@ -1,4 +1,5 @@
-from . import db
+from sqlalchemy import Column, Integer, String
+from HardwareTester.models.db import db
 from datetime import datetime
 
 class Project(db.Model):

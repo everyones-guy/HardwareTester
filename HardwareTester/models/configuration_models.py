@@ -1,4 +1,5 @@
-from . import db
+from sqlalchemy import Column, Integer, String
+from HardwareTester.models.db import db
 
 class Configuration(db.Model):
     __tablename__ = 'configurations'
