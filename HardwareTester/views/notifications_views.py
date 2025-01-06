@@ -1,6 +1,6 @@
 
 from flask import Blueprint, jsonify, request, render_template
-from HardwareTester.services.notifications_service import list_notifications, add_notification, delete_notification
+from HardwareTester.services.notifications_service import NotificationService
 
 notifications_bp = Blueprint("notifications", __name__)
 
@@ -13,7 +13,7 @@ def notifications_page():
 @notifications_bp.route("/notifications/list", methods=["GET"])
 def list_notifications_endpoint():
     """Retrieve all notifications."""
-    response = list_notifications()
+    response = NotificationService.list_notifications()
     return jsonify(response)
 
 
@@ -21,13 +21,13 @@ def list_notifications_endpoint():
 def add_notification_endpoint():
     """Add a new notification."""
     data = request.json
-    response = add_notification(data["title"], data["message"], data.get("type", "info"))
+    response = NotificationService.add_notification(data["title"], data["message"], data.get("type", "info"))
     return jsonify(response)
 
 
 @notifications_bp.route("/notifications/delete/<int:notification_id>", methods=["DELETE"])
 def delete_notification_endpoint(notification_id):
     """Delete a notification."""
-    response = delete_notification(notification_id)
+    response = NotificationService.delete_notification(notification_id)
     return jsonify(response)
 
