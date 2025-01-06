@@ -9,6 +9,10 @@ def str_to_bool(value):
     return str(value).strip().lower() in ("true", "yes", "1")
 
 class Config:
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    INSTANCE_DIR = os.path.join(BASE_DIR, 'instance')  # Instance folder path
+    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", f"sqlite:///{INSTANCE_DIR}/app.db")
+
     """Base configuration with default settings."""
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -27,7 +31,6 @@ class Config:
     LOG_FILE = os.getenv("LOG_FILE", "app.log")
 
     # Database settings
-    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", "sqlite:///app.db")
     SQLALCHEMY_TRACK_MODIFICATIONS = str_to_bool(os.getenv("SQLALCHEMY_TRACK_MODIFICATIONS", "False"))
 
     # File upload settings
@@ -62,7 +65,7 @@ class DevelopmentConfig(Config):
 class TestingConfig(Config):
     """Testing configuration with a separate test database."""
     TESTING = True
-    SQLALCHEMY_DATABASE_URI = "sqlite:///app.db"
+    SQLALCHEMY_DATABASE_URI = "sqlite:///instance/app.db"
     WTF_CSRF_ENABLED = False  # Disable CSRF for easier testing
     LOG_LEVEL = "WARNING"
     ENV = "testing"

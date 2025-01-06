@@ -1,13 +1,13 @@
 # .flaskenv
 
 # Flask environment settings
-FLASK_APP=create_app
+FLASK_APP=HardwareTester:create_app  # Entry point for the Flask app
 FLASK_ENV=development
 FLASK_DEBUG=1
 
 # App configuration
 SECRET_KEY=your-secret-key
-DATABASE_URL=sqlite:///app.db
+DATABASE_URL=sqlite:///instance/app.db
 
 # Network settings
 HOST=127.0.0.1

@@ -4,6 +4,7 @@ from HardwareTester.extensions import db, socketio, migrate, csrf, login_manager
 from HardwareTester.views import register_blueprints
 from HardwareTester.utils.bcrypt_utils import bcrypt
 from HardwareTester.models.user_models import User
+from cli import cli
 import logging
 
 def create_app(config_name="default"):

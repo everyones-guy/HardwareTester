@@ -12,7 +12,7 @@ def ensure_dependencies():
 
 def initialize_database():
     """Initialize the SQLite database if it doesn't exist."""
-    db_path = os.path.join(os.getcwd(), "app.db")
+    db_path = os.path.join(os.getcwd(), "instance/app.db")
     if not os.path.exists(db_path):
         print("Database not found. Creating a new one...")
         conn = sqlite3.connect(db_path)

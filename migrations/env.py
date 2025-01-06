@@ -24,9 +24,8 @@ target_metadata = db.metadata
 # Retrieve database URL from Flask app configuration
 config = context.config
 config.set_main_option(
-    "sqlalchemy.url", current_app.config["SQLALCHEMY_DATABASE_URI"]
+    "sqlalchemy.url", current_app.config.get("SQLALCHEMY_DATABASE_URI")
 )
-
 
 def run_migrations_offline():
     """Run migrations in 'offline' mode."""
