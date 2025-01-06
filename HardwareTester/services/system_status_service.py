@@ -1,13 +1,10 @@
-
 import os
 import psutil
 import platform
 from datetime import datetime
-from HardwareTester.utils.logger import Logger
+from HardwareTester.extensions import logger
 
-logger = Logger(name="SystemStatusCheck", log_file="logs/system_status_check.log", level="INFO")
-
-def get_system_info():
+def get_system_info() -> dict:
     """
     Retrieve basic system information.
     :return: Dictionary containing system info.
@@ -28,7 +25,8 @@ def get_system_info():
         logger.error(f"Failed to retrieve system information: {e}")
         return {"success": False, "error": str(e)}
 
-def get_memory_status():
+
+def get_memory_status() -> dict:
     """
     Retrieve memory usage details.
     :return: Dictionary containing memory status.
@@ -47,7 +45,8 @@ def get_memory_status():
         logger.error(f"Failed to retrieve memory status: {e}")
         return {"success": False, "error": str(e)}
 
-def get_cpu_status():
+
+def get_cpu_status() -> dict:
     """
     Retrieve CPU usage details.
     :return: Dictionary containing CPU status.
@@ -64,7 +63,8 @@ def get_cpu_status():
         logger.error(f"Failed to retrieve CPU status: {e}")
         return {"success": False, "error": str(e)}
 
-def get_disk_status():
+
+def get_disk_status() -> dict:
     """
     Retrieve disk usage details.
     :return: Dictionary containing disk status.
@@ -89,7 +89,8 @@ def get_disk_status():
         logger.error(f"Failed to retrieve disk status: {e}")
         return {"success": False, "error": str(e)}
 
-def get_network_status():
+
+def get_network_status() -> dict:
     """
     Retrieve network usage details.
     :return: Dictionary containing network status.
@@ -112,7 +113,8 @@ def get_network_status():
         logger.error(f"Failed to retrieve network status: {e}")
         return {"success": False, "error": str(e)}
 
-def convert_bytes(size):
+
+def convert_bytes(size: int) -> str:
     """
     Convert bytes to a human-readable format.
     :param size: Size in bytes.
@@ -125,9 +127,10 @@ def convert_bytes(size):
             size /= 1024
     except Exception as e:
         logger.error(f"Error converting bytes: {e}")
-        return "Unknown"
+    return "Unknown"
 
-def get_full_system_status():
+
+def get_full_system_status() -> dict:
     """
     Retrieve a full system status report.
     :return: Dictionary containing all system status information.
@@ -146,51 +149,40 @@ def get_full_system_status():
         logger.error(f"Failed to retrieve full system status: {e}")
         return {"success": False, "error": str(e)}
 
-def fetch_system_status():
-    """Fetch basic system status information."""
-    try:
-        uptime = datetime.now() - datetime.fromtimestamp(psutil.boot_time())
-        system_info = {
-            "hostname": platform.node(),
-            "os": platform.system(),
-            "os_version": platform.version(),
-            "cpu_usage": psutil.cpu_percent(interval=1),
-            "memory_usage": psutil.virtual_memory().percent,
-            "disk_usage": psutil.disk_usage("/").percent,
-            "uptime": str(uptime).split(".")[0], # Remove microseconds
-        }
-        return {"success": True, "status": system_info}
-    except Exception as e:
-        return {"success": False, "error": str(e)}
 
-
-def get_detailed_metrics():
-    """Fetch detailed metrics for system monitoring."""
+def get_detailed_metrics() -> dict:
+    """
+    Fetch detailed metrics for system monitoring.
+    :return: Dictionary containing detailed system metrics.
+    """
     try:
         metrics = {
             "cpu_count": psutil.cpu_count(logical=True),
             "cpu_freq": psutil.cpu_freq()._asdict(),
             "memory": {
-                "total": psutil.virtual_memory().total,
-                "available": psutil.virtual_memory().available,
-                "used": psutil.virtual_memory().used,
-                "percent": psutil.virtual_memory().percent,
+                "total": convert_bytes(psutil.virtual_memory().total),
+                "available": convert_bytes(psutil.virtual_memory().available),
+                "used": convert_bytes(psutil.virtual_memory().used),
+                "percent": f"{psutil.virtual_memory().percent}%",
             },
             "disk_partitions": [
                 {
                     "device": p.device,
                     "mountpoint": p.mountpoint,
                     "fstype": p.fstype,
-                    "usage": psutil.disk_usage(p.mountpoint)._asdict(),
+                    "usage": {
+                        "total": convert_bytes(psutil.disk_usage(p.mountpoint).total),
+                        "used": convert_bytes(psutil.disk_usage(p.mountpoint).used),
+                        "free": convert_bytes(psutil.disk_usage(p.mountpoint).free),
+                        "percent": f"{psutil.disk_usage(p.mountpoint).percent}%",
+                    },
                 }
                 for p in psutil.disk_partitions()
             ],
-            "network": {
-                "interfaces": psutil.net_if_addrs(),
-                "io_counters": psutil.net_io_counters()._asdict(),
-            },
+            "network_io": psutil.net_io_counters()._asdict(),
         }
+        logger.info("Retrieved detailed system metrics successfully.")
         return {"success": True, "metrics": metrics}
     except Exception as e:
+        logger.error(f"Failed to retrieve detailed metrics: {e}")
         return {"success": False, "error": str(e)}
-

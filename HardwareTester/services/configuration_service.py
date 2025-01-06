@@ -1,9 +1,7 @@
-
-from HardwareTester.extensions import db
+# configuration_service.py imports the Configuration model from models/__init__.py.
+from HardwareTester.extensions import db, logger
+from HardwareTester.models.configuration_models import Configuration
 import json
-import logging
-
-logger = logging.getLogger(__name__)
 
 class ConfigurationService:
     @staticmethod
@@ -19,7 +17,7 @@ class ConfigurationService:
             if not isinstance(layout, dict):
                 return {"success": False, "error": "Invalid layout format. Must be a JSON object."}
 
-            config = db.Configuration(name=name, layout=json.dumps(layout))
+            config = Configuration(name=name, layout=json.dumps(layout))
             db.session.add(config)
             db.session.commit()
             logger.info(f"Configuration '{name}' saved successfully.")
@@ -36,7 +34,7 @@ class ConfigurationService:
         :return: Dictionary with configuration data or error.
         """
         try:
-            config = db.Configuration.query.get(config_id)
+            config = Configuration.query.get(config_id)
             if config:
                 logger.info(f"Loaded configuration '{config.name}' successfully.")
                 return {"success": True, "configuration": {"name": config.name, "layout": json.loads(config.layout)}}
@@ -51,7 +49,7 @@ class ConfigurationService:
         :return: List of configurations or error.
         """
         try:
-            configs = db.Configuration.query.all()
+            configs = Configuration.query.all()
             logger.info("Fetched all configurations successfully.")
             return {"success": True, "configurations": [{"id": config.id, "name": config.name} for config in configs]}
         except Exception as e:

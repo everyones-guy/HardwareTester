@@ -1,16 +1,9 @@
-import logging
-from HardwareTester.models.user_models import User, Role  # Update imports based on your models
+# dashboard_service.py
+from HardwareTester.models.user_models import User, Role
 from HardwareTester.models.dashboard_models import DashboardData
-from HardwareTester.extensions import db
+from HardwareTester.models.metric_models import Metric  # Update imports based on your models
+from HardwareTester.extensions import db, logger
 from sqlalchemy.exc import SQLAlchemyError
-
-# Set up logging
-logger = logging.getLogger("DashboardService")
-logger.setLevel(logging.INFO)
-handler = logging.FileHandler("logs/dashboard_service.log")
-handler.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
-logger.addHandler(handler)
-
 
 class DashboardService:
     @staticmethod
@@ -33,7 +26,7 @@ class DashboardService:
                 return {"success": False, "error": "Access denied"}
 
             # Fetch dashboard data
-            data = db.DashboardData.query.filter_by(user_id=user_id).all()
+            data = DashboardData.query.filter_by(user_id=user_id).all()
             logger.info(f"Fetched dashboard data for user {user_id}")
             return {"success": True, "data": [d.to_dict() for d in data]}
         except SQLAlchemyError as e:
@@ -50,9 +43,9 @@ class DashboardService:
         :return: JSON response with aggregated metrics
         """
         try:
-            total_users = db.User.query.count()
-            total_devices = db.Metric.query.filter_by(metric_type="device_count").count()
-            total_notifications = db.DashboardData.query.filter_by(type="notification").count()
+            total_users = User.query.count()
+            total_devices = Metric.query.filter_by(metric_type="device_count").count()
+            total_notifications = DashboardData.query.filter_by(type="notification").count()
 
             aggregated_data = {
                 "total_users": total_users,
@@ -79,12 +72,12 @@ class DashboardService:
         :return: JSON response
         """
         try:
-            user = db.User.query.get(user_id)
+            user = User.query.get(user_id)
             if not user:
                 logger.warning(f"User {user_id} not found")
                 return {"success": False, "error": "User not found"}
 
-            new_item = db.DashboardData(user_id=user_id, title=title, description=description, type=type)
+            new_item = DashboardData(user_id=user_id, title=title, description=description, type=type)
             db.session.add(new_item)
             db.session.commit()
             logger.info(f"Dashboard item '{title}' created for user {user_id}")

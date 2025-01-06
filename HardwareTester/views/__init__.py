@@ -4,7 +4,7 @@ from HardwareTester.views.auth_views import auth_bp
 from HardwareTester.views.configuration_views import configuration_bp
 from HardwareTester.views.dashboard_views import dashboard_bp
 from HardwareTester.views.emulator_views import emulator_bp
-from HardwareTester.views.logs_views import logs_bp
+from HardwareTester.views.log_views import logs_bp
 from HardwareTester.views.hardware_views import hardware_bp
 from HardwareTester.views.mqtt_views import mqtt_bp
 from HardwareTester.views.peripherals_views import peripherals_bp

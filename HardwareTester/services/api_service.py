@@ -1,14 +1,11 @@
-
+# api_service.py imports the requests library and the current_app object from the Flask package.
 import requests
 from flask import current_app
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
-import logging
 from datetime import datetime
-
-
-# Initialize logger
-logger = logging.getLogger("APIService")
+from HardwareTester.extensions import db, logger
+from HardwareTester.models.device_models import Device, Peripheral, Controller, Emulation
 
 # Configure session with retry strategy - will likely be replaced by a state method like in the emulator service which will look like: 
  # Emulator state
@@ -62,7 +59,7 @@ class APIService:
         APIService.api_state["initialized"] = True
         APIService.api_state["last_updated"] = datetime.now()
         APIService.api_state["logs"].append(f"APIService initialized at {APIService.api_state['last_updated']}")
-        logging.info("APIService initialized successfully.")
+        logger.info("APIService initialized successfully.")
         
     @staticmethod
     def update_state(key, value):
@@ -75,7 +72,7 @@ class APIService:
         if key in APIService.api_state:
             APIService.api_state[key] = value
             APIService.api_state["last_updated"] = datetime.now()
-            logging.info(f"API state updated: {key} -> {value}")
+            logger.info(f"API state updated: {key} -> {value}")
     
     @staticmethod
     def add_blueprint(blueprint_name, description):
@@ -92,7 +89,7 @@ class APIService:
         }
         APIService.api_state["blueprints"].append(blueprint)
         APIService.api_state["last_updated"] = datetime.now()
-        logging.info(f"Added blueprint: {blueprint}")
+        logger.info(f"Added blueprint: {blueprint}")
         
     @staticmethod
     def log_error(error_message):
@@ -107,7 +104,7 @@ class APIService:
         }
         APIService.api_state["errors"].append(error_entry)
         APIService.api_state["last_updated"] = datetime.now()
-        logging.error(f"Error logged: {error_message}")
+        logger.error(f"Error logged: {error_message}")
 
     @staticmethod
     def test_api_connection():
@@ -115,7 +112,7 @@ class APIService:
         try:
             base_url = current_app.config["BASE_URL"]
             timeout = current_app.config.get("API_TIMEOUT", 5)
-            response = session.get(f"{base_url}/test-connection", timeout=timeout)
+            response = db.session.get(f"{base_url}/test-connection", timeout=timeout)
             response.raise_for_status()
             logger.info("API connection successful.")
             return {"success": True, "message": "API connection successful"}
@@ -142,7 +139,7 @@ class APIService:
         try:
             base_url = current_app.config["BASE_URL"]
             timeout = current_app.config.get("API_TIMEOUT", 10)
-            response = session.post(f"{base_url}{endpoint}", json=payload, timeout=timeout)
+            response = db.session.post(f"{base_url}{endpoint}", json=payload, timeout=timeout)
             response.raise_for_status()
             logger.info(f"Data pushed to {endpoint} successfully.")
             return {"success": True, "message": "Data successfully pushed"}
@@ -156,7 +153,7 @@ class APIService:
         try:
             base_url = current_app.config["BASE_URL"]
             timeout = current_app.config.get("API_TIMEOUT", 10)
-            response = session.get(f"{base_url}/endpoints", timeout=timeout)
+            response = db.session.get(f"{base_url}/endpoints", timeout=timeout)
             response.raise_for_status()
             endpoints = response.json().get("endpoints", [])
             logger.info(f"Discovered {len(endpoints)} endpoints.")

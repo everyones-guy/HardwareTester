@@ -1,116 +1,90 @@
-
 import os
 from datetime import datetime
+from HardwareTester.models.log_models import ActivityLog, Notification
+from HardwareTester.extensions import db, logger
 from HardwareTester.utils.logger import Logger
-
-logger = Logger(name="LogService", log_file="logs/log_service.log", level="INFO")
-
-# Directory to store logs
-LOG_DIRECTORY = "logs"
 
 class LogService:
     """A service for managing logs."""
-    
-    @staticmethod
-    def get_logs(level="ALL", keyword=None, start_date=None, end_date=None):
-        """Retrieve filtered logs."""
-        logs = []
 
+    @staticmethod
+    def log_activity(user_id, action):
+        """Log an activity into the database."""
         try:
-            with open("app.log", "r") as log_file:
-                for line in log_file:
-                    if LogService.filter_log(line, level, keyword, start_date, end_date):
-                        logs.append(LogService.parse_log_line(line))
+            activity = ActivityLog(user_id=user_id, action=action)
+            db.session.add(activity)
+            db.session.commit()
+            logger.info(f"Activity logged: {action} for User {user_id}")
+            return {"success": True, "message": "Activity logged successfully."}
         except Exception as e:
-            logger.error(f"Error reading logs: {e}")
-            return {"success": False, "error": str(e)}
-
-        return {"success": True, "logs": logs}
-
-    @staticmethod
-    def filter_log(line, level, keyword, start_date, end_date):
-        """Filter log line by level, keyword, and date range."""
-        if level != "ALL" and level not in line:
-            return False
-        if keyword and keyword.lower() not in line.lower():
-            return False
-        if start_date or end_date:
-            timestamp = line.split()[0]
-            log_date = datetime.strptime(timestamp, "%Y-%m-%d").date()
-            if start_date and log_date < datetime.strptime(start_date, "%Y-%m-%d").date():
-                return False
-            if end_date and log_date > datetime.strptime(end_date, "%Y-%m-%d").date():
-                return False
-        return True
+            logger.error(f"Error logging activity: {e}")
+            db.session.rollback()
+            return {"success": False, "error": "Failed to log activity."}
 
     @staticmethod
-    def parse_log_line(line):
-        """Parse a single log line into a structured dictionary."""
-        parts = line.split(" ", 3)
-        return {
-            "timestamp": parts[0],
-            "level": parts[1],
-            "message": parts[3].strip() if len(parts) > 3 else "",
-        }
-
-    @staticmethod
-    def list_log_files():
-        """List all log files in the log directory."""
+    def get_activity_logs(user_id=None, start_date=None, end_date=None):
+        """Retrieve activity logs with optional filters."""
         try:
-            files = os.listdir(LOG_DIRECTORY)
-            log_files = [f for f in files if f.endswith(".log")]
-            logger.info(f"Listed {len(log_files)} log files.")
-            return {"success": True, "log_files": log_files}
+            query = ActivityLog.query
+            if user_id:
+                query = query.filter_by(user_id=user_id)
+            if start_date:
+                query = query.filter(ActivityLog.timestamp >= start_date)
+            if end_date:
+                query = query.filter(ActivityLog.timestamp <= end_date)
+
+            logs = query.order_by(ActivityLog.timestamp.desc()).all()
+            logger.info(f"Fetched {len(logs)} activity logs.")
+            return {"success": True, "logs": [log.__repr__() for log in logs]}
         except Exception as e:
-            logger.error(f"Error listing log files: {e}")
-            return {"success": False, "error": str(e)}
+            logger.error(f"Error fetching activity logs: {e}")
+            return {"success": False, "error": "Failed to fetch logs."}
 
     @staticmethod
-    def fetch_log_file(file_name):
-        """Fetch the content of a specific log file."""
+    def send_notification(message, user_id=None):
+        """Send a notification to a user or all users."""
         try:
-            file_path = os.path.join(LOG_DIRECTORY, file_name)
-            if not os.path.exists(file_path):
-                logger.warning(f"Log file {file_name} does not exist.")
-                return {"success": False, "error": "Log file does not exist."}
-
-            with open(file_path, "r") as file:
-                content = file.readlines()
-            logger.info(f"Fetched content of log file: {file_name}")
-            return {"success": True, "content": content}
+            notification = Notification(message=message, user_id=user_id)
+            db.session.add(notification)
+            db.session.commit()
+            recipient = f"User {user_id}" if user_id else "All Users"
+            logger.info(f"Notification sent: {message} to {recipient}")
+            return {"success": True, "message": f"Notification sent to {recipient}."}
         except Exception as e:
-            logger.error(f"Error fetching log file {file_name}: {e}")
-            return {"success": False, "error": str(e)}
+            logger.error(f"Error sending notification: {e}")
+            db.session.rollback()
+            return {"success": False, "error": "Failed to send notification."}
 
     @staticmethod
-    def delete_log_file(file_name):
-        """Delete a specific log file."""
+    def get_notifications(user_id=None, only_unread=False):
+        """Retrieve notifications with optional filters."""
         try:
-            file_path = os.path.join(LOG_DIRECTORY, file_name)
-            if not os.path.exists(file_path):
-                logger.warning(f"Log file {file_name} does not exist.")
-                return {"success": False, "error": "Log file does not exist."}
+            query = Notification.query
+            if user_id:
+                query = query.filter_by(user_id=user_id)
+            if only_unread:
+                query = query.filter_by(is_read=False)
 
-            os.remove(file_path)
-            logger.info(f"Deleted log file: {file_name}")
-            return {"success": True, "message": f"Log file {file_name} deleted successfully."}
+            notifications = query.order_by(Notification.id.desc()).all()
+            logger.info(f"Fetched {len(notifications)} notifications.")
+            return {"success": True, "notifications": [n.__repr__() for n in notifications]}
         except Exception as e:
-            logger.error(f"Error deleting log file {file_name}: {e}")
-            return {"success": False, "error": str(e)}
+            logger.error(f"Error fetching notifications: {e}")
+            return {"success": False, "error": "Failed to fetch notifications."}
 
     @staticmethod
-    def clear_all_logs():
-        """Delete all log files."""
+    def mark_notification_as_read(notification_id):
+        """Mark a notification as read."""
         try:
-            files = os.listdir(LOG_DIRECTORY)
-            log_files = [f for f in files if f.endswith(".log")]
+            notification = Notification.query.get(notification_id)
+            if not notification:
+                return {"success": False, "error": "Notification not found."}
 
-            for log_file in log_files:
-                os.remove(os.path.join(LOG_DIRECTORY, log_file))
-
-            logger.info("Cleared all log files.")
-            return {"success": True, "message": "All log files cleared."}
+            notification.is_read = True
+            db.session.commit()
+            logger.info(f"Marked notification {notification_id} as read.")
+            return {"success": True, "message": "Notification marked as read."}
         except Exception as e:
-            logger.error(f"Error clearing all log files: {e}")
-            return {"success": False, "error": str(e)}
-
+            logger.error(f"Error marking notification as read: {e}")
+            db.session.rollback()
+            return {"success": False, "error": "Failed to mark notification as read."}
