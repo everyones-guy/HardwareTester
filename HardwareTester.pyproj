@@ -38,6 +38,7 @@
     <Compile Include="dynamic_test_gui.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="HardwareTester\cli.py" />
     <Compile Include="HardwareTester\config.py">
       <SubType>Code</SubType>
     </Compile>
@@ -225,7 +226,7 @@
   <ItemGroup>
     <Content Include=".env" />
     <Content Include=".flaskenv" />
-    <Content Include="docker-compose.yml" />
+    <Content Include="old\docker-compose.yml" />
     <Content Include="HardwareTester\static\css\styles.css" />
     <Content Include="HardwareTester\static\js\app.js" />
     <Content Include="HardwareTester\static\js\dashboard.js" />
