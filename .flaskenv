@@ -1,7 +1,7 @@
 # .flaskenv
 
 # Flask environment settings
-FLASK_APP=runserver.py
+FLASK_APP=HardwareTester.create_app()
 FLASK_ENV=development
 FLASK_DEBUG=1
 

@@ -7,17 +7,24 @@ from flask import current_app
 # Interpret the config file for Python logging.
 fileConfig(context.config.config_file_name)
 
-# Access the app's database models
+# Access the app's database models and metadata
 from HardwareTester.models.db import db  # Import your `db` instance
-from HardwareTester.models import User  # Import at least one model to expose metadata
+from HardwareTester.models.user_models import User, Token, Role, UserRole  # Import models
+from HardwareTester.models.device_models import Emulation, Device, Peripheral, Controller, Blueprint
+from HardwareTester.models.report_models import Report
+from HardwareTester.models.project_models import Project, Milestone
+from HardwareTester.models.metric_models import Metric
+from HardwareTester.models.log_models import ActivityLog, Notification
+from HardwareTester.models.dashboard_models import DashboardData
+from HardwareTester.models.configuration_models import Configuration, Settings, GlobalSettings
 
-# Set up target metadata for Alembic to use
-target_metadata = db.metadata  # Correctly reference the metadata here
+# Retrieve target metadata for Alembic
+target_metadata = db.metadata
 
-# Get database URL from app configuration
+# Retrieve database URL from Flask app configuration
 config = context.config
 config.set_main_option(
-    "sqlalchemy.url", current_app.config.get("SQLALCHEMY_DATABASE_URI")
+    "sqlalchemy.url", current_app.config["SQLALCHEMY_DATABASE_URI"]
 )
 
 
@@ -29,6 +36,7 @@ def run_migrations_offline():
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
     )
+
     with context.begin_transaction():
         context.run_migrations()
 
@@ -40,8 +48,14 @@ def run_migrations_online():
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )
+
     with connectable.connect() as connection:
-        context.configure(connection=connection, target_metadata=target_metadata)
+        context.configure(
+            connection=connection,
+            target_metadata=target_metadata,
+            compare_type=True,  # Enables type comparison for migrations
+        )
+
         with context.begin_transaction():
             context.run_migrations()
 

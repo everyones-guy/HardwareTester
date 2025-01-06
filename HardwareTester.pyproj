@@ -195,51 +195,6 @@
     <Compile Include="runserver.py" />
     <Compile Include="HardwareTester\__init__.py" />
     <Compile Include="old\views.py" />
-    <Compile Include="tests\integration\test_api_endpoints.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="tests\setup\init_test_files.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="tests\setup\setup_windows.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="tests\unit\services\test_dashboard_service.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="tests\unit\test_api_manager.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="tests\unit\test_forms.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="tests\unit\test_logger.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="tests\unit\test_models.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="tests\unit\test_sockets.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="tests\test_utils.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="tests\unit\test_views.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="tests\unit\test_app_js.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="tests\unit\test_database.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="tests\unit\test_utils.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="tests\__init__.py">
-      <SubType>Code</SubType>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="HardwareTester\" />
@@ -262,14 +217,8 @@
     <Folder Include="migrations\" />
     <Folder Include="logs\" />
     <Folder Include="old\" />
-    <Folder Include="tests\" />
-    <Folder Include="tests\integration\" />
-    <Folder Include="tests\e2e\" />
-    <Folder Include="tests\setup\" />
-    <Folder Include="tests\unit\" />
-    <Folder Include="tests\unit\services\" />
     <Folder Include="uploads\" />
-    <Folder Include="hold_tests\" />
+    <Folder Include="old\hold_tests\" />
     <Folder Include="uploads\test_plans\" />
     <Folder Include="uploads\spec_sheets\" />
   </ItemGroup>
