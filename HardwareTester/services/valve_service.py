@@ -1,13 +1,12 @@
 
-from HardwareTester.models import Valve, db
-from HardwareTester.utils.logger import Logger
+from HardwareTester.extensions import db, logger
 
-logger = Logger(name="ValveService", log_file="logs/valve_service.log", level="INFO")
+logger = logger(name="ValveService", log_file="logs/valve_service.log", level="INFO")
 
 def get_all_valves():
     """Retrieve all valves from the database."""
     try:
-        valves = Valve.query.all()
+        valves = db.Valve.query.all()
         valve_list = [
             {"id": valve.id, "name": valve.name, "type": valve.type, "specifications": valve.specifications}
             for valve in valves
@@ -20,7 +19,7 @@ def get_all_valves():
 def add_valve(data):
     """Add a new valve to the database."""
     try:
-        valve = Valve(
+        valve = db.Valve(
             name=data.get("name"),
             type=data.get("type"),
             specifications=data.get("specifications")
@@ -36,7 +35,7 @@ def add_valve(data):
 def delete_valve(valve_id):
     """Delete a valve from the database."""
     try:
-        valve = Valve.query.get(valve_id)
+        valve = db.Valve.query.get(valve_id)
         if not valve:
             return {"success": False, "error": "Valve not found"}
         db.session.delete(valve)
@@ -50,7 +49,7 @@ def delete_valve(valve_id):
 def update_valve(valve_id, data):
     """Update valve details."""
     try:
-        valve = Valve.query.get(valve_id)
+        valve = db.Valve.query.get(valve_id)
         if not valve:
             return {"success": False, "error": "Valve not found"}
         valve.name = data.get("name", valve.name)
@@ -66,7 +65,7 @@ def update_valve(valve_id, data):
 def get_valve_status(valve_id):
     """Get the status of a specific valve."""
     try:
-        valve = Valve.query.get(valve_id)
+        valve = db.Valve.query.get(valve_id)
         if not valve:
             return {"success": False, "error": "Valve not found"}
         # Mocking status for now

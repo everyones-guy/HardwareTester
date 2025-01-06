@@ -1,6 +1,5 @@
 
 from HardwareTester.extensions import db
-from HardwareTester.models import Configuration
 import json
 import logging
 
@@ -20,7 +19,7 @@ class ConfigurationService:
             if not isinstance(layout, dict):
                 return {"success": False, "error": "Invalid layout format. Must be a JSON object."}
 
-            config = Configuration(name=name, layout=json.dumps(layout))
+            config = db.Configuration(name=name, layout=json.dumps(layout))
             db.session.add(config)
             db.session.commit()
             logger.info(f"Configuration '{name}' saved successfully.")
@@ -37,7 +36,7 @@ class ConfigurationService:
         :return: Dictionary with configuration data or error.
         """
         try:
-            config = Configuration.query.get(config_id)
+            config = db.Configuration.query.get(config_id)
             if config:
                 logger.info(f"Loaded configuration '{config.name}' successfully.")
                 return {"success": True, "configuration": {"name": config.name, "layout": json.loads(config.layout)}}
@@ -52,7 +51,7 @@ class ConfigurationService:
         :return: List of configurations or error.
         """
         try:
-            configs = Configuration.query.all()
+            configs = db.Configuration.query.all()
             logger.info("Fetched all configurations successfully.")
             return {"success": True, "configurations": [{"id": config.id, "name": config.name} for config in configs]}
         except Exception as e:

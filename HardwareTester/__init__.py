@@ -36,7 +36,7 @@ def create_app(config_name="default"):
     @login_manager.user_loader
     def load_user(user_id):
         from HardwareTester.models.user_models import User
-        return User.query.get(int(user_id))
+        return db.User.query.get(int(user_id))
 
     return app
 

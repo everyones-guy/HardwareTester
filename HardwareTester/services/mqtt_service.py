@@ -4,6 +4,7 @@ import paho.mqtt.client as mqtt
 import json
 import logging
 import time
+import threading
 
 logger = logging.getLogger(__name__)
 
@@ -16,6 +17,8 @@ class MQTTService:
         self.tls = tls
         self.client = mqtt.Client()
         self._setup_client()
+        self.response = None  # Store the response
+        self.response_event = threading.Event()  # Event to synchronize request/response
 
     def _setup_client(self):
         if self.username and self.password:
@@ -31,9 +34,17 @@ class MQTTService:
             logger.info(f"Connected to MQTT broker {self.broker}:{self.port}")
         else:
             logger.error(f"Failed to connect to MQTT broker with code {rc}")
-
+        
     def on_message(self, client, userdata, msg):
-        logger.info(f"Received message from topic {msg.topic}: {msg.payload.decode()}")
+        """
+        Override the on_message handler to capture responses.
+        """
+        try:
+            logger.info(f"Received message from topic {msg.topic}: {msg.payload.decode()}")
+            self.response = json.loads(msg.payload.decode())  # Decode the response
+            self.response_event.set()  # Signal that a response was received
+        except Exception as e:
+            logger.error(f"Failed to process message: {e}")
 
     def connect(self):
         try:
@@ -61,6 +72,33 @@ class MQTTService:
             logger.info(f"Subscribed to {topic}")
         except Exception as e:
             logger.error(f"Failed to subscribe to {topic}: {e}")
+            
+    def send_request(self, topic, payload, response_topic, timeout=5):
+        """
+        Send an MQTT request and wait for a response.
+
+        :param topic: The topic to publish the request to.
+        :param payload: The payload to send as the request.
+        :param response_topic: The topic to listen for the response.
+        :param timeout: How long to wait for a response (seconds).
+        :return: The response payload or None if timed out.
+        """
+        self.response = None  # Clear the previous response
+        self.response_event.clear()  # Reset the event
+
+        # Subscribe to the response topic
+        self.subscribe(response_topic)
+
+        # Publish the request
+        self.publish(topic, payload)
+
+        # Wait for the response or timeout
+        if self.response_event.wait(timeout):
+            return self.response
+        else:
+            logger.warning(f"Timeout waiting for response on {response_topic}")
+            return None
+
 
     # Firmware Update
     def update_firmware(self, device_id, firmware_url):
