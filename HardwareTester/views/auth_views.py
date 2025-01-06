@@ -1,7 +1,8 @@
 from flask import Blueprint, render_template, redirect, url_for, request, flash, jsonify
 from flask_login import login_user, logout_user, login_required, current_user
-from HardwareTester.models import User
-from HardwareTester.extensions import db, csrf, login_manager
+from HardwareTester.models.user_models import User
+from HardwareTester.models.db import db
+from HardwareTester.extensions import csrf, login_manager
 from HardwareTester.forms import LoginForm, RegistrationForm, ProfileForm
 from werkzeug.security import generate_password_hash
 from sqlalchemy.exc import IntegrityError
@@ -27,6 +28,7 @@ def logout():
     flash('You have been logged out.', 'info')
     return redirect(url_for('auth.login'))
 
+
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
     form = RegistrationForm()
@@ -42,15 +44,15 @@ def register():
             db.session.commit()
             flash('Registration successful. Please log in.', 'success')
             return redirect(url_for('auth.login'))
-        except IntegrityError:
+        except IntegrityError as e:
             db.session.rollback()
-            flash('Email or username already exists.', 'danger')
+            if "UNIQUE constraint failed: users.email" in str(e):
+                flash('Email already exists.', 'danger')
+            elif "UNIQUE constraint failed: users.username" in str(e):
+                flash('Username already exists.', 'danger')
+            else:
+                flash('An error occurred. Please try again.', 'danger')
     return render_template('auth/register.html', form=form)
-
-@auth_bp.route('/csrf-token', methods=['GET'])
-def get_csrf_token():
-    csrf_token = csrf._get_token()
-    return jsonify({'csrf_token': csrf_token})
 
 @auth_bp.route("/profile", methods=["GET", "POST"])
 @login_required
@@ -67,4 +69,5 @@ def profile():
 @login_manager.unauthorized_handler
 def unauthorized():
     flash('Please log in to access this page.', 'warning')
-    return redirect(url_for("auth.login"))
+    return redirect(url_for("auth.login", next=request.url))
+

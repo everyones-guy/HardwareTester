@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String
-from HardwareTester.models.db import db
+from HardwareTester.extensions import db
 
 class Configuration(db.Model):
     __tablename__ = 'configurations'

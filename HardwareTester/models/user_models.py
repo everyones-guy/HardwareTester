@@ -3,7 +3,7 @@ from flask_login import UserMixin
 from datetime import datetime
 from enum import Enum
 from HardwareTester.utils.bcrypt_utils import hash_password, check_password
-from HardwareTester.models.db import db
+from HardwareTester.extensions import db
 
 class UserRole(Enum):
     ADMIN = 'admin'
@@ -13,6 +13,7 @@ class UserRole(Enum):
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=True)
     email = db.Column(db.String(150), unique=True, nullable=False)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password_hash = db.Column(db.String(200), nullable=False)

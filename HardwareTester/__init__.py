@@ -1,13 +1,12 @@
 from flask import Flask, jsonify
 from HardwareTester.config import config
-from HardwareTester.extensions import db, migrate, socketio, csrf, login_manager
+from HardwareTester.extensions import db, socketio, migrate, csrf, login_manager, ma
 from HardwareTester.views import register_blueprints
 from HardwareTester.models import User
 from HardwareTester.utils.bcrypt_utils import bcrypt
 import logging
 
 def create_app(config_name="default"):
-    # Logging setup
     logging.basicConfig(
         level=logging.DEBUG if config_name == "development" else logging.INFO,
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -17,8 +16,6 @@ def create_app(config_name="default"):
     logger.info(f"Initializing app with config: {config_name}")
 
     app = Flask(__name__)
-    if config_name not in config:
-        raise ValueError(f"Invalid config name: {config_name}")
     app.config.from_object(config[config_name])
 
     # Initialize extensions
@@ -38,10 +35,11 @@ def create_app(config_name="default"):
 
     @login_manager.user_loader
     def load_user(user_id):
-        logger.debug(f"Loading user with ID: {user_id}")
+        from HardwareTester.models.user_models import User
         return User.query.get(int(user_id))
 
     return app
+
 
 def configure_logging(config_name):
     """Configure logging based on environment."""

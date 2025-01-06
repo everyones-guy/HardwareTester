@@ -62,7 +62,7 @@ class DevelopmentConfig(Config):
 class TestingConfig(Config):
     """Testing configuration with a separate test database."""
     TESTING = True
-    SQLALCHEMY_DATABASE_URI = "sqlite:///test.db"
+    SQLALCHEMY_DATABASE_URI = "sqlite:///app.db"
     WTF_CSRF_ENABLED = False  # Disable CSRF for easier testing
     LOG_LEVEL = "WARNING"
     ENV = "testing"
