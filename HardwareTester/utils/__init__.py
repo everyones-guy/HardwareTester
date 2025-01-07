@@ -15,7 +15,6 @@ __all__ = [
     "deploy_project",
     "clean_build_directory",
     "package_project",
-    "initialize_database",
     "DatabaseManager",
     "Logger",
 ]
