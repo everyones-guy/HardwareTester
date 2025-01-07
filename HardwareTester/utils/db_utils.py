@@ -14,7 +14,7 @@ def get_database_url():
     Fetch the database URL from environment variables.
     Fallback to SQLite for local development if not set.
     """
-    return os.getenv("DATABASE_URL", "sqlite:///app.db")
+    return os.getenv("DATABASE_URL", "sqlite:///instance/app.db")
 
 # New function to initialize the database
 def initialize_database(app):

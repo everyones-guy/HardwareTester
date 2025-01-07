@@ -11,7 +11,7 @@ def str_to_bool(value):
 class Config:
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     INSTANCE_DIR = os.path.join(BASE_DIR, 'instance')  # Instance folder path
-    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", f"sqlite:///{INSTANCE_DIR}/app.db")
+    SQLALCHEMY_DATABASE_URI = "sqlite:///instance/app.db"
 
     """Base configuration with default settings."""
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
