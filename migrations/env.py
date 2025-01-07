@@ -8,7 +8,7 @@ from flask import current_app
 fileConfig(context.config.config_file_name)
 
 # Import your application's `db` instance and models
-from HardwareTester.models.db import db
+from HardwareTester.extensions import db
 from HardwareTester.models.user_models import User, Token, Role, UserRole
 from HardwareTester.models.device_models import Emulation, Device, Peripheral, Controller, Blueprint
 from HardwareTester.models.report_models import Report
