@@ -16,8 +16,8 @@ def run_command(command):
 def initialize_db():
     """Initialize the database."""
     # Set FLASK_APP environment variable
-    os.environ["FLASK_APP"] = "runserver.py"
-
+    os.environ["FLASK_APP"] = 'HardwareTester.create_app'
+    
     print("Initializing database...")
     # Initialize migrations folder
     if not run_command(["flask", "db", "init"]):
@@ -36,7 +36,7 @@ def setup_fallback():
     database_url = os.getenv("DATABASE_URL")
     if not database_url:
         print("No DATABASE_URL provided. Falling back to SQLite.")
-        os.environ["DATABASE_URL"] = "sqlite:///fallback.db"
+        os.environ["DATABASE_URL"] = "sqlite:///instance/app.db"
 
     initialize_db()
 
