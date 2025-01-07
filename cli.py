@@ -53,20 +53,25 @@ def drop_db():
     logger.warning("Database tables dropped.")
     click.echo("Database dropped successfully.")
 
-
 @db_commands.command("seed")
 @with_appcontext
-def seed_db():
+def seed_data():
     """Seed the database with initial data."""
+    click.echo("Seeding database...")
+
+    # Create a default admin user if not exists
     if not User.query.filter_by(email="admin@example.com").first():
-        admin = User(email="admin@example.com", username="admin", role="admin")
+        admin = User(
+            email="admin@example.com",
+            username="admin",
+            role="admin",
+        )
         admin.set_password("admin123")
         db.session.add(admin)
         db.session.commit()
         click.echo("Default admin user created.")
     else:
-        click.echo("Admin user already exists.")
-
+        click.echo("Admin user already exists.")    
 
 # ----------------------
 # Configuration Commands

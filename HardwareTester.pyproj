@@ -38,7 +38,6 @@
     <Compile Include="dynamic_test_gui.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\cli.py" />
     <Compile Include="HardwareTester\config.py">
       <SubType>Code</SubType>
     </Compile>

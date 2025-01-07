@@ -9,11 +9,13 @@ def str_to_bool(value):
     return str(value).strip().lower() in ("true", "yes", "1")
 
 class Config:
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    INSTANCE_DIR = os.path.join(BASE_DIR, 'instance')  # Instance folder path
     
+    INSTANCE_DIR = os.path.join(os.path.abspath(os.path.dirname(__file__)), "instance")
+    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", f"sqlite:///{INSTANCE_DIR}/app.db")
+
+
     # Hardcode for now
-    SQLALCHEMY_DATABASE_URI = "sqlite:///instance/app.db"
+    #SQLALCHEMY_DATABASE_URI = "sqlite:///instance/app.db"
     #SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", f"sqlite:///{INSTANCE_DIR}/app.db")
 
 
