@@ -367,4 +367,8 @@ FodyWeavers.xsd
 /secrets/username
 /secrets/password
 /secrets/access_token
+/decode.py
 /venv
+
+/encoded_root_scripts.txt
+/models_combined_full.txt

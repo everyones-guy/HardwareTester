@@ -1,10 +1,7 @@
 
 import requests
 from requests.exceptions import RequestException
-from HardwareTester.utils.logger import Logger
-
-logger = Logger(name="APIManager", log_file="logs/api_manager.log", level="INFO")
-
+from HardwareTester.extensions import logger
 
 class APIManager:
     """Library for managing API connections and requests."""

@@ -1,5 +1,26 @@
-
+# validators.py
+# This module contains utility functions for validating user input.
 import os
+import re
+
+
+def validate_email(email):
+    """
+    Validate an email address format.
+    :param email: The email address to validate.
+    :return: (bool, str) Tuple where the first value indicates success and the second is a message.
+    """
+    if not email:
+        return False, "Email address cannot be empty."
+
+    # Define a regex pattern for validating an email address
+    email_regex = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+    
+    if not re.match(email_regex, email):
+        return False, "Invalid email address format."
+    
+    return True, "Email address is valid."
+
 
 def allowed_file(filename, allowed_extensions):
     """
@@ -94,3 +115,4 @@ def validate_json(data, required_keys):
         return False, f"Missing required keys: {', '.join(missing_keys)}."
     
     return True, "JSON object is valid."
+

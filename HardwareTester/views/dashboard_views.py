@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, jsonify
 from flask_login import login_required, current_user
 from HardwareTester.services.dashboard_service import DashboardService
-from HardwareTester.models import UserRole
+from HardwareTester.models.user_models import UserRole
 
 dashboard_bp = Blueprint("dashboard", __name__, url_prefix="/dashboard")
 

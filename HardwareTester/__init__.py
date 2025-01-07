@@ -1,63 +1,73 @@
 from flask import Flask, jsonify
 from HardwareTester.config import config
-from HardwareTester.extensions import db, migrate, socketio, csrf, login_manager
+from HardwareTester.extensions import db, socketio, migrate, csrf, login_manager, ma, logger
 from HardwareTester.views import register_blueprints
-from HardwareTester.models import User
-from HardwareTester.utils.db_utils import initialize_database  # Ensure this exists
-from HardwareTester.views.configuration_views import configuration_bp
-from HardwareTester.views.auth_views import auth_bp
-
+from HardwareTester.utils.bcrypt_utils import bcrypt
+from HardwareTester.models.user_models import User
+from cli import cli
 import logging
 
-from flask_migrate import Migrate
-migrate = Migrate()
-
 def create_app(config_name="default"):
+    """
+    Create and configure the Flask application.
+    :param config_name: The configuration name ('development', 'testing', or 'production').
+    :return: Configured Flask application instance.
+    """
     # Configure logging
-    logging.basicConfig(
-        level=logging.DEBUG if config_name == "development" else logging.INFO,
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-        handlers=[
-            logging.StreamHandler(),  # Log to console
-            logging.FileHandler("hardware_tester.log"),  # Log to file
-        ],
-    )
-    logger = logging.getLogger(__name__)
+    configure_logging(config_name)
     logger.info(f"Initializing app with config: {config_name}")
 
     # Initialize Flask app
     app = Flask(__name__)
-    if config_name not in config:
-        raise ValueError(f"Invalid config name: {config_name}")
-    app.config.from_object(config[config_name])  # Use the appropriate config class
+    app.config.from_object(config[config_name])
 
     # Initialize extensions
-    db.init_app(app)
-    migrate.init_app(app, db)
-    socketio.init_app(app, cors_allowed_origins="*")
-    csrf.init_app(app)
-    login_manager.init_app(app)
-    login_manager.login_view = "auth.login"  # Replace with actual login route if applicable
+    initialize_extensions(app)
 
-    # Register blueprints
+    # Register blueprints and error handlers
     register_blueprints(app)
-
-    # Register error handlers
     register_error_handlers(app)
 
     logger.info("App initialized successfully")
 
-    # User loader callback
     @login_manager.user_loader
     def load_user(user_id):
+        """
+        Load a user by ID for Flask-Login.
+        :param user_id: User ID from the session.
+        :return: User instance or None.
+        """
         logger.debug(f"Loading user with ID: {user_id}")
         return User.query.get(int(user_id))
 
     return app
 
 
+def initialize_extensions(app):
+    """
+    Initialize Flask extensions.
+    :param app: Flask application instance.
+    """
+    try:
+        db.init_app(app)
+        migrate.init_app(app, db)
+        socketio.init_app(app, cors_allowed_origins="*")
+        csrf.init_app(app)
+        bcrypt.init_app(app)
+        ma.init_app(app)
+        login_manager.init_app(app)
+        login_manager.login_view = "auth.login"
+        logger.info("Extensions initialized successfully.")
+    except Exception as e:
+        logger.error(f"Error initializing extensions: {e}")
+        raise e
+
+
 def configure_logging(config_name):
-    """Configure logging based on environment."""
+    """
+    Configure application logging based on the environment.
+    :param config_name: The configuration name ('development', 'testing', or 'production').
+    """
     level = logging.DEBUG if config_name == "development" else logging.INFO
     logging.basicConfig(
         level=level,
@@ -71,24 +81,26 @@ def configure_logging(config_name):
 
 
 def register_error_handlers(app):
-    """Register custom error handlers."""
+    """
+    Register error handlers for the Flask application.
+    :param app: Flask application instance.
+    """
     @app.errorhandler(404)
     def not_found_error(error):
-        logging.warning(f"404 error: {error}")
+        logger.warning(f"404 error: {error}")
         return jsonify({"error": "Resource not found"}), 404
 
     @app.errorhandler(500)
     def internal_error(error):
-        logging.error(f"500 error: {error}")
+        logger.error(f"500 error: {error}")
         return jsonify({"error": "An internal error occurred"}), 500
 
     @app.errorhandler(403)
     def forbidden_error(error):
-        logging.warning(f"403 error: {error}")
+        logger.warning(f"403 error: {error}")
         return jsonify({"error": "Forbidden"}), 403
 
     @app.errorhandler(401)
     def unauthorized_error(error):
-        logging.warning(f"401 error: {error}")
+        logger.warning(f"401 error: {error}")
         return jsonify({"error": "Unauthorized"}), 401
-    

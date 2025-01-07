@@ -1,94 +1,122 @@
-
 import json
-import random
 from datetime import datetime
-from HardwareTester.utils.logger import Logger
+from HardwareTester.extensions import db, logger
+from HardwareTester.models.device_models import Emulation, Blueprint  # Replace with actual path to your model
+from typing import Dict, Any, Union
 
-logger = Logger(name="EmulatorService", log_file="logs/emulator_service.log", level="INFO")
+class EmulatorService:
+    # Emulator state
+    emulator_state = {
+        "running": False,
+        "config": {
+            "default_machine_name": "Machine1",
+            "stress_test_mode": False,
+        },
+        "active_emulations": [],
+        "logs": [],
+    }
 
-# Mock data
-blueprints = [
-    {"name": "Blueprint A", "description": "Test blueprint A", "created_at": str(datetime.now())},
-    {"name": "Blueprint B", "description": "Test blueprint B", "created_at": str(datetime.now())},
-    {"name": "Blueprint C", "description": "Test blueprint C", "created_at": str(datetime.now())},
-]
-active_emulations = []
-emulator_logs = []
+    @staticmethod
+    def initialize_state():
+        """Load the emulator state from the database."""
+        try:
+            emulations = Emulation.query.all()
+            EmulatorService.emulator_state["active_emulations"] = [
+                {
+                    "machine_name": e.machine_name,
+                    "blueprint": e.blueprint,
+                    "stress_test": e.stress_test,
+                    "start_time": e.start_time.isoformat(),
+                }
+                for e in emulations
+            ]
+            EmulatorService.emulator_state["running"] = bool(emulations)
+            logger.info("Emulator state initialized from the database.")
+        except Exception as e:
+            logger.error(f"Error initializing emulator state: {e}")
 
+    @staticmethod
+    def fetch_blueprints() -> Dict[str, Union[bool, Any]]:
+        """Fetch available blueprints."""
+        try:
+            blueprints = Blueprint.query.all()
+            blueprint_list = [{"name": b.name, "description": b.description, "created_at": b.created_at} for b in blueprints]
+            logger.info("Fetching blueprints.")
+            return {"success": True, "blueprints": blueprint_list}
+        except Exception as e:
+            logger.error(f"Error fetching blueprints: {e}")
+            return {"success": False, "error": "Failed to fetch blueprints."}
 
-def fetch_blueprints():
-    """Fetch available blueprints."""
-    try:
-        logger.info("Fetching blueprints.")
-        return {"success": True, "blueprints": blueprints}
-    except Exception as e:
-        logger.error(f"Error fetching blueprints: {e}")
-        return {"success": False, "error": str(e)}
+    @staticmethod
+    def start_emulation(machine_name: str, blueprint: str, stress_test: bool = False) -> Dict[str, Union[bool, str]]:
+        """Start a new emulation."""
+        try:
+            if EmulatorService.emulator_state["running"]:
+                return {"success": False, "message": "An emulation is already running."}
 
+            emulation = Emulation(
+                machine_name=machine_name,
+                blueprint=blueprint,
+                stress_test=stress_test,
+                start_time=datetime.utcnow(),
+            )
+            db.session.add(emulation)
+            db.session.commit()
 
-def load_blueprint(file):
-    """Load a new blueprint."""
-    try:
-        blueprint_name = file.filename
-        blueprint_data = json.load(file)
-        blueprints.append({"name": blueprint_name, "data": blueprint_data, "created_at": str(datetime.now())})
-        logger.info(f"Loaded blueprint: {blueprint_name}")
-        emulator_logs.append(f"[{datetime.now()}] Loaded blueprint: {blueprint_name}")
-        return {"success": True, "message": f"Blueprint '{blueprint_name}' loaded successfully."}
-    except Exception as e:
-        logger.error(f"Error loading blueprint: {e}")
-        return {"success": False, "error": str(e)}
+            # Update in-memory state
+            EmulatorService.emulator_state["active_emulations"].append({
+                "machine_name": machine_name,
+                "blueprint": blueprint,
+                "stress_test": stress_test,
+                "start_time": emulation.start_time.isoformat(),
+            })
+            EmulatorService.emulator_state["running"] = True
 
+            log_message = f"Started emulation for {machine_name} using blueprint '{blueprint}'"
+            EmulatorService._log_action(log_message)
+            return {"success": True, "message": f"Emulation started for machine '{machine_name}'."}
+        except Exception as e:
+            logger.error(f"Error starting emulation: {e}")
+            db.session.rollback()
+            return {"success": False, "error": "Failed to start emulation."}
 
-def start_emulation(machine_name, blueprint, stress_test=False):
-    """Start a new emulation."""
-    try:
-        emulation = {
-            "machine_name": machine_name,
-            "blueprint": blueprint,
-            "stress_test": stress_test,
-            "start_time": datetime.now().isoformat(),
-        }
-        active_emulations.append(emulation)
-        emulator_logs.append(f"[{datetime.now()}] Started emulation for {machine_name} using {blueprint}")
-        logger.info(f"Started emulation for {machine_name} using {blueprint}")
-        return {"success": True, "message": f"Emulation started for machine '{machine_name}'."}
-    except Exception as e:
-        logger.error(f"Error starting emulation: {e}")
-        return {"success": False, "error": str(e)}
+    @staticmethod
+    def stop_emulation(machine_name: str) -> Dict[str, Union[bool, str]]:
+        """Stop an active emulation."""
+        try:
+            emulation = Emulation.query.filter_by(machine_name=machine_name).first()
+            if not emulation:
+                return {"success": False, "message": f"No emulation found for machine '{machine_name}'."}
 
+            db.session.delete(emulation)
+            db.session.commit()
 
-def stop_emulation(machine_name):
-    """Stop an active emulation."""
-    try:
-        global active_emulations
-        active_emulations = [e for e in active_emulations if e["machine_name"] != machine_name]
-        emulator_logs.append(f"[{datetime.now()}] Stopped emulation for {machine_name}")
-        logger.info(f"Stopped emulation for {machine_name}")
-        return {"success": True, "message": f"Emulation stopped for machine '{machine_name}'."}
-    except Exception as e:
-        logger.error(f"Error stopping emulation: {e}")
-        return {"success": False, "error": str(e)}
+            # Update in-memory state
+            EmulatorService.emulator_state["active_emulations"] = [
+                e for e in EmulatorService.emulator_state["active_emulations"] if e["machine_name"] != machine_name
+            ]
+            EmulatorService.emulator_state["running"] = len(EmulatorService.emulator_state["active_emulations"]) > 0
 
+            log_message = f"Stopped emulation for machine '{machine_name}'"
+            EmulatorService._log_action(log_message)
+            return {"success": True, "message": f"Emulation stopped for machine '{machine_name}'."}
+        except Exception as e:
+            logger.error(f"Error stopping emulation: {e}")
+            db.session.rollback()
+            return {"success": False, "error": "Failed to stop emulation."}
 
-def list_active_emulations():
-    """List all active emulations."""
-    try:
-        logger.info("Fetching list of active emulations.")
-        return {"success": True, "emulations": active_emulations}
-    except Exception as e:
-        logger.error(f"Error fetching active emulations: {e}")
-        return {"success": False, "error": str(e)}
+    @staticmethod
+    def list_active_emulations() -> Dict[str, Union[bool, Any]]:
+        """List all active emulations."""
+        try:
+            logger.info("Fetching list of active emulations.")
+            return {"success": True, "emulations": EmulatorService.emulator_state["active_emulations"]}
+        except Exception as e:
+            logger.error(f"Error fetching active emulations: {e}")
+            return {"success": False, "error": "Failed to fetch active emulations."}
 
-
-def get_emulator_logs():
-    """Get logs for the emulator."""
-    try:
-        logger.info("Fetching emulator logs.")
-        return {"success": True, "logs": emulator_logs}
-    except Exception as e:
-        logger.error(f"Error fetching emulator logs: {e}")
-        return {"success": False, "error": str(e)}
-
-
-
+    @staticmethod
+    def _log_action(message: str):
+        """Log an action to the emulator logs."""
+        EmulatorService.emulator_state["logs"].append(f"[{datetime.now()}] {message}")
+        logger.info(message)
