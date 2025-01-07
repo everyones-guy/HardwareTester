@@ -207,6 +207,7 @@
   <ItemGroup>
     <Content Include=".env" />
     <Content Include=".flaskenv" />
+    <Content Include="encoded_root_scripts.txt" />
     <Content Include="HardwareTester\static\css\styles.css" />
     <Content Include="HardwareTester\static\js\app.js" />
     <Content Include="HardwareTester\static\js\dashboard.js" />
