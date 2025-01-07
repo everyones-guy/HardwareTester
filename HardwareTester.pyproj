@@ -74,6 +74,9 @@
     <Compile Include="HardwareTester\models\report_models.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="HardwareTester\models\test_models.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="HardwareTester\models\user_models.py">
       <SubType>Code</SubType>
     </Compile>
