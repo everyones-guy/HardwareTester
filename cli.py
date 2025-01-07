@@ -11,67 +11,75 @@ from HardwareTester.utils.bcrypt_utils import bcrypt
 import os
 
 
-@click.group()
+@click.group(help="CLI for Universal Hardware Tester.")
 def cli():
-    """CLI for Universal Hardware Tester."""
     pass
 
 
 # ----------------------
 # Database Commands
 # ----------------------
-@cli.group()
-def db_commands():
-    """Database management commands."""
+@cli.group(help="Database management commands.")
+def db():
     pass
 
 
-@db_commands.command("init")
+@db.command("init", help="Initialize the database.")
 @with_appcontext
 def init_db():
-    """Initialize the database."""
-    db.create_all()
-    logger.info("Database initialized.")
-    click.echo("Database initialized successfully.")
+    try:
+        db.create_all()
+        logger.info("Database initialized.")
+        click.echo("Database initialized successfully.")
 
-    # Add default admin user
-    if not User.query.filter_by(email="admin@example.com").first():
-        hashed_password = bcrypt.generate_password_hash("admin123").decode("utf-8")
-        admin = User(email="admin@example.com", username="admin", password=hashed_password, role="admin")
-        db.session.add(admin)
-        db.session.commit()
-        click.echo("Default admin user created.")
-    else:
-        click.echo("Admin user already exists.")
+        # Add default admin user
+        admin_email = os.getenv("ADMIN_EMAIL", "admin@example.com")
+        admin_password = os.getenv("ADMIN_PASSWORD", "admin123")
+        if not User.query.filter_by(email=admin_email).first():
+            hashed_password = bcrypt.generate_password_hash(admin_password).decode("utf-8")
+            admin = User(email=admin_email, username="admin", password=hashed_password, role="admin")
+            db.session.add(admin)
+            db.session.commit()
+            click.echo("Default admin user created.")
+        else:
+            click.echo("Admin user already exists.")
+    except Exception as e:
+        logger.error(f"Error initializing database: {e}")
+        click.echo(f"Error: {e}")
 
 
-@db_commands.command("drop")
+@db.command("drop", help="Drop all database tables.")
 @with_appcontext
 def drop_db():
-    """Drop all database tables."""
-    db.drop_all()
-    logger.warning("Database tables dropped.")
-    click.echo("Database dropped successfully.")
+    try:
+        db.drop_all()
+        logger.warning("Database tables dropped.")
+        click.echo("Database dropped successfully.")
+    except Exception as e:
+        logger.error(f"Error dropping database: {e}")
+        click.echo(f"Error: {e}")
 
-@db_commands.command("seed")
+
+@db.command("seed", help="Seed the database with initial data.")
 @with_appcontext
 def seed_data():
-    """Seed the database with initial data."""
-    click.echo("Seeding database...")
-
-    # Create a default admin user if not exists
-    if not User.query.filter_by(email="admin@example.com").first():
-        admin = User(
-            email="admin@example.com",
-            username="admin",
-            role="admin",
-        )
-        admin.set_password("admin123")
-        db.session.add(admin)
-        db.session.commit()
-        click.echo("Default admin user created.")
-    else:
-        click.echo("Admin user already exists.")    
+    try:
+        click.echo("Seeding database...")
+        if not User.query.filter_by(email="admin@example.com").first():
+            admin = User(
+                email="admin@example.com",
+                username="admin",
+                role="admin",
+            )
+            admin.set_password("admin123")
+            db.session.add(admin)
+            db.session.commit()
+            click.echo("Default admin user created.")
+        else:
+            click.echo("Admin user already exists.")
+    except Exception as e:
+        logger.error(f"Error seeding database: {e}")
+        click.echo(f"Error: {e}")
 
 # ----------------------
 # Configuration Commands

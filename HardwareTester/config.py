@@ -9,14 +9,10 @@ def str_to_bool(value):
     return str(value).strip().lower() in ("true", "yes", "1")
 
 class Config:
-    
-    # Hardcode for now
-    #SQLALCHEMY_DATABASE_URI = "sqlite:///instance/app.db"
-    #SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", f"sqlite:///{INSTANCE_DIR}/app.db")
-
-
     """Base configuration with default settings."""
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    INSTANCE_DIR = os.path.join(BASE_DIR, "instance")
+    os.makedirs(INSTANCE_DIR, exist_ok=True)  # Ensure the instance directory exists
 
     # Flask settings
     SECRET_KEY = os.getenv("SECRET_KEY", "default-secret-key")
@@ -33,15 +29,8 @@ class Config:
     LOG_FILE = os.getenv("LOG_FILE", "app.log")
 
     # Database settings
-    #DATABASE_URL = "sqlite:///instance/app.db"
-    #SQLALCHEMY_DATABASE_URI = "sqlite:///instance/app.db"
-    #SQLALCHEMY_TRACK_MODIFICATIONS = str_to_bool(os.getenv("SQLALCHEMY_TRACK_MODIFICATIONS", "False"))
-    
-    DATABASE_URL = "sqlite:///instance/app.db"
-    INSTANCE_DIR = os.path.join(os.path.abspath(os.path.dirname(__file__)), "instance")
     SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", f"sqlite:///{INSTANCE_DIR}/app.db")
-    SQLALCHEMY_TRACK_MODIFICATIONS = str_to_bool(os.getenv("SQLALCHEMY_TRACK_MODIFICATIONS", "False"))
-    
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # File upload settings
     UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER", os.path.join(BASE_DIR, "uploads"))
@@ -75,7 +64,7 @@ class DevelopmentConfig(Config):
 class TestingConfig(Config):
     """Testing configuration with a separate test database."""
     TESTING = True
-    SQLALCHEMY_DATABASE_URI = "sqlite:///instance/app.db"
+    SQLALCHEMY_DATABASE_URI = "sqlite:///instance/test.db"
     WTF_CSRF_ENABLED = False  # Disable CSRF for easier testing
     LOG_LEVEL = "WARNING"
     ENV = "testing"
@@ -84,7 +73,7 @@ class ProductionConfig(Config):
     """Production configuration."""
     DEBUG = False
     LOG_LEVEL = "ERROR"
-    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", "sqlite:///instance/prod.db")
+    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", f"sqlite:///{Config.INSTANCE_DIR}/prod.db")
     SESSION_COOKIE_SECURE = True
     REMEMBER_COOKIE_SECURE = True
     ENV = "production"

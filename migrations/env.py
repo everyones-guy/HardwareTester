@@ -22,10 +22,14 @@ from HardwareTester.models.configuration_models import Configuration, Settings, 
 target_metadata = db.metadata
 
 # Retrieve database URL from Flask app configuration
+def get_sqlalchemy_url():
+    """Retrieve the SQLAlchemy database URI from the Flask app."""
+    return current_app.config.get("SQLALCHEMY_DATABASE_URI")
+
+
 config = context.config
-config.set_main_option(
-    "sqlalchemy.url", current_app.config.get("SQLALCHEMY_DATABASE_URI")
-)
+config.set_main_option("sqlalchemy.url", get_sqlalchemy_url())
+
 
 def run_migrations_offline():
     """Run migrations in 'offline' mode."""
@@ -53,6 +57,7 @@ def run_migrations_online():
             connection=connection,
             target_metadata=target_metadata,
             compare_type=True,  # Enables type comparison for migrations
+            render_as_batch=True if connection.dialect.name == "sqlite" else False,  # Support SQLite schema changes
         )
 
         with context.begin_transaction():
