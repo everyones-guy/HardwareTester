@@ -370,3 +370,5 @@ FodyWeavers.xsd
 /decode.py
 /venv
 
+/encoded_root_scripts.txt
+/models_combined_full.txt
