@@ -1,7 +1,7 @@
 
 
 from flask import Blueprint, request, jsonify, render_template
-from HardwareTester.services.upload_service import upload_test_plan, upload_spec_sheet
+from HardwareTester.services.upload_service import UploadService
 
 upload_bp = Blueprint("upload", __name__)
 
@@ -13,7 +13,7 @@ def upload_test_plan_view():
     if not file:
         return jsonify({"success": False, "error": "No file provided."}), 400
 
-    result = upload_test_plan(file, uploaded_by)
+    result = UploadService.upload_test_plan(file, uploaded_by)
     if result["success"]:
         return jsonify({"success": True, "message": result["message"]})
     else:
@@ -27,7 +27,7 @@ def upload_spec_sheet_view():
     if not file:
         return jsonify({"success": False, "error": "No file provided."}), 400
 
-    result = upload_spec_sheet(file, uploaded_by)
+    result = UploadService.upload_spec_sheet(file, uploaded_by)
     if result["success"]:
         return jsonify({"success": True, "message": result["message"]})
     else:

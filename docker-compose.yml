@@ -6,7 +6,7 @@ services:
       context: .
       dockerfile: Dockerfile
     environment:
-      - DATABASE_URL=${DATABASE_URL:-sqlite:///fallback.db}  # Fallback to SQLite
+      - DATABASE_URL=${DATABASE_URL:sqlite:///instance/fallback.db}  # Fallback to SQLite
       - SECRET_KEY=${SECRET_KEY}
       - MQTT_BROKER=${MQTT_BROKER}
       - MQTT_PORT=${MQTT_PORT}

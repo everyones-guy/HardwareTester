@@ -1,6 +1,7 @@
 
 from flask import Blueprint, jsonify, request, render_template
-from HardwareTester.services.test_plan_service import list_test_plans, upload_test_plan, run_test_plan
+from HardwareTester.services.test_plan_service import TestPlanService
+from HardwareTester.services.test_service import TestService
 
 test_plan_bp = Blueprint("test_plan", __name__)
 
@@ -9,7 +10,7 @@ def upload_plan():
     """Upload a test plan."""
     file = request.files.get("file")
     uploaded_by = request.form.get("uploaded_by", "Unknown")
-    result = upload_test_plan(file, uploaded_by)
+    result = TestPlanService.upload_test_plan(file, uploaded_by)
     if result["success"]:
         return jsonify({"success": True, "message": result["message"]})
     return jsonify({"success": False, "error": result["error"]}), 400
@@ -17,7 +18,7 @@ def upload_plan():
 @test_plan_bp.route("/<int:test_plan_id>/run", methods=["POST"])
 def execute_plan(test_plan_id):
     """Run a specific test plan."""
-    result = run_test_plan(test_plan_id)
+    result = TestPlanService.run_test_plan(test_plan_id)
     if result["success"]:
         return jsonify({"success": True, "results": result["results"]})
     return jsonify({"success": False, "error": result["error"]}), 400
@@ -31,7 +32,7 @@ def show_test_plans():
 @test_plan_bp.route("/test-plans/list", methods=["GET"])
 def get_test_plans():
     """Get a list of all test plans."""
-    response = list_test_plans()
+    response = TestPlanService.list_tests()
     return jsonify(response)
 
 
@@ -40,14 +41,14 @@ def upload_test_plan_endpoint():
     """Upload a new test plan."""
     file = request.files.get("file")
     uploaded_by = request.form.get("uploaded_by", "Unknown User")
-    response = upload_test_plan(file, uploaded_by)
+    response = TestPlanService.upload_test_plan(file, uploaded_by)
     return jsonify(response)
 
 
 @test_plan_bp.route("/test-plans/run/<int:test_plan_id>", methods=["POST"])
 def run_test_plan_endpoint(test_plan_id):
     """Run a specific test plan."""
-    response = run_test_plan(test_plan_id)
+    response = TestPlanService.run_test_plan(test_plan_id)
     return jsonify(response)
 	
 

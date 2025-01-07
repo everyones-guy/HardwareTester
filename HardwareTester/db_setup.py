@@ -1,60 +1,54 @@
-
 import os
 import subprocess
+import sys
+import logging
+
+# Configure logger
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 def run_command(command):
     """Run a shell command."""
     try:
-        print(f"Running: {' '.join(command)}")
+        logger.info(f"Running: {' '.join(command)}")
         result = subprocess.run(command, check=True, text=True, capture_output=True)
-        print(result.stdout)
+        logger.info(result.stdout)
         return True
     except subprocess.CalledProcessError as e:
-        print(f"Error: {e.stderr}")
+        logger.error(f"Error: {e.stderr}")
         return False
 
 def initialize_db():
     """Initialize the database."""
-    # Set FLASK_APP environment variable
-    os.environ["FLASK_APP"] = "runserver.py"
-
-    print("Initializing database...")
-    # Initialize migrations folder
-    if not run_command(["flask", "db", "init"]):
-        print("Failed to initialize migrations folder. It may already exist.")
+    migrations_dir = os.path.join(os.getcwd(), "migrations")
+    if not os.path.exists(migrations_dir):
+        if not run_command(["flask", "db", "init"]):
+            logger.warning("Failed to initialize migrations folder. It may already exist.")
+    else:
+        logger.info("Migrations folder already exists. Skipping initialization.")
 
     # Perform migrations
     if not run_command(["flask", "db", "migrate", "-m", "Initial migration"]):
-        print("Failed to create migrations.")
+        logger.error("Failed to create migrations.")
+        sys.exit(1)
 
     # Apply migrations to the database
     if not run_command(["flask", "db", "upgrade"]):
-        print("Failed to apply migrations.")
+        logger.error("Failed to apply migrations.")
+        sys.exit(1)
 
-def setup_fallback():
-    """Setup SQLite as fallback if no DATABASE_URL is provided."""
-    database_url = os.getenv("DATABASE_URL")
-    if not database_url:
-        print("No DATABASE_URL provided. Falling back to SQLite.")
-        os.environ["DATABASE_URL"] = "sqlite:///fallback.db"
-
+def setup_database():
+    """Setup database based on environment."""
+    database_url = os.getenv("DATABASE_URL", "sqlite:///instance/app.db")
+    os.environ["DATABASE_URL"] = database_url
+    logger.info(f"Using database: {database_url}")
     initialize_db()
-
-def setup_azure():
-    """Setup Azure SQL if DATABASE_URL is provided."""
-    database_url = os.getenv("DATABASE_URL")
-    if database_url:
-        print("Using Azure SQL database.")
-        initialize_db()
-    else:
-        print("DATABASE_URL is not set. Skipping Azure SQL setup.")
 
 def main():
     """Main setup function."""
-    print("Starting database setup...")
-    setup_fallback()  # Always setup SQLite as fallback
-    setup_azure()     # Optionally setup Azure SQL if DATABASE_URL is set
-    print("Database setup complete.")
+    logger.info("Starting database setup...")
+    setup_database()
+    logger.info("Database setup complete.")
 
 if __name__ == "__main__":
     main()

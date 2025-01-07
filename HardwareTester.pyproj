@@ -35,6 +35,9 @@
     <Compile Include="decode.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="dynamic_test_gui.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="HardwareTester\config.py">
       <SubType>Code</SubType>
     </Compile>
@@ -47,7 +50,34 @@
     <Compile Include="HardwareTester\forms.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\models.py">
+    <Compile Include="HardwareTester\models\configuration_models.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="HardwareTester\models\dashboard_models.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="HardwareTester\models\db.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="HardwareTester\models\device_models.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="HardwareTester\models\log_models.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="HardwareTester\models\metric_models.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="HardwareTester\models\project_models.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="HardwareTester\models\report_models.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="HardwareTester\models\test_models.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="HardwareTester\models\user_models.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="HardwareTester\services\configuration_service.py">
@@ -63,6 +93,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="HardwareTester\services\test_service.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="HardwareTester\utils\bcrypt_utils.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="HardwareTester\utils\db_utils.py">
@@ -87,15 +120,6 @@
     <Compile Include="HardwareTester\views\error_views.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="old\scripts\manage_test_plans.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="old\scripts\manage_valves.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="old\scripts\run_test_plans.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="HardwareTester\services\api_service.py">
       <SubType>Code</SubType>
     </Compile>
@@ -108,16 +132,10 @@
     <Compile Include="HardwareTester\services\valve_service.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="old\sockets.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="HardwareTester\utils\api_manager.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="HardwareTester\utils\auto_deploy.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="old\main.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="HardwareTester\utils\logger.py">
@@ -133,9 +151,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="HardwareTester\utils\test_runner.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="old\utils.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="HardwareTester\utils\validators.py">
@@ -164,63 +179,15 @@
     </Compile>
     <Compile Include="runserver.py" />
     <Compile Include="HardwareTester\__init__.py" />
-    <Compile Include="old\views.py" />
-    <Compile Include="tests\e2e\test_user_workflows.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="tests\integration\test_api_endpoints.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="tests\setup\init_test_files.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="tests\setup\setup_windows.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="tests\unit\services\test_dashboard_service.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="tests\unit\test_api_manager.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="tests\unit\test_forms.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="tests\unit\test_logger.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="tests\unit\test_models.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="tests\unit\test_sockets.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="tests\test_utils.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="tests\unit\test_views.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="tests\unit\test_app_js.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="tests\unit\test_database.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="tests\unit\test_utils.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="tests\__init__.py">
-      <SubType>Code</SubType>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="HardwareTester\" />
+    <Folder Include="HardwareTester\models\" />
+    <Folder Include="instance\" />
     <Folder Include="secrets\" />
     <Folder Include="HardwareTester\templates\auth\" />
     <Folder Include="HardwareTester\views\" />
     <Folder Include="HardwareTester\services\" />
-    <Folder Include="old\scripts\" />
     <Folder Include="HardwareTester\static\" />
     <Folder Include="HardwareTester\static\content\" />
     <Folder Include="HardwareTester\static\fonts\" />
@@ -233,21 +200,14 @@
     <Folder Include="HardwareTester\utils\" />
     <Folder Include="migrations\" />
     <Folder Include="logs\" />
-    <Folder Include="old\" />
-    <Folder Include="tests\integration\" />
-    <Folder Include="tests\e2e\" />
-    <Folder Include="tests\setup\" />
-    <Folder Include="tests\unit\" />
-    <Folder Include="tests\unit\services\" />
     <Folder Include="uploads\" />
-    <Folder Include="tests\" />
     <Folder Include="uploads\test_plans\" />
     <Folder Include="uploads\spec_sheets\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include=".env" />
     <Content Include=".flaskenv" />
-    <Content Include="docker-compose.yml" />
+    <Content Include="encoded_root_scripts.txt" />
     <Content Include="HardwareTester\static\css\styles.css" />
     <Content Include="HardwareTester\static\js\app.js" />
     <Content Include="HardwareTester\static\js\dashboard.js" />
@@ -282,6 +242,7 @@
     <Content Include="HardwareTester\templates\upload_test_plan.html" />
     <Content Include="HardwareTester\templates\user_management.html" />
     <Content Include="HardwareTester\templates\valve_management.html" />
+    <Content Include="instance\app.db" />
     <Content Include="logs\app.log" />
     <Content Include="logs\flask_app.log" />
     <Content Include="readme.md" />

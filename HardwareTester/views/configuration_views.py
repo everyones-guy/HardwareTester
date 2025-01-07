@@ -1,6 +1,6 @@
 
 from flask import Blueprint, render_template, request, jsonify
-from HardwareTester.services.configuration_service import save_configuration, load_configuration
+from HardwareTester.services.configuration_service import ConfigurationService
 
 configuration_bp = Blueprint("configurations", __name__)
 
@@ -13,7 +13,7 @@ def configuration_management():
 def save_config():
     """Save a new configuration."""
     data = request.json
-    result = save_configuration(data)
+    result = ConfigurationService.save_configuration(data)
     if result["success"]:
         return jsonify({"success": True, "message": "Configuration saved successfully."})
     return jsonify({"success": False, "error": result["error"]}), 500
@@ -21,7 +21,7 @@ def save_config():
 @configuration_bp.route("/load", methods=["GET"])
 def load_config():
     """Load saved configurations."""
-    result = load_configuration()
+    result = ConfigurationService.load_configuration()
     if result["success"]:
         return jsonify({"success": True, "configurations": result["data"]})
     return jsonify({"success": False, "error": result["error"]}), 500

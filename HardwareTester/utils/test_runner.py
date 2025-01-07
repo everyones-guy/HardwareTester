@@ -1,5 +1,4 @@
-
-from HardwareTester.models import TestPlan
+from HardwareTester.models.test_models import TestPlan, TestStep
 
 def run_test_plan(test_plan_id):
     """
@@ -7,27 +6,25 @@ def run_test_plan(test_plan_id):
     :param test_plan_id: ID of the test plan in the database.
     :return: Results of the test run.
     """
+    # Fetch the test plan by ID
     test_plan = TestPlan.query.get(test_plan_id)
     if not test_plan:
         return {"success": False, "message": "Test plan not found"}
 
-    steps = test_plan.steps
     results = []
 
-    for step in steps:
+    for step in test_plan.steps:
         # Simulate or execute the test step
-        # Example: {"Step": "1", "Action": "Set Valve", "Parameter": "50% Open"}
-        result = simulate_step(step)  # Replace with actual execution logic
-        results.append({"step": step, "result": result})
+        result = simulate_step(step)
+        results.append({"step_id": step.id, "action": step.action, "parameter": step.parameter, "result": result})
 
     return {"success": True, "results": results}
+
 
 def simulate_step(step):
     """
     Simulate a test step (placeholder for real execution).
-    :param step: A single test step.
+    :param step: A TestStep instance.
     :return: Simulated result.
     """
-    return f"Executed step: {step.get('Action')} with parameter {step.get('Parameter')}"
-
-
+    return f"Executed step: {step.action} with parameter {step.parameter}"

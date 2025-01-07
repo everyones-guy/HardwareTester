@@ -16,7 +16,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Set SQLite database as a fallback
-ENV DATABASE_URL="sqlite:///fallback.db"
+ENV DATABASE_URL="sqlite:///instance/fallback.db"
 
 # Run the application
 CMD ["gunicorn", "-b", "0.0.0.0:5000", "HardwareTester:app"]
