@@ -18,14 +18,14 @@ def login():
             flash('Logged in successfully.', 'success')
             return redirect(url_for('dashboard.dashboard_home'))
         flash('Invalid credentials.', 'danger')
-    return render_template('login.html', form=form)
+    return render_template('auth/login.html', form=form)
 
 @auth_bp.route('/logout', methods=['POST'])
 @login_required
 def logout():
     logout_user()
     flash('You have been logged out.', 'info')
-    return redirect(url_for('login'))
+    return redirect(url_for('auth.login'))
 
 
 @auth_bp.route('/register', methods=['GET', 'POST'])

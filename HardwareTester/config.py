@@ -10,10 +10,6 @@ def str_to_bool(value):
 
 class Config:
     
-    INSTANCE_DIR = os.path.join(os.path.abspath(os.path.dirname(__file__)), "instance")
-    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", f"sqlite:///{INSTANCE_DIR}/app.db")
-
-
     # Hardcode for now
     #SQLALCHEMY_DATABASE_URI = "sqlite:///instance/app.db"
     #SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", f"sqlite:///{INSTANCE_DIR}/app.db")
@@ -37,7 +33,15 @@ class Config:
     LOG_FILE = os.getenv("LOG_FILE", "app.log")
 
     # Database settings
+    #DATABASE_URL = "sqlite:///instance/app.db"
+    #SQLALCHEMY_DATABASE_URI = "sqlite:///instance/app.db"
+    #SQLALCHEMY_TRACK_MODIFICATIONS = str_to_bool(os.getenv("SQLALCHEMY_TRACK_MODIFICATIONS", "False"))
+    
+    DATABASE_URL = "sqlite:///instance/app.db"
+    INSTANCE_DIR = os.path.join(os.path.abspath(os.path.dirname(__file__)), "instance")
+    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", f"sqlite:///{INSTANCE_DIR}/app.db")
     SQLALCHEMY_TRACK_MODIFICATIONS = str_to_bool(os.getenv("SQLALCHEMY_TRACK_MODIFICATIONS", "False"))
+    
 
     # File upload settings
     UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER", os.path.join(BASE_DIR, "uploads"))

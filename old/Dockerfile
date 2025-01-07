@@ -17,6 +17,7 @@ COPY . .
 
 # Set SQLite database as a fallback
 ENV DATABASE_URL="sqlite:///instance/fallback.db"
+ENV SQLALCHEMY_DATABASE_URI=sqlite:///instance/app.db
 
 # Run the application
 CMD ["gunicorn", "-b", "0.0.0.0:5000", "HardwareTester:app"]
