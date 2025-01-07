@@ -183,6 +183,7 @@
   <ItemGroup>
     <Folder Include="HardwareTester\" />
     <Folder Include="HardwareTester\models\" />
+    <Folder Include="instance\" />
     <Folder Include="secrets\" />
     <Folder Include="HardwareTester\templates\auth\" />
     <Folder Include="HardwareTester\views\" />
@@ -240,6 +241,7 @@
     <Content Include="HardwareTester\templates\upload_test_plan.html" />
     <Content Include="HardwareTester\templates\user_management.html" />
     <Content Include="HardwareTester\templates\valve_management.html" />
+    <Content Include="instance\app.db" />
     <Content Include="logs\app.log" />
     <Content Include="logs\flask_app.log" />
     <Content Include="readme.md" />
