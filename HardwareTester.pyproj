@@ -120,15 +120,6 @@
     <Compile Include="HardwareTester\views\error_views.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="old\scripts\manage_test_plans.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="old\scripts\manage_valves.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="old\scripts\run_test_plans.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="HardwareTester\services\api_service.py">
       <SubType>Code</SubType>
     </Compile>
@@ -141,16 +132,10 @@
     <Compile Include="HardwareTester\services\valve_service.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="old\sockets.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="HardwareTester\utils\api_manager.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="HardwareTester\utils\auto_deploy.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="old\main.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="HardwareTester\utils\logger.py">
@@ -166,9 +151,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="HardwareTester\utils\test_runner.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="old\utils.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="HardwareTester\utils\validators.py">
@@ -197,7 +179,6 @@
     </Compile>
     <Compile Include="runserver.py" />
     <Compile Include="HardwareTester\__init__.py" />
-    <Compile Include="old\views.py" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="HardwareTester\" />
@@ -206,7 +187,6 @@
     <Folder Include="HardwareTester\templates\auth\" />
     <Folder Include="HardwareTester\views\" />
     <Folder Include="HardwareTester\services\" />
-    <Folder Include="old\scripts\" />
     <Folder Include="HardwareTester\static\" />
     <Folder Include="HardwareTester\static\content\" />
     <Folder Include="HardwareTester\static\fonts\" />
@@ -219,16 +199,13 @@
     <Folder Include="HardwareTester\utils\" />
     <Folder Include="migrations\" />
     <Folder Include="logs\" />
-    <Folder Include="old\" />
     <Folder Include="uploads\" />
-    <Folder Include="old\hold_tests\" />
     <Folder Include="uploads\test_plans\" />
     <Folder Include="uploads\spec_sheets\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include=".env" />
     <Content Include=".flaskenv" />
-    <Content Include="old\docker-compose.yml" />
     <Content Include="HardwareTester\static\css\styles.css" />
     <Content Include="HardwareTester\static\js\app.js" />
     <Content Include="HardwareTester\static\js\dashboard.js" />
