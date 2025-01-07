@@ -6,4 +6,5 @@ from .log_models import ActivityLog, Notification
 from .metric_models import Metric
 from .report_models import Report
 from .dashboard_models import DashboardData
+from .test_models import TestPlan, TestStep
 from .db import db

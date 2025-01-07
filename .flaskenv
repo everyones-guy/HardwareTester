@@ -8,6 +8,7 @@ FLASK_DEBUG=1  # Set to 0 in production
 
 # Database Configuration
 DATABASE_URL=sqlite:///instance/app.db  # Default SQLite database location
+# SQLALCHEMY_DATABASE_URI=sqlite:///instance/app.db
 
 # Network settings
 HOST=127.0.0.1

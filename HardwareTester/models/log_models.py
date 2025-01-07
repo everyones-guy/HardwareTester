@@ -6,10 +6,10 @@ from datetime import datetime
 
 class ActivityLog(db.Model):
     __tablename__ = "activity_logs"
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
-    action = Column(String(200), nullable=False)
-    timestamp = Column(DateTime, default=datetime.utcnow, index=True)
+    id = db.Column(Integer, primary_key=True)
+    user_id = db.Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    action = db.Column(String(200), nullable=False)
+    timestamp = db.Column(DateTime, default=datetime.utcnow, index=True)
 
     user = db.relationship("User", backref=db.backref("activity_logs", lazy="dynamic"))
 
@@ -19,10 +19,10 @@ class ActivityLog(db.Model):
 
 class Notification(db.Model):
     __tablename__ = "notifications"
-    id = Column(Integer, primary_key=True)
-    message = Column(String(500), nullable=False)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
-    is_read = Column(Boolean, default=False, nullable=False)
+    id = db.Column(Integer, primary_key=True)
+    message = db.Column(String(500), nullable=False)
+    user_id = db.Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
+    is_read = db.Column(Boolean, default=False, nullable=False)
 
     user = db.relationship("User", backref=db.backref("notifications", lazy="dynamic"))
 
