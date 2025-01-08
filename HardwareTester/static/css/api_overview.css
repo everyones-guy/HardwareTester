@@ -1,0 +1,37 @@
+/* API Overview Styling */
+.container {
+    margin-top: 20px;
+}
+
+.card {
+    margin-bottom: 20px;
+    border: 1px solid #ced4da;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    font-size: 1.25rem;
+    font-weight: bold;
+    background-color: #f8f9fa;
+}
+
+#response-preview {
+    font-family: "Courier New", Courier, monospace;
+    font-size: 0.9rem;
+    white-space: pre-wrap;
+}
+
+textarea {
+    font-family: "Courier New", Courier, monospace;
+    font-size: 0.9rem;
+}
+
+button {
+    transition: background-color 0.2s ease;
+}
+
+    button:hover {
+        background-color: #0056b3;
+        color: white;
+    }

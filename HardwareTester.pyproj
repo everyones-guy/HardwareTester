@@ -243,6 +243,7 @@
     <Content Include=".env" />
     <Content Include=".flaskenv" />
     <Content Include="encoded_root_scripts.txt" />
+    <Content Include="HardwareTester\static\css\api_overview.css" />
     <Content Include="HardwareTester\static\css\configuration_management.css" />
     <Content Include="HardwareTester\static\css\device_blueprints.css" />
     <Content Include="HardwareTester\static\css\forgot_password.css" />
@@ -250,6 +251,7 @@
     <Content Include="HardwareTester\static\css\logs.css" />
     <Content Include="HardwareTester\static\css\mqtt_management.css" />
     <Content Include="HardwareTester\static\css\styles.css" />
+    <Content Include="HardwareTester\static\js\api_overview.js" />
     <Content Include="HardwareTester\static\js\app.js" />
     <Content Include="HardwareTester\static\js\configuration_management.js" />
     <Content Include="HardwareTester\static\js\dashboard.js" />
@@ -263,6 +265,7 @@
     <Content Include="HardwareTester\static\js\test\setup.js" />
     <Content Include="HardwareTester\static\js\valve_management.js" />
     <Content Include="HardwareTester\templates\analytics.html" />
+    <Content Include="HardwareTester\templates\api_overview.html" />
     <Content Include="HardwareTester\templates\auth\base.html" />
     <Content Include="HardwareTester\templates\auth\forgot_password.html" />
     <Content Include="HardwareTester\templates\auth\logout.html" />
