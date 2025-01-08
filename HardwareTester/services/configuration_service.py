@@ -56,3 +56,18 @@ class ConfigurationService:
             logger.error(f"Error listing configurations: {e}")
             return {"success": False, "error": str(e)}
 
+    @staticmethod
+    def generate_preview(config_id):
+        """
+        Generate a preview for a specific configuration.
+        :param config_id: ID of the configuration to preview.
+        :return: HTML snippet or error message.
+        """
+        try:
+            # Mock preview logic
+            configuration = {"id": config_id, "name": f"Config {config_id}"}
+            preview_html = f"<div>Preview: {configuration['name']}</div>"
+            return {"success": True, "preview": preview_html}
+        except Exception as e:
+            logger.error(f"Error generating preview: {e}")
+            return {"success": False, "error": str(e)}
