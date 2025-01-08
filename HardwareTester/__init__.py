@@ -7,6 +7,7 @@ from HardwareTester.models.user_models import User
 from cli import cli
 import logging
 
+
 def create_app(config_name="default"):
     """
     Create and configure the Flask application.
@@ -21,6 +22,9 @@ def create_app(config_name="default"):
     app = Flask(__name__)
     app.config.from_object(config[config_name])
 
+    # Register CLI commands
+    register_cli_commands(app)
+
     # Initialize extensions
     initialize_extensions(app)
 
@@ -29,16 +33,6 @@ def create_app(config_name="default"):
     register_error_handlers(app)
 
     logger.info("App initialized successfully")
-
-    @login_manager.user_loader
-    def load_user(user_id):
-        """
-        Load a user by ID for Flask-Login.
-        :param user_id: User ID from the session.
-        :return: User instance or None.
-        """
-        logger.debug(f"Loading user with ID: {user_id}")
-        return User.query.get(int(user_id))
 
     return app
 
@@ -56,7 +50,12 @@ def initialize_extensions(app):
         bcrypt.init_app(app)
         ma.init_app(app)
         login_manager.init_app(app)
+
+        # LoginManager configurations
         login_manager.login_view = "auth.login"
+        login_manager.login_message = "Please log in to access this page."
+        login_manager.login_message_category = "warning"
+
         logger.info("Extensions initialized successfully.")
     except Exception as e:
         logger.error(f"Error initializing extensions: {e}")
@@ -104,3 +103,27 @@ def register_error_handlers(app):
     def unauthorized_error(error):
         logger.warning(f"401 error: {error}")
         return jsonify({"error": "Unauthorized"}), 401
+
+
+def register_cli_commands(app):
+    """
+    Register CLI commands with the Flask app.
+    :param app: Flask application instance.
+    """
+    app.cli.add_command(cli)
+    logger.info("CLI commands registered successfully.")
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    """
+    Load a user by ID for Flask-Login.
+    :param user_id: User ID from the session.
+    :return: User instance or None.
+    """
+    try:
+        logger.debug(f"Loading user with ID: {user_id}")
+        return User.query.get(int(user_id))
+    except Exception as e:
+        logger.error(f"Error loading user with ID {user_id}: {e}")
+        return None
