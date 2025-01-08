@@ -179,11 +179,42 @@
     </Compile>
     <Compile Include="runserver.py" />
     <Compile Include="HardwareTester\__init__.py" />
+    <Compile Include="tests\Front_End\test_api_views.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="tests\Front_End\test_configuration_views.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="tests\Front_End\test_dashboard_views.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="tests\Front_End\test_emulator_views.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="tests\Front_End\test_hardware_views.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="tests\Front_End\test_main_views.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="tests\Front_End\test_mqtt_views.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="tests\Front_End\test_peripherals_views.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="tests\Front_End\test_test_plan_views.py">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="HardwareTester\" />
     <Folder Include="HardwareTester\models\" />
+    <Folder Include="HardwareTester\static\blueprints\" />
+    <Folder Include="HardwareTester\static\blueprints\delete\" />
+    <Folder Include="HardwareTester\static\blueprints\upload\" />
     <Folder Include="instance\" />
+    <Folder Include="tests\" />
     <Folder Include="secrets\" />
     <Folder Include="HardwareTester\templates\auth\" />
     <Folder Include="HardwareTester\views\" />
@@ -200,6 +231,10 @@
     <Folder Include="HardwareTester\utils\" />
     <Folder Include="migrations\" />
     <Folder Include="logs\" />
+    <Folder Include="tests\Front_End\" />
+    <Folder Include="tests\Back_End\" />
+    <Folder Include="tests\End_to_end\" />
+    <Folder Include="tests\unit\" />
     <Folder Include="uploads\" />
     <Folder Include="uploads\test_plans\" />
     <Folder Include="uploads\spec_sheets\" />
@@ -208,11 +243,23 @@
     <Content Include=".env" />
     <Content Include=".flaskenv" />
     <Content Include="encoded_root_scripts.txt" />
+    <Content Include="HardwareTester\static\css\configuration_management.css" />
+    <Content Include="HardwareTester\static\css\device_blueprints.css" />
+    <Content Include="HardwareTester\static\css\forgot_password.css" />
+    <Content Include="HardwareTester\static\css\hardware.css" />
+    <Content Include="HardwareTester\static\css\logs.css" />
+    <Content Include="HardwareTester\static\css\mqtt_management.css" />
     <Content Include="HardwareTester\static\css\styles.css" />
     <Content Include="HardwareTester\static\js\app.js" />
+    <Content Include="HardwareTester\static\js\configuration_management.js" />
     <Content Include="HardwareTester\static\js\dashboard.js" />
+    <Content Include="HardwareTester\static\js\device_blueprints.js" />
     <Content Include="HardwareTester\static\js\emulator.js" />
+    <Content Include="HardwareTester\static\js\forgot_password.js" />
+    <Content Include="HardwareTester\static\js\hardware.js" />
     <Content Include="HardwareTester\static\js\jest.config.js" />
+    <Content Include="HardwareTester\static\js\logs.js" />
+    <Content Include="HardwareTester\static\js\mqtt_management.js" />
     <Content Include="HardwareTester\static\js\test\setup.js" />
     <Content Include="HardwareTester\static\js\valve_management.js" />
     <Content Include="HardwareTester\templates\analytics.html" />

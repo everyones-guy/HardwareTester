@@ -85,3 +85,29 @@ def get_device(device_id):
         )
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
+
+# Usage
+#GET /blueprints
+#json
+#Copy code
+#{
+#    "success": true,
+#    "blueprints": [
+#        {"id": 1, "name": "Blueprint1.pdf", "url": "/static/blueprints/Blueprint1.pdf"},
+#        {"id": 2, "name": "Blueprint2.dwg", "url": "/static/blueprints/Blueprint2.dwg"}
+#    ]
+#}
+#DELETE /blueprints/delete/<id>
+#json
+#Copy code
+#{
+#    "success": true,
+#    "message": "Blueprint deleted successfully."
+#}
+#POST /blueprints/upload
+#json
+#Copy code
+#{
+#    "success": true,
+#    "message": "Blueprint uploaded successfully."
+#}

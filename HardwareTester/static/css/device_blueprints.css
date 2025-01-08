@@ -1,0 +1,25 @@
+/* Styles for Device Blueprints Page */
+#blueprints-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+    #blueprints-list .list-group-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    #blueprints-list .btn {
+        font-size: 0.85rem;
+    }
+
+.modal-content {
+    background-color: #f8f9fa;
+    border-radius: 10px;
+}
+
+.modal-title {
+    font-size: 1.25rem;
+    font-weight: bold;
+}

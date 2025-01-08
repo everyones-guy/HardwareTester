@@ -30,6 +30,7 @@ LOG_FILE=app.log
 
 # File upload settings
 UPLOAD_FOLDER=uploads
+BLUEPRINT_UPLOAD_FOLDER=blueprints/upload
 MAX_CONTENT_LENGTH=16777216  # 16 MB
 ALLOWED_SPEC_SHEET_EXTENSIONS=pdf,docx,xlsx
 ALLOWED_TEST_PLAN_EXTENSIONS=pdf,csv,txt

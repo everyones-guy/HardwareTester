@@ -1,54 +1,25 @@
-
 {% extends "base.html" %}
 
+{% block title %}Configuration Management{% endblock %}
+
 {% block content %}
-<h1>Configuration Management</h1>
+<div class="container mt-5">
+    <h1 class="text-center">Configuration Management</h1>
 
-<div>
-    <h3>Save Current Configuration</h3>
-    <button id="save-configuration" class="btn btn-primary">Save Configuration</button>
-</div>
+    <div class="mt-4">
+        <h3>Save Current Configuration</h3>
+        <button id="save-configuration" class="btn btn-primary">Save Configuration</button>
+    </div>
 
-<div class="mt-4">
-    <h3>Load Saved Configurations</h3>
-    <ul id="saved-configurations-list" class="list-group">
-        <!-- Saved configurations will appear here -->
-    </ul>
+    <div class="mt-4">
+        <h3>Load Saved Configurations</h3>
+        <ul id="saved-configurations-list" class="list-group">
+            <!-- Saved configurations will appear here -->
+        </ul>
+    </div>
 </div>
 {% endblock %}
 
-{% block extra_scripts %}
-<script>
-    $(document).ready(function () {
-        // Save current configuration
-        $("#save-configuration").click(function () {
-            $.post("/save-configuration", function (response) {
-                alert(response.message);
-            });
-        });
-
-        // Load saved configurations
-        $.get("/get-configurations", function (data) {
-            const list = $("#saved-configurations-list");
-            list.empty();
-            if (data.success) {
-                data.configurations.forEach(config => {
-                    list.append(
-                        `<li class="list-group-item">
-                            <strong>${config.name}</strong>
-                            <button class="btn btn-primary float-end" onclick="loadConfiguration(${config.id})">Load</button>
-                        </li>`
-                    );
-                });
-            }
-        });
-    });
-
-    function loadConfiguration(id) {
-        $.get(`/load-configuration/${id}`, function (response) {
-            alert(response.message);
-        });
-    }
-</script>
+{% block additional_scripts %}
+<script src="{{ url_for('static', filename='js/configuration_management.js') }}"></script>
 {% endblock %}
-

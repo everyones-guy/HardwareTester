@@ -1,5 +1,6 @@
-
 {% extends "base.html" %}
+
+{% block title %}Application Logs{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
@@ -35,7 +36,7 @@
         <!-- Logs display -->
         <div class="col-md-9">
             <h3 class="text-center">Application Logs</h3>
-            <div id="log-container" class="border bg-light p-3" style="height: 600px; overflow-y: scroll;">
+            <div id="log-container" class="border bg-light p-3" style="height: 600px; overflow-y: auto;">
                 <!-- Logs will be dynamically inserted here -->
             </div>
         </div>
@@ -44,44 +45,9 @@
 {% endblock %}
 
 {% block extra_scripts %}
-<script>
-    $(document).ready(function () {
-        const logContainer = $("#log-container");
-
-        // Fetch and display logs
-        function fetchLogs(filters = {}) {
-            $.get("/logs", filters, function (response) {
-                logContainer.empty();
-                if (response.success) {
-                    response.logs.forEach(log => {
-                        logContainer.append(`
-                            <div>
-                                <strong>${log.level}</strong> [${log.timestamp}]: ${log.message}
-                                <pre>${log.context || ""}</pre>
-                            </div>
-                            <hr>
-                        `);
-                    });
-                } else {
-                    logContainer.html("<p class='text-danger'>Failed to load logs.</p>");
-                }
-            });
-        }
-
-        // Initial load
-        fetchLogs();
-
-        // Apply filters
-        $("#filter-logs").click(function () {
-            const filters = {
-                level: $("#log-level").val(),
-                keyword: $("#log-keyword").val(),
-                start_date: $("#log-start-date").val(),
-                end_date: $("#log-end-date").val(),
-            };
-            fetchLogs(filters);
-        });
-    });
-</script>
+<script src="{{ url_for('static', filename='js/scripts/logs.js') }}"></script>
 {% endblock %}
 
+{% block extra_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/logs.css') }}">
+{% endblock %}

@@ -1,4 +1,3 @@
-
 {% extends "layout.html" %}
 
 {% block content %}
@@ -96,28 +95,11 @@
                 </div>
             </div>
         </div>
-        <!-- Form to add new dashboard item -->
-        <form id="dashboard-form" class="mt-4">
-            <div class="form-group">
-                <label for="new-item-title">Title</label>
-                <input type="text" class="form-control" id="new-item-title" placeholder="Enter title">
-            </div>
-            <div class="form-group">
-                <label for="new-item-description">Description</label>
-                <textarea class="form-control" id="new-item-description" rows="3" placeholder="Enter description"></textarea>
-            </div>
-            <button type="button" class="btn btn-primary mt-2" onclick="createDashboardItem()">Add Item</button>
-        </form>
     </div>
 </div>
-
 {% endblock %}
 
 {% block extra_scripts %}
-<script src="{{ url_for('static', filename='js/scripts/dashboard.js') }}"></script>
-<script src="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
 {% endblock %}
-

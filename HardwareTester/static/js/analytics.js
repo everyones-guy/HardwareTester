@@ -1,12 +1,10 @@
-
 document.addEventListener("DOMContentLoaded", () => {
     // Initialize Charts
     initializeActivityChart();
     initializePerformanceChart();
     loadAnalyticsTable();
 
-    // Fetch data for charts
-    function fetchAnalyticsData(endpoint, callback) {
+    function fetchAnalyticsData(endpoint, onSuccess, onError) {
         fetch(endpoint)
             .then(response => {
                 if (!response.ok) {
@@ -14,84 +12,108 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
                 return response.json();
             })
-            .then(data => callback(data))
-            .catch(error => console.error("Error fetching analytics data:", error));
+            .then(data => onSuccess(data))
+            .catch(error => {
+                console.error("Error fetching analytics data:", error);
+                if (onError) onError(error);
+            });
     }
 
-    // Initialize Activity Chart
     function initializeActivityChart() {
         const ctx = document.getElementById("activityChart").getContext("2d");
-        fetchAnalyticsData("/analytics/activity", (data) => {
-            new Chart(ctx, {
-                type: "line",
-                data: {
-                    labels: data.labels,
-                    datasets: [{
-                        label: "Activity",
-                        data: data.values,
-                        borderColor: "rgba(75, 192, 192, 1)",
-                        backgroundColor: "rgba(75, 192, 192, 0.2)",
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: "top",
+        const container = document.getElementById("activityChartContainer");
+
+        fetchAnalyticsData(
+            "/analytics/activity",
+            (data) => {
+                container.style.display = "none";
+                document.getElementById("activityChart").style.display = "block";
+                new Chart(ctx, {
+                    type: "line",
+                    data: {
+                        labels: data.labels,
+                        datasets: [{
+                            label: "Activity",
+                            data: data.values,
+                            borderColor: "rgba(75, 192, 192, 1)",
+                            backgroundColor: "rgba(75, 192, 192, 0.2)",
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { display: true, position: "top" },
                         }
                     }
-                }
-            });
-        });
+                });
+            },
+            () => {
+                container.innerHTML = "<p class='text-danger'>Failed to load Activity Chart.</p>";
+            }
+        );
     }
 
-    // Initialize Performance Chart
     function initializePerformanceChart() {
         const ctx = document.getElementById("performanceChart").getContext("2d");
-        fetchAnalyticsData("/analytics/performance", (data) => {
-            new Chart(ctx, {
-                type: "bar",
-                data: {
-                    labels: data.labels,
-                    datasets: [{
-                        label: "Performance",
-                        data: data.values,
-                        backgroundColor: "rgba(54, 162, 235, 0.5)",
-                        borderColor: "rgba(54, 162, 235, 1)",
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: "top",
+        const container = document.getElementById("performanceChartContainer");
+
+        fetchAnalyticsData(
+            "/analytics/performance",
+            (data) => {
+                container.style.display = "none";
+                document.getElementById("performanceChart").style.display = "block";
+                new Chart(ctx, {
+                    type: "bar",
+                    data: {
+                        labels: data.labels,
+                        datasets: [{
+                            label: "Performance",
+                            data: data.values,
+                            backgroundColor: "rgba(54, 162, 235, 0.5)",
+                            borderColor: "rgba(54, 162, 235, 1)",
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { display: true, position: "top" },
                         }
                     }
-                }
-            });
-        });
+                });
+            },
+            () => {
+                container.innerHTML = "<p class='text-danger'>Failed to load Performance Chart.</p>";
+            }
+        );
     }
 
-    // Load Analytics Table
     function loadAnalyticsTable() {
-        fetchAnalyticsData("/analytics/insights", (data) => {
-            const tableBody = document.querySelector("#analyticsTable tbody");
-            tableBody.innerHTML = ""; // Clear table before adding data
+        const container = document.getElementById("analyticsTableContainer");
+        const table = document.getElementById("analyticsTable");
 
-            data.forEach(item => {
-                const row = document.createElement("tr");
-                row.innerHTML = `
-                    <td>${item.metric}</td>
-                    <td>${item.value}</td>
-                    <td class="${item.change > 0 ? 'text-success' : 'text-danger'}">
-                        ${item.change > 0 ? '+' : ''}${item.change}%
-                    </td>
-                `;
-                tableBody.appendChild(row);
-            });
-        });
+        fetchAnalyticsData(
+            "/analytics/insights",
+            (data) => {
+                container.style.display = "none";
+                table.style.display = "table";
+                const tableBody = table.querySelector("tbody");
+                tableBody.innerHTML = "";
+
+                data.forEach(item => {
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>${item.metric}</td>
+                        <td>${item.value}</td>
+                        <td class="${item.change > 0 ? 'text-success' : 'text-danger'}">
+                            ${item.change > 0 ? '+' : ''}${item.change}%
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            },
+            () => {
+                container.innerHTML = "<p class='text-danger'>Failed to load Data Insights.</p>";
+            }
+        );
     }
 });
-

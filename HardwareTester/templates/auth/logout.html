@@ -1,14 +1,17 @@
-
 {% extends "layout.html" %}
 
 {% block content %}
-<div class="container mt-5">
-    <h1 class="text-center">You have been logged out</h1>
-    <p class="text-center">Thank you for using Hardware Tester.</p>
+<div class="container mt-5 text-center">
+    <h1 class="mb-4">You have been logged out</h1>
+    <p class="lead">Thank you for using Universal Hardware Tester.</p>
+    <p>If you need to log in again or explore more, use the options below.</p>
     <div class="d-flex justify-content-center mt-4">
-        <a href="{{ url_for('index') }}" class="btn btn-primary btn-lg mx-2">Return to Home</a>
-        <a href="{{ url_for('auth.login') }}" class="btn btn-secondary btn-lg mx-2">Login Again</a>
+        <a href="{{ url_for('index') }}" class="btn btn-primary btn-lg mx-3">
+            <i class="fas fa-home me-2"></i> Return to Home
+        </a>
+        <a href="{{ url_for('auth.login') }}" class="btn btn-secondary btn-lg mx-3">
+            <i class="fas fa-sign-in-alt me-2"></i> Login Again
+        </a>
     </div>
 </div>
 {% endblock %}
-

@@ -1,15 +1,6 @@
-
-/* Test Plan Management */
-.test-plan-card {
-    padding: 1rem;
-    border: 1px solid #ced4da;
-    border-radius: 8px;
-    background-color: white;
-    margin-bottom: 1rem;
-}
-
+/* Test Plan Management Styles */
 .test-plan-upload-form {
-    margin-bottom: 1.5rem;
+    margin-top: 1rem;
 }
 
 .upload-btn {
@@ -20,3 +11,28 @@
     border-radius: 4px;
 }
 
+.test-results {
+    margin-top: 1rem;
+    background-color: #f8f9fa;
+    border: 1px solid #ced4da;
+    padding: 1rem;
+    border-radius: 4px;
+}
+
+    .test-results ul {
+        list-style-type: none;
+        padding-left: 0;
+    }
+
+    .test-results li {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #ddd;
+    }
+
+        .test-results li:last-child {
+            border-bottom: none;
+        }
+
+#test-plan-preview-section {
+    margin-top: 2rem;
+}

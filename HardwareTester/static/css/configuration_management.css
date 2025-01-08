@@ -1,0 +1,30 @@
+body
+{
+}
+.container {
+    max-width: 800px;
+    margin: auto;
+}
+
+h1 {
+    font-size: 2.5rem;
+    color: #333;
+}
+
+.btn-primary {
+    font-size: 1rem;
+}
+
+.list-group-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+    .list-group-item strong {
+        flex-grow: 1;
+    }
+
+    .list-group-item button {
+        font-size: 0.9rem;
+    }

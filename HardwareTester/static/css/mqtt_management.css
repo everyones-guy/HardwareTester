@@ -1,0 +1,22 @@
+/* mqtt_management.css */
+
+/* General styles for MQTT Management */
+#mqtt-messages,
+#dashboard-live-feed {
+    border-radius: 5px;
+    font-family: monospace;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+}
+
+button#test-connection,
+button#toggle-dashboard-modal {
+    margin: 5px;
+}
+
+.modal .modal-content {
+    border-radius: 10px;
+    overflow: hidden;
+}

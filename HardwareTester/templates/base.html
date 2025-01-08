@@ -3,19 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Hardware Tester Application">
+    <meta name="description" content="Hardware Tester Application - Streamline your hardware testing processes with ease.">
     <meta name="author" content="Your Company">
     <meta property="og:title" content="Hardware Tester">
-    <meta property="og:description" content="Test hardware configurations with ease.">
+    <meta property="og:description" content="Test hardware configurations efficiently with real-time analytics and user-friendly tools.">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{% block title %}Hardware Tester{% endblock %}</title>
 
+    <!-- Stylesheets -->
     <link rel="stylesheet" href="{{ url_for('static', filename='content/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon">
     {% block additional_head %}{% endblock %}
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container-fluid">
             <a class="navbar-brand" href="{{ url_for('main.index') }}">Hardware Tester</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -28,6 +31,7 @@
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('main.contact') }}">Contact</a></li>
                     {% if current_user.is_authenticated %}
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.profile') }}">Profile</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.logout') }}">Logout</a></li>
                     {% else %}
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.login') }}">Login</a></li>
@@ -38,13 +42,21 @@
         </div>
     </nav>
 
+    <!-- Main Content -->
     <main class="container mt-4">
         {% block content %}{% endblock %}
     </main>
 
-    <footer class="text-center py-3">
-        <p>&copy; 2024 Hardware Tester | All Rights Reserved | <a href="{{ url_for('main.contact') }}">Contact Us</a></p>
+    <!-- Footer -->
+    <footer class="bg-dark text-light text-center py-3 mt-5">
+        <p>&copy; 2025 Hardware Tester | All Rights Reserved</p>
+        <p>
+            <a href="{{ url_for('main.contact') }}" class="text-decoration-none text-light">Contact Us</a> |
+            <a href="{{ url_for('main.about') }}" class="text-decoration-none text-light">About</a>
+        </p>
     </footer>
+
+    <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
