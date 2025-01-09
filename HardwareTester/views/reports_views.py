@@ -2,7 +2,7 @@
 from flask import Blueprint, render_template, jsonify
 from HardwareTester.services.reports_service import generate_report
 
-reports_bp = Blueprint("reports", __name__)
+reports_bp = Blueprint("reports", __name__, url_prefix="/reports")
 
 @reports_bp.route("/")
 def reports():

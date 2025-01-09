@@ -1,8 +1,107 @@
+/* General Styles */
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    color: #333;
+}
 
+/* Results Section */
 #results {
     border: 1px solid #ddd;
     padding: 10px;
     background-color: #f9f9f9;
     overflow-x: auto;
+    border-radius: 5px;
 }
 
+/* Carousel Styling */
+.carousel-item blockquote {
+    font-size: 1.2rem;
+    line-height: 1.5;
+    color: #6c757d;
+    margin: 0 auto;
+    max-width: 800px;
+}
+
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+    filter: invert(100%);
+}
+
+/* Button Styling */
+.btn-primary:hover {
+    background-color: #0056b3;
+    border-color: #004085;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268;
+    border-color: #545b62;
+}
+
+.btn-primary:active {
+    background-color: #003f7f;
+    border-color: #003765;
+}
+
+.btn-secondary:active {
+    background-color: #444e54;
+    border-color: #3e484e;
+}
+
+/* Card Styling */
+.card {
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #ddd;
+    font-weight: bold;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* Section Spacing */
+.mt-5 {
+    margin-top: 3rem !important;
+}
+
+.mb-4 {
+    margin-bottom: 1.5rem !important;
+}
+
+/* Typography */
+h1, h2, h3, h4 {
+    font-weight: bold;
+    color: #333;
+}
+
+p {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: #555;
+}
+
+/* Utility Classes */
+.text-primary {
+    color: #007bff !important;
+}
+
+.text-secondary {
+    color: #6c757d !important;
+}
+
+/* Testimonials */
+.carousel-item p {
+    font-style: italic;
+}
+
+.carousel-item footer {
+    color: #495057;
+    font-weight: 600;
+}

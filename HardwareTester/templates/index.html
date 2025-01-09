@@ -5,73 +5,47 @@
 {% block content %}
 <div class="container mt-5">
     <div class="text-center">
-        <h1 class="display-4">Welcome to <span class="text-primary">Hardware Tester</span></h1>
+        <h1 class="display-4 fw-bold">Welcome to <span class="text-primary">Hardware Tester</span></h1>
         <p class="lead">Streamline your hardware testing, configurations, and analytics, all in one place.</p>
     </div>
 
-    <div class="row mt-5">
+    <!-- Features and Actions -->
+    <div class="row mt-5 g-4">
         <!-- Features Section -->
         <div class="col-md-6">
-            <h3 class="text-center">Why Choose Us?</h3>
-            <ul class="list-group list-group-flush mt-3">
-                <li class="list-group-item">
-                    <strong>Centralized Management:</strong> Manage your hardware configurations and test plans with ease.
-                </li>
-                <li class="list-group-item">
-                    <strong>Advanced Analytics:</strong> Monitor hardware performance and testing results in real-time.
-                </li>
-                <li class="list-group-item">
-                    <strong>User-Friendly Interface:</strong> Intuitive navigation and functionality for all users.
-                </li>
-                <li class="list-group-item">
-                    <strong>Mobile-Responsive:</strong> Access your dashboard and analytics anytime, anywhere.
-                </li>
-            </ul>
+            <div class="card border-light shadow-sm">
+                <div class="card-body">
+                    <h3 class="text-center text-secondary">Why Choose Us?</h3>
+                    <ul class="list-group list-group-flush mt-3">
+                        <li class="list-group-item">
+                            <strong>Centralized Management:</strong> Manage your hardware configurations and test plans with ease.
+                        </li>
+                        <li class="list-group-item">
+                            <strong>Advanced Analytics:</strong> Monitor hardware performance and testing results in real-time.
+                        </li>
+                        <li class="list-group-item">
+                            <strong>User-Friendly Interface:</strong> Intuitive navigation and functionality for all users.
+                        </li>
+                        <li class="list-group-item">
+                            <strong>Mobile-Responsive:</strong> Access your dashboard and analytics anytime, anywhere.
+                        </li>
+                    </ul>
+                </div>
+            </div>
         </div>
 
         <!-- Action Section -->
         <div class="col-md-6 text-center">
-            <h3>Get Started Today</h3>
-            <p class="mt-3">Join our platform and simplify your hardware testing and management.</p>
-            <div class="d-flex justify-content-center mt-4">
-                <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg mx-2">Login</a>
-                <a href="{{ url_for('auth.register') }}" class="btn btn-secondary btn-lg mx-2">Register</a>
-            </div>
-        </div>
-    </div>
-
-    <!-- Testimonials Section -->
-    <div class="mt-5">
-        <h3 class="text-center">What Our Users Say</h3>
-        <div id="testimonialsCarousel" class="carousel slide mt-3" data-bs-ride="carousel">
-            <div class="carousel-inner">
-                <div class="carousel-item active">
-                    <p class="text-center">
-                        <em>"Hardware Tester has revolutionized our testing process. It's intuitive and efficient."</em>
-                        <br><strong>- Alex R., Lead Engineer</strong>
-                    </p>
-                </div>
-                <div class="carousel-item">
-                    <p class="text-center">
-                        <em>"The analytics dashboard is a game-changer for performance tracking."</em>
-                        <br><strong>- Maria L., System Administrator</strong>
-                    </p>
-                </div>
-                <div class="carousel-item">
-                    <p class="text-center">
-                        <em>"Managing hardware configurations has never been easier."</em>
-                        <br><strong>- John D., IT Specialist</strong>
-                    </p>
+            <div class="card border-light shadow-sm">
+                <div class="card-body">
+                    <h3 class="text-secondary">Get Started Today</h3>
+                    <p class="mt-3">Join our platform and simplify your hardware testing and management.</p>
+                    <div class="d-flex justify-content-center mt-4">
+                        <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg mx-2" aria-label="Login">Login</a>
+                        <a href="{{ url_for('auth.register') }}" class="btn btn-secondary btn-lg mx-2" aria-label="Register">Register</a>
+                    </div>
                 </div>
             </div>
-            <button class="carousel-control-prev" type="button" data-bs-target="#testimonialsCarousel" data-bs-slide="prev">
-                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                <span class="visually-hidden">Previous</span>
-            </button>
-            <button class="carousel-control-next" type="button" data-bs-target="#testimonialsCarousel" data-bs-slide="next">
-                <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                <span class="visually-hidden">Next</span>
-            </button>
         </div>
     </div>
 </div>

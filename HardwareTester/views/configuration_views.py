@@ -1,8 +1,12 @@
+# configuration_views.py
+# Path: HardwareTester/views/configuration_views.py
+
 from flask import Blueprint, render_template, request, jsonify
 from HardwareTester.services.configuration_service import ConfigurationService
-from HardwareTester.extensions import logger
+from HardwareTester.extensions import db, logger
 
 configuration_bp = Blueprint("configurations", __name__, url_prefix="/configurations")
+
 
 @configuration_bp.route("/", methods=["GET"])
 def configuration_management():
@@ -27,10 +31,16 @@ def save_configuration():
         if not data:
             return jsonify({"success": False, "error": "No data provided."}), 400
 
-        result = ConfigurationService.save_configuration(data)
+        name = data.get("name")
+        layout = data.get("layout")
+
+        if not name or not layout:
+            return jsonify({"success": False, "error": "Name and layout are required."}), 400
+
+        result = ConfigurationService.save_configuration(name, layout)
         if result["success"]:
             logger.info(f"Configuration saved: {data}")
-            return jsonify({"success": True, "message": "Configuration saved successfully."})
+            return jsonify({"success": True, "message": result["message"]})
         else:
             logger.error(f"Failed to save configuration: {result['error']}")
             return jsonify({"success": False, "error": result["error"]}), 500
@@ -54,8 +64,8 @@ def list_configurations():
 
         result = ConfigurationService.list_configurations(search=search, page=page, per_page=per_page)
         if result["success"]:
-            logger.info(f"Configurations listed: {len(result['data'])} items retrieved.")
-            return jsonify({"success": True, "configurations": result["data"]})
+            logger.info(f"Configurations listed: {len(result['configurations'])} items retrieved.")
+            return jsonify({"success": True, "configurations": result["configurations"]})
         else:
             logger.warning(f"Failed to list configurations: {result['error']}")
             return jsonify({"success": False, "error": result["error"]}), 500
@@ -73,7 +83,7 @@ def load_configuration(config_id):
         result = ConfigurationService.load_configuration(config_id)
         if result["success"]:
             logger.info(f"Configuration loaded: ID {config_id}")
-            return jsonify({"success": True, "configuration": result["data"]})
+            return jsonify({"success": True, "configuration": result["configuration"]})
         else:
             logger.warning(f"Failed to load configuration ID {config_id}: {result['error']}")
             return jsonify({"success": False, "error": result["error"]}), 404
@@ -82,20 +92,16 @@ def load_configuration(config_id):
         return jsonify({"success": False, "error": "An unexpected error occurred."}), 500
 
 @configuration_bp.route("/preview/<int:config_id>", methods=["GET"])
-def preview_config():
-    """
-    Render a preview of a configuration before saving.
-    Expects a JSON payload with the configuration details.
-    """
+def preview_config(config_id):
+    """Generate a preview of a specific configuration."""
     try:
-        data = request.json
-        if not data:
-            return jsonify({"success": False, "error": "No data provided."}), 400
-
-        # Assume preview logic generates a representation of the configuration
-        preview = ConfigurationService.generate_preview(data)
-        logger.info("Configuration preview generated.")
-        return jsonify({"success": True, "preview": preview})
+        result = ConfigurationService.generate_preview(config_id)
+        if result["success"]:
+            logger.info(f"Preview generated for configuration ID {config_id}.")
+            return jsonify({"success": True, "preview": result["preview"]})
+        else:
+            logger.warning(f"Failed to generate preview for configuration ID {config_id}: {result['error']}")
+            return jsonify({"success": False, "error": result["error"]}), 500
     except Exception as e:
-        logger.error(f"Unexpected error while generating configuration preview: {e}")
+        logger.error(f"Unexpected error while generating preview for configuration ID {config_id}: {e}")
         return jsonify({"success": False, "error": "An unexpected error occurred."}), 500

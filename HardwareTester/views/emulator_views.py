@@ -2,7 +2,7 @@
 from flask import Blueprint, jsonify, request, render_template
 from HardwareTester.services.emulator_service import EmulatorService
 
-emulator_bp = Blueprint("emulator", __name__, template_folder="templates")
+emulator_bp = Blueprint("emulator", __name__, url_prefix="/emulator")
 
 @emulator_bp.route("/emulator", methods=["GET"])
 def emulator_dashboard():

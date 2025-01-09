@@ -86,6 +86,9 @@
     <Compile Include="HardwareTester\services\emulator_service.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="HardwareTester\services\hardware_service.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="HardwareTester\services\mqtt_client.py">
       <SubType>Code</SubType>
     </Compile>
@@ -261,6 +264,7 @@
     <Content Include="HardwareTester\static\js\hardware.js" />
     <Content Include="HardwareTester\static\js\jest.config.js" />
     <Content Include="HardwareTester\static\js\logs.js" />
+    <Content Include="HardwareTester\static\js\main_views.js" />
     <Content Include="HardwareTester\static\js\mqtt_management.js" />
     <Content Include="HardwareTester\static\js\test\setup.js" />
     <Content Include="HardwareTester\static\js\valve_management.js" />
@@ -285,9 +289,11 @@
     <Content Include="HardwareTester\templates\notifications.html" />
     <Content Include="HardwareTester\templates\peripherals.html" />
     <Content Include="HardwareTester\templates\logs.html" />
+    <Content Include="HardwareTester\templates\privacy.html" />
     <Content Include="HardwareTester\templates\reports.html" />
     <Content Include="HardwareTester\templates\settings.html" />
     <Content Include="HardwareTester\templates\system_status.html" />
+    <Content Include="HardwareTester\templates\terms.html" />
     <Content Include="HardwareTester\templates\test_plan_management.html" />
     <Content Include="HardwareTester\templates\upload_test_plan.html" />
     <Content Include="HardwareTester\templates\user_management.html" />

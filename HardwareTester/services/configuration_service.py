@@ -1,4 +1,3 @@
-# configuration_service.py imports the Configuration model from models/__init__.py.
 from HardwareTester.extensions import db, logger
 from HardwareTester.models.configuration_models import Configuration
 import json
@@ -6,7 +5,7 @@ import json
 class ConfigurationService:
     @staticmethod
     def save_configuration(name, layout):
-        """dddd
+        """
         Save a configuration layout to the database.
         :param name: Name of the configuration.
         :param layout: JSON layout of valves and peripherals.
@@ -26,6 +25,7 @@ class ConfigurationService:
             db.session.rollback()
             logger.error(f"Error saving configuration: {e}")
             return {"success": False, "error": str(e)}
+
     @staticmethod
     def load_configuration(config_id):
         """
@@ -42,6 +42,7 @@ class ConfigurationService:
         except Exception as e:
             logger.error(f"Error loading configuration: {e}")
             return {"success": False, "error": str(e)}
+
     @staticmethod
     def list_configurations():
         """

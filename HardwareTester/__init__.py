@@ -1,9 +1,10 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, render_template, request
 from HardwareTester.config import config
 from HardwareTester.extensions import db, socketio, migrate, csrf, login_manager, ma, logger
 from HardwareTester.views import register_blueprints
 from HardwareTester.utils.bcrypt_utils import bcrypt
 from HardwareTester.models.user_models import User
+from datetime import datetime
 from cli import cli
 import logging
 
@@ -22,17 +23,23 @@ def create_app(config_name="default"):
     app = Flask(__name__)
     app.config.from_object(config[config_name])
 
-    # Register CLI commands
-    register_cli_commands(app)
-
     # Initialize extensions
     initialize_extensions(app)
+
+    # Register CLI commands
+    register_cli_commands(app)
 
     # Register blueprints and error handlers
     register_blueprints(app)
     register_error_handlers(app)
 
-    logger.info("App initialized successfully")
+
+    @app.context_processor
+    def inject_now():
+        return {"now": datetime.utcnow()}
+
+    logger.info("App initialized successfully.")
+
 
     return app
 
@@ -87,22 +94,30 @@ def register_error_handlers(app):
     @app.errorhandler(404)
     def not_found_error(error):
         logger.warning(f"404 error: {error}")
-        return jsonify({"error": "Resource not found"}), 404
+        if request.accept_mimetypes["application/json"]:
+            return jsonify({"error": "Resource not found"}), 404
+        return render_template("404.html"), 404
 
     @app.errorhandler(500)
     def internal_error(error):
         logger.error(f"500 error: {error}")
-        return jsonify({"error": "An internal error occurred"}), 500
+        if request.accept_mimetypes["application/json"]:
+            return jsonify({"error": "An internal error occurred"}), 500
+        return render_template("500.html"), 500
 
     @app.errorhandler(403)
     def forbidden_error(error):
         logger.warning(f"403 error: {error}")
-        return jsonify({"error": "Forbidden"}), 403
+        if request.accept_mimetypes["application/json"]:
+            return jsonify({"error": "Forbidden"}), 403
+        return render_template("403.html"), 403
 
     @app.errorhandler(401)
     def unauthorized_error(error):
         logger.warning(f"401 error: {error}")
-        return jsonify({"error": "Unauthorized"}), 401
+        if request.accept_mimetypes["application/json"]:
+            return jsonify({"error": "Unauthorized"}), 401
+        return render_template("401.html"), 401
 
 
 def register_cli_commands(app):

@@ -1,12 +1,17 @@
 from flask_bcrypt import Bcrypt
 import logging
 
-# Initialize bcrypt
+# Initialize bcrypt and logger
 bcrypt = Bcrypt()
-
-# Configure logging for password utilities
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("bcrypt_utils")
+logger.setLevel(logging.INFO)
+
+# Configure logger handler if not already set
+if not logger.handlers:
+    handler = logging.StreamHandler()
+    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
 
 def hash_password(password: str) -> str:
     """
@@ -20,7 +25,7 @@ def hash_password(password: str) -> str:
         return hashed
     except Exception as e:
         logger.error(f"Error hashing password: {e}")
-        raise ValueError("Failed to hash the password. Please try again.")
+        raise RuntimeError("Failed to hash the password. Please try again.")
 
 def check_password(password: str, hashed_password: str) -> bool:
     """
@@ -38,10 +43,10 @@ def check_password(password: str, hashed_password: str) -> bool:
         return is_valid
     except ValueError as e:
         logger.error(f"Invalid hash provided: {e}")
-        raise ValueError("Invalid password hash format.")
+        raise ValueError("Invalid password hash format.") from e
     except Exception as e:
         logger.error(f"Error during password verification: {e}")
-        raise ValueError("An unexpected error occurred during password verification.")
+        raise RuntimeError("An unexpected error occurred during password verification.") from e
 
 def is_strong_password(password: str) -> bool:
     """
@@ -49,20 +54,18 @@ def is_strong_password(password: str) -> bool:
     :param password: The plaintext password to validate.
     :return: True if the password is strong, False otherwise.
     """
-    if len(password) < 8:
-        logger.warning("Password is too short. Minimum length is 8 characters.")
+    criteria = {
+        "length": len(password) >= 8,
+        "digit": any(char.isdigit() for char in password),
+        "uppercase": any(char.isupper() for char in password),
+        "lowercase": any(char.islower() for char in password),
+        "special": any(char in "!@#$%^&*()-_=+[]{}|;:,.<>?/`~" for char in password),
+    }
+
+    failed_criteria = [key for key, passed in criteria.items() if not passed]
+    if failed_criteria:
+        logger.debug(f"Password failed strength criteria: {failed_criteria}")
         return False
-    if not any(char.isdigit() for char in password):
-        logger.warning("Password must include at least one digit.")
-        return False
-    if not any(char.isupper() for char in password):
-        logger.warning("Password must include at least one uppercase letter.")
-        return False
-    if not any(char.islower() for char in password):
-        logger.warning("Password must include at least one lowercase letter.")
-        return False
-    if not any(char in "!@#$%^&*()-_=+[]{}|;:,.<>?/`~" for char in password):
-        logger.warning("Password must include at least one special character.")
-        return False
+
     logger.info("Password meets strength requirements.")
     return True

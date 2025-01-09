@@ -1,6 +1,4 @@
-body
-{
-}
+/* Configuration Management Page */
 .container {
     max-width: 800px;
     margin: auto;
@@ -28,3 +26,30 @@ h1 {
     .list-group-item button {
         font-size: 0.9rem;
     }
+.card {
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    background-color: #007bff;
+    color: #fff;
+    font-weight: bold;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+#saved-configurations-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+#configuration-preview {
+    min-height: 150px;
+    text-align: center;
+    color: #6c757d;
+}
+
+    

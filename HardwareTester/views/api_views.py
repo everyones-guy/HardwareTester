@@ -6,7 +6,7 @@ from HardwareTester.services.api_service import APIService
 from HardwareTester.utils.serial_comm import SerialComm
 
 # Blueprint for API operations
-api_bp = Blueprint("api", __name__)
+api_bp = Blueprint("api", __name__, url_prefix="/api")
 
 @api_bp.route("/", methods=["GET"])
 def api_overview():

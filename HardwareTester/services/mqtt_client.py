@@ -12,7 +12,7 @@ DEFAULT_RETRY_DELAY = 2  # Seconds between retries
 CHUNK_SIZE = 4096  # 4KB for firmware chunking
 
 
-class FirmwareMQTTClient:
+class MQTTClient:
     """Enhanced MQTT Client for managing firmware updates and device interactions."""
 
     def __init__(self, broker: str, port: int = 1883, username: str = None, password: str = None, tls: bool = False):
