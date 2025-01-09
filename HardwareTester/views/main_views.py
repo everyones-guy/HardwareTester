@@ -89,7 +89,7 @@ def privacy():
     Render the Privacy Policy page.
     """
     try:
-        return render_template("privacy.html")
+        return render_template("templates/privacy.html")
     except Exception as e:
         logger.error(f"Error rendering the Privacy Policy page: {e}")
         return redirect(url_for("main.error_page"))

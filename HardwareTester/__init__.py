@@ -2,7 +2,7 @@ from flask import Flask, jsonify, render_template, request
 from HardwareTester.config import config
 from HardwareTester.extensions import db, socketio, migrate, csrf, login_manager, ma, logger
 from HardwareTester.views import register_blueprints
-from HardwareTester.utils.bcrypt_utils import bcrypt
+from HardwareTester.utils.bcrypt_utils import hash_password, check_password
 from HardwareTester.models.user_models import User
 from datetime import datetime
 from cli import cli
@@ -54,7 +54,6 @@ def initialize_extensions(app):
         migrate.init_app(app, db)
         socketio.init_app(app, cors_allowed_origins="*")
         csrf.init_app(app)
-        bcrypt.init_app(app)
         ma.init_app(app)
         login_manager.init_app(app)
 
