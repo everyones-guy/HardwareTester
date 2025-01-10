@@ -3,6 +3,7 @@ from tkinter import scrolledtext, messagebox
 from HardwareTester.services.mqtt_client import MqttClient
 from HardwareTester.utils.serial_comm import SerialComm
 from HardwareTester.utils.firmware_utils import validate_firmware_file
+import serial.tools.list_ports
 import logging
 import threading
 import time
@@ -40,6 +41,18 @@ class FirmwareTestApp:
         self.log_area.see(tk.END)
         logger.info(message)
 
+    def find_comm_port(self):
+        """Search through USB connections for the appropriate COM port."""
+        self.log("Searching for COM ports...")
+        ports = serial.tools.list_ports.comports()
+        for port in ports:
+            self.log(f"Found port: {port.device} - {port.description}")
+            if "USB" in port.description or "Serial" in port.description:
+                self.log(f"Using port: {port.device}")
+                return port.device
+        self.log("No suitable USB or Serial COM port found.")
+        return None
+
     def start_mqtt_service(self):
         """Start the MQTT service."""
         try:
@@ -55,8 +68,13 @@ class FirmwareTestApp:
     def discover_device(self):
         """Discover devices via serial communication."""
         try:
-            if not self.serial_comm:
-                self.serial_comm = SerialComm(port=None, debug=True)  # Port auto-detection
+            port = self.find_comm_port()
+            if not port:
+                self.log("Discovery failed: No suitable COM port found.")
+                return
+
+            self.serial_comm = SerialComm(port=port, debug=True)
+            self.serial_comm.connect()
 
             discovery_result = self.serial_comm.discover_device()
             if discovery_result.get("success"):
