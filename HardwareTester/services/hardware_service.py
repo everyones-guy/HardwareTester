@@ -11,6 +11,7 @@ from flask import current_app
 from HardwareTester.extensions import db, logger
 from HardwareTester.models.device_models import Device
 from HardwareTester.models.device_models import DeviceFirmwareHistory
+import hashlib
 
 class HardwareService:
     """Service for managing hardware-related operations."""
@@ -200,3 +201,44 @@ class HardwareService:
         }
         logger.info(f"Generated MDF: {metadata}")
         return metadata
+    
+    @staticmethod
+    def get_device_status(device_id=None):
+        """
+        Get the status of a specific device or all devices.
+        :param device_id: (Optional) The ID of the device to get the status for.
+        :return: Dictionary containing device status or an error message.
+        """
+        try:
+            if device_id:
+                # Fetch a single device's status
+                device = Device.query.filter_by(id=device_id).first()
+                if not device:
+                    return {"success": False, "error": f"Device with ID {device_id} not found."}
+
+                return {
+                    "success": True,
+                    "status": {
+                        "id": device.id,
+                        "name": device.name,
+                        "firmware_version": device.firmware_version,
+                        "metadata": device.device_metadata,
+                    }
+                }
+            else:
+                # Fetch status for all devices
+                devices = Device.query.all()
+                device_status_list = [
+                    {
+                        "id": device.id,
+                        "name": device.name,
+                        "firmware_version": device.firmware_version,
+                        "metadata": device.device_metadata,
+                    }
+                    for device in devices
+                ]
+                return {"success": True, "status": device_status_list}
+
+        except Exception as e:
+            logger.error(f"Error fetching device status: {e}")
+            return {"success": False, "error": str(e)}
