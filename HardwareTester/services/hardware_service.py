@@ -10,6 +10,7 @@ import json
 from flask import current_app
 from HardwareTester.extensions import db, logger
 from HardwareTester.models.device_models import Device
+from HardwareTester.models.device_models import DeviceFirmwareHistory
 
 class HardwareService:
     """Service for managing hardware-related operations."""
