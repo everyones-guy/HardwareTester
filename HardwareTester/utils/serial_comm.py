@@ -1,18 +1,14 @@
-#serial_comm.py
-
 import serial
 import json
 from HardwareTester.utils import Logger
 import time
+import serial.tools.list_ports
 
 logger = Logger.getLogger(__name__)
 
 # Set up logging
-#logger.getLogger("SerialComm")
-
 DEFAULT_RETRY_COUNT = 3
 DEFAULT_RETRY_DELAY = 2  # Seconds between retries
-
 
 class SerialComm:
     def __init__(self, port, baudrate=9600, timeout=1, retries=DEFAULT_RETRY_COUNT, debug=False):
@@ -121,23 +117,32 @@ class SerialComm:
 
     def discover_device(self, timeout=5):
         """
-        Send a discovery command to the connected device.
+        Discover a connected device by scanning serial ports and sending a discovery command.
         :param timeout: Timeout for the discovery process (default: 5 seconds).
         :return: Dictionary with device info or error message.
         """
-        discovery_command = '{"action": "discover"}'  # Example discovery command
-        self.send_data(discovery_command)
-
-        start_time = time.time()
-        while time.time() - start_time < timeout:
-            response = self.read_data()
-            if response.get("success"):
-                logger.info("Device discovery successful.")
-                return {"success": True, "device_info": response["data"]}
-            time.sleep(0.5)  # Short delay before retrying
-
-        logger.error("Device discovery timed out.")
-        return {"success": False, "error": "Device discovery timed out."}
+        logger.info("Scanning for serial devices...")
+        ports = serial.tools.list_ports.comports()
+        for port in ports:
+            try:
+                logger.info(f"Probing port: {port.device}")
+                with serial.Serial(port.device, self.baudrate, timeout=self.timeout) as ser:
+                    ser.write(b'{"action": "discover"}\n')
+                    start_time = time.time()
+                    while time.time() - start_time < timeout:
+                        response = ser.readline().decode("utf-8").strip()
+                        if response:
+                            try:
+                                data = json.loads(response)
+                                logger.info(f"Device discovered on {port.device}: {data}")
+                                return {"success": True, "port": port.device, "device_info": data}
+                            except json.JSONDecodeError:
+                                logger.warning(f"Non-JSON response received on {port.device}: {response}")
+                                continue
+            except (serial.SerialException, serial.SerialTimeoutException) as e:
+                logger.warning(f"Failed to probe port {port.device}: {e}")
+        logger.error("No devices discovered.")
+        return {"success": False, "error": "No devices discovered."}
 
     def test_connection(self):
         """
@@ -148,7 +153,7 @@ class SerialComm:
             return {"success": False, "message": "No active serial connection."}
 
         try:
-            self.connection.write(b"PING")
+            self.connection.write(b"PING\n")
             time.sleep(1)
             response = self.connection.readline().decode("utf-8").strip()
             if response == "PONG":

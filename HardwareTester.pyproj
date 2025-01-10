@@ -209,6 +209,9 @@
     <Compile Include="tests\Front_End\test_test_plan_views.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="tests\test_firmware_loading.py">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="HardwareTester\" />
