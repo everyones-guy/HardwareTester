@@ -10,10 +10,12 @@ def manage_users():
     return render_template("user_management.html")
 
 
+# Views adjustments:
 @user_management_bp.route("/users/list", methods=["GET"])
 def list_users_endpoint():
-    """List all users."""
-    response = UserManagementService.list_users()
+    page = request.args.get("page", 1, type=int)
+    per_page = request.args.get("per_page", 10, type=int)
+    response = UserManagementService.list_users(page, per_page)
     return jsonify(response)
 
 

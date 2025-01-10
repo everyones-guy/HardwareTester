@@ -1,3 +1,5 @@
+# user_models.py
+
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from datetime import datetime
@@ -18,6 +20,8 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False)
     password_hash = db.Column(db.String(200), nullable=False)
     role = db.Column(db.Enum(UserRole), default=UserRole.USER, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     def set_password(self, password):
         self.password_hash = hash_password(password)
@@ -64,3 +68,4 @@ class UserSettings(db.Model):
 
     def __repr__(self):
         return f"<UserSettings {self.setting_key} for User {self.user_id}>"
+   

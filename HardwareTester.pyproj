@@ -245,7 +245,6 @@
   <ItemGroup>
     <Content Include=".env" />
     <Content Include=".flaskenv" />
-    <Content Include="encoded_root_scripts.txt" />
     <Content Include="HardwareTester\static\css\api_overview.css" />
     <Content Include="HardwareTester\static\css\configuration_management.css" />
     <Content Include="HardwareTester\static\css\device_blueprints.css" />
