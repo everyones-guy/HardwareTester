@@ -17,14 +17,15 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
-        if user and user.check_password(form.password.data):
-            login_user(user)
+        if user and user.check_password(form.password.data):  # Validate password
+            login_user(user)  # Log the user in
             logger.info(f"User {user.email} logged in successfully.")
             flash('Logged in successfully.', 'success')
             return redirect(url_for('dashboard.dashboard_home'))
         logger.warning(f"Failed login attempt for email: {form.email.data}")
         flash('Invalid credentials.', 'danger')
     return render_template('auth/login.html', form=form)
+
 
 @auth_bp.route('/logout', methods=['POST'])
 @login_required
@@ -53,14 +54,12 @@ def register():
             return redirect(url_for('auth.login'))
         except IntegrityError as e:
             db.session.rollback()
+            logger.error(f"An error occurred during registration: {e}")
             if "UNIQUE constraint failed: users.email" in str(e):
-                logger.warning(f"Registration failed: Email {form.email.data} already exists.")
                 flash('Email already exists.', 'danger')
             elif "UNIQUE constraint failed: users.username" in str(e):
-                logger.warning(f"Registration failed: Username {form.username.data} already exists.")
                 flash('Username already exists.', 'danger')
             else:
-                logger.error(f"An error occurred during registration: {e}")
                 flash('An error occurred. Please try again.', 'danger')
     return render_template('auth/register.html', form=form)
 
@@ -81,10 +80,3 @@ def profile():
             flash("An error occurred while updating your profile. Please try again.", "danger")
         return redirect(url_for("auth.profile"))
     return render_template("auth/profile.html", form=form)
-
-@login_manager.unauthorized_handler
-def unauthorized():
-    logger.warning("Unauthorized access attempt.")
-    flash('Please log in to access this page.', 'warning')
-    return redirect(url_for("auth.login", next=request.url))
-

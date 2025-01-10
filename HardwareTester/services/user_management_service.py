@@ -3,30 +3,40 @@
 
 from werkzeug.security import generate_password_hash, check_password_hash
 from HardwareTester.utils.bcrypt_utils import hash_password, check_password, is_strong_password
+from HardwareTester.utils.validators import validate_email
 from HardwareTester.extensions import db, logger
 from HardwareTester.models.user_models import User
 from sqlalchemy.exc import SQLAlchemyError
 
 class UserManagementService:
     """Service for managing user accounts."""
-
+    
     @staticmethod
     def create_user(username: str, email: str, password: str) -> dict:
         try:
+            # Validate email format
+            if not validate_email(email):
+                return {"success": False, "error": "Invalid email format."}
+
+            # Check for existing username or email
             if User.query.filter((User.username == username) | (User.email == email)).first():
                 return {"success": False, "error": "Username or email already exists."}
-            if is_strong_password(password):
-                hashed_password = hash_password(password)
-            else:
+
+            # Validate password strength
+            if not is_strong_password(password):
                 return {"success": False, "error": "Password is not strong enough."}
 
+            # Create the user
+            hashed_password = hash_password(password)
             new_user = User(username=username, email=email, password_hash=hashed_password)
             db.session.add(new_user)
             db.session.commit()
+            logger.info(f"User '{username}' created successfully.")
             return {"success": True, "message": f"User '{username}' created successfully."}
-        except SQLAlchemyError:
+        except SQLAlchemyError as e:
             db.session.rollback()
-            return {"success": False, "error": "Failed to create user."}
+            logger.error(f"Database error during user creation: {e}")
+            return {"success": False, "error": "Database error."}
 
     @staticmethod
     def list_users(page: int = 1, per_page: int = 10) -> dict:

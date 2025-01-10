@@ -10,10 +10,8 @@ TEMPLATES_FOLDER=C:/Users/Gary/source/repos/HardwareTester/HardwareTester/templa
 # Database Configuration
 # DATABASE_URL=sqlite:///instance/app.db  # Default SQLite database location
 # SQLALCHEMY_DATABASE_URI=sqlite:///instance/app.db
-# DATABASE_URL=sqlite:///C:/Users/Gary/source/repos/HardwareTester/instance/app.db
-# SQLALCHEMY_DATABASE_URI=sqlite:///C:/Users/Gary/source/repos/HardwareTester/instance/app.db
-SQLALCHEMY_DATABASE_URI=postgresql://postgres:postgres/instance/pgapp.db
-DATABASE_URL=postgresql://postgres:postgres/instance/pgapp.db  # Replace with your database URL
+DATABASE_URL=sqlite:///C:/Users/Gary/source/repos/HardwareTester/instance/app.db
+SQLALCHEMY_DATABASE_URI=sqlite:///C:/Users/Gary/source/repos/HardwareTester/instance/app.db
 SQLALCHEMY_TRACK_MODIFICATIONS=False
 
 # Network settings

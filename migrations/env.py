@@ -9,7 +9,7 @@ fileConfig(context.config.config_file_name)
 
 # Import your application's `db` instance and models
 from HardwareTester.extensions import db
-from HardwareTester.models.user_models import User, Token, Role, UserSettings, 
+from HardwareTester.models.user_models import User, Token, Role, UserSettings
 from HardwareTester.models.device_models import Emulation, Device, Peripheral, Controller, Blueprint
 from HardwareTester.models.report_models import Report
 from HardwareTester.models.project_models import Project, Milestone
