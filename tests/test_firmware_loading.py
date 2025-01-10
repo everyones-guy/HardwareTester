@@ -1,7 +1,10 @@
 import tkinter as tk
-from tkinter import scrolledtext, filedialog
+from tkinter import scrolledtext, filedialog, messagebox
 from HardwareTester.services.mqtt_client import MQTTClient
 from HardwareTester.utils.serial_comm import SerialComm
+from HardwareTester.utils.firmware_utils import validate_firmware_file, process_uploaded_firmware
+from HardwareTester.services.hardware_service import HardwareService
+from HardwareTester.services.emulator_service import EmulatorService
 import logging
 import time
 
@@ -31,6 +34,9 @@ class FirmwareTestApp:
         self.monitor_device_button = tk.Button(root, text="Monitor Device", command=self.monitor_device)
         self.monitor_device_button.grid(row=1, column=3, padx=10, pady=5)
 
+        self.compare_devices_button = tk.Button(root, text="Compare Devices", command=self.compare_devices)
+        self.compare_devices_button.grid(row=2, column=0, columnspan=4, padx=10, pady=5)
+
         # MQTT and SerialComm instances
         self.mqtt_client = None
         self.serial_comm = None
@@ -56,86 +62,109 @@ class FirmwareTestApp:
             self.log(f"Failed to start MQTT service: {e}")
 
     def discover_device(self):
-        """Discover devices via serial communication."""
+        """Discover devices via MQTT."""
         try:
-            if not self.serial_comm:
-                self.serial_comm = SerialComm(port=None, debug=True)
-
-            port = self.serial_comm.find_comm_port()
-            if not port:
-                self.log("Discovery failed: No suitable COM port found.")
-                return
-
-            self.serial_comm.port = port
-            self.serial_comm.connect()
-
-            discovery_result = self.serial_comm.discover_device()
-            if discovery_result.get("success"):
-                self.log(f"Device discovered on {discovery_result['port']}: {discovery_result['device_info']}")
-                if "credentials" in discovery_result["device_info"]:
-                    self.log(f"Credentials entered: {discovery_result['device_info']['credentials']}")
+            device_list = HardwareService.list_devices()
+            if device_list["success"]:
+                self.log(f"Devices discovered: {device_list['devices']}")
             else:
-                self.log(f"Discovery failed: {discovery_result['error']}")
+                self.log(f"Device discovery failed: {device_list['error']}")
         except Exception as e:
-            self.log(f"Failed to discover device: {e}")
+            self.log(f"Failed to discover devices: {e}")
 
     def load_firmware(self):
         """Load firmware onto the device."""
         self.firmware_path = filedialog.askopenfilename(title="Select Firmware File",
-                                                        filetypes=[("Firmware Files", "*.bin *.hex")])
+                                                        filetypes=[("Firmware Files", "*.txt")])
         if not self.firmware_path:
             self.log("No firmware file selected.")
             return
 
         try:
-            if not self.serial_comm:
-                self.log("Serial communication is not established.")
-                return
-
             self.log(f"Validating firmware at {self.firmware_path}...")
-            firmware_hash = self.serial_comm.validate_firmware_file(self.firmware_path)
+            firmware_hash = validate_firmware_file(self.firmware_path)
             if not firmware_hash:
                 self.log("Firmware validation failed.")
                 return
 
-            if self.mqtt_client:
-                self.log(f"Uploading firmware to device...")
-                start_time = time.time()
-                result = self.mqtt_client.upload_firmware("HeroDevice123", self.firmware_path)
-                elapsed_time = time.time() - start_time
+            with open(self.firmware_path, "r") as f:
+                firmware_data = f.read()
 
-                if result.get("success"):
-                    self.log(f"Firmware uploaded successfully in {elapsed_time:.2f} seconds.")
+            self.log("Uploading text-based firmware to selected devices...")
+            for device_id in self.get_selected_devices():
+                result = HardwareService.upload_firmware_to_device(device_id, firmware_data)
+                if result["success"]:
+                    self.log(f"Firmware uploaded successfully to device {device_id}.")
                 else:
-                    self.log(f"Firmware upload failed: {result['error']}")
-            else:
-                self.log("MQTT Service is not running.")
+                    self.log(f"Firmware upload failed for device {device_id}: {result['error']}")
         except Exception as e:
             self.log(f"Failed to load firmware: {e}")
+
 
     def monitor_device(self):
         """Monitor device status in real-time."""
         try:
-            if not self.serial_comm:
-                self.log("Serial communication is not established.")
-                return
-
             self.stop_monitoring = False
             self.log("Monitoring device status...")
             while not self.stop_monitoring:
-                data = self.serial_comm.read_data()
-                if data.get("success"):
-                    self.log(f"Device Status: {data['data']}")
+                device_status = HardwareService.get_device_status()
+                if device_status["success"]:
+                    self.log(f"Device Status: {device_status['status']}")
                 else:
-                    self.log(f"Monitoring failed: {data['error']}")
+                    self.log(f"Monitoring failed: {device_status['error']}")
                 time.sleep(1)
         except Exception as e:
             self.log(f"Device monitoring error: {e}")
 
+    def compare_devices(self):
+        """Compare the operation of multiple devices."""
+        try:
+            machine_ids = messagebox.askstring("Compare Devices", "Enter machine IDs separated by commas:")
+            if not machine_ids:
+                self.log("No machine IDs provided.")
+                return
+
+            machine_ids = [id.strip() for id in machine_ids.split(",")]
+            self.log(f"Comparing devices: {machine_ids}")
+
+            comparisons = []
+            for device_id in machine_ids:
+                device = HardwareService.get_device_by_id(device_id)
+                if device:
+                    comparisons.append({
+                        "id": device_id,
+                        "firmware": device.device_metadata.get("firmware_text", "No firmware uploaded"),
+                    })
+
+            # Highlight differences
+            differences = [
+                f"Device {c['id']}: {c['firmware']}" for c in comparisons
+            ]
+            self.log(f"Comparison Results:\n" + "\n".join(differences))
+        except Exception as e:
+            self.log(f"Device comparison error: {e}")
+
+
     def stop_monitoring_device(self):
-        """Stop monitoring the device."""
+        """Stop real-time monitoring."""
         self.stop_monitoring = True
-        self.log("Stopped monitoring device.")
+        self.log("Stopped real-time firmware monitoring.")
+        
+    def monitor_firmware(self):
+        """Monitor firmware status in real-time."""
+        try:
+            self.stop_monitoring = False
+            self.log("Starting real-time firmware monitoring...")
+            while not self.stop_monitoring:
+                devices = HardwareService.list_devices()
+                for device in devices.get("devices", []):
+                    firmware_version = device["metadata"].get("firmware_version", "Unknown")
+                    self.log(f"Device {device['name']} is running firmware version: {firmware_version}")
+                time.sleep(5)  # Update every 5 seconds
+        except Exception as e:
+            self.log(f"Firmware monitoring error: {e}")
+
+
 
     def run(self):
         """Start the Tkinter main loop."""

@@ -50,6 +50,18 @@
     <Compile Include="HardwareTester\forms.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="HardwareTester\hal\devices.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="HardwareTester\hal\hal.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="HardwareTester\hal\interfaces.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="HardwareTester\hal\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="HardwareTester\models\configuration_models.py">
       <SubType>Code</SubType>
     </Compile>
@@ -215,6 +227,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="HardwareTester\" />
+    <Folder Include="HardwareTester\hal\" />
     <Folder Include="HardwareTester\models\" />
     <Folder Include="HardwareTester\static\blueprints\" />
     <Folder Include="HardwareTester\static\blueprints\delete\" />

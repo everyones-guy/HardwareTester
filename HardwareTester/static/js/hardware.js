@@ -63,4 +63,25 @@ document.addEventListener("DOMContentLoaded", () => {
                 discoverButton.textContent = "Discover";
             });
     });
+    document.getElementById("firmware-form").addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        const formData = new FormData();
+        formData.append("firmware", document.getElementById("firmware").files[0]);
+        const machines = Array.from(document.getElementById("machines").selectedOptions).map(opt => opt.value);
+        machines.forEach(machine => formData.append("machines", machine));
+
+        const response = await fetch("/firmware/upload", {
+            method: "POST",
+            body: formData
+        });
+
+        const result = await response.json();
+        if (result.success) {
+            alert("Firmware uploaded successfully!");
+        } else {
+            alert(`Error: ${result.error}`);
+        }
+    });
+
 });

@@ -69,3 +69,21 @@ class Blueprint(db.Model):
 
     def __repr__(self):
         return f"<Blueprint {self.name}>"
+
+class Firmware(db.Model):
+    __tablename__ = "firmwares"
+    id = db.Column(Integer, primary_key=True)
+    hash = db.Column(String(64), unique=True, nullable=False)
+    content = db.Column(Text, nullable=False)
+    mdf = db.Column(JSON, nullable=True)
+    created_at = db.Column(DateTime, default=datetime.utcnow)
+
+class DeviceFirmwareHistory(db.Model):
+    __tablename__ = "device_firmware_history"
+    id = db.Column(Integer, primary_key=True)
+    device_id = db.Column(Integer, ForeignKey("devices.id"), nullable=False)
+    firmware_id = db.Column(Integer, ForeignKey("firmwares.id"), nullable=False)
+    uploaded_at = db.Column(DateTime, default=datetime.utcnow)
+
+    device = db.relationship("Device", backref=db.backref("firmware_history", lazy="dynamic"))
+    firmware = db.relationship("Firmware")

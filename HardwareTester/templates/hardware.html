@@ -34,57 +34,31 @@
             <div id="device-settings"></div>
         </div>
     </div>
-</div>
-{% endblock %}
 
-{% block extra_scripts %}
-<script src="{{ url_for('static', filename='js/scripts/hardware.js') }}"></script>
-{% endblock %}
+    <!-- Device Firmware Upload-->
+    <div id="firmware-modal" class="modal">
+        <div class="modal-content">
+            <h4>Upload Firmware</h4>
+            <form id="firmware-form">
+                <label for="firmware">Select Firmware:</label>
+                <input type="file" id="firmware" name="firmware" required>
 
-{% block extra_styles %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/hardware.css') }}">
-{% endblock %}
-{% extends "base.html" %}
+                <label for="machines">Select Machines:</label>
+                <select id="machines" name="machines" multiple>
+                    <!-- Populate dynamically with machine list -->
+                </select>
 
-{% block title %}Hardware Devices{% endblock %}
-
-{% block content %}
-<div class="container">
-    <h1 class="mt-4 text-center">Hardware Devices</h1>
-
-    <!-- Discover Device Form -->
-    <div class="card mt-4">
-        <div class="card-header">
-            <h3>Discover Device</h3>
-        </div>
-        <div class="card-body">
-            <form id="discover-device-form" class="row g-3">
-                <div class="col-md-8">
-                    <label for="device-id" class="form-label">Device ID</label>
-                    <input type="text" id="device-id" name="device_id" class="form-control" placeholder="Enter Device ID" required>
-                </div>
-                <div class="col-md-4 align-self-end">
-                    <button type="submit" class="btn btn-primary w-100">Discover</button>
-                </div>
+                <button type="submit">Upload</button>
             </form>
         </div>
     </div>
 
-    <!-- Device Details -->
-    <div id="device-details" class="card mt-4 d-none">
-        <div class="card-header">
-            <h3>Device Details</h3>
-        </div>
-        <div class="card-body">
-            <div id="device-info"></div>
-            <div id="device-settings"></div>
-        </div>
-    </div>
+
 </div>
 {% endblock %}
 
 {% block extra_scripts %}
-<script src="{{ url_for('static', filename='js/scripts/hardware.js') }}"></script>
+<script src="{{ url_for('static', filename='js/hardware.js') }}"></script>
 {% endblock %}
 
 {% block extra_styles %}

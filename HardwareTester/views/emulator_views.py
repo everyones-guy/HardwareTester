@@ -62,3 +62,20 @@ def get_logs():
     response = EmulatorService.get_emulator_logs()
     return jsonify(response)
 
+@emulator_bp.route("/emulator/compare", methods=["POST"])
+def compare_machines():
+    """Compare the operation of machines running different firmware."""
+    data = request.json
+    machine_ids = data.get("machine_ids", [])
+
+    if not machine_ids or len(machine_ids) < 2:
+        return jsonify({"success": False, "error": "At least two machines are required for comparison"}), 400
+
+    comparisons = []
+    for machine_id in machine_ids:
+        status = EmulatorService.get_machine_status(machine_id)  # Fetch status
+        comparisons.append({"machine_id": machine_id, "status": status})
+
+    # Process and highlight differences
+    differences = EmulatorService.compare_operations(comparisons)
+    return jsonify({"success": True, "differences": differences})

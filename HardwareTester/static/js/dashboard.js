@@ -203,6 +203,24 @@ $(document).ready(function () {
         });
     });
 
+    // compare machines
+    async function compareMachines() {
+        const machineIds = ["machine1", "machine2"];  // Replace with dynamic selection
+        const response = await fetch("/emulator/compare", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ machine_ids: machineIds })
+        });
+
+        const result = await response.json();
+        if (result.success) {
+            document.getElementById("comparison-results").innerText = JSON.stringify(result.differences, null, 2);
+        } else {
+            alert(`Error: ${result.error}`);
+        }
+    }
+
+
     // Initialize dashboard functionality
     $(document).ready(function () {
         loadOverview();
