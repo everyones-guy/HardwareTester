@@ -1,12 +1,13 @@
 import tkinter as tk
-from tkinter import scrolledtext
+from tkinter import scrolledtext, filedialog
 from HardwareTester.services.mqtt_client import MQTTClient
 from HardwareTester.utils.serial_comm import SerialComm
 import logging
+import time
 
 # Configure logging
 logger = logging.getLogger("FirmwareTestGUI")
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, filename="firmware_test.log", filemode="w")
 
 class FirmwareTestApp:
     def __init__(self, root):
@@ -15,7 +16,7 @@ class FirmwareTestApp:
 
         # Communication log
         self.log_area = scrolledtext.ScrolledText(root, wrap=tk.WORD, width=60, height=20)
-        self.log_area.grid(row=0, column=0, columnspan=3, padx=10, pady=10)
+        self.log_area.grid(row=0, column=0, columnspan=4, padx=10, pady=10)
 
         # Buttons
         self.start_mqtt_button = tk.Button(root, text="Start MQTT Service", command=self.start_mqtt_service)
@@ -27,9 +28,13 @@ class FirmwareTestApp:
         self.load_firmware_button = tk.Button(root, text="Load Firmware", command=self.load_firmware)
         self.load_firmware_button.grid(row=1, column=2, padx=10, pady=5)
 
+        self.monitor_device_button = tk.Button(root, text="Monitor Device", command=self.monitor_device)
+        self.monitor_device_button.grid(row=1, column=3, padx=10, pady=5)
+
         # MQTT and SerialComm instances
         self.mqtt_client = None
         self.serial_comm = None
+        self.firmware_path = None
 
     def log(self, message):
         """Log a message to the communication log."""
@@ -73,23 +78,31 @@ class FirmwareTestApp:
 
     def load_firmware(self):
         """Load firmware onto the device."""
-        firmware_path = "path/to/firmware.bin"  # Replace with dynamic file picker if needed
+        self.firmware_path = filedialog.askopenfilename(title="Select Firmware File",
+                                                        filetypes=[("Firmware Files", "*.bin *.hex")])
+        if not self.firmware_path:
+            self.log("No firmware file selected.")
+            return
+
         try:
             if not self.serial_comm:
                 self.log("Serial communication is not established.")
                 return
 
-            self.log(f"Validating firmware at {firmware_path}...")
-            firmware_hash = self.serial_comm.validate_firmware_file(firmware_path)
+            self.log(f"Validating firmware at {self.firmware_path}...")
+            firmware_hash = self.serial_comm.validate_firmware_file(self.firmware_path)
             if not firmware_hash:
                 self.log("Firmware validation failed.")
                 return
 
             if self.mqtt_client:
                 self.log(f"Uploading firmware to device...")
-                result = self.mqtt_client.upload_firmware("HeroDevice123", firmware_path)  # Replace with device ID
+                start_time = time.time()
+                result = self.mqtt_client.upload_firmware("HeroDevice123", self.firmware_path)
+                elapsed_time = time.time() - start_time
+
                 if result.get("success"):
-                    self.log(f"Firmware uploaded successfully.")
+                    self.log(f"Firmware uploaded successfully in {elapsed_time:.2f} seconds.")
                 else:
                     self.log(f"Firmware upload failed: {result['error']}")
             else:
@@ -97,9 +110,28 @@ class FirmwareTestApp:
         except Exception as e:
             self.log(f"Failed to load firmware: {e}")
 
+    def monitor_device(self):
+        """Monitor device status in real-time."""
+        try:
+            if not self.serial_comm:
+                self.log("Serial communication is not established.")
+                return
+
+            self.log("Monitoring device status...")
+            while True:
+                data = self.serial_comm.read_data()
+                if data.get("success"):
+                    self.log(f"Device Status: {data['data']}")
+                else:
+                    self.log(f"Monitoring failed: {data['error']}")
+                time.sleep(1)
+        except Exception as e:
+            self.log(f"Device monitoring error: {e}")
+
     def run(self):
         """Start the Tkinter main loop."""
         self.root.mainloop()
+
 
 if __name__ == "__main__":
     root = tk.Tk()
