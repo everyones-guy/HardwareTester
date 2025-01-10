@@ -70,26 +70,60 @@ class SerialService:
             logger.error(f"Unexpected error while sending data: {e}")
             return False
 
-    def read_data(self) -> str:
+    def read_data(self):
         """
-        Read data from the device.
-        :return: Decoded data as a string, or None if an error occurred.
+        Read data from the serial connection.
+        :return: Dictionary with parsed data or error message.
         """
         if not self.connection or not self.connection.is_open:
-            logger.warning("Serial connection is not open. Attempting to reconnect...")
-            if not self.reconnect():
-                return None
+            logger.error("Serial connection is not open.")
+            return {"success": False, "error": "Serial connection is not open."}
 
+        for attempt in range(1, self.retries + 1):
+            try:
+                raw_data = self.connection.readline().decode("utf-8").strip()
+                if self.debug:
+                    logger.debug(f"Raw data received: {raw_data}")
+
+                # Attempt to parse the raw data
+                parsed_data = self.parse_raw_data(raw_data)
+                if parsed_data:
+                    logger.info("Data received and parsed successfully.")
+                    return {"success": True, "data": parsed_data}
+                else:
+                    logger.warning("Failed to parse raw data.")
+                    return {"success": True, "data": {"raw": raw_data}}
+
+            except serial.SerialTimeoutException:
+                logger.warning(f"Timeout occurred on attempt {attempt} while reading.")
+                time.sleep(DEFAULT_RETRY_DELAY)
+
+            except Exception as e:
+                logger.error(f"Unexpected error: {e}")
+                return {"success": False, "error": str(e)}
+
+        logger.error(f"All {self.retries} attempts to read data failed.")
+        return {"success": False, "error": "Failed to read data after retries."}
+
+    def parse_raw_data(self, raw_data):
+        """
+        Parse raw data into a structured format.
+        :param raw_data: Raw data string.
+        :return: Parsed data as a dictionary or None if parsing fails.
+        """
         try:
-            data = self.connection.readline().decode().strip()
-            logger.info(f"Received data: {data}")
-            return data
-        except serial.SerialException as e:
-            logger.error(f"Serial error while reading data: {e}")
-            return None
+            # Example: Parse key=value pairs separated by semicolons
+            data = {}
+            pairs = raw_data.split(";")
+            for pair in pairs:
+                if "=" in pair:
+                    key, value = pair.split("=", 1)
+                    data[key.strip()] = value.strip()
+            return data if data else None
         except Exception as e:
-            logger.error(f"Unexpected error while reading data: {e}")
+            logger.error(f"Failed to parse raw data: {e}")
             return None
+
 
     def is_connected(self) -> bool:
         """

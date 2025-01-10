@@ -35,6 +35,7 @@ class FirmwareTestApp:
         self.mqtt_client = None
         self.serial_comm = None
         self.firmware_path = None
+        self.stop_monitoring = False
 
     def log(self, message):
         """Log a message to the communication log."""
@@ -71,6 +72,8 @@ class FirmwareTestApp:
             discovery_result = self.serial_comm.discover_device()
             if discovery_result.get("success"):
                 self.log(f"Device discovered on {discovery_result['port']}: {discovery_result['device_info']}")
+                if "credentials" in discovery_result["device_info"]:
+                    self.log(f"Credentials entered: {discovery_result['device_info']['credentials']}")
             else:
                 self.log(f"Discovery failed: {discovery_result['error']}")
         except Exception as e:
@@ -117,8 +120,9 @@ class FirmwareTestApp:
                 self.log("Serial communication is not established.")
                 return
 
+            self.stop_monitoring = False
             self.log("Monitoring device status...")
-            while True:
+            while not self.stop_monitoring:
                 data = self.serial_comm.read_data()
                 if data.get("success"):
                     self.log(f"Device Status: {data['data']}")
@@ -127,6 +131,11 @@ class FirmwareTestApp:
                 time.sleep(1)
         except Exception as e:
             self.log(f"Device monitoring error: {e}")
+
+    def stop_monitoring_device(self):
+        """Stop monitoring the device."""
+        self.stop_monitoring = True
+        self.log("Stopped monitoring device.")
 
     def run(self):
         """Start the Tkinter main loop."""
