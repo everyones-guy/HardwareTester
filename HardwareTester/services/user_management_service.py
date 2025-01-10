@@ -2,6 +2,7 @@
 # user_management.py
 
 from werkzeug.security import generate_password_hash, check_password_hash
+from HardwareTester.utils.bcrypt_utils import hash_password, check_password, is_strong_password
 from HardwareTester.extensions import db, logger
 from HardwareTester.models.user_models import User
 from sqlalchemy.exc import SQLAlchemyError
@@ -23,8 +24,15 @@ class UserManagementService:
             if User.query.filter((User.username == username) | (User.email == email)).first():
                 logger.warning("Username or email already exists.")
                 return {"success": False, "error": "Username or email already exists."}
+            
+            #Using built in methods from bcrypt_utils.py
+            #if the password is strong, hash it otherwise return an error
 
-            hashed_password = generate_password_hash(password, method='sha256')
+            if is_strong_password(password):
+                hashed_password = hash_password(password)
+            else:
+                return {"success": False, "error": "Password is not strong enough."}
+            
             new_user = User(username=username, email=email, password=hashed_password)
             db.session.add(new_user)
             db.session.commit()
@@ -95,7 +103,7 @@ class UserManagementService:
         logger.info(f"Authenticating user '{username}'...")
         try:
             user = User.query.filter_by(username=username).first()
-            if not user or not check_password_hash(user.password, password):
+            if not user or not check_password(user.password, password):
                 logger.warning(f"Authentication failed for user '{username}'.")
                 return {"success": False, "error": "Invalid username or password."}
 
@@ -127,7 +135,7 @@ class UserManagementService:
             if email:
                 user.email = email
             if password:
-                user.password = generate_password_hash(password)
+                user.password = hash_password(password)
 
             db.session.commit()
             logger.info(f"User ID {user_id} updated successfully.")

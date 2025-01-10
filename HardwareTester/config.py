@@ -60,14 +60,17 @@ class DevelopmentConfig(Config):
     """Development configuration with debug enabled."""
     DEBUG = True
     ENV = "development"
+    LOGIN_DISABLED = True
+
 
 class TestingConfig(Config):
     """Testing configuration with a separate test database."""
     TESTING = True
     SQLALCHEMY_DATABASE_URI = "sqlite:///instance/test.db"
-    WTF_CSRF_ENABLED = False  # Disable CSRF for easier testing
+    #WTF_CSRF_ENABLED = False  # Disable CSRF for easier testing
     LOG_LEVEL = "WARNING"
     ENV = "testing"
+    LOGIN_DISABLED = True
 
 class ProductionConfig(Config):
     """Production configuration."""

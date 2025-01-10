@@ -1,6 +1,4 @@
-# api_views.py
-# Handles the API endpoints for fetching and pushing data.
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, render_template
 from HardwareTester.services.api_service import APIService
 from HardwareTester.utils.serial_comm import SerialComm
 from HardwareTester.extensions import logger
@@ -10,8 +8,12 @@ api_bp = Blueprint("api", __name__, url_prefix="/api")
 
 @api_bp.route("/", methods=["GET"])
 def api_overview():
-    """API Overview."""
-    return jsonify({"message": "Welcome to the Hardware Tester API"}), 200
+    """Render the API Overview page."""
+    try:
+        return render_template("api_overview.html")
+    except Exception as e:
+        logger.error(f"Error rendering API Overview page: {e}")
+        return jsonify({"success": False, "error": "Failed to load API Overview page."}), 500
 
 @api_bp.route("/test-connection", methods=["GET"])
 def test_connection():

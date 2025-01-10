@@ -155,8 +155,12 @@ class RegistrationForm(FlaskForm):
         ]
     )
     password = PasswordField(
-        'Password', 
-        validators=[DataRequired()]
+        "Password",
+        validators=[
+            DataRequired(),
+            PasswordValidator(),
+            Length(min=8, message="Password must be at least 8 characters long."),
+        ]
     )
     confirm_password = PasswordField(
         'Confirm Password', 

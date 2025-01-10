@@ -34,9 +34,11 @@ def init_db():
 
         # Add default admin user
         admin_email = os.getenv("ADMIN_EMAIL", "admin@example.com")
-        admin_password = os.getenv("ADMIN_PASSWORD", "admin123")
+        admin_password = os.getenv("ADMIN_PASSWORD", "adminPassword1!")
         if not User.query.filter_by(email=admin_email).first():
-            hashed_password = bcrypt.generate_password_hash(admin_password).decode("utf-8")
+            hashed_password = hash_password(admin_password).decode("utf-8")
+            #hashed_password = hash_password(admin_password)
+
             admin = User(email=admin_email, username="admin", password=hashed_password, role="admin")
             db.session.add(admin)
             db.session.commit()
@@ -71,7 +73,7 @@ def seed_data():
                 username="admin",
                 role="admin",
             )
-            admin.set_password("admin123")
+            admin.set_password("adminPassword1!")
             db.session.add(admin)
             db.session.commit()
             click.echo("Default admin user created.")

@@ -3,10 +3,8 @@ from flask import current_app
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 from datetime import datetime
-from HardwareTester.extensions import db, logger
-from HardwareTester.models.device_models import Device, Peripheral, Controller, Emulation
+from HardwareTester.extensions import logger
 
-# Configure session with retry strategy
 class APIService:
     api_state = {
         "initialized": False,
@@ -27,6 +25,7 @@ class APIService:
 
     @staticmethod
     def _get_session_with_retries(retries=3, backoff_factor=0.3, status_forcelist=(500, 502, 504)):
+        """Configures a session with retry logic."""
         session = requests.Session()
         retry = Retry(
             total=retries,
@@ -44,6 +43,7 @@ class APIService:
 
     @staticmethod
     def initialize(base_url: str, timeout: int = 10):
+        """Initialize the APIService with a base URL and timeout."""
         APIService.api_state["config"]["base_url"] = base_url
         APIService.api_state["config"]["timeout"] = timeout
         APIService.api_state["initialized"] = True
@@ -52,25 +52,8 @@ class APIService:
         logger.info("APIService initialized successfully.")
 
     @staticmethod
-    def update_state(key, value):
-        if key in APIService.api_state:
-            APIService.api_state[key] = value
-            APIService.api_state["last_updated"] = datetime.now()
-            logger.info(f"API state updated: {key} -> {value}")
-
-    @staticmethod
-    def add_blueprint(blueprint_name, description):
-        blueprint = {
-            "name": blueprint_name,
-            "description": description,
-            "created_at": datetime.now(),
-        }
-        APIService.api_state["blueprints"].append(blueprint)
-        APIService.api_state["last_updated"] = datetime.now()
-        logger.info(f"Added blueprint: {blueprint}")
-
-    @staticmethod
     def log_error(error_message):
+        """Log an error in the API state."""
         error_entry = {
             "timestamp": datetime.now(),
             "message": error_message,
@@ -81,6 +64,7 @@ class APIService:
 
     @staticmethod
     def test_api_connection():
+        """Test the connection to the API."""
         try:
             base_url = current_app.config["BASE_URL"]
             timeout = current_app.config.get("API_TIMEOUT", 5)
@@ -94,6 +78,7 @@ class APIService:
 
     @staticmethod
     def fetch_data_from_api(endpoint: str, params: dict = None) -> dict:
+        """Fetch data from the specified API endpoint."""
         try:
             base_url = current_app.config["BASE_URL"]
             timeout = current_app.config.get("API_TIMEOUT", 10)
@@ -103,23 +88,25 @@ class APIService:
             return {"success": True, "data": response.json()}
         except requests.exceptions.RequestException as e:
             logger.error(f"Failed to fetch data from {endpoint}: {e}")
-            return {"success": False, "error": f"Failed to fetch data from {endpoint}: {e}"}
+            return {"success": False, "error": f"Failed to fetch data: {e}"}
 
     @staticmethod
-    def push_data_to_api(endpoint, payload):
+    def push_data_to_api(endpoint: str, payload: dict) -> dict:
+        """Push data to the specified API endpoint."""
         try:
             base_url = current_app.config["BASE_URL"]
             timeout = current_app.config.get("API_TIMEOUT", 10)
             response = APIService.session.post(f"{base_url}{endpoint}", json=payload, timeout=timeout)
             response.raise_for_status()
-            logger.info(f"Data pushed to {endpoint} successfully.")
+            logger.info(f"Data pushed successfully to {endpoint}.")
             return {"success": True, "message": "Data successfully pushed"}
         except requests.exceptions.RequestException as e:
             logger.error(f"Failed to push data to {endpoint}: {e}")
             return {"success": False, "error": f"Failed to push data: {e}"}
 
     @staticmethod
-    def list_available_endpoints():
+    def list_available_endpoints() -> dict:
+        """Fetch the list of available API endpoints."""
         try:
             base_url = current_app.config["BASE_URL"]
             timeout = current_app.config.get("API_TIMEOUT", 10)
@@ -129,18 +116,15 @@ class APIService:
             logger.info(f"Discovered {len(endpoints)} endpoints.")
             return {"success": True, "endpoints": endpoints}
         except requests.exceptions.RequestException as e:
-            logger.warning("Failed to fetch endpoints from API. Using static list.")
-            return {"success": True, "endpoints": ["/example-endpoint", "/another-endpoint", "/test-connection"]}
+            logger.warning("Failed to fetch endpoints from API. Returning static list.")
+            return {"success": True, "endpoints": ["/test-connection", "/fetch-data", "/push-data"]}
         except Exception as e:
             logger.error(f"Unexpected error while listing endpoints: {e}")
             return {"success": False, "error": f"Unexpected error: {e}"}
 
     @staticmethod
-    def get_overview():
-        """
-        Fetch an overview of the API state or system status.
-        :return: Dictionary containing overview details or an error message.
-        """
+    def get_overview() -> dict:
+        """Fetch a summarized API overview."""
         try:
             base_url = current_app.config["BASE_URL"]
             timeout = current_app.config.get("API_TIMEOUT", 10)
