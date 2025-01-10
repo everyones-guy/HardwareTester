@@ -1,4 +1,5 @@
 import serial
+import hashlib
 import json
 from HardwareTester.utils import Logger
 import time
@@ -11,10 +12,10 @@ DEFAULT_RETRY_COUNT = 3
 DEFAULT_RETRY_DELAY = 2  # Seconds between retries
 
 class SerialComm:
-    def __init__(self, port, baudrate=9600, timeout=1, retries=DEFAULT_RETRY_COUNT, debug=False):
+    def __init__(self, port=None, baudrate=9600, timeout=1, retries=DEFAULT_RETRY_COUNT, debug=False):
         """
         Initialize Serial Communication.
-        :param port: Serial port name (e.g., COM3, /dev/ttyUSB0).
+        :param port: Serial port name (e.g., COM3, /dev/ttyUSB0) or None for auto-detection.
         :param baudrate: Baud rate for communication (default: 9600).
         :param timeout: Read timeout in seconds (default: 1).
         :param retries: Number of retries for communication errors (default: 3).
@@ -34,12 +35,17 @@ class SerialComm:
         """
         Establish a serial connection.
         """
+        if not self.port:
+            self.port = self.find_comm_port()
+            if not self.port:
+                logger.error("No suitable COM port found.")
+                raise serial.SerialException("No suitable COM port found.")
+
         try:
             self.connection = serial.Serial(
                 port=self.port,
                 baudrate=self.baudrate,
                 timeout=self.timeout,
-
             )
             logger.info(f"Connected to {self.port} at {self.baudrate} baud.")
         except serial.SerialException as e:
@@ -144,47 +150,17 @@ class SerialComm:
         logger.error("No devices discovered.")
         return {"success": False, "error": "No devices discovered."}
 
-    def test_connection(self):
+    def find_comm_port(self):
         """
-        Test the serial connection.
-        :return: Dictionary with connection status.
+        Search through USB connections for the appropriate COM port.
+        :return: The first suitable COM port found or None.
         """
-        if not self.connection or not self.connection.is_open:
-            return {"success": False, "message": "No active serial connection."}
-
-        try:
-            self.connection.write(b"PING\n")
-            time.sleep(1)
-            response = self.connection.readline().decode("utf-8").strip()
-            if response == "PONG":
-                return {"success": True, "message": "Connection is active."}
-            return {"success": False, "message": "Unexpected response from device."}
-        except Exception as e:
-            logger.error(f"Connection test failed: {e}")
-            return {"success": False, "message": str(e)}
-
-
-#if __name__ == "__main__":
-#    # Example usage
-#    comm = SerialComm(port="COM3", baudrate=9600, timeout=2, retries=3, debug=True)
-
-#    try:
-#        comm.connect()
-
-#        # Test connection
-#        test_result = comm.test_connection()
-#        logger.info(f"Connection Test: {test_result}")
-#
-#        # Send a sample command
-#        response = comm.send_data({"command": "get_status"})
-#        logger.info(f"Send Data Response: {response}")
-#
-#        # Read response from the device
-#        response = comm.read_data()
-#        logger.info(f"Read Data Response: {response}")
-#
-#        # Discover device
-#        discovery = comm.discover_device(timeout=5)
-#        logger.info(f"Discovery Response: {discovery}")
-#    finally:
-#        comm.disconnect()
+        logger.info("Searching for COM ports...")
+        ports = serial.tools.list_ports.comports()
+        for port in ports:
+            logger.info(f"Found port: {port.device} - {port.description}")
+            if "USB" in port.description or "Serial" in port.description:
+                logger.info(f"Using port: {port.device}")
+                return port.device
+        logger.error("No suitable USB or Serial COM port found.")
+        return None
