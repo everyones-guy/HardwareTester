@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import scrolledtext, filedialog, messagebox
+from tkinter import scrolledtext, filedialog, messagebox, Listbox
 from HardwareTester.services.mqtt_client import MQTTClient
 from HardwareTester.utils.serial_comm import SerialComm
 from HardwareTester.utils.firmware_utils import validate_firmware_file, process_uploaded_firmware
@@ -21,7 +21,15 @@ class FirmwareTestApp:
 
         # Communication log
         self.log_area = scrolledtext.ScrolledText(root, wrap=tk.WORD, width=60, height=20)
-        self.log_area.grid(row=0, column=0, columnspan=4, padx=10, pady=10)
+        self.log_area.grid(row=0, column=0, columnspan=3, padx=10, pady=10)
+
+        # Device listbox
+        self.device_listbox = Listbox(root, height=20, width=30)
+        self.device_listbox.grid(row=0, column=3, padx=10, pady=10)
+        self.update_device_list_button = tk.Button(
+            root, text="Refresh Devices", command=self.update_device_list
+        )
+        self.update_device_list_button.grid(row=1, column=3, padx=10, pady=5)
 
         # Buttons
         self.start_mqtt_button = tk.Button(root, text="Start MQTT Service", command=self.start_mqtt_service)
@@ -33,23 +41,40 @@ class FirmwareTestApp:
         self.load_firmware_button = tk.Button(root, text="Load Firmware", command=self.load_firmware)
         self.load_firmware_button.grid(row=1, column=2, padx=10, pady=5)
 
-        self.monitor_device_button = tk.Button(root, text="Monitor Device", command=self.monitor_device)
-        self.monitor_device_button.grid(row=1, column=3, padx=10, pady=5)
-
         self.compare_devices_button = tk.Button(root, text="Compare Devices", command=self.compare_devices)
-        self.compare_devices_button.grid(row=2, column=0, columnspan=4, padx=10, pady=5)
+        self.compare_devices_button.grid(row=2, column=0, columnspan=3, padx=10, pady=5)
 
         # MQTT and SerialComm instances
         self.mqtt_client = None
         self.serial_comm = None
-        self.firmware_path = None
-        self.stop_monitoring = False
 
     def log(self, message):
         """Log a message to the communication log."""
         self.log_area.insert(tk.END, message + "\n")
         self.log_area.see(tk.END)
         logger.info(message)
+
+    def update_device_list(self):
+        """Update the list of devices in the listbox."""
+        try:
+            with current_app.app_context():
+                result = HardwareService.get_device_status()
+                if result["success"]:
+                    self.device_listbox.delete(0, tk.END)  # Clear the listbox
+                    for device in result["status"]:
+                        self.device_listbox.insert(tk.END, f"{device['id']}: {device['name']} - Firmware {device['firmware_version']}")
+                else:
+                    self.log(f"Failed to fetch devices: {result['error']}")
+        except Exception as e:
+            self.log(f"Error updating device list: {e}")
+
+    def get_selected_devices(self):
+        """Get selected devices from the listbox."""
+        selected_items = self.device_listbox.curselection()
+        selected_ids = [
+            self.device_listbox.get(i).split(":")[0] for i in selected_items
+        ]
+        return selected_ids
 
     def start_mqtt_service(self):
         """Start the MQTT service."""
