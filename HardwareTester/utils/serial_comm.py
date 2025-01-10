@@ -13,14 +13,6 @@ DEFAULT_RETRY_DELAY = 2  # Seconds between retries
 
 class SerialComm:
     def __init__(self, port=None, baudrate=9600, timeout=1, retries=DEFAULT_RETRY_COUNT, debug=False):
-        """
-        Initialize Serial Communication.
-        :param port: Serial port name (e.g., COM3, /dev/ttyUSB0) or None for auto-detection.
-        :param baudrate: Baud rate for communication (default: 9600).
-        :param timeout: Read timeout in seconds (default: 1).
-        :param retries: Number of retries for communication errors (default: 3).
-        :param debug: Enables verbose logging if True (default: False).
-        """
         self.port = port
         self.baudrate = baudrate
         self.timeout = timeout
@@ -32,9 +24,6 @@ class SerialComm:
             logger.setLevel("DEBUG")
 
     def connect(self):
-        """
-        Establish a serial connection.
-        """
         if not self.port:
             self.port = self.find_comm_port()
             if not self.port:
@@ -53,79 +42,14 @@ class SerialComm:
             raise e
 
     def disconnect(self):
-        """
-        Close the serial connection.
-        """
         if self.connection and self.connection.is_open:
             self.connection.close()
             logger.info(f"Disconnected from {self.port}.")
 
-    def send_data(self, data):
-        """
-        Send data over the serial connection.
-        :param data: Data to send (string or JSON).
-        :return: Dictionary with success or error message.
-        """
-        if not self.connection or not self.connection.is_open:
-            logger.error("Serial connection is not open.")
-            return {"success": False, "error": "Serial connection is not open."}
-
-        try:
-            if isinstance(data, (dict, list)):
-                data = json.dumps(data)  # Convert JSON to string
-            if not isinstance(data, str):
-                raise ValueError("Data must be a string or JSON serializable object.")
-
-            if self.debug:
-                logger.debug(f"Sending: {data}")
-
-            self.connection.write(data.encode("utf-8"))
-            logger.info(f"Data sent successfully: {data}")
-            return {"success": True, "message": "Data sent successfully."}
-        except Exception as e:
-            logger.error(f"Failed to send data: {e}")
-            return {"success": False, "error": str(e)}
-
-    def read_data(self):
-        """
-        Read data from the serial connection.
-        :return: Dictionary with data or error message.
-        """
-        if not self.connection or not self.connection.is_open:
-            logger.error("Serial connection is not open.")
-            return {"success": False, "error": "Serial connection is not open."}
-
-        for attempt in range(1, self.retries + 1):
-            try:
-                raw_data = self.connection.readline().decode("utf-8").strip()
-                if self.debug:
-                    logger.debug(f"Raw data received: {raw_data}")
-
-                # Try parsing as JSON; fallback to raw data if parsing fails
-                try:
-                    parsed_data = json.loads(raw_data)
-                    logger.info("Data received successfully.")
-                    return {"success": True, "data": parsed_data}
-                except json.JSONDecodeError:
-                    logger.warning("Data received is not in JSON format.")
-                    return {"success": True, "data": {"raw": raw_data}}
-
-            except serial.SerialTimeoutException:
-                logger.warning(f"Timeout occurred on attempt {attempt} while reading.")
-                time.sleep(DEFAULT_RETRY_DELAY)
-
-            except Exception as e:
-                logger.error(f"Unexpected error: {e}")
-                return {"success": False, "error": str(e)}
-
-        logger.error(f"All {self.retries} attempts to read data failed.")
-        return {"success": False, "error": "Failed to read data after retries."}
-
     def discover_device(self, timeout=5):
         """
-        Discover a connected device by scanning serial ports and sending a discovery command.
-        :param timeout: Timeout for the discovery process (default: 5 seconds).
-        :return: Dictionary with device info or error message.
+        Discover a connected device by scanning serial ports, sending a discovery command,
+        and prompting for credentials or additional info if needed.
         """
         logger.info("Scanning for serial devices...")
         ports = serial.tools.list_ports.comports()
@@ -141,6 +65,10 @@ class SerialComm:
                             try:
                                 data = json.loads(response)
                                 logger.info(f"Device discovered on {port.device}: {data}")
+
+                                # Prompt for additional input
+                                credentials = self.get_credentials()
+                                data["credentials"] = credentials
                                 return {"success": True, "port": port.device, "device_info": data}
                             except json.JSONDecodeError:
                                 logger.warning(f"Non-JSON response received on {port.device}: {response}")
@@ -150,11 +78,17 @@ class SerialComm:
         logger.error("No devices discovered.")
         return {"success": False, "error": "No devices discovered."}
 
+    def get_credentials(self):
+        """
+        Prompt the user for credentials or additional information.
+        :return: A dictionary containing the entered credentials.
+        """
+        print("Enter device credentials:")
+        username = input("Username: ")
+        password = input("Password: ")
+        return {"username": username, "password": password}
+
     def find_comm_port(self):
-        """
-        Search through USB connections for the appropriate COM port.
-        :return: The first suitable COM port found or None.
-        """
         logger.info("Searching for COM ports...")
         ports = serial.tools.list_ports.comports()
         for port in ports:
