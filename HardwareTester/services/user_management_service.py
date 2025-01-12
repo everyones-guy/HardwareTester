@@ -1,7 +1,6 @@
 
 # user_management.py
 
-from werkzeug.security import generate_password_hash, check_password_hash
 from HardwareTester.utils.validators import validate_email
 from HardwareTester.extensions import db, logger, bcrypt
 from HardwareTester.models.user_models import User

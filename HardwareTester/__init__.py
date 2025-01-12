@@ -5,8 +5,6 @@ from HardwareTester.views import register_blueprints
 from HardwareTester.models.user_models import User
 from datetime import datetime
 from cli import cli
-import logging
-
 
 def create_app(config_name="default"):
     """
@@ -74,16 +72,16 @@ def configure_logging(config_name):
     Configure application logging based on the environment.
     :param config_name: The configuration name ('development', 'testing', or 'production').
     """
-    level = logging.DEBUG if config_name == "development" else logging.INFO
-    logging.basicConfig(
+    level = logger.debug if config_name == "development" else logger.info
+    logger.basicConfig(
         level=level,
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         handlers=[
-            logging.StreamHandler(),
-            logging.FileHandler("hardware_tester.log"),
+            logger.StreamHandler(),
+            logger.FileHandler("hardware_tester.log"),
         ],
     )
-    logging.getLogger("werkzeug").setLevel(logging.WARNING)  # Suppress Werkzeug logs
+    logger.getLogger("werkzeug").setLevel(logger.WARNING)  # Suppress Werkzeug logs
 
 
 def register_error_handlers(app):
@@ -142,3 +140,4 @@ def load_user(user_id):
     except Exception as e:
         logger.error(f"Error loading user with ID {user_id}: {e}")
         return None
+

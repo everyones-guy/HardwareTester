@@ -1,8 +1,8 @@
-import os
 from datetime import datetime
 from HardwareTester.models.log_models import ActivityLog, Notification
 from HardwareTester.extensions import db, logger
-from HardwareTester.utils.logger import Logger
+from HardwareTester.utils.logger import LoggerUtils
+
 
 class LogService:
     """A service for managing logs."""
@@ -14,12 +14,12 @@ class LogService:
             activity = ActivityLog(user_id=user_id, action=action)
             db.session.add(activity)
             db.session.commit()
-            logger.info(f"Activity logged: {action} for User {user_id}")
+            LoggerUtils.log_info(f"Activity logged: {action} for User {user_id}")
             return {"success": True, "message": "Activity logged successfully."}
         except Exception as e:
-            logger.error(f"Error logging activity: {e}")
+            LoggerUtils.log_error(f"Error logging activity for User {user_id}: {e}")
             db.session.rollback()
-            return {"success": False, "error": "Failed to log activity."}
+            return {"success": False, "error": f"Failed to log activity: {str(e)}"}
 
     @staticmethod
     def get_activity_logs(user_id=None, start_date=None, end_date=None):
@@ -34,11 +34,11 @@ class LogService:
                 query = query.filter(ActivityLog.timestamp <= end_date)
 
             logs = query.order_by(ActivityLog.timestamp.desc()).all()
-            logger.info(f"Fetched {len(logs)} activity logs.")
+            LoggerUtils.log_info(f"Fetched {len(logs)} activity logs.")
             return {"success": True, "logs": [log.__repr__() for log in logs]}
         except Exception as e:
-            logger.error(f"Error fetching activity logs: {e}")
-            return {"success": False, "error": "Failed to fetch logs."}
+            LoggerUtils.log_error(f"Error fetching activity logs: {e}")
+            return {"success": False, "error": f"Failed to fetch logs: {str(e)}"}
 
     @staticmethod
     def send_notification(message, user_id=None):
@@ -48,12 +48,12 @@ class LogService:
             db.session.add(notification)
             db.session.commit()
             recipient = f"User {user_id}" if user_id else "All Users"
-            logger.info(f"Notification sent: {message} to {recipient}")
+            LoggerUtils.log_info(f"Notification sent: {message} to {recipient}")
             return {"success": True, "message": f"Notification sent to {recipient}."}
         except Exception as e:
-            logger.error(f"Error sending notification: {e}")
+            LoggerUtils.log_error(f"Error sending notification: {e}")
             db.session.rollback()
-            return {"success": False, "error": "Failed to send notification."}
+            return {"success": False, "error": f"Failed to send notification: {str(e)}"}
 
     @staticmethod
     def get_notifications(user_id=None, only_unread=False):
@@ -66,11 +66,11 @@ class LogService:
                 query = query.filter_by(is_read=False)
 
             notifications = query.order_by(Notification.id.desc()).all()
-            logger.info(f"Fetched {len(notifications)} notifications.")
+            LoggerUtils.log_info(f"Fetched {len(notifications)} notifications.")
             return {"success": True, "notifications": [n.__repr__() for n in notifications]}
         except Exception as e:
-            logger.error(f"Error fetching notifications: {e}")
-            return {"success": False, "error": "Failed to fetch notifications."}
+            LoggerUtils.log_error(f"Error fetching notifications: {e}")
+            return {"success": False, "error": f"Failed to fetch notifications: {str(e)}"}
 
     @staticmethod
     def mark_notification_as_read(notification_id):
@@ -82,9 +82,9 @@ class LogService:
 
             notification.is_read = True
             db.session.commit()
-            logger.info(f"Marked notification {notification_id} as read.")
+            LoggerUtils.log_info(f"Marked notification {notification_id} as read.")
             return {"success": True, "message": "Notification marked as read."}
         except Exception as e:
-            logger.error(f"Error marking notification as read: {e}")
+            LoggerUtils.log_error(f"Error marking notification {notification_id} as read: {e}")
             db.session.rollback()
-            return {"success": False, "error": "Failed to mark notification as read."}
+            return {"success": False, "error": f"Failed to mark notification as read: {str(e)}"}

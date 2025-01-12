@@ -1,5 +1,6 @@
 import argparse
-from HardwareTester import create_app, socketio
+from HardwareTester import create_app
+from HardwareTester.extensions import socketio
 from cli import register_commands
 
 def main():

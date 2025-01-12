@@ -1,16 +1,14 @@
 from flask import Blueprint, render_template, redirect, url_for, request, flash, jsonify
 from flask_login import login_user, logout_user, login_required, current_user
-from HardwareTester.extensions import db, csrf, login_manager
+from HardwareTester.extensions import db, csrf, login_manager, bcrypt, logger
 from HardwareTester.models.user_models import User
 from HardwareTester.forms import LoginForm, RegistrationForm, ProfileForm
-from werkzeug.security import generate_password_hash
 from sqlalchemy.exc import IntegrityError
-import logging
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 
 # Configure logging
-logger = logging.getLogger("auth_views")
+logger.info("auth_views")
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
@@ -40,7 +38,7 @@ def logout():
 def register():
     form = RegistrationForm()
     if form.validate_on_submit():
-        hashed_password = hash_password(form.password.data)  # Use bcrypt_utils.hash_password
+        hashed_password = bcrypt.hash_password(form.password.data)  # Use bcrypt_utils.hash_password
         try:
             user = User(
                 username=form.username.data,
