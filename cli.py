@@ -1,13 +1,12 @@
 import click
 from flask.cli import with_appcontext
-from HardwareTester.extensions import db, logger
+from HardwareTester.extensions import db, logger, bcrypt
 from HardwareTester.services.configuration_service import ConfigurationService
 from HardwareTester.services.emulator_service import EmulatorService
 from HardwareTester.services.mqtt_service import MQTTService
 from HardwareTester.services.test_service import TestService
 from HardwareTester.services.test_plan_service import TestPlanService
 from HardwareTester.models.user_models import User
-from HardwareTester.utils.bcrypt_utils import hash_password, check_password
 import os
 
 
@@ -36,7 +35,7 @@ def init_db():
         admin_email = os.getenv("ADMIN_EMAIL", "admin@example.com")
         admin_password = os.getenv("ADMIN_PASSWORD", "adminPassword1!")
         if not User.query.filter_by(email=admin_email).first():
-            hashed_password = hash_password(admin_password).decode("utf-8")
+            hashed_password = bcrypt.hash_password(admin_password).decode("utf-8")
             #hashed_password = hash_password(admin_password)
 
             admin = User(email=admin_email, username="admin", password=hashed_password, role="admin")

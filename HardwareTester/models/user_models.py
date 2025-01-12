@@ -4,8 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from datetime import datetime
 from enum import Enum
-from HardwareTester.utils.bcrypt_utils import hash_password, check_password
-from HardwareTester.extensions import db
+from HardwareTester.extensions import db, bcrypt
 
 class UserRole(Enum):
     ADMIN = 'admin'
@@ -24,10 +23,10 @@ class User(UserMixin, db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     def set_password(self, password):
-        self.password_hash = hash_password(password)
+        self.password_hash = bcrypt.hash_password(password)
 
     def check_password(self, password):
-        return check_password(password, self.password_hash)
+        return bcrypt.check_password(password, self.password_hash)
 
     def __repr__(self):
         return f"<User {self.username}>"

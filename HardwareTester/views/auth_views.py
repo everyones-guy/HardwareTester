@@ -40,7 +40,7 @@ def logout():
 def register():
     form = RegistrationForm()
     if form.validate_on_submit():
-        hashed_password = generate_password_hash(form.password.data, method='pbkdf2:sha256')
+        hashed_password = hash_password(form.password.data)  # Use bcrypt_utils.hash_password
         try:
             user = User(
                 username=form.username.data,
@@ -62,6 +62,7 @@ def register():
             else:
                 flash('An error occurred. Please try again.', 'danger')
     return render_template('auth/register.html', form=form)
+
 
 @auth_bp.route("/profile", methods=["GET", "POST"])
 @login_required

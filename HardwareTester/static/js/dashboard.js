@@ -220,6 +220,72 @@ $(document).ready(function () {
         }
     }
 
+    // Load users dynamically
+    function loadUserManagement() {
+        const userList = $("#user-management-list");
+        userList.empty().append("<li>Loading...</li>");
+        $.getJSON("/users/list", function (data) {
+            userList.empty();
+            if (data.success) {
+                data.users.forEach(user => {
+                    userList.append(`
+                    <li class="list-group-item">
+                        <strong>${user.username}</strong> - ${user.email}
+                        <button class="btn btn-sm btn-danger float-end" onclick="deleteUser(${user.id})">Delete</button>
+                    </li>
+                `);
+                });
+            } else {
+                userList.append(`<li class="list-group-item text-danger">${data.error}</li>`);
+            }
+        });
+    }
+
+    // Delete a user
+    function deleteUser(userId) {
+        if (confirm("Are you sure you want to delete this user?")) {
+            $.ajax({
+                url: `/users/delete/${userId}`,
+                type: "DELETE",
+                success: function (response) {
+                    if (response.success) {
+                        alert(response.message);
+                        loadUserManagement();
+                    } else {
+                        alert(`Error: ${response.error}`);
+                    }
+                },
+            });
+        }
+    }
+
+    // Add new user
+    $("#add-user-form").on("submit", function (event) {
+        event.preventDefault();
+        const formData = $(this).serializeArray();
+        const payload = {};
+        formData.forEach(field => payload[field.name] = field.value);
+
+        $.ajax({
+            url: "/users/add",
+            type: "POST",
+            contentType: "application/json",
+            data: JSON.stringify(payload),
+            success: function (response) {
+                if (response.success) {
+                    alert(response.message);
+                    loadUserManagement();
+                } else {
+                    alert(`Error: ${response.error}`);
+                }
+            },
+        });
+    });
+
+    // Initialize when User Management tab is active
+    $("#user-management-tab").on("click", loadUserManagement);
+
+
 
     // Initialize dashboard functionality
     $(document).ready(function () {

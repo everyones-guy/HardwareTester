@@ -2,9 +2,8 @@
 # user_management.py
 
 from werkzeug.security import generate_password_hash, check_password_hash
-from HardwareTester.utils.bcrypt_utils import hash_password, check_password, is_strong_password
 from HardwareTester.utils.validators import validate_email
-from HardwareTester.extensions import db, logger
+from HardwareTester.extensions import db, logger, bcrypt
 from HardwareTester.models.user_models import User
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -23,11 +22,11 @@ class UserManagementService:
                 return {"success": False, "error": "Username or email already exists."}
 
             # Validate password strength
-            if not is_strong_password(password):
+            if not bcrypt.is_strong_password(password):
                 return {"success": False, "error": "Password is not strong enough."}
 
             # Create the user
-            hashed_password = hash_password(password)
+            hashed_password = bcrypt.hash_password(password)
             new_user = User(username=username, email=email, password_hash=hashed_password)
             db.session.add(new_user)
             db.session.commit()
@@ -93,7 +92,7 @@ class UserManagementService:
         logger.info(f"Authenticating user '{username}'...")
         try:
             user = User.query.filter_by(username=username).first()
-            if not user or not check_password(user.password, password):
+            if not user or not bcrypt.check_password(user.password, password):
                 logger.warning(f"Authentication failed for user '{username}'.")
                 return {"success": False, "error": "Invalid username or password."}
 
@@ -125,7 +124,7 @@ class UserManagementService:
             if email:
                 user.email = email
             if password:
-                user.password = hash_password(password)
+                user.password = bcrypt.hash_password(password)
 
             db.session.commit()
             logger.info(f"User ID {user_id} updated successfully.")

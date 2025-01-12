@@ -1,15 +1,13 @@
-from flask_bcrypt import Bcrypt
-import logging
+from HardwareTester.extensions import bcrypt, logger
 
 # Initialize bcrypt and logger
-bcrypt = Bcrypt()
-logger = logging.getLogger("bcrypt_utils")
-logger.setLevel(logging.INFO)
+logger.getLogger("bcrypt_utils")
+logger.setLevel("INFO")
 
 # Configure logger handler if not already set
 if not logger.handlers:
-    handler = logging.StreamHandler()
-    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    handler = logger.StreamHandler()
+    formatter = logger.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 

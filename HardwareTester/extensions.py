@@ -6,6 +6,8 @@ from flask_migrate import Migrate
 from flask_wtf.csrf import CSRFProtect
 from flask_login import LoginManager
 from flask_marshmallow import Marshmallow
+from flask_bcrypt import Bcrypt
+
 import os
 
 # Initialize extensions
@@ -15,6 +17,14 @@ migrate = Migrate()
 csrf = CSRFProtect()
 login_manager = LoginManager()
 ma = Marshmallow()
+bcrypt = Bcrypt()
+
+# Log bcrypt initialization
+try:
+    logger.info("Bcrypt initialized successfully.")
+except Exception as e:
+    logger.error(f"Error initializing Bcrypt: {e}")
+    raise e
 
 # Customize LoginManager settings
 login_manager.login_view = "auth.login"
