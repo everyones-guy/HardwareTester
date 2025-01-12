@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, request, render_template
 from HardwareTester.services.api_service import APIService
 from HardwareTester.utils.serial_comm import SerialComm
 from HardwareTester.extensions import logger
+from flask_wtf.csrf import generate_csrf
 
 # Blueprint for API operations
 api_bp = Blueprint("api", __name__, url_prefix="/api")
@@ -10,10 +11,15 @@ api_bp = Blueprint("api", __name__, url_prefix="/api")
 def api_overview():
     """Render the API Overview page."""
     try:
+        #csrf_token = generate_csrf()
+        #logger.info(f"CSRF Token: {csrf_token}, Type: {type(csrf_token)}")
+        #return render_template("api_overview.html", csrf_token=csrf_token)
         return render_template("api_overview.html")
     except Exception as e:
         logger.error(f"Error rendering API Overview page: {e}")
         return jsonify({"success": False, "error": "Failed to load API Overview page."}), 500
+
+
 
 @api_bp.route("/test-connection", methods=["GET"])
 def test_connection():
