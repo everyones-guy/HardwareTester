@@ -153,9 +153,6 @@
     <Compile Include="HardwareTester\utils\auto_deploy.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\utils\logger.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="HardwareTester\utils\parsers.py">
       <SubType>Code</SubType>
     </Compile>

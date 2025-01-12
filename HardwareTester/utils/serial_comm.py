@@ -4,9 +4,9 @@ import json
 import time
 import serial.tools.list_ports
 from HardwareTester.extensions import logger
-from HardwareTester.utils.logger import LoggerUtils
+from HardwareTester.utils.centralized_logger import CentralizedLogger
 
-logger = logger.getLogger("serial_comm")  # Use a specific name for this module's logger
+logger = CentralizedLogger.getLogger("serial_comm")  # Use a specific name for this module's logger
 
 
 #logger = logger.getLogger(__name__)
