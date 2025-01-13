@@ -3,10 +3,9 @@ import hashlib
 import json
 import time
 import serial.tools.list_ports
-from HardwareTester.extensions import logger
-from HardwareTester.utils.centralized_logger import CentralizedLogger
+from HardwareTester.utils.custom_logger import CustomLogger
 
-logger = CentralizedLogger.getLogger("serial_comm")  # Use a specific name for this module's logger
+logger = CustomLogger.get_logger("serial_comm")  # Use a specific name for this module's logger
 
 
 #logger = logger.getLogger(__name__)
@@ -26,12 +25,13 @@ class SerialComm:
 
         if self.debug:
             logger.setLevel("DEBUG")
+            logger.debug("Debug mode enabled for Serial Comm.")
 
     def connect(self):
         if not self.port:
             self.port = self.find_comm_port()
             if not self.port:
-                LoggerUtils.log_error("No suitable COM port found.")
+                logger.log_error("No suitable COM port found.")
                 raise serial.SerialException("No suitable COM port found.")
 
         try:
@@ -40,26 +40,26 @@ class SerialComm:
                 baudrate=self.baudrate,
                 timeout=self.timeout,
             )
-            LoggerUtils.log_info(f"Connected to {self.port} at {self.baudrate} baud.")
+            logger. .log_info(f"Connected to {self.port} at {self.baudrate} baud.")
         except serial.SerialException as e:
-            LoggerUtils.log_error(f"Failed to connect to {self.port}: {e}")
+            CustomLogger.log_error(f"Failed to connect to {self.port}: {e}")
             raise e
 
     def disconnect(self):
         if self.connection and self.connection.is_open:
             self.connection.close()
-            LoggerUtils.log_info(f"Disconnected from {self.port}.")
+            CustomLogger.log_info(f"Disconnected from {self.port}.")
 
     def discover_device(self, timeout=5):
         """
         Discover a connected device by scanning serial ports, sending a discovery command,
         and prompting for credentials or additional info if needed.
         """
-        LoggerUtils.log_info("Scanning for serial devices...")
+        CustomLogger.log_info("Scanning for serial devices...")
         ports = serial.tools.list_ports.comports()
         for port in ports:
             try:
-                LoggerUtils.log_info(f"Probing port: {port.device}")
+                CustomLogger.log_info(f"Probing port: {port.device}")
                 with serial.Serial(port.device, self.baudrate, timeout=self.timeout) as ser:
                     ser.write(b'{"action": "discover"}\n')
                     start_time = time.time()
