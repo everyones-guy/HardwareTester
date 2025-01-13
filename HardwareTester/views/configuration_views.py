@@ -3,7 +3,11 @@
 
 from flask import Blueprint, render_template, request, jsonify
 from HardwareTester.services.configuration_service import ConfigurationService
-from HardwareTester.extensions import db, logger
+from HardwareTester.extensions import db
+from HardwareTester.utils.custom_logger import CustomLogger
+
+# Initialize logger
+logger = CustomLogger.get_logger("configuration_views")
 
 configuration_bp = Blueprint("configurations", __name__, url_prefix="/configurations")
 

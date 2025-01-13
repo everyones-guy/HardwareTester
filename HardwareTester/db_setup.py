@@ -1,11 +1,10 @@
 import os
 import subprocess
 import sys
-import logging
+from HardwareTester.utils.custom_logger import CustomLogger
 
-# Configure logger
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+# Initialize logger
+logger = CustomLogger.get_logger("db_setup")
 
 def run_command(command):
     """Run a shell command."""

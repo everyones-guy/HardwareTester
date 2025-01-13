@@ -2,7 +2,10 @@ from flask import Blueprint, render_template, jsonify, request, redirect, url_fo
 from flask_login import login_required, current_user
 from HardwareTester.services.dashboard_service import DashboardService
 from datetime import datetime
-from HardwareTester.extensions import logger
+from HardwareTester.utils.custom_logger import CustomLogger
+
+# Initialize logger
+logger = CustomLogger.get_logger("main_views")
 
 # Create the Blueprint
 main_bp = Blueprint("main", __name__)

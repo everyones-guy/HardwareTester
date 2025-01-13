@@ -1,6 +1,9 @@
 import os
 from werkzeug.datastructures import FileStorage
-from HardwareTester.extensions import logger
+from HardwareTester.utils.custom_logger import CustomLogger
+
+# Initialize logger
+logger = CustomLogger.get_logger("upload_service")
 
 class UploadService:
     """Service for handling file uploads."""

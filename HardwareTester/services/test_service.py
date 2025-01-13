@@ -1,7 +1,10 @@
 import os
 import json
-from HardwareTester.extensions import logger
+from HardwareTester.utils.custom_logger import CustomLogger
 from HardwareTester.utils.api_manager import create_api_manager
+
+# Initialize logger
+logger = CustomLogger.get_logger("test_service")
 
 # Initialize API manager
 api_manager = create_api_manager("https://example.com/api")

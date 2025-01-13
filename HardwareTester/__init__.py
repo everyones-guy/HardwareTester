@@ -1,10 +1,14 @@
 from flask import Flask, jsonify, render_template, request
 from HardwareTester.config import config
-from HardwareTester.extensions import db, socketio, migrate, csrf, login_manager, ma, logger, bcrypt
+from HardwareTester.extensions import db, socketio, migrate, csrf, login_manager, ma, bcrypt
 from HardwareTester.views import register_blueprints
 from HardwareTester.models.user_models import User
+from HardwareTester.utils.custom_logger import CustomLogger
 from datetime import datetime
 from cli import cli
+
+# Initialize logger
+logger = CustomLogger.get_logger("app")
 
 def create_app(config_name="default"):
     """
@@ -12,9 +16,6 @@ def create_app(config_name="default"):
     :param config_name: The configuration name ('development', 'testing', or 'production').
     :return: Configured Flask application instance.
     """
-    # Configure logging
-    configure_logging(config_name)
-    logger.info(f"Initializing app with config: {config_name}")
 
     # Initialize Flask app
     app = Flask(__name__)

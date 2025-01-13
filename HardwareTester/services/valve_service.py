@@ -1,7 +1,9 @@
 
-from HardwareTester.extensions import db, logger
+from HardwareTester.extensions import db
+from HardwareTester.utils.custom_logger import CustomLogger
 
-logger = logger(name="ValveService", log_file="logs/valve_service.log", level="INFO")
+
+logger = CustomLogger.get_logger("ValveService")
 
 def get_all_valves():
     """Retrieve all valves from the database."""

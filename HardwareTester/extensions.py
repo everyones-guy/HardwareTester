@@ -20,7 +20,7 @@ ma = Marshmallow()
 bcrypt = Bcrypt()
 
 # Configure global logger
-logger = logging.getLogger("HardwareTester", log_file="logs/hardware_tester.log", level="INFO")
+logger = logging.getLogger("HardwareTester")
 logger.setLevel(logging.INFO)
 
 # File handler with rotation

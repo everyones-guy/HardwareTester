@@ -1,6 +1,7 @@
 import click
 from flask.cli import with_appcontext
-from HardwareTester.extensions import db, logger, bcrypt
+from HardwareTester.extensions import db, bcrypt
+from HardwareTester.utils.custom_logger import CustomLogger
 from HardwareTester.services.configuration_service import ConfigurationService
 from HardwareTester.services.emulator_service import EmulatorService
 from HardwareTester.services.mqtt_service import MQTTService
@@ -8,6 +9,9 @@ from HardwareTester.services.test_service import TestService
 from HardwareTester.services.test_plan_service import TestPlanService
 from HardwareTester.models.user_models import User
 import os
+
+# initialize logger
+logger = CustomLogger.get_logger("cli")
 
 
 @click.group(help="CLI for Universal Hardware Tester.")
@@ -35,7 +39,7 @@ def init_db():
         admin_email = os.getenv("ADMIN_EMAIL", "admin@example.com")
         admin_password = os.getenv("ADMIN_PASSWORD", "adminPassword1!")
         if not User.query.filter_by(email=admin_email).first():
-            hashed_password = bcrypt.hash_password(admin_password).decode("utf-8")
+            hashed_password = bcrypt.hash_password(admin_password)
             #hashed_password = hash_password(admin_password)
 
             admin = User(email=admin_email, username="admin", password=hashed_password, role="admin")
@@ -68,7 +72,7 @@ def seed_data():
         click.echo("Seeding database...")
         if not User.query.filter_by(email="admin@example.com").first():
             admin = User(
-                email="admin@example.com",
+                email=os.getenv("ADMIN_EMAIL", "admin@example.com"),
                 username="admin",
                 role="admin",
             )

@@ -3,7 +3,10 @@
 
 import os
 from HardwareTester.utils.api_manager import create_api_manager
-from HardwareTester.extensions import logger
+from HardwareTester.utils.custom_logger import CustomLogger
+
+# Initialize Logger
+logger = CustomLogger.get_logger("test_plan_service")
 
 # Initialize logger and API manager
 api_manager = create_api_manager("https://127.0.0.1/api")

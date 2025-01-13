@@ -2,7 +2,10 @@ import json
 import time
 import threading
 from paho.mqtt.client import Client
-from HardwareTester.extensions import logger
+from HardwareTester.utils.custom_logger import CustomLogger
+
+# initialize logger
+logger = CustomLogger.get_logger("mqtt_service")
 
 DEFAULT_RETRY_COUNT = 3
 DEFAULT_RETRY_DELAY = 2  # Seconds between retries

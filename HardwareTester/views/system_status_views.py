@@ -1,10 +1,11 @@
 # system_status_views
 
 from flask import Blueprint, jsonify, render_template
-from HardwareTester.services.system_status_service import (
-    SystemStatusService,
-)
-from HardwareTester.extensions import logger
+from HardwareTester.services.system_status_service import SystemStatusService
+from HardwareTester.utils.custom_logger import CustomLogger
+
+# Initialize logger
+logger = CustomLogger.get_logger("system_status_views")
 
 system_status_bp = Blueprint("system_status", __name__, url_prefix="/system-status")
 

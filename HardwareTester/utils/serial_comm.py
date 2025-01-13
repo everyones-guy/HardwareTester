@@ -40,26 +40,26 @@ class SerialComm:
                 baudrate=self.baudrate,
                 timeout=self.timeout,
             )
-            logger. .log_info(f"Connected to {self.port} at {self.baudrate} baud.")
+            logger.log_info(f"Connected to {self.port} at {self.baudrate} baud.")
         except serial.SerialException as e:
-            CustomLogger.log_error(f"Failed to connect to {self.port}: {e}")
+            logger.log_error(f"Failed to connect to {self.port}: {e}")
             raise e
 
     def disconnect(self):
         if self.connection and self.connection.is_open:
             self.connection.close()
-            CustomLogger.log_info(f"Disconnected from {self.port}.")
+            logger.log_info(f"Disconnected from {self.port}.")
 
     def discover_device(self, timeout=5):
         """
         Discover a connected device by scanning serial ports, sending a discovery command,
         and prompting for credentials or additional info if needed.
         """
-        CustomLogger.log_info("Scanning for serial devices...")
+        logger.log_info("Scanning for serial devices...")
         ports = serial.tools.list_ports.comports()
         for port in ports:
             try:
-                CustomLogger.log_info(f"Probing port: {port.device}")
+                logger.log_info(f"Probing port: {port.device}")
                 with serial.Serial(port.device, self.baudrate, timeout=self.timeout) as ser:
                     ser.write(b'{"action": "discover"}\n')
                     start_time = time.time()
@@ -68,18 +68,18 @@ class SerialComm:
                         if response:
                             try:
                                 data = json.loads(response)
-                                LoggerUtils.log_info(f"Device discovered on {port.device}: {data}")
+                                logger.log_info(f"Device discovered on {port.device}: {data}")
 
                                 # Prompt for additional input
                                 credentials = self.get_credentials()
                                 data["credentials"] = credentials
                                 return {"success": True, "port": port.device, "device_info": data}
                             except json.JSONDecodeError:
-                                LoggerUtils.log_warning(f"Non-JSON response received on {port.device}: {response}")
+                                logger.log_warning(f"Non-JSON response received on {port.device}: {response}")
                                 continue
             except (serial.SerialException, serial.SerialTimeoutException) as e:
-                LoggerUtils.log_warning(f"Failed to probe port {port.device}: {e}")
-        LoggerUtils.log_error("No devices discovered.")
+                logger.log_warning(f"Failed to probe port {port.device}: {e}")
+        logger.log_error("No devices discovered.")
         return {"success": False, "error": "No devices discovered."}
 
     def get_credentials(self):
@@ -93,12 +93,12 @@ class SerialComm:
         return {"username": username, "password": password}
 
     def find_comm_port(self):
-        LoggerUtils.log_info("Searching for COM ports...")
+        logger.log_info("Searching for COM ports...")
         ports = serial.tools.list_ports.comports()
         for port in ports:
-            LoggerUtils.log_info(f"Found port: {port.device} - {port.description}")
+            logger.log_info(f"Found port: {port.device} - {port.description}")
             if "USB" in port.description or "Serial" in port.description:
-                LoggerUtils.log_info(f"Using port: {port.device}")
+                logger.log_info(f"Using port: {port.device}")
                 return port.device
-        LoggerUtils.log_error("No suitable USB or Serial COM port found.")
+        logger.log_error("No suitable USB or Serial COM port found.")
         return None

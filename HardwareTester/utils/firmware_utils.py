@@ -1,8 +1,10 @@
 
 import hashlib
-import logging
+from HardwareTester.utils import custom_logger
+from HardwareTester.utils.custom_logger import CustomLogger
 
-logger = logging.getLogger("FirmwareUtils")
+# Initialize logger
+logger = CustomLogger.get_logger("FirmwareUtils")
 
 def process_uploaded_firmware(file):
     """

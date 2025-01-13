@@ -1,8 +1,8 @@
 from HardwareTester.utils.api_manager import create_api_manager
-from HardwareTester.extensions import logger
+from HardwareTester.utils.custom_logger import CustomLogger
 
 # Initialize Logger
-logger(name="TestPlanManager", log_file="logs/test_plan_manager.log", level="INFO")
+logger = CustomLogger.get_logger("test_plan_manager")
 
 # Initialize APIManager
 api_manager = create_api_manager("https://example.com/api")

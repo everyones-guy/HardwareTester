@@ -2,6 +2,11 @@
 
 from flask import Blueprint, request, jsonify, render_template
 from HardwareTester.services.upload_service import UploadService
+from HardwareTester.services.hardware_service import HardwareService
+from HardwareTester.utils.custom_logger import CustomLogger
+
+# Initialize logger
+logger = CustomLogger.get_logger("upload_views")
 
 upload_bp = Blueprint("upload", __name__)
 
@@ -42,7 +47,7 @@ def upload_firmware():
     if not firmware_file or not machines:
         return jsonify({"success": False, "error": "Firmware and machine list are required"}), 400
 
-    firmware_result = process_uploaded_firmware(firmware_file)
+    firmware_result = HardwareService.process_uploaded_firmware(firmware_file)
     if "error" in firmware_result:
         return jsonify({"success": False, "error": firmware_result["error"]}), 500
 

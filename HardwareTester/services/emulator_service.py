@@ -1,8 +1,12 @@
 import json
 from datetime import datetime
-from HardwareTester.extensions import db, logger
+from HardwareTester.extensions import db
+from HardwareTester.utils.custom_logger import CustomLogger
 from HardwareTester.models.device_models import Emulation, Blueprint  # Replace with actual path to your model
 from typing import Dict, Any, Union
+
+# Initialize logger
+logger = CustomLogger.get_logger("emulator_service")
 
 class EmulatorService:
     # Emulator state

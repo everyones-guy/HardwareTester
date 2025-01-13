@@ -1,7 +1,10 @@
 # serial_service.py
 
 import serial
-from HardwareTester.extensions import logger
+from HardwareTester.utils.custom_logger import CustomLogger
+
+# Initialize logger
+logger = CustomLogger.get_logger("serial_service")
 
 class SerialService:
     """Service for managing serial communication."""

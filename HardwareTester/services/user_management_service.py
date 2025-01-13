@@ -2,9 +2,13 @@
 # user_management.py
 
 from HardwareTester.utils.validators import validate_email
-from HardwareTester.extensions import db, logger, bcrypt
+from HardwareTester.utils.custom_logger import CustomLogger
+from HardwareTester.extensions import db, bcrypt
 from HardwareTester.models.user_models import User
 from sqlalchemy.exc import SQLAlchemyError
+
+# Initialize logger
+logger = CustomLogger.get_logger("user_management_service")
 
 class UserManagementService:
     """Service for managing user accounts."""

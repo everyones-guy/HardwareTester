@@ -1,8 +1,12 @@
 from flask import Blueprint, jsonify, request, render_template
 from HardwareTester.services.api_service import APIService
 from HardwareTester.utils.serial_comm import SerialComm
-from HardwareTester.extensions import logger
+from HardwareTester.utils.custom_logger import CustomLogger
 from flask_wtf.csrf import generate_csrf
+
+# Initialize logger
+logger = CustomLogger.get_logger("api_views")
+
 
 # Blueprint for API operations
 api_bp = Blueprint("api", __name__, url_prefix="/api")

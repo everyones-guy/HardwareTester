@@ -8,10 +8,13 @@
 
 import json
 from flask import current_app
-from HardwareTester.extensions import db, logger
-from HardwareTester.models.device_models import Device
-from HardwareTester.models.device_models import DeviceFirmwareHistory
+from HardwareTester.extensions import db
+from HardwareTester.utils.custom_logger import CustomLogger
+from HardwareTester.models.device_models import Device, DeviceFirmwareHistory
 import hashlib
+
+# Initialize logger
+logger = CustomLogger.get_logger("hardware_service")
 
 class HardwareService:
     """Service for managing hardware-related operations."""

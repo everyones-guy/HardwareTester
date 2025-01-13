@@ -2,13 +2,12 @@ import os
 from sqlalchemy import create_engine, inspect
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import OperationalError, IntegrityError, SQLAlchemyError
-from HardwareTester.models import db
-import logging
+from HardwareTester.extensions import db
+from HardwareTester.utils.custom_logger import CustomLogger
 from contextlib import contextmanager
 
 # Logging configuration
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("DatabaseUtils")
+logger = CustomLogger.get_logger("DatabaseUtils")
 
 def get_database_url() -> str:
     """

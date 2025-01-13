@@ -1,14 +1,15 @@
 from flask import Blueprint, render_template, redirect, url_for, request, flash, jsonify
 from flask_login import login_user, logout_user, login_required, current_user
-from HardwareTester.extensions import db, csrf, login_manager, bcrypt, logger
+from HardwareTester.extensions import db, csrf, login_manager, bcrypt
 from HardwareTester.models.user_models import User
 from HardwareTester.forms import LoginForm, RegistrationForm, ProfileForm
 from sqlalchemy.exc import IntegrityError
+from HardwareTester.utils.custom_logger import CustomLogger
+
+# Initialize logger
+logger = CustomLogger.get_logger("auth_views")
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
-
-# Configure logging
-logger.info("auth_views")
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():

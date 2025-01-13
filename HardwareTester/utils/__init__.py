@@ -4,7 +4,7 @@ from HardwareTester.utils.testing import run_pytest
 from HardwareTester.utils.hardware_manager import get_system_info, print_system_info
 from HardwareTester.utils.auto_deploy import build_project, deploy_project, clean_build_directory, package_project
 from HardwareTester.utils.db_utils import DatabaseManager, initialize_database  # Import database utilities
-from HardwareTester.utils.centralized_logger import CustomLogger  # Import Logger utility if you have a custom logger
+from HardwareTester.utils.custom_logger import CustomLogger  # Import Logger utility if you have a custom logger
 
 # Expose all utility functions/classes directly under `utils` package
 __all__ = [

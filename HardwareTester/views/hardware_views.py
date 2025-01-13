@@ -1,8 +1,12 @@
 
 from flask import Blueprint, jsonify, request
 from HardwareTester.services.mqtt_service import MQTTService
-from HardwareTester.extensions import db, logger
+from HardwareTester.extensions import db
 from sqlalchemy.dialects.postgresql import JSON  # Use JSON for metadata and settings storage
+from HardwareTester.utils.custom_logger import CustomLogger
+
+# Initialize logger
+logger = CustomLogger.get_logger("hardware_views")
 
 
 hardware_bp = Blueprint("hardware", __name__)
