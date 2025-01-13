@@ -2,6 +2,10 @@ from flask import Blueprint, render_template, request, jsonify
 from flask_login import login_required, current_user
 from HardwareTester.services.dashboard_service import DashboardService
 from HardwareTester.models.user_models import UserRole
+from HardwareTester.utils.custom_logger import CustomLogger
+
+# Initialize logger
+logger = CustomLogger.get_logger("dashboard_views")
 
 dashboard_bp = Blueprint("dashboard", __name__, url_prefix="/dashboard")
 
@@ -11,7 +15,14 @@ def dashboard_home():
     """Render the dashboard homepage."""
     if current_user.role not in [UserRole.ADMIN.value, UserRole.USER.value]:
         return render_template("error.html", message="Access denied")
-    return render_template("dashboard.html")
+
+    # Fetch data for the dashboard
+    dashboard_data = DashboardService.get_dashboard_data(user_id=current_user.id)
+    if not dashboard_data["success"]:
+        logger.error(f"Failed to fetch dashboard data: {dashboard_data['error']}")
+        return render_template("error.html", message="Failed to load dashboard data.")
+
+    return render_template("dashboard.html", data=dashboard_data["data"])
 
 @dashboard_bp.route("/data", methods=["GET"])
 @login_required

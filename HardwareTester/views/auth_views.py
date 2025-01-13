@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, request, flash, jsonify
 from flask_login import login_user, logout_user, login_required, current_user
-from HardwareTester.extensions import db, csrf, login_manager, bcrypt
+from HardwareTester.extensions import db, csrf, login_manager
+from HardwareTester.utils.bcrypt_utils import check_password, hash_password, is_strong_password
 from HardwareTester.models.user_models import User
 from HardwareTester.forms import LoginForm, RegistrationForm, ProfileForm
 from sqlalchemy.exc import IntegrityError
@@ -16,11 +17,11 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
-        if user and user.check_password(form.password.data):  # Validate password
+        if user and check_password(form.password.data, user.password_hash):  # Validate password
             login_user(user)  # Log the user in
             logger.info(f"User {user.email} logged in successfully.")
             flash('Logged in successfully.', 'success')
-            return redirect(url_for('dashboard.dashboard_home'))
+            return redirect(url_for('main.dashboard'))
         logger.warning(f"Failed login attempt for email: {form.email.data}")
         flash('Invalid credentials.', 'danger')
     return render_template('auth/login.html', form=form)
@@ -39,7 +40,7 @@ def logout():
 def register():
     form = RegistrationForm()
     if form.validate_on_submit():
-        hashed_password = bcrypt.hash_password(form.password.data)  # Use bcrypt_utils.hash_password
+        hashed_password = hash_password(form.password.data)  # Use bcrypt_utils.hash_password
         try:
             user = User(
                 username=form.username.data,
@@ -66,7 +67,7 @@ def register():
 @auth_bp.route("/profile", methods=["GET", "POST"])
 @login_required
 def profile():
-    form = ProfileForm(obj=current_user)
+    form = ProfileForm(obj=current_user)  # Pre-fill the form with the current user's data
     if form.validate_on_submit():
         try:
             current_user.name = form.name.data
@@ -79,4 +80,6 @@ def profile():
             logger.error(f"An error occurred while updating profile for {current_user.email}: {e}")
             flash("An error occurred while updating your profile. Please try again.", "danger")
         return redirect(url_for("auth.profile"))
-    return render_template("auth/profile.html", form=form)
+
+    # Pass current_user as "user" to the template
+    return render_template("auth/profile.html", form=form, user=current_user)

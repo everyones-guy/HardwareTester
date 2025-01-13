@@ -21,9 +21,15 @@
         <div class="col-md-9">
             <div class="tab-content">
                 <!-- Overview Tab -->
-                <div class="tab-pane fade show active" id="overview">
-                    <h3>Dashboard Overview</h3>
-                    <p>Welcome to the application dashboard. Use the navigation menu on the left to manage various aspects of the system.</p>
+                <div id="dashboard-data">
+                    <h3>Dashboard Data</h3>
+                    <ul>
+                        {% for item in data %}
+                        <li>{{ item.title }}: {{ item.description }}</li>
+                        {% else %}
+                        <li>No data available.</li>
+                        {% endfor %}
+                    </ul>
                 </div>
 
                 <!-- Emulators Tab -->

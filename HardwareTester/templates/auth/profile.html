@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "auth/base.html" %}
 
 {% block content %}
 <div class="container mt-5">
@@ -11,31 +11,22 @@
                 <!-- Name Input -->
                 <div class="mb-3">
                     <label for="name" class="form-label">Name</label>
-                    <input type="text"
-                           name="name"
-                           id="name"
-                           class="form-control"
-                           value="{{ user.name }}"
-                           placeholder="Enter your name"
-                           required>
-                    <div class="invalid-feedback">
-                        Please provide your name.
-                    </div>
+                    {{ form.name(class="form-control", id="name", required=True, placeholder="Enter your name") }}
+                    {% if form.name.errors %}
+                    <div class="text-danger">{{ form.name.errors[0] }}</div>
+                    {% else %}
+                    <div class="invalid-feedback">Please provide your name.</div>
+                    {% endif %}
                 </div>
-
                 <!-- Email Input -->
                 <div class="mb-3">
                     <label for="email" class="form-label">Email</label>
-                    <input type="email"
-                           name="email"
-                           id="email"
-                           class="form-control"
-                           value="{{ user.email }}"
-                           placeholder="Enter your email"
-                           required>
-                    <div class="invalid-feedback">
-                        Please provide a valid email address.
-                    </div>
+                    {{ form.email(class="form-control", id="email", required=True, placeholder="Enter your email") }}
+                    {% if form.email.errors %}
+                    <div class="text-danger">{{ form.email.errors[0] }}</div>
+                    {% else %}
+                    <div class="invalid-feedback">Please provide a valid email address.</div>
+                    {% endif %}
                 </div>
 
                 <!-- Update Button -->
