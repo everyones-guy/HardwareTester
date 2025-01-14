@@ -11,7 +11,7 @@ $(document).ready(function () {
             $(".tab-pane").removeClass("show active");
             $(`#${targetId}`).addClass("show active");
 
-            // Specific behaviors for certain tabs
+            // Specific behaviors for the Serial tab
             if (targetId === "serial") {
                 $("#device-discovery").show();
                 $("#device-config-form").show();
