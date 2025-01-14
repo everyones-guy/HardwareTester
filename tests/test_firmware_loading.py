@@ -1,8 +1,8 @@
 import tkinter as tk
 from tkinter import scrolledtext, filedialog, messagebox, Listbox
 from HardwareTester.services.mqtt_client import MQTTClient
-from HardwareTester.utils.serial_comm import SerialComm
-from HardwareTester.utils.firmware_utils import validate_firmware_file, process_uploaded_firmware
+from HardwareTester.services.serial_service import SerialService
+from HardwareTester.utils.firmware_utils import validate_firmware_file
 from HardwareTester.services.hardware_service import HardwareService
 from HardwareTester.services.emulator_service import EmulatorService
 from HardwareTester import create_app  # Ensure `create_app` initializes your Flask app
@@ -13,6 +13,7 @@ import time
 # Configure logging
 logger = logging.getLogger("FirmwareTestGUI")
 logging.basicConfig(level=logging.INFO, filename="firmware_test.log", filemode="w")
+
 
 class FirmwareTestApp:
     def __init__(self, root):
@@ -41,12 +42,15 @@ class FirmwareTestApp:
         self.load_firmware_button = tk.Button(root, text="Load Firmware", command=self.load_firmware)
         self.load_firmware_button.grid(row=1, column=2, padx=10, pady=5)
 
-        self.compare_devices_button = tk.Button(root, text="Compare Devices", command=self.compare_devices)
-        self.compare_devices_button.grid(row=2, column=0, columnspan=3, padx=10, pady=5)
+        self.configure_device_button = tk.Button(root, text="Configure Device", command=self.configure_device)
+        self.configure_device_button.grid(row=2, column=0, padx=10, pady=5)
 
-        # MQTT and SerialComm instances
+        self.compare_devices_button = tk.Button(root, text="Compare Devices", command=self.compare_devices)
+        self.compare_devices_button.grid(row=2, column=1, columnspan=3, padx=10, pady=5)
+
+        # Instances
         self.mqtt_client = None
-        self.serial_comm = None
+        self.serial_service = None
 
     def log(self, message):
         """Log a message to the communication log."""
@@ -60,21 +64,16 @@ class FirmwareTestApp:
             with current_app.app_context():
                 result = HardwareService.get_device_status()
                 if result["success"]:
-                    self.device_listbox.delete(0, tk.END)  # Clear the listbox
+                    self.device_listbox.delete(0, tk.END)
                     for device in result["status"]:
-                        self.device_listbox.insert(tk.END, f"{device['id']}: {device['name']} - Firmware {device['firmware_version']}")
+                        self.device_listbox.insert(
+                            tk.END,
+                            f"{device['id']}: {device['name']} - Firmware {device['firmware_version']}"
+                        )
                 else:
                     self.log(f"Failed to fetch devices: {result['error']}")
         except Exception as e:
             self.log(f"Error updating device list: {e}")
-
-    def get_selected_devices(self):
-        """Get selected devices from the listbox."""
-        selected_items = self.device_listbox.curselection()
-        selected_ids = [
-            self.device_listbox.get(i).split(":")[0] for i in selected_items
-        ]
-        return selected_ids
 
     def start_mqtt_service(self):
         """Start the MQTT service."""
@@ -89,37 +88,38 @@ class FirmwareTestApp:
             self.log(f"Failed to start MQTT service: {e}")
 
     def discover_device(self):
-        """Discover devices via MQTT."""
+        """Discover devices via SerialService."""
         try:
-            with current_app.app_context():  # Push the app context
-                device_list = HardwareService.list_devices()
-                if device_list["success"]:
-                    self.log(f"Devices discovered: {device_list['devices']}")
-                else:
-                    self.log(f"Device discovery failed: {device_list['error']}")
+            self.serial_service = SerialService()
+            device_info = self.serial_service.discover_device()
+            if device_info:
+                self.log(f"Device discovered: {device_info}")
+            else:
+                self.log("No devices discovered.")
         except Exception as e:
             self.log(f"Failed to discover devices: {e}")
 
     def load_firmware(self):
         """Load firmware onto the device."""
-        self.firmware_path = filedialog.askopenfilename(title="Select Firmware File",
-                                                        filetypes=[("Firmware Files", "*.txt")])
-        if not self.firmware_path:
+        firmware_path = filedialog.askopenfilename(
+            title="Select Firmware File", filetypes=[("Firmware Files", "*.txt")]
+        )
+        if not firmware_path:
             self.log("No firmware file selected.")
             return
 
         try:
-            self.log(f"Validating firmware at {self.firmware_path}...")
-            firmware_hash = validate_firmware_file(self.firmware_path)
+            self.log(f"Validating firmware at {firmware_path}...")
+            firmware_hash = validate_firmware_file(firmware_path)
             if not firmware_hash:
                 self.log("Firmware validation failed.")
                 return
 
-            with open(self.firmware_path, "r") as f:
+            with open(firmware_path, "r") as f:
                 firmware_data = f.read()
 
-            self.log("Uploading text-based firmware to selected devices...")
-            with current_app.app_context():  # Push the app context
+            self.log("Uploading firmware to selected devices...")
+            with current_app.app_context():
                 for device_id in self.get_selected_devices():
                     result = HardwareService.upload_firmware_to_device(device_id, firmware_data)
                     if result["success"]:
@@ -129,21 +129,37 @@ class FirmwareTestApp:
         except Exception as e:
             self.log(f"Failed to load firmware: {e}")
 
-    def monitor_device(self):
-        """Monitor device status in real-time."""
+    def configure_device(self):
+        """Configure a serial device."""
         try:
-            self.stop_monitoring = False
-            self.log("Monitoring device status...")
-            while not self.stop_monitoring:
-                with current_app.app_context():  # Push the app context
-                    device_status = HardwareService.get_device_status()
-                if device_status["success"]:
-                    self.log(f"Device Status: {device_status['status']}")
-                else:
-                    self.log(f"Monitoring failed: {device_status['error']}")
-                time.sleep(1)
+            if not self.serial_service:
+                self.serial_service = SerialService(port="/dev/ttyUSB0", baudrate=9600)
+
+            # Prompt for configuration
+            config = {
+                "baudrate": messagebox.askstring("Configuration", "Enter Baudrate (e.g., 9600):"),
+                "parity": messagebox.askstring("Configuration", "Enter Parity (N, E, O):"),
+                "stopbits": messagebox.askstring("Configuration", "Enter Stop Bits (1, 1.5, 2):"),
+                "databits": messagebox.askstring("Configuration", "Enter Data Bits (5, 6, 7, 8):")
+            }
+
+            if not all(config.values()):
+                self.log("Configuration canceled or invalid input.")
+                return
+
+            success = self.serial_service.configure_device(
+                baudrate=int(config["baudrate"]),
+                parity=config["parity"],
+                stopbits=float(config["stopbits"]),
+                databits=int(config["databits"])
+            )
+
+            if success:
+                self.log("Device successfully configured.")
+            else:
+                self.log("Device configuration failed.")
         except Exception as e:
-            self.log(f"Device monitoring error: {e}")
+            self.log(f"Error configuring device: {e}")
 
     def compare_devices(self):
         """Compare the operation of multiple devices."""
@@ -157,7 +173,7 @@ class FirmwareTestApp:
             self.log(f"Comparing devices: {machine_ids}")
 
             comparisons = []
-            with current_app.app_context():  # Push the app context
+            with current_app.app_context():
                 for device_id in machine_ids:
                     device = HardwareService.get_device_by_id(device_id)
                     if device:
@@ -166,18 +182,10 @@ class FirmwareTestApp:
                             "firmware": device.device_metadata.get("firmware_text", "No firmware uploaded"),
                         })
 
-            # Highlight differences
-            differences = [
-                f"Device {c['id']}: {c['firmware']}" for c in comparisons
-            ]
+            differences = [f"Device {c['id']}: {c['firmware']}" for c in comparisons]
             self.log(f"Comparison Results:\n" + "\n".join(differences))
         except Exception as e:
             self.log(f"Device comparison error: {e}")
-
-    def stop_monitoring_device(self):
-        """Stop real-time monitoring."""
-        self.stop_monitoring = True
-        self.log("Stopped real-time firmware monitoring.")
 
     def run(self):
         """Start the Tkinter main loop."""
@@ -185,11 +193,9 @@ class FirmwareTestApp:
 
 
 if __name__ == "__main__":
-    # Initialize Flask app
     app_context = create_app().app_context()
-    app_context.push()  # Push the Flask app context
+    app_context.push()
 
-    # Start the GUI
     root = tk.Tk()
     app = FirmwareTestApp(root)
     app.run()
