@@ -201,7 +201,7 @@ $(document).ready(function () {
             .fail(() => alert("Failed to load configuration."));
     });
 
-    // Initialize dashboard functionality
+    // Dashboard functionality
     function loadOverview() {
         console.log("Overview section loaded.");
     }
@@ -260,7 +260,7 @@ $(document).ready(function () {
             });
     }
 
-    // Initialize the dashboard
+    // Initialize dashboard
     handleTabs();
     loadOverview();
     loadEmulators();
