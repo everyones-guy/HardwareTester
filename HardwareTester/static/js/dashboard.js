@@ -1,20 +1,9 @@
-
 $(document).ready(function () {
     const canvas = $("#canvas-container");
     const socket = io();
 
-    // Function to add a valve or peripheral visually
-    function addComponent(id, type, x = 50, y = 50) {
-        const element = $(`<div id="component-${id}" class="draggable"
-                    data-id="${id}" data-type="${type}"
-                    style="position: absolute; left: ${x}px; top: ${y}px;">
-                    <div class="component-body p-2 text-white bg-primary rounded">${type}</div>
-                </div>`);
-        canvas.append(element);
-        enableDrag(element);
-    }
-
-    // Real-time updates using Socket.IO
+    // ========== Real-Time Updates ==========
+    // Listen for valve updates via Socket.IO
     socket.on("valve_update", (data) => {
         const { id, state, value } = data; // state: 'open', 'closed', 'flow'
         const component = $(`#component-${id}`);
@@ -23,38 +12,44 @@ $(document).ready(function () {
         }
     });
 
-    // Function to animate valves
-    function animateValve(element, state, value) {
-        if (state === "open") {
-            anime({
-                targets: element[0],
-                scale: 1.2,
-                duration: 800,
-                direction: "alternate",
-                easing: "easeInOutQuad",
-            });
-            element.find(".component-body").text(`Valve Open (${value}%)`);
-        } else if (state === "closed") {
-            anime({
-                targets: element[0],
-                scale: 1.0,
-                duration: 800,
-                easing: "easeInOutQuad",
-            });
-            element.find(".component-body").text("Valve Closed");
-        } else if (state === "flow") {
-            anime({
-                targets: element[0],
-                rotate: 360,
-                duration: 1000,
-                easing: "linear",
-                loop: true,
-            });
-            element.find(".component-body").text(`Flow: ${value} L/s`);
+    // Listen for peripheral updates
+    socket.on("peripheral_update", (data) => {
+        const peripheral = $(`.peripheral-node:contains('${data.name}')`);
+        if (peripheral.length) {
+            peripheral.find(`.property-value:contains('${data.property}')`).text(data.value);
         }
+    });
+
+    // ========== Valve Animation ==========
+    function animateValve(element, state, value) {
+        const animationConfig = {
+            targets: element[0],
+            easing: "easeInOutQuad",
+            duration: 800,
+        };
+
+        switch (state) {
+            case "open":
+                animationConfig.scale = 1.2;
+                animationConfig.direction = "alternate";
+                element.find(".component-body").text(`Valve Open (${value}%)`);
+                break;
+            case "closed":
+                animationConfig.scale = 1.0;
+                element.find(".component-body").text("Valve Closed");
+                break;
+            case "flow":
+                animationConfig.rotate = 360;
+                animationConfig.duration = 1000;
+                animationConfig.loop = true;
+                element.find(".component-body").text(`Flow: ${value} L/s`);
+                break;
+        }
+
+        anime(animationConfig);
     }
 
-    // Drag-and-drop functionality
+    // ========== Drag-and-Drop ==========
     function enableDrag(element) {
         interact(element[0]).draggable({
             listeners: {
@@ -74,24 +69,20 @@ $(document).ready(function () {
         });
     }
 
-    // Save Configuration
+    // ========== Save & Load Configuration ==========
     $("#save-config").click(function () {
-        const layout = [];
-        $(".draggable").each(function () {
-            const id = $(this).data("id");
-            const type = $(this).data("type");
-            const x = $(this).position().left;
-            const y = $(this).position().top;
-            layout.push({ id, type, x, y });
-        });
+        const layout = $(".draggable").map((_, element) => ({
+            id: $(element).data("id"),
+            type: $(element).data("type"),
+            x: $(element).position().left,
+            y: $(element).position().top,
+        })).get();
 
         $.post("/save-configuration", { layout: JSON.stringify(layout) }, function (response) {
             alert(response.message);
         }).fail(() => alert("Failed to save configuration."));
     });
 
-
-    // Load Configuration
     $("#load-config").click(function () {
         $.get("/load-configuration", function (data) {
             if (data.success) {
@@ -103,124 +94,7 @@ $(document).ready(function () {
         }).fail(() => alert("Failed to load configuration."));
     });
 
-    // Add initial components for demo
-    addComponent(1, "Valve");
-    addComponent(2, "Temperature Sensor", 200, 200);
-
-
-    socket.on("peripheral_update", (data) => {
-        const peripheral = $(`.peripheral-node:contains('${data.name}')`);
-        if (peripheral.length) {
-            peripheral.find(`.property-value:contains('${data.property}')`).text(data.value);
-        }
-    });
-
-    // Overview section (placeholder for future enhancements)
-    function loadOverview() {
-        console.log("Overview section loaded.");
-    }
-
-    // Load emulators
-    function loadEmulators() {
-        $.get("/emulators/list", function (data) {
-            const list = $("#emulator-list");
-            list.empty();
-            if (data.success) {
-                data.emulators.forEach((emulator) => {
-                    list.append(`
-                    <li class="list-group-item">
-                        <strong>${emulator.name}</strong> - Status: ${emulator.status}
-                        <button class="btn btn-danger btn-sm float-end stop-emulator" data-id="${emulator.id}">Stop</button>
-                    </li>
-                `);
-                });
-            } else {
-                list.append(`<li class="list-group-item text-danger">Error loading emulators.</li>`);
-            }
-        });
-    }
-
-    // Stop emulator
-    $(document).on("click", ".stop-emulator", function () {
-        const id = $(this).data("id");
-        $.post(`/emulators/stop/${id}`, function (data) {
-            if (data.success) {
-                alert("Emulator stopped.");
-                loadEmulators();
-            } else {
-                alert("Failed to stop emulator.");
-            }
-        });
-    });
-
-    // Load logs
-    function loadLogs() {
-        $.get("/logs/recent", function (data) {
-            const container = $("#log-output");
-            container.empty();
-            if (data.success) {
-                data.logs.forEach((log) => {
-                    container.append(`<p>${log}</p>`);
-                });
-            } else {
-                container.append("<p>Error loading logs.</p>");
-            }
-        });
-    }
-
-    // Load settings
-    function loadSettings() {
-        $.get("/settings/global", function (data) {
-            const list = $("#global-settings-list");
-            list.empty();
-            if (data.success) {
-                data.settings.forEach((setting) => {
-                    list.append(`
-                    <li class="list-group-item">
-                        <strong>${setting.key}</strong>: ${JSON.stringify(setting.value)}
-                    </li>
-                `);
-                });
-            } else {
-                list.append("<li class="list - group - item text - danger">Error loading settings.</li>");
-            }
-        });
-    }
-
-    // Update global setting
-    $("#update-global-setting-form").on("submit", function (event) {
-        event.preventDefault();
-        const key = $("#setting-key").val();
-        const value = $("#setting-value").val();
-
-        $.post("/settings/global", { key, value }, function (data) {
-            if (data.success) {
-                alert("Setting updated.");
-                loadSettings();
-            } else {
-                alert("Error updating setting.");
-            }
-        });
-    });
-
-    // compare machines
-    async function compareMachines() {
-        const machineIds = ["machine1", "machine2"];  // Replace with dynamic selection
-        const response = await fetch("/emulator/compare", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ machine_ids: machineIds })
-        });
-
-        const result = await response.json();
-        if (result.success) {
-            document.getElementById("comparison-results").innerText = JSON.stringify(result.differences, null, 2);
-        } else {
-            alert(`Error: ${result.error}`);
-        }
-    }
-
-    // Load users dynamically
+    // ========== User Management ==========
     function loadUserManagement() {
         const userList = $("#user-management-list");
         userList.empty().append("<li>Loading...</li>");
@@ -238,10 +112,11 @@ $(document).ready(function () {
             } else {
                 userList.append(`<li class="list-group-item text-danger">${data.error}</li>`);
             }
+        }).fail(() => {
+            userList.empty().append("<li class='list-group-item text-danger'>Failed to load users.</li>");
         });
     }
 
-    // Delete a user
     function deleteUser(userId) {
         if (confirm("Are you sure you want to delete this user?")) {
             $.ajax({
@@ -255,16 +130,16 @@ $(document).ready(function () {
                         alert(`Error: ${response.error}`);
                     }
                 },
+                error: function () {
+                    alert("Failed to delete user.");
+                },
             });
         }
     }
 
-    // Add new user
     $("#add-user-form").on("submit", function (event) {
         event.preventDefault();
-        const formData = $(this).serializeArray();
-        const payload = {};
-        formData.forEach(field => payload[field.name] = field.value);
+        const payload = Object.fromEntries(new FormData(this));
 
         $.ajax({
             url: "/users/add",
@@ -279,20 +154,17 @@ $(document).ready(function () {
                     alert(`Error: ${response.error}`);
                 }
             },
+            error: function () {
+                alert("Failed to add user.");
+            },
         });
     });
 
-    // Initialize when User Management tab is active
     $("#user-management-tab").on("click", loadUserManagement);
 
-
-
-    // Initialize dashboard functionality
-    $(document).ready(function () {
-        loadOverview();
-        loadEmulators();
-        loadLogs();
-        loadSettings();
-    });
+    // ========== Initialize ==========
+    loadOverview();
+    loadEmulators();
+    loadLogs();
+    loadSettings();
 });
-

@@ -6,7 +6,7 @@ class DashboardData(db.Model):
     __tablename__ = 'dashboard_data'
     
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)  # Foreign key to User table
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)  # Foreign key to User table
     name = db.Column(db.String(255), nullable=False, unique=True)
     value = db.Column(db.Integer, nullable=False)
     description = db.Column(db.String(500), nullable=True, default=None)
