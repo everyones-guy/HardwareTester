@@ -30,7 +30,7 @@ def dashboard():
     """
     try:
         dashboard_data = DashboardService.get_dashboard_data(current_user.id)
-        return render_template("main.dashboard.html", data=dashboard_data)
+        return render_template("dashboard.html", data=dashboard_data)
     except Exception as e:
         logger.error(f"Error rendering the dashboard page: {e}")
         return redirect(url_for("main.error_page"))
