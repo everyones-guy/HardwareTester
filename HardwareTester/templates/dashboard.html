@@ -1,5 +1,11 @@
 {% extends "auth/base.html" %}
 
+{% block additional_head %}
+{{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+{% endblock %}
+
+
 {% block content %}
 <div class="container-fluid">
     <div class="row">
@@ -157,7 +163,6 @@
     </div>
 </div>
 {% endblock %}
-{% block extra_scripts %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+{% block additional_scripts %}
 <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 {% endblock %}

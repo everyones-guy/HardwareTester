@@ -10,6 +10,7 @@ logger = CustomLogger.get_logger("main_views")
 # Create the Blueprint
 main_bp = Blueprint("main", __name__)
 
+
 @main_bp.route("/", methods=["GET"])
 def index():
     """
@@ -29,11 +30,18 @@ def dashboard():
     Render the dashboard page with dynamic data.
     """
     try:
+        # Fetch dashboard data for the logged-in user
         dashboard_data = DashboardService.get_dashboard_data(current_user.id)
-        return render_template("dashboard.html", data=dashboard_data)
+        if dashboard_data["success"]:
+            return render_template("dashboard.html", data=dashboard_data["data"])
+        else:
+            logger.error(f"Error fetching dashboard data: {dashboard_data['error']}")
+            flash("Failed to load dashboard data.", "danger")
+            return redirect(url_for("main.error_page"))
     except Exception as e:
         logger.error(f"Error rendering the dashboard page: {e}")
         return redirect(url_for("main.error_page"))
+
 
 @main_bp.route("/about", methods=["GET"])
 def about():
@@ -60,18 +68,19 @@ def contact():
             message = request.form.get("message")
 
             if not name or not email or not message:
-                return jsonify({"success": False, "error": "All fields are required."}), 400
+                flash("All fields are required.", "danger")
+                return redirect(url_for("main.contact"))
 
-            # Save or send the contact message (e.g., via email or database)
             # Placeholder for actual implementation
-            logger.info(f"Contact form submitted: {name}, {email}")
-            response = {"success": True, "message": "Thank you for contacting us!"}
-            return jsonify(response)
+            logger.info(f"Contact form submitted by {name}, {email}")
+            flash("Thank you for contacting us!", "success")
+            return redirect(url_for("main.contact"))
 
         return render_template("contact.html")
     except Exception as e:
         logger.error(f"Error handling the contact form: {e}")
-        return jsonify({"success": False, "error": "An unexpected error occurred."}), 500
+        flash("An unexpected error occurred. Please try again later.", "danger")
+        return redirect(url_for("main.error_page"))
 
 
 @main_bp.route("/terms", methods=["GET"])
@@ -124,3 +133,12 @@ def search():
         logger.error(f"Error performing search: {e}")
         return jsonify({"success": False, "error": "An unexpected error occurred."}), 500
 
+
+# Additional helper routes (optional)
+
+@main_bp.route("/health", methods=["GET"])
+def health_check():
+    """
+    Health check endpoint to confirm the application is running.
+    """
+    return jsonify({"success": True, "message": "Application is healthy."})

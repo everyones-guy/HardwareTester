@@ -10,11 +10,14 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{% block title %}Hardware Tester{% endblock %}</title>
 
+
     <!-- Stylesheets -->
     <link rel="stylesheet" href="{{ url_for('static', filename='content/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <!--<link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon"> -->
     {% block additional_head %}{% endblock %}
+    {% block extra_styles %}{% endblock %}
+
 </head>
 <body>
     <!-- Navigation Bar -->
