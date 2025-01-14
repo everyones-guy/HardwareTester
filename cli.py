@@ -8,7 +8,9 @@ from HardwareTester.services.emulator_service import EmulatorService
 from HardwareTester.services.mqtt_service import MQTTService
 from HardwareTester.services.test_service import TestService
 from HardwareTester.services.test_plan_service import TestPlanService
-from HardwareTester.models.user_models import User
+from HardwareTester.models.user_models import User, UserRole
+from HardwareTester.models.dashboard_models import DashboardData
+from faker import Faker
 import os
 
 # initialize logger
@@ -126,7 +128,7 @@ def emulator():
 
 
 @emulator.command("start")
-@click.option("--machine", required=True, help="Machine name to emulate.")
+@click.option("--machine", required=True)
 def start_emulator(machine):
     """Start the emulator."""
     EmulatorService.start_emulation(machine)
@@ -216,14 +218,15 @@ def upload_firmware(device_id, firmware_path):
 # ----------------------
 # Data Mocking Commands
 # ----------------------
-@cli.group(help="Mock data management commands.")
+@cli.group(help="Data Mocking Commands.")
 def mock():
+    """Mock data commands."""
     pass
 
 
-@mock.command("add-users", help="Add mock users to the database.")
+@mock.command("users", help="Add mock users to the database.")
 @with_appcontext
-def add_mock_users():
+def mock_users():
     """Add mock users."""
     fake = Faker()
     try:
@@ -299,11 +302,6 @@ def clear_mock_data():
         db.session.rollback()
         click.echo(f"Error clearing mock data: {e}")
 
-
-# Register the Mock CLI Group
-def register_mock_commands(app):
-    """Register mock data commands with the Flask app."""
-    app.cli.add_command(mock)
 
 # ----------------------
 # CLI Registration

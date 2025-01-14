@@ -19,7 +19,7 @@ def create_app(config_name="default"):
 
     # Initialize Flask app
     app = Flask(__name__)
-    app.config['LOGIN_DISABLED'] = True
+    app.config['LOGIN_DISABLED'] = False
     app.config.from_object(config[config_name])
 
     # Initialize extensions

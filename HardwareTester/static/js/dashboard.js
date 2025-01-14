@@ -2,6 +2,26 @@ $(document).ready(function () {
     const canvas = $("#canvas-container");
     const socket = io();
 
+    // Function to handle tab switching
+    function handleTabs() {
+        $(".list-group-item").click(function () {
+            const targetId = $(this).attr("href").substring(1);
+
+            // Update tab-pane visibility
+            $(".tab-pane").removeClass("show active");
+            $(`#${targetId}`).addClass("show active");
+
+            // Specific behaviors for certain tabs
+            if (targetId === "serial") {
+                $("#device-discovery").show();
+                $("#device-config-form").show();
+            } else {
+                $("#device-discovery").hide();
+                $("#device-config-form").hide();
+            }
+        });
+    }
+
     // Function to add a device visually
     function addComponent(id, type, x = 50, y = 50) {
         const element = $(`<div id="component-${id}" class="draggable"
@@ -241,6 +261,7 @@ $(document).ready(function () {
     }
 
     // Initialize the dashboard
+    handleTabs();
     loadOverview();
     loadEmulators();
     loadLogs();
