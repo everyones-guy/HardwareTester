@@ -15,6 +15,7 @@
                 <a href="#peripherals" class="list-group-item list-group-item-action" data-bs-toggle="tab">Peripherals</a>
                 <a href="#system-status" class="list-group-item list-group-item-action" data-bs-toggle="tab">System Status</a>
                 <a href="#user-management" class="list-group-item list-group-item-action" data-bs-toggle="tab">User Management</a>
+                <a href="#serial" class="list-group-item list-group-item-action" data-bs-toggle="tab">Serial Communication</a>
             </div>
         </div>
 
@@ -126,30 +127,33 @@
                         </div>
                     </div>
                 </div>
-                <div id="device-discovery">
-                    <button id="discover-devices" class="btn btn-primary">Discover Devices</button>
-                    <ul id="device-list"></ul>
+                <!-- Serial Communication Tab -->
+                <div class="tab-pane fade" id="serial">
+                    <h3>Serial Communication</h3>
+                    <div id="device-discovery" class="mb-3">
+                        <button id="discover-devices" class="btn btn-primary">Discover Devices</button>
+                        <ul id="device-list"></ul>
+                    </div>
+                    <div id="device-config-form">
+                        <form id="configure-device">
+                            <label for="port">Port:</label>
+                            <input type="text" id="port" name="port" required>
+                            <label for="baudrate">Baudrate:</label>
+                            <input type="number" id="baudrate" name="baudrate" value="9600" required>
+                            <label for="parity">Parity:</label>
+                            <select id="parity" name="parity">
+                                <option value="N">None</option>
+                                <option value="E">Even</option>
+                                <option value="O">Odd</option>
+                            </select>
+                            <label for="stopbits">Stop Bits:</label>
+                            <input type="number" id="stopbits" name="stopbits" value="1" required>
+                            <label for="databits">Data Bits:</label>
+                            <input type="number" id="databits" name="databits" value="8" required>
+                            <button type="submit" class="btn btn-success">Configure</button>
+                        </form>
+                    </div>
                 </div>
-                <div id="device-config-form">
-                    <form id="configure-device">
-                        <label for="port">Port:</label>
-                        <input type="text" id="port" name="port" required>
-                        <label for="baudrate">Baudrate:</label>
-                        <input type="number" id="baudrate" name="baudrate" value="9600" required>
-                        <label for="parity">Parity:</label>
-                        <select id="parity" name="parity">
-                            <option value="N">None</option>
-                            <option value="E">Even</option>
-                            <option value="O">Odd</option>
-                        </select>
-                        <label for="stopbits">Stop Bits:</label>
-                        <input type="number" id="stopbits" name="stopbits" value="1" required>
-                        <label for="databits">Data Bits:</label>
-                        <input type="number" id="databits" name="databits" value="8" required>
-                        <button type="submit" class="btn btn-success">Configure</button>
-                    </form>
-                </div>
-
             </div>
         </div>
     </div>
