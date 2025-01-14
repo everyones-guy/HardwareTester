@@ -170,7 +170,7 @@ def test():
     pass
 
 
-@test.command("run")
+@test.command("run", help="Run Test Commands.")
 @click.argument("test_plan_id", type=int)
 def run_test(test_plan_id):
     """Run a specific test plan."""
@@ -178,7 +178,7 @@ def run_test(test_plan_id):
     click.echo(result["message"] if result["success"] else f"Error: {result['error']}")
 
 
-@test.command("list")
+@test.command("list", help="List Available Tests")
 def list_tests():
     """List all test plans."""
     result = TestService.list_tests()
@@ -192,7 +192,7 @@ def list_tests():
 # ----------------------
 # Firmware Commands
 # ----------------------
-@cli.group()
+@cli.group(help="Firmware management commands.")
 def firmware():
     """Firmware management commands."""
     pass
@@ -213,6 +213,97 @@ def upload_firmware(device_id, firmware_path):
     service.disconnect()
     click.echo(f"Firmware uploaded to device {device_id}.")
 
+# ----------------------
+# Data Mocking Commands
+# ----------------------
+@cli.group(help="Mock data management commands.")
+def mock():
+    pass
+
+
+@mock.command("add-users", help="Add mock users to the database.")
+@with_appcontext
+def add_mock_users():
+    """Add mock users."""
+    fake = Faker()
+    try:
+        click.echo("Adding mock users...")
+        for _ in range(10):
+            user = User(
+                name=fake.name(),
+                email=fake.email(),
+                username=fake.user_name(),
+                role=UserRole.USER,
+                password_hash="mockhashedpassword",  # Replace with a hashed password if necessary
+            )
+            db.session.add(user)
+
+        admin_user = User(
+            name="Admin User",
+            email="admin@example.com",
+            username="admin",
+            role=UserRole.ADMIN,
+            password_hash="adminhashedpassword",  # Replace with a hashed password if necessary
+        )
+        db.session.add(admin_user)
+
+        db.session.commit()
+        click.echo("Mock users added successfully!")
+    except Exception as e:
+        db.session.rollback()
+        click.echo(f"Error adding mock users: {e}")
+
+
+@mock.command("add-dashboard-data", help="Add mock dashboard data.")
+@with_appcontext
+def add_mock_dashboard_data():
+    """Add mock dashboard data."""
+    fake = Faker()
+    try:
+        click.echo("Adding mock dashboard data...")
+        users = User.query.all()
+        if not users:
+            click.echo("No users found. Add mock users first using 'mock add-users'.")
+            return
+
+        for user in users:
+            for _ in range(5):  # Add 5 items per user
+                dashboard_data = DashboardData(
+                    user_id=user.id,
+                    name=fake.word(),
+                    value=fake.random_int(min=0, max=100),
+                    title=fake.sentence(nb_words=3),
+                    description=fake.text(max_nb_chars=100),
+                    type=fake.word(),
+                )
+                db.session.add(dashboard_data)
+
+        db.session.commit()
+        click.echo("Mock dashboard data added successfully!")
+    except Exception as e:
+        db.session.rollback()
+        click.echo(f"Error adding mock dashboard data: {e}")
+
+
+@mock.command("clear-mock-data", help="Clear all mock data.")
+@with_appcontext
+def clear_mock_data():
+    """Clear mock data from all tables."""
+    try:
+        click.echo("Clearing mock data...")
+        db.session.query(DashboardData).delete()
+        db.session.query(User).delete()
+        db.session.commit()
+        click.echo("All mock data cleared!")
+    except Exception as e:
+        db.session.rollback()
+        click.echo(f"Error clearing mock data: {e}")
+
+
+# Register the Mock CLI Group
+def register_mock_commands(app):
+    """Register mock data commands with the Flask app."""
+    app.cli.add_command(mock)
 
 # ----------------------
 # CLI Registration

@@ -1,34 +1,38 @@
-# serial_service.py
-
 import serial
+import time
+import serial.tools.list_ports
 from HardwareTester.utils.custom_logger import CustomLogger
 
-# Initialize logger
 logger = CustomLogger.get_logger("serial_service")
 
-class SerialService:
-    """Service for managing serial communication."""
+DEFAULT_RETRY_COUNT = 3
+DEFAULT_RETRY_DELAY = 2  # Seconds between retries
 
-    def __init__(self, port: str, baudrate: int = 9600, timeout: float = 1.0):
-        """
-        Initialize the serial service.
-        :param port: Serial port (e.g., COM3 on Windows or /dev/ttyUSB0 on Linux).
-        :param baudrate: Communication speed.
-        :param timeout: Read timeout in seconds.
-        """
+
+class SerialService:
+    def __init__(self, port=None, baudrate=9600, timeout=1, retries=DEFAULT_RETRY_COUNT, debug=False):
         self.port = port
         self.baudrate = baudrate
         self.timeout = timeout
+        self.retries = retries
         self.connection = None
+        self.debug = debug
 
-    def connect(self) -> bool:
-        """
-        Establish the serial connection.
-        :return: True if the connection is successful, False otherwise.
-        """
+        if self.debug:
+            logger.setLevel("DEBUG")
+
+    def connect(self):
+        if not self.port:
+            self.port = self.find_comm_port()
+            if not self.port:
+                logger.error("No suitable COM port found.")
+                raise serial.SerialException("No suitable COM port found.")
+
         try:
             self.connection = serial.Serial(
-                port=self.port, baudrate=self.baudrate, timeout=self.timeout
+                port=self.port,
+                baudrate=self.baudrate,
+                timeout=self.timeout,
             )
             logger.info(f"Connected to {self.port} at {self.baudrate} baud.")
             return True
@@ -37,26 +41,16 @@ class SerialService:
             return False
 
     def disconnect(self):
-        """Close the serial connection."""
         if self.connection and self.connection.is_open:
             self.connection.close()
             logger.info(f"Disconnected from {self.port}.")
 
-    def reconnect(self) -> bool:
-        """
-        Reconnect to the serial port.
-        :return: True if the reconnection is successful, False otherwise.
-        """
+    def reconnect(self):
         self.disconnect()
         logger.info(f"Attempting to reconnect to {self.port}...")
         return self.connect()
 
-    def send_data(self, data: str) -> bool:
-        """
-        Send data to the device.
-        :param data: String data to send.
-        :return: True if the data is sent successfully, False otherwise.
-        """
+    def send_data(self, data):
         if not self.connection or not self.connection.is_open:
             logger.warning("Serial connection is not open. Attempting to reconnect...")
             if not self.reconnect():
@@ -66,108 +60,92 @@ class SerialService:
             self.connection.write(data.encode())
             logger.info(f"Sent data: {data}")
             return True
-        except serial.SerialException as e:
-            logger.error(f"Serial error while sending data: {e}")
-            return False
         except Exception as e:
-            logger.error(f"Unexpected error while sending data: {e}")
+            logger.error(f"Error sending data: {e}")
             return False
 
     def read_data(self):
-        """
-        Read data from the serial connection.
-        :return: Dictionary with parsed data or error message.
-        """
         if not self.connection or not self.connection.is_open:
             logger.error("Serial connection is not open.")
-            return {"success": False, "error": "Serial connection is not open."}
-
-        for attempt in range(1, self.retries + 1):
-            try:
-                raw_data = self.connection.readline().decode("utf-8").strip()
-                if self.debug:
-                    logger.debug(f"Raw data received: {raw_data}")
-
-                # Attempt to parse the raw data
-                parsed_data = self.parse_raw_data(raw_data)
-                if parsed_data:
-                    logger.info("Data received and parsed successfully.")
-                    return {"success": True, "data": parsed_data}
-                else:
-                    logger.warning("Failed to parse raw data.")
-                    return {"success": True, "data": {"raw": raw_data}}
-
-            except serial.SerialTimeoutException:
-                logger.warning(f"Timeout occurred on attempt {attempt} while reading.")
-                time.sleep(DEFAULT_RETRY_DELAY)
-
-            except Exception as e:
-                logger.error(f"Unexpected error: {e}")
-                return {"success": False, "error": str(e)}
-
-        logger.error(f"All {self.retries} attempts to read data failed.")
-        return {"success": False, "error": "Failed to read data after retries."}
-
-    def parse_raw_data(self, raw_data):
-        """
-        Parse raw data into a structured format.
-        :param raw_data: Raw data string.
-        :return: Parsed data as a dictionary or None if parsing fails.
-        """
-        try:
-            # Example: Parse key=value pairs separated by semicolons
-            data = {}
-            pairs = raw_data.split(";")
-            for pair in pairs:
-                if "=" in pair:
-                    key, value = pair.split("=", 1)
-                    data[key.strip()] = value.strip()
-            return data if data else None
-        except Exception as e:
-            logger.error(f"Failed to parse raw data: {e}")
             return None
 
+        for attempt in range(self.retries):
+            try:
+                data = self.connection.readline().decode("utf-8").strip()
+                logger.debug(f"Raw data received: {data}")
+                return data
+            except serial.SerialTimeoutException:
+                logger.warning(f"Timeout occurred on attempt {attempt + 1}. Retrying...")
+                time.sleep(DEFAULT_RETRY_DELAY)
+            except Exception as e:
+                logger.error(f"Unexpected error: {e}")
+                return None
 
-    def is_connected(self) -> bool:
+        logger.error(f"All {self.retries} attempts to read data failed.")
+        return None
+
+    def find_comm_port(self):
+        logger.info("Searching for COM ports...")
+        ports = serial.tools.list_ports.comports()
+        for port in ports:
+            logger.info(f"Found port: {port.device} - {port.description}")
+            if "USB" in port.description or "Serial" in port.description:
+                return port.device
+        logger.error("No suitable USB or Serial COM port found.")
+        return None
+
+    def discover_device(self, timeout=5):
+        logger.info("Scanning for serial devices...")
+        ports = serial.tools.list_ports.comports()
+        for port in ports:
+            try:
+                logger.info(f"Probing port: {port.device}")
+                with serial.Serial(port.device, self.baudrate, timeout=self.timeout) as ser:
+                    ser.write(b'{"action": "discover"}\n')
+                    start_time = time.time()
+                    while time.time() - start_time < timeout:
+                        response = ser.readline().decode("utf-8").strip()
+                        if response:
+                            logger.info(f"Device discovered on {port.device}: {response}")
+                            return {"port": port.device, "data": response}
+            except Exception as e:
+                logger.warning(f"Failed to probe port {port.device}: {e}")
+
+        logger.error("No devices discovered.")
+        return None
+
+    def configure_device(self, baudrate=9600, parity="N", stopbits=1, databits=8):
         """
-        Check if the serial connection is open.
-        :return: True if the connection is open, False otherwise.
+        Configure the serial device with the provided settings.
+        :param baudrate: Communication speed.
+        :param parity: Parity setting ('N', 'E', 'O', etc.).
+        :param stopbits: Number of stop bits (1, 1.5, 2).
+        :param databits: Number of data bits (5, 6, 7, 8).
+        :return: True if configuration is successful, False otherwise.
         """
-        return self.connection and self.connection.is_open
+        if not self.connection or not self.connection.is_open:
+            logger.error("Serial connection is not open. Unable to configure device.")
+            return False
+
+        try:
+            # Update the serial connection settings
+            self.connection.baudrate = baudrate
+            self.connection.parity = getattr(serial, f"PARITY_{parity.upper()}", serial.PARITY_NONE)
+            self.connection.stopbits = stopbits
+            self.connection.bytesize = databits
+
+            logger.info(
+                f"Configured device with baudrate={baudrate}, parity={parity}, stopbits={stopbits}, databits={databits}."
+            )
+            return True
+        except Exception as e:
+            logger.error(f"Failed to configure device: {e}")
+            return False
 
     def __enter__(self):
-        """Context manager entry."""
         if not self.connect():
             raise serial.SerialException(f"Failed to connect to {self.port}")
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        """Context manager exit."""
         self.disconnect()
-
-
-# Usage:
-#from HardwareTester.services.serial_service import SerialService
-
-#port = "COM3"  # Update with your serial port
-#baudrate = 9600
-
-#with SerialService(port, baudrate) as serial_service:
-#    if serial_service.is_connected():
-#        serial_service.send_data("Test Command")
-#        response = serial_service.read_data()
-#        print(f"Response: {response}")
-#    else:
-#        print("Failed to connect to the serial port.")
-        
-# Usage Manual:
-#serial_service = SerialService(port="COM3", baudrate=9600)
-
-#if serial_service.connect():
-#    serial_service.send_data("Test Command")
-#    response = serial_service.read_data()
-#    print(f"Response: {response}")
-#    serial_service.disconnect()
-#else:
-#    print("Failed to connect to the serial port.")
-        
