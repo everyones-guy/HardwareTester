@@ -219,25 +219,47 @@ $(document).ready(function () {
     }
 
     function loadEmulators() {
-        apiRequest("/emulator/list", "GET")
+        const list = $("#emulator-list");
+        list.html("<li class='list-group-item'>Loading...</li>"); // Show loading indicator
+
+        apiRequest("/emulators/list", "GET")
             .done((data) => {
-                const list = $("#emulator-list");
                 list.empty();
-                if (data.success && data.emulators.length) {
-                    data.emulators.forEach((emulator) => {
-                        list.append(`
-                        <li class="list-group-item">
-                            <strong>${emulator.name}</strong> - Status: ${emulator.status}
-                            <button class="btn btn-danger btn-sm float-end stop-emulator" data-id="${emulator.id}">Stop</button>
-                        </li>
-                    `);
-                    });
+                if (data.success) {
+                    const emulators = data.emulators || [];
+                    if (emulators.length > 0) {
+                        emulators.forEach((emulator) => {
+                            list.append(`
+                            <li class="list-group-item">
+                                <strong>${emulator.name}</strong> - Status: ${emulator.status}
+                                <button class="btn btn-danger btn-sm float-end stop-emulator" data-id="${emulator.id}">Stop</button>
+                            </li>
+                        `);
+                        });
+                    } else {
+                        list.append("<li class='list-group-item'>No emulators available.</li>");
+                    }
                 } else {
-                    list.append("<li class='list-group-item'>No emulators available.</li>");
+                    alert(data.error || "An error occurred while loading emulators.");
                 }
             })
-            .fail(() => alert("Failed to load emulators."));
+            .fail(() => {
+                list.empty(); // Clear the list on failure
+                alert("Failed to load emulators.");
+            });
     }
+
+    // Event handler for stopping emulators
+    $(document).on("click", ".stop-emulator", function () {
+        const emulatorId = $(this).data("id");
+        apiRequest(`/emulators/stop`, "POST", { id: emulatorId })
+            .done(() => {
+                alert(`Emulator ${emulatorId} stopped successfully.`);
+                loadEmulators(); // Refresh the list after stopping
+            })
+            .fail(() => alert("Failed to stop emulator."));
+    });
+
 
     function loadLogs() {
         apiRequest("/logs/recent", "GET")

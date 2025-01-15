@@ -2,6 +2,10 @@
 
 {% block title %}Hardware Emulator{% endblock %}
 
+{% extra_styles %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/emulator.css') }}">
+{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
     <h1 class="text-center">Hardware Emulator</h1>
@@ -17,39 +21,64 @@
         </div>
     </div>
 
-    <!-- Section: Emulated Devices -->
+    <!-- Section: Active Emulations -->
     <div class="card mb-4">
-        <div class="card-header bg-info text-white">Emulated Devices</div>
+        <div class="card-header bg-info text-white">Active Emulations</div>
         <div class="card-body">
-            <ul id="device-list" class="list-group">
-                <!-- Device items will be dynamically loaded here -->
+            <ul id="active-emulations-list" class="list-group">
+                <!-- Active emulation items will be dynamically loaded here -->
             </ul>
-            <button class="btn btn-info mt-3 w-100" id="refresh-devices">Refresh Devices</button>
+            <button class="btn btn-info mt-3 w-100" id="refresh-emulations">Refresh Emulations</button>
         </div>
     </div>
 
-    <!-- Section: Load Blueprint -->
+    <!-- Section: Start Emulation -->
     <div class="card mb-4">
-        <div class="card-header bg-success text-white">Load Blueprint</div>
+        <div class="card-header bg-success text-white">Start Emulation</div>
         <div class="card-body">
-            <form id="load-blueprint-form">
+            <form id="start-emulation-form">
                 <div class="mb-3">
-                    <label for="blueprint-name" class="form-label">Blueprint Name</label>
-                    <input type="text" id="blueprint-name" name="blueprint_name" class="form-control" required>
+                    <label for="machine-name" class="form-label">Machine Name</label>
+                    <input type="text" id="machine-name" name="machine_name" class="form-control" required>
                 </div>
-                <button type="submit" class="btn btn-success w-100">Load Blueprint</button>
+                <div class="mb-3">
+                    <label for="blueprint-select" class="form-label">Blueprint</label>
+                    <select id="blueprint-select" name="blueprint" class="form-select" required>
+                        <option value="">Select Blueprint</option>
+                        <!-- Options dynamically populated -->
+                    </select>
+                </div>
+                <div class="form-check mb-3">
+                    <input type="checkbox" id="stress-test" name="stress_test" class="form-check-input">
+                    <label for="stress-test" class="form-check-label">Enable Stress Test</label>
+                </div>
+                <button type="submit" class="btn btn-success w-100">Start Emulation</button>
             </form>
         </div>
     </div>
 
     <!-- Section: Emulator Logs -->
-    <div class="card">
+    <div class="card mb-4">
         <div class="card-header bg-secondary text-white">Emulator Logs</div>
         <div class="card-body">
             <div id="emulator-logs" class="border p-3" style="height: 300px; overflow-y: auto; background: #f8f9fa;">
                 <!-- Logs will be dynamically added here -->
             </div>
             <button class="btn btn-secondary mt-3 w-100" id="refresh-logs">Refresh Logs</button>
+        </div>
+    </div>
+
+    <!-- Section: Upload Blueprint -->
+    <div class="card mb-4">
+        <div class="card-header bg-dark text-white">Upload New Blueprint</div>
+        <div class="card-body">
+            <form id="blueprint-upload-form">
+                <div class="mb-3">
+                    <label for="blueprint-file" class="form-label">Select Blueprint File</label>
+                    <input type="file" id="blueprint-file" name="blueprint_file" class="form-control" required>
+                </div>
+                <button type="submit" class="btn btn-dark w-100">Upload Blueprint</button>
+            </form>
         </div>
     </div>
 
@@ -67,12 +96,9 @@
             </div>
         </div>
     </div>
-
-
 </div>
 {% endblock %}
 
 {% block additional_scripts %}
 <script src="{{ url_for('static', filename='js/emulator.js') }}"></script>
-<link rel="stylesheet" href="{{ url_for('static', filename='css/emulator.css') }}">
 {% endblock %}

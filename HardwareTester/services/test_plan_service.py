@@ -9,7 +9,8 @@ from HardwareTester.utils.custom_logger import CustomLogger
 logger = CustomLogger.get_logger("test_plan_service")
 
 # Initialize logger and API manager
-api_manager = create_api_manager("https://127.0.0.1/api")
+api_manager = create_api_manager("http://127.0.0.1:5000/api")
+
 
 
 class TestPlanService:
@@ -87,3 +88,25 @@ class TestPlanService:
         except Exception as e:
             logger.error(f"Unexpected error running test plan {test_plan_id}: {e}")
             return {"success": False, "error": "An unexpected error occurred while running the test plan."}
+
+    @staticmethod
+    def preview_test_plan(test_plan_id: int) -> dict:
+        """
+        Preview the details of a specific test plan.
+        :param test_plan_id: ID of the test plan to preview.
+        :return: Dictionary containing the test plan details or an error message.
+        """
+        logger.info(f"Fetching preview for test plan ID {test_plan_id}...")
+        try:
+            # Make API call to fetch test plan details
+            response = api_manager.get(f"test-plans/{test_plan_id}/preview")
+            if "error" in response:
+                logger.error(f"Failed to preview test plan {test_plan_id}: {response['error']}")
+                return {"success": False, "error": response["error"]}
+
+            test_plan_details = response.get("plan", {})
+            logger.info(f"Preview fetched successfully for test plan ID {test_plan_id}.")
+            return {"success": True, "plan": test_plan_details}
+        except Exception as e:
+            logger.error(f"Unexpected error fetching preview for test plan {test_plan_id}: {e}")
+            return {"success": False, "error": "An unexpected error occurred while fetching the test plan preview."}

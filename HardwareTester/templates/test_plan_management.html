@@ -2,6 +2,10 @@
 
 {% block title %}Test Plan Management{% endblock %}
 
+{% extra styles %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/test_plan_management.css') }}">
+{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
     <h2 class="text-center">Test Plan Management</h2>
@@ -56,6 +60,5 @@
 {% endblock %}
 
 {% block additional_scripts %}
-<script src="{{ url_for('static', filename='js/test_plan_management.js') }}"></script>
-<link rel="stylesheet" href="{{ url_for('static', filename='css/test_plan_management.css') }}">
+    <script src="{{ url_for('static', filename='js/test_plan_management.js') }}"></script>
 {% endblock %}

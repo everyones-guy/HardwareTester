@@ -5,7 +5,7 @@ from HardwareTester.utils.custom_logger import CustomLogger
 logger = CustomLogger.get_logger("test_plan_manager")
 
 # Initialize APIManager
-api_manager = create_api_manager("https://example.com/api")
+api_manager = create_api_manager("http://127.0.0.1:5000/api")
 
 def list_test_plans():
     """Fetch and display all test plans."""

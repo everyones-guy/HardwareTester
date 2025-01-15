@@ -1,6 +1,5 @@
 from flask import Blueprint, jsonify, request, render_template
 from HardwareTester.services.test_plan_service import TestPlanService
-from HardwareTester.services.test_service import TestService
 
 # Define the Blueprint for test plan management
 test_plan_bp = Blueprint("test_plan", __name__, url_prefix="/test-plans")
@@ -43,7 +42,7 @@ def get_test_plans():
     """
     Retrieve a list of all uploaded test plans with metadata.
     """
-    response = TestPlanService.list_tests()
+    response = TestPlanService.list_test_plans()
     if response.get("success"):
         return jsonify(response)
     return jsonify({"success": False, "error": response.get("error", "Failed to retrieve test plans")}), 500

@@ -16,7 +16,7 @@ $(document).ready(function () {
 
     // Fetch blueprints
     function fetchBlueprints() {
-        apiCall("/emulator/blueprints", "GET", null, (data) => {
+        apiCall("/emulators/blueprints", "GET", null, (data) => {
             const blueprintList = $("#blueprint-list");
             const blueprintSelect = $("#blueprint-select");
 
@@ -27,13 +27,13 @@ $(document).ready(function () {
                 data.blueprints.forEach((blueprint) => {
                     blueprintList.append(`
                         <li class="list-group-item d-flex justify-content-between align-items-center">
-                            ${blueprint}
-                            <button class="btn btn-sm btn-info preview-blueprint" data-blueprint="${blueprint}">
+                            ${blueprint.name}
+                            <button class="btn btn-sm btn-info preview-blueprint" data-blueprint="${blueprint.name}">
                                 Preview
                             </button>
                         </li>
                     `);
-                    blueprintSelect.append(`<option value="${blueprint}">${blueprint}</option>`);
+                    blueprintSelect.append(`<option value="${blueprint.name}">${blueprint.name}</option>`);
                 });
             } else {
                 blueprintList.append('<li class="list-group-item text-center">No blueprints available.</li>');
@@ -43,7 +43,7 @@ $(document).ready(function () {
 
     // Fetch active emulations
     function fetchActiveEmulations() {
-        apiCall("/emulator/list", "GET", null, (data) => {
+        apiCall("/emulators/list", "GET", null, (data) => {
             const emulationsList = $("#active-emulations-list");
             emulationsList.empty();
 
@@ -66,7 +66,7 @@ $(document).ready(function () {
 
     // Fetch emulator logs
     function fetchLogs() {
-        apiCall("/emulator/logs", "GET", null, (data) => {
+        apiCall("/emulators/logs", "GET", null, (data) => {
             const logsContainer = $("#emulator-logs");
             logsContainer.empty();
 
@@ -86,7 +86,7 @@ $(document).ready(function () {
         const formData = new FormData(this);
 
         $.ajax({
-            url: "/emulator/load-blueprint",
+            url: "/emulators/load-blueprint",
             type: "POST",
             data: formData,
             processData: false,
@@ -114,7 +114,7 @@ $(document).ready(function () {
         }
 
         apiCall(
-            "/emulator/start",
+            "/emulators/start",
             "POST",
             { machine_name: machineName, blueprint, stress_test: stressTest },
             () => {
@@ -130,7 +130,7 @@ $(document).ready(function () {
         const machineName = $(this).data("machine");
 
         apiCall(
-            "/emulator/stop",
+            "/emulators/stop",
             "POST",
             { machine_name: machineName },
             () => {
@@ -150,7 +150,7 @@ $(document).ready(function () {
         modalBody.html(`<p>Loading preview for ${blueprintName}...</p>`);
 
         apiCall(
-            `/emulator/preview/${blueprintName}`,
+            `/emulators/preview/${blueprintName}`,
             "GET",
             null,
             (data) => {
