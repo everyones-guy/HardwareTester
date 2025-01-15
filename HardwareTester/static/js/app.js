@@ -50,7 +50,7 @@ $(document).ready(function () {
     // Fetch uploaded test plans and display them
     function updateTestPlansList() {
         ajaxRequest(
-            "/get-uploaded-test-plans",
+            "/test-plans/list",
             "GET",
             null,
             function (data) {
@@ -79,9 +79,10 @@ $(document).ready(function () {
     }
 
     // Fetch list of valves and display them
+    // Fetch list of valves and display them
     function updateValveList() {
         ajaxRequest(
-            "/get-valves",
+            "/valves/list",
             "GET",
             null,
             function (data) {
@@ -95,7 +96,8 @@ $(document).ready(function () {
                             list.append(
                                 `<li class="list-group-item">
                                     <strong>${valve.name}</strong> - ${valve.type}
-                                    <span class="badge bg-info float-end">ID: ${valve.id}</span>
+                                    <button class="btn btn-danger btn-sm float-end delete-valve" data-id="${valve.id}">Delete</button>
+                                    <button class="btn btn-secondary btn-sm float-end update-valve me-2" data-id="${valve.id}">Update</button>
                                 </li>`
                             );
                         });
@@ -109,10 +111,71 @@ $(document).ready(function () {
         );
     }
 
+    // Add a new valve
+    function handleAddValve() {
+        $("#add-valve-form").on("submit", function (event) {
+            event.preventDefault();
+            const formData = new FormData(this);
+
+            ajaxRequest(
+                "/valves/add",
+                "POST",
+                formData,
+                function (response) {
+                    showAlert(response.message, "success");
+                    updateValveList();
+                }
+            );
+        });
+    }
+
+    // Delete a valve
+    function handleDeleteValve() {
+        $("#valve-list").on("click", ".delete-valve", function () {
+            const valveId = $(this).data("id");
+
+            ajaxRequest(
+                `/valves/${valveId}/delete`,
+                "DELETE",
+                null,
+                function (response) {
+                    showAlert(response.message, "success");
+                    updateValveList();
+                }
+            );
+        });
+    }
+
+    // Update a valve
+    function handleUpdateValve() {
+        $("#valve-list").on("click", ".update-valve", function () {
+            const valveId = $(this).data("id");
+            const newName = prompt("Enter new name for the valve:");
+            const newType = prompt("Enter new type for the valve:");
+            const newSpecs = prompt("Enter new specifications for the valve:");
+
+            if (newName && newType && newSpecs) {
+                const data = JSON.stringify({ name: newName, type: newType, specifications: newSpecs });
+
+                ajaxRequest(
+                    `/valves/${valveId}/update`,
+                    "PUT",
+                    data,
+                    function (response) {
+                        showAlert(response.message, "success");
+                        updateValveList();
+                    }
+                );
+            } else {
+                showAlert("Update canceled. All fields are required.", "warning");
+            }
+        });
+    }
+
     // Fetch valve statuses and display them
     function refreshValveStatus() {
         ajaxRequest(
-            "/get-valve-status",
+            "/valves/<valve_id>/status",
             "GET",
             null,
             function (data) {
@@ -210,6 +273,12 @@ $(document).ready(function () {
     handleTestPlanUpload();
     handleSpecSheetUpload();
     handleTestPlanExecution();
+
+    // Initialize all valve-related functions
+    updateValveList();
+    handleAddValve();
+    handleDeleteValve();
+    handleUpdateValve();
 
     // Refresh valve statuses on button click
     $("#refresh-valve-status").click(refreshValveStatus);

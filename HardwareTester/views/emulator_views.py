@@ -2,20 +2,20 @@
 from flask import Blueprint, jsonify, request, render_template
 from HardwareTester.services.emulator_service import EmulatorService
 
-emulator_bp = Blueprint("emulator", __name__, url_prefix="/emulator")
+emulator_bp = Blueprint("emulator", __name__, url_prefix="/emulators")
 
-@emulator_bp.route("/emulator", methods=["GET"])
+@emulator_bp.route("/", methods=["GET"])
 def emulator_dashboard():
     """Render the emulator dashboard."""
     return render_template("emulator.html")
 
-@emulator_bp.route("/emulator/blueprints", methods=["GET"])
+@emulator_bp.route("/blueprints", methods=["GET"])
 def get_blueprints():
     """Fetch available blueprints."""
     response = EmulatorService.fetch_blueprints()
     return jsonify(response)
 
-@emulator_bp.route("/emulator/load-blueprint", methods=["POST"])
+@emulator_bp.route("/load-blueprint", methods=["POST"])
 def load_blueprint_endpoint():
     """Load a new blueprint."""
     blueprint_file = request.files.get("blueprint_file")
@@ -24,7 +24,7 @@ def load_blueprint_endpoint():
     response = EmulatorService.load_blueprint(blueprint_file)
     return jsonify(response)
 
-@emulator_bp.route("/emulator/start", methods=["POST"])
+@emulator_bp.route("/start", methods=["POST"])
 def start_emulation_endpoint():
     """Start a machine emulation."""
     data = request.json
@@ -38,7 +38,7 @@ def start_emulation_endpoint():
     response = EmulatorService.start_emulation(machine_name, blueprint, stress_test)
     return jsonify(response)
 
-@emulator_bp.route("/emulator/stop", methods=["POST"])
+@emulator_bp.route("/stop", methods=["POST"])
 def stop_emulation_endpoint():
     """Stop a machine emulation."""
     data = request.json
@@ -50,19 +50,19 @@ def stop_emulation_endpoint():
     response = EmulatorService.stop_emulation(machine_name)
     return jsonify(response)
 
-@emulator_bp.route("/emulator/list", methods=["GET"])
+@emulator_bp.route("/list", methods=["GET"])
 def list_emulations():
     """List all active emulations."""
     response = EmulatorService.list_active_emulations()
     return jsonify(response)
 
-@emulator_bp.route("/emulator/logs", methods=["GET"])
+@emulator_bp.route("/logs", methods=["GET"])
 def get_logs():
     """Fetch emulator logs."""
     response = EmulatorService.get_emulator_logs()
     return jsonify(response)
 
-@emulator_bp.route("/emulator/compare", methods=["POST"])
+@emulator_bp.route("/compare", methods=["POST"])
 def compare_machines():
     """Compare the operation of machines running different firmware."""
     data = request.json

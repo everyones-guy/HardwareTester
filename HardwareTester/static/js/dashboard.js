@@ -219,7 +219,7 @@ $(document).ready(function () {
     }
 
     function loadEmulators() {
-        apiRequest("/emulators/list", "GET")
+        apiRequest("/emulator/list", "GET")
             .done((data) => {
                 const list = $("#emulator-list");
                 list.empty();
