@@ -4,7 +4,8 @@ $(document).ready(function () {
 
     // Function to handle tab switching
     function handleTabs() {
-        $(".list-group-item").click(function () {
+        $(".list-group-item").click(function (event) {
+            event.preventDefault();
             const targetId = $(this).attr("href").substring(1);
 
             // Update tab-pane visibility
@@ -24,11 +25,13 @@ $(document).ready(function () {
 
     // Function to add a device visually
     function addComponent(id, type, x = 50, y = 50) {
-        const element = $(`<div id="component-${id}" class="draggable"
-                    data-id="${id}" data-type="${type}"
-                    style="position: absolute; left: ${x}px; top: ${y}px;">
-                    <div class="component-body p-2 text-white bg-primary rounded">${type}</div>
-                </div>`);
+        const element = $(`
+            <div id="component-${id}" class="draggable" 
+                data-id="${id}" data-type="${type}" 
+                style="position: absolute; left: ${x}px; top: ${y}px;">
+                <div class="component-body p-2 text-white bg-primary rounded">${type}</div>
+            </div>
+        `);
         canvas.append(element);
         enableDrag(element);
     }
@@ -141,14 +144,14 @@ $(document).ready(function () {
     $("#discover-devices").click(function () {
         apiRequest("/serial/discover", "GET")
             .done((data) => {
-                if (data.success) {
-                    const deviceList = $("#device-list");
-                    deviceList.empty();
+                const deviceList = $("#device-list");
+                deviceList.empty();
+                if (data.success && data.devices.length) {
                     data.devices.forEach(device => {
                         deviceList.append(`<li>${device.port} - ${JSON.stringify(device.info)}</li>`);
                     });
                 } else {
-                    alert("No devices discovered.");
+                    deviceList.append("<li>No devices discovered.</li>");
                 }
             })
             .fail(() => alert("Failed to discover devices."));
@@ -163,11 +166,7 @@ $(document).ready(function () {
 
         apiRequest("/serial/configure", "POST", payload)
             .done((data) => {
-                if (data.success) {
-                    alert(data.message);
-                } else {
-                    alert(`Error: ${data.error}`);
-                }
+                alert(data.success ? data.message : `Error: ${data.error}`);
             })
             .fail(() => alert("Failed to configure device."));
     });
@@ -211,7 +210,7 @@ $(document).ready(function () {
             .done((data) => {
                 const list = $("#emulator-list");
                 list.empty();
-                if (data.success) {
+                if (data.success && data.emulators.length) {
                     data.emulators.forEach((emulator) => {
                         list.append(`
                         <li class="list-group-item">
@@ -221,9 +220,10 @@ $(document).ready(function () {
                     `);
                     });
                 } else {
-                    list.append(`<li class="list-group-item text-danger">Error loading emulators.</li>`);
+                    list.append("<li class='list-group-item'>No emulators available.</li>");
                 }
-            });
+            })
+            .fail(() => alert("Failed to load emulators."));
     }
 
     function loadLogs() {
@@ -231,14 +231,15 @@ $(document).ready(function () {
             .done((data) => {
                 const container = $("#log-output");
                 container.empty();
-                if (data.success) {
+                if (data.success && data.logs.length) {
                     data.logs.forEach((log) => {
                         container.append(`<p>${log}</p>`);
                     });
                 } else {
-                    container.append("<p>Error loading logs.</p>");
+                    container.append("<p>No logs available.</p>");
                 }
-            });
+            })
+            .fail(() => alert("Failed to load logs."));
     }
 
     function loadSettings() {
@@ -246,7 +247,7 @@ $(document).ready(function () {
             .done((data) => {
                 const list = $("#global-settings-list");
                 list.empty();
-                if (data.success) {
+                if (data.success && data.settings.length) {
                     data.settings.forEach((setting) => {
                         list.append(`
                         <li class="list-group-item">
@@ -255,9 +256,10 @@ $(document).ready(function () {
                     `);
                     });
                 } else {
-                    list.append("<li class='list-group-item text-danger'>Error loading settings.</li>");
+                    list.append("<li class='list-group-item'>No settings available.</li>");
                 }
-            });
+            })
+            .fail(() => alert("Failed to load settings."));
     }
 
     // Initialize dashboard
