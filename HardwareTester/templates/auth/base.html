@@ -2,7 +2,7 @@
 
 {% block title %}Authenticated Area{% endblock %}
 
-{% block additional_head %}
+{% block extra_styles %}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
 {% endblock %}
 
@@ -46,5 +46,5 @@
 {% endblock %}
 
 {% block additional_scripts %}
-    <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+<script src="{{ url_for('static', filename='js/auth.js') }}"></script>
 {% endblock %}

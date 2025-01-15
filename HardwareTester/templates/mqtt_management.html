@@ -65,7 +65,10 @@
 </div>
 {% endblock %}
 
-{% block extra_scripts %}
-<script src="{{ url_for('static', filename='js/scripts/mqtt_management.js') }}"></script>
-<link rel="stylesheet" href="{{ url_for('static', filename='css/mqtt_management.css') }}">
+{% block additional_scripts %}
+    <script src="{{ url_for('static', filename='js/mqtt_management.js') }}"></script>
+{% endblock %}
+
+{% block extra_styles %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mqtt_management.css') }}">
 {% endblock %}

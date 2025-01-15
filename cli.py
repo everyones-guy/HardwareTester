@@ -1,7 +1,7 @@
 import click
 from flask.cli import with_appcontext
 from HardwareTester.extensions import db
-from HardwareTester.utils.bcrypt_utils import hash_password, check_password, is_strong_password
+from HardwareTester.utils.bcrypt_utils import hash_password
 from HardwareTester.utils.custom_logger import CustomLogger
 from HardwareTester.services.configuration_service import ConfigurationService
 from HardwareTester.services.emulator_service import EmulatorService
@@ -12,10 +12,14 @@ from HardwareTester.models.user_models import User, UserRole
 from HardwareTester.models.dashboard_models import DashboardData
 from faker import Faker
 import os
+from dotenv import load_dotenv
+
+# Load .env variables
+load_dotenv()
+
 
 # initialize logger
 logger = CustomLogger.get_logger("cli")
-
 
 @click.group(help="CLI for Universal Hardware Tester.")
 def cli():
@@ -236,8 +240,8 @@ def mock_users():
                 name=fake.name(),
                 email=fake.email(),
                 username=fake.user_name(),
-                role=UserRole.USER,
-                password_hash="mockhashedpassword",  # Replace with a hashed password if necessary
+                role=UserRole.USER.value,
+                password_hash=hash_password("mockpassword"),  # Hash mock password
             )
             db.session.add(user)
 
@@ -245,8 +249,8 @@ def mock_users():
             name="Admin User",
             email="admin@example.com",
             username="admin",
-            role=UserRole.ADMIN,
-            password_hash="adminhashedpassword",  # Replace with a hashed password if necessary
+            role=UserRole.ADMIN.value,
+            password_hash=hash_password("adminpassword"),  # Hash admin password
         )
         db.session.add(admin_user)
 
@@ -254,10 +258,11 @@ def mock_users():
         click.echo("Mock users added successfully!")
     except Exception as e:
         db.session.rollback()
+        logger.error(f"Error adding mock users: {e}")
         click.echo(f"Error adding mock users: {e}")
 
 
-@mock.command("add-dashboard-data", help="Add mock dashboard data.")
+@mock.command("dashboard", help="Add mock dashboard data.")
 @with_appcontext
 def add_mock_dashboard_data():
     """Add mock dashboard data."""
@@ -266,7 +271,7 @@ def add_mock_dashboard_data():
         click.echo("Adding mock dashboard data...")
         users = User.query.all()
         if not users:
-            click.echo("No users found. Add mock users first using 'mock add-users'.")
+            click.echo("No users found. Add mock users first using 'mock users'.")
             return
 
         for user in users:
@@ -285,10 +290,11 @@ def add_mock_dashboard_data():
         click.echo("Mock dashboard data added successfully!")
     except Exception as e:
         db.session.rollback()
+        logger.error(f"Error adding mock dashboard data: {e}")
         click.echo(f"Error adding mock dashboard data: {e}")
 
 
-@mock.command("clear-mock-data", help="Clear all mock data.")
+@mock.command("clear", help="Clear all mock data.")
 @with_appcontext
 def clear_mock_data():
     """Clear mock data from all tables."""
@@ -300,7 +306,9 @@ def clear_mock_data():
         click.echo("All mock data cleared!")
     except Exception as e:
         db.session.rollback()
+        logger.error(f"Error clearing mock data: {e}")
         click.echo(f"Error clearing mock data: {e}")
+
 
 
 # ----------------------

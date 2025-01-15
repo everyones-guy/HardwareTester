@@ -5,7 +5,7 @@ from HardwareTester.views import register_blueprints
 from HardwareTester.models.user_models import User
 from HardwareTester.utils.custom_logger import CustomLogger
 from datetime import datetime
-from cli import cli
+from cli import register_commands
 
 # Initialize logger
 logger = CustomLogger.get_logger("app")
@@ -26,7 +26,7 @@ def create_app(config_name="default"):
     initialize_extensions(app)
 
     # Register CLI commands
-    register_cli_commands(app)
+    register_commands(app)
 
     # Register blueprints and error handlers
     register_blueprints(app)
@@ -119,13 +119,13 @@ def register_error_handlers(app):
         return render_template("401.html"), 401
 
 
-def register_cli_commands(app):
-    """
-    Register CLI commands with the Flask app.
-    :param app: Flask application instance.
-    """
-    app.cli.add_command(cli)
-    logger.info("CLI commands registered successfully.")
+#def register_cli_commands(app):
+#    """
+#    Register CLI commands with the Flask app.
+#    :param app: Flask application instance.
+#    """
+#    app.cli.register_commands(cli)
+#    logger.info("CLI commands registered successfully.")
 
 
 @login_manager.user_loader

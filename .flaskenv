@@ -5,7 +5,7 @@ FLASK_APP=HardwareTester:create_app  # Entry point for the Flask app
 FLASK_ENV=development
 FLASK_CONFIG=development
 FLASK_DEBUG=1  # Set to 0 in production
-TEMPLATES_FOLDER=C:/Users/Gary/source/repos/HardwareTester/HardwareTester/templates
+# TEMPLATES_FOLDER=C:/Users/Gary/source/repos/HardwareTester/HardwareTester/templates
 
 # Database Configuration
 # DATABASE_URL=sqlite:///instance/app.db  # Default SQLite database location
