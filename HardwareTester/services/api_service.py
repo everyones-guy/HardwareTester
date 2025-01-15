@@ -8,6 +8,7 @@ from HardwareTester.utils.custom_logger import CustomLogger
 # Initialize logger
 logger = CustomLogger.get_logger("api_service")
 
+
 class APIService:
     api_state = {
         "initialized": False,
@@ -28,7 +29,9 @@ class APIService:
 
     @staticmethod
     def _get_session_with_retries(retries=3, backoff_factor=0.3, status_forcelist=(500, 502, 504)):
-        """Configures a session with retry logic."""
+        """
+        Configures a session with retry logic for resilient requests.
+        """
         session = requests.Session()
         retry = Retry(
             total=retries,
@@ -46,7 +49,9 @@ class APIService:
 
     @staticmethod
     def initialize(base_url: str, timeout: int = 10):
-        """Initialize the APIService with a base URL and timeout."""
+        """
+        Initialize the APIService with a base URL and timeout.
+        """
         APIService.api_state["config"]["base_url"] = base_url
         APIService.api_state["config"]["timeout"] = timeout
         APIService.api_state["initialized"] = True
@@ -56,7 +61,9 @@ class APIService:
 
     @staticmethod
     def log_error(error_message):
-        """Log an error in the API state."""
+        """
+        Log an error in the API state and persist it in logs.
+        """
         error_entry = {
             "timestamp": datetime.now(),
             "message": error_message,
@@ -67,7 +74,9 @@ class APIService:
 
     @staticmethod
     def test_api_connection():
-        """Test the connection to the API."""
+        """
+        Test the connection to the API.
+        """
         try:
             base_url = current_app.config["BASE_URL"]
             timeout = current_app.config.get("API_TIMEOUT", 5)
@@ -81,7 +90,9 @@ class APIService:
 
     @staticmethod
     def fetch_data_from_api(endpoint: str, params: dict = None) -> dict:
-        """Fetch data from the specified API endpoint."""
+        """
+        Fetch data from a specified API endpoint.
+        """
         try:
             base_url = current_app.config["BASE_URL"]
             timeout = current_app.config.get("API_TIMEOUT", 10)
@@ -95,7 +106,9 @@ class APIService:
 
     @staticmethod
     def push_data_to_api(endpoint: str, payload: dict) -> dict:
-        """Push data to the specified API endpoint."""
+        """
+        Push data to a specified API endpoint.
+        """
         try:
             base_url = current_app.config["BASE_URL"]
             timeout = current_app.config.get("API_TIMEOUT", 10)
@@ -109,7 +122,9 @@ class APIService:
 
     @staticmethod
     def list_available_endpoints() -> dict:
-        """Fetch the list of available API endpoints."""
+        """
+        Fetch the list of available API endpoints.
+        """
         try:
             base_url = current_app.config["BASE_URL"]
             timeout = current_app.config.get("API_TIMEOUT", 10)
@@ -127,7 +142,9 @@ class APIService:
 
     @staticmethod
     def get_overview() -> dict:
-        """Fetch a summarized API overview."""
+        """
+        Fetch a summarized API overview.
+        """
         try:
             base_url = current_app.config["BASE_URL"]
             timeout = current_app.config.get("API_TIMEOUT", 10)

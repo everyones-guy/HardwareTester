@@ -1,9 +1,8 @@
-
 import requests
 from requests.exceptions import RequestException
 from HardwareTester.utils.custom_logger import CustomLogger
 
-#initialize logger
+# Initialize logger
 logger = CustomLogger.get_logger("api_manager")
 
 class APIManager:
@@ -19,10 +18,10 @@ class APIManager:
         self.default_timeout = default_timeout
         logger.info(f"APIManager initialized with base URL: {self.base_url}")
 
-    def _log_request(self, method, endpoint, payload=None, headers=None):
+    def _log_request(self, method, url, payload=None, headers=None):
         """Log request details."""
         logger.debug(f"Request Method: {method}")
-        logger.debug(f"Endpoint: {endpoint}")
+        logger.debug(f"URL: {url}")
         if payload:
             logger.debug(f"Payload: {payload}")
         if headers:
@@ -51,7 +50,7 @@ class APIManager:
             return response.json()
         except RequestException as e:
             logger.error(f"GET request failed: {e}")
-            return {"error": str(e)}
+            return {"success": False, "error": str(e)}
 
     def post(self, endpoint, payload=None, headers=None):
         """
@@ -71,7 +70,7 @@ class APIManager:
             return response.json()
         except RequestException as e:
             logger.error(f"POST request failed: {e}")
-            return {"error": str(e)}
+            return {"success": False, "error": str(e)}
 
     def put(self, endpoint, payload=None, headers=None):
         """
@@ -91,7 +90,7 @@ class APIManager:
             return response.json()
         except RequestException as e:
             logger.error(f"PUT request failed: {e}")
-            return {"error": str(e)}
+            return {"success": False, "error": str(e)}
 
     def delete(self, endpoint, headers=None):
         """
@@ -110,7 +109,7 @@ class APIManager:
             return response.json()
         except RequestException as e:
             logger.error(f"DELETE request failed: {e}")
-            return {"error": str(e)}
+            return {"success": False, "error": str(e)}
 
     def test_connection(self):
         """
@@ -134,4 +133,3 @@ def create_api_manager(base_url):
     :return: APIManager instance.
     """
     return APIManager(base_url=base_url)
-

@@ -10,7 +10,6 @@ logger = CustomLogger.get_logger("api_views")
 # Blueprint for API operations
 api_bp = Blueprint("api", __name__, url_prefix="/api")
 
-
 @api_bp.route("/", methods=["GET"])
 def api_overview():
     """Render the API Overview page."""
@@ -86,10 +85,7 @@ def get_overview():
     """Fetch a summarized overview of devices, endpoints, and state."""
     try:
         overview = {
-            "devices": [
-                {"id": 1, "name": "Device A", "status": "Online"},
-                {"id": 2, "name": "Device B", "status": "Offline"}
-            ],
+            "devices": APIService.get_devices(),
             "endpoints": APIService.list_available_endpoints().get("endpoints", []),
             "api_logs": APIService.api_state.get("logs", [])
         }
@@ -103,7 +99,6 @@ def get_overview():
 def get_device_config():
     """Fetch the device configuration over serial."""
     try:
-        # Update the port dynamically or make it configurable
         config_data = SerialService(port="/dev/ttyUSB0").read_data()
         if "error" in config_data:
             logger.error(f"Error reading serial data: {config_data['error']}")
@@ -126,13 +121,7 @@ def simulate_device():
         return jsonify({"success": False, "error": "Device ID and action are required"}), 400
 
     try:
-        simulation_result = {
-            "device_id": device_id,
-            "action": action,
-            "parameters": parameters,
-            "status": "success",
-            "response": f"Action '{action}' performed on device {device_id}"
-        }
+        simulation_result = APIService.simulate_device(device_id, action, parameters)
         return jsonify({"success": True, "result": simulation_result})
     except Exception as e:
         logger.error(f"Simulation failed: {e}")
