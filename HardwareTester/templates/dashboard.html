@@ -33,11 +33,6 @@
                     <div class="tab-pane fade show active" id="overview" role="tabpanel">
                         <h3>Dashboard Overview</h3>
                         <p>Welcome to the application dashboard. Use the navigation menu on the left to manage various aspects of the system.</p>
-                        <!-- Canvas Container -->
-                        <div id="canvas-container" class="canvas-container" style="position: relative; width: 100%; height: 400px; background: #e9ecef; border: 1px solid #ced4da; border-radius: 5px;">
-                            <!-- Draggable elements will be dynamically added here -->
-                        </div>
-
                         <div id="dashboard-data">
                             <h5>Data Summary</h5>
                             <ul>
@@ -182,5 +177,7 @@
 {% endblock %}
 
 {% block additional_scripts %}
-    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{{ super() }}
+<script src="{{ url_for('static', filename='scripts/jquery-3.7.1.js') }}"></script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 {% endblock %}

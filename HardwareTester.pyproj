@@ -279,8 +279,9 @@
     <Content Include="HardwareTester\static\js\logs.js" />
     <Content Include="HardwareTester\static\js\main_views.js" />
     <Content Include="HardwareTester\static\js\mqtt_management.js" />
-    <Content Include="HardwareTester\static\js\test\setup.js" />
+    <Content Include="HardwareTester\static\scripts\setup.js" />
     <Content Include="HardwareTester\static\js\valve_management.js" />
+    <Content Include="HardwareTester\static\scripts\jquery-3.7.1.min.js" />
     <Content Include="HardwareTester\templates\analytics.html" />
     <Content Include="HardwareTester\templates\api_overview.html" />
     <Content Include="HardwareTester\templates\auth\base.html" />
@@ -327,7 +328,7 @@
     <Content Include="HardwareTester\static\scripts\bootstrap.min.js" />
     <Content Include="HardwareTester\static\scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="HardwareTester\static\scripts\jquery-1.10.2.js" />
-    <Content Include="HardwareTester\static\scripts\jquery-1.10.2.min.js" />
+    <Content Include="HardwareTester\static\scripts\jquery-3.7.1.js" />
     <Content Include="HardwareTester\static\scripts\jquery-1.10.2.min.map" />
     <Content Include="HardwareTester\static\scripts\jquery.validate-vsdoc.js" />
     <Content Include="HardwareTester\static\scripts\jquery.validate.js" />

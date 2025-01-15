@@ -151,3 +151,14 @@ class DashboardService:
         except Exception as e:
             logger.error(f"Unexpected error deleting dashboard item {item_id}: {e}")
             return {"success": False, "error": str(e)}
+        
+    @staticmethod
+    def get_overview_data(user_id):
+        """
+        Fetch overview data for a given user.
+        """
+        try:
+            data = DashboardData.query.filter_by(user_id=user_id).all()
+            return [{"title": item.title, "description": item.description} for item in data]
+        except Exception as e:
+            raise RuntimeError(f"Error fetching overview data: {e}")

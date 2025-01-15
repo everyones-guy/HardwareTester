@@ -97,3 +97,21 @@ def user_management_page():
     if current_user.role not in [UserRole.ADMIN.value, UserRole.USER.value]:
         return render_template("error.html", message="Access denied")
     return render_template("user_management.html")
+
+@dashboard_bp.route("/overview", methods=["GET"])
+@login_required
+def overview():
+    """
+    Route to handle the dashboard overview tab.
+    """
+    try:
+        # Fetch the overview data for the logged-in user
+        overview_data = DashboardService.get_dashboard_data(current_user.id)
+
+        # Render the template or return JSON, depending on the request context
+        if "application/json" in str(render_template("dashboard.html")):
+            return jsonify(overview_data)
+        return render_template("dashboard.html", data=overview_data)
+    except Exception as e:
+        logger.error(f"Error retrieving overview data: {e}")
+        return jsonify({"success": False, "error": "Failed to load overview data."}), 500

@@ -51,7 +51,7 @@ def initialize_extensions(app):
     try:
         db.init_app(app)
         migrate.init_app(app, db)
-        socketio.init_app(app, cors_allowed_origins="*")
+        socketio.init_app(app)
         csrf.init_app(app)
         ma.init_app(app)
         login_manager.init_app(app)
