@@ -2,6 +2,7 @@
 <div class="container mt-4">
     <h2>Upload Spec Sheet</h2>
     <form id="upload-spec-sheet-form" method="POST" enctype="multipart/form-data">
+        {{ form.hidden_tag() }}
         <div class="mb-3">
             <label for="specSheetFile" class="form-label">Spec Sheet File</label>
             <input type="file" class="form-control" id="specSheetFile" name="file" required>

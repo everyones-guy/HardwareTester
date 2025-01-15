@@ -4,22 +4,17 @@ $(document).ready(function () {
 
     // Function to handle tab switching
     function handleTabs() {
-        $(".list-group-item").click(function (event) {
-            event.preventDefault();
+        $(".list-group-item").on("click", function (e) {
+            e.preventDefault();
             const targetId = $(this).attr("href").substring(1);
+
+            // Update active tab class
+            $(".list-group-item").removeClass("active");
+            $(this).addClass("active");
 
             // Update tab-pane visibility
             $(".tab-pane").removeClass("show active");
             $(`#${targetId}`).addClass("show active");
-
-            // Specific behaviors for the Serial tab
-            if (targetId === "serial") {
-                $("#device-discovery").show();
-                $("#device-config-form").show();
-            } else {
-                $("#device-discovery").hide();
-                $("#device-config-form").hide();
-            }
         });
     }
 

@@ -11,7 +11,7 @@ dashboard_bp = Blueprint("dashboard", __name__, url_prefix="/dashboard")
 
 @dashboard_bp.route("/", methods=["GET"])
 @login_required
-def dashboard_home():
+def dashboard():
     """Render the dashboard homepage."""
     if current_user.role not in [UserRole.ADMIN.value, UserRole.USER.value]:
         return render_template("error.html", message="Access denied")
