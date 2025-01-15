@@ -2,6 +2,10 @@
 
 {% block title %}API Overview{% endblock %}
 
+{% block extra_styles %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/api_overview.css') }}">
+{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
     <h1 class="text-center">API Overview</h1>
@@ -43,6 +47,6 @@
 </div>
 {% endblock %}
 
-{% block extra_scripts %}
+{% block additionsl_scripts %}
 <script src="{{ url_for('static', filename='js/api_overview.js') }}"></script>
 {% endblock %}

@@ -1,6 +1,6 @@
 {% extends "auth/base.html" %}
 
-{% block additional_head %}
+{% block extra_styles %}
 {{ super() }}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
 {% endblock %}
