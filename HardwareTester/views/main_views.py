@@ -31,7 +31,7 @@ def dashboard():
     """
     try:
         # Fetch dashboard data for the logged-in user
-        dashboard_data = DashboardService.get_dashboard_data(current_user.id)
+        dashboard_data = DashboardService.get_dashboard_data(user_id=current_user.id)
         if dashboard_data["success"]:
             return render_template("dashboard.html", data=dashboard_data["data"])
         else:

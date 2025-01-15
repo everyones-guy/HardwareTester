@@ -40,7 +40,8 @@ def get_dashboard_data():
 @login_required
 def create_dashboard_item():
     """Create a new dashboard item."""
-    if current_user.role != UserRole.ADMIN.value:
+    #if current_user.role != UserRole.ADMIN.value:
+    if current_user.role not in [UserRole.ADMIN.value, UserRole.USER.value]:
         return jsonify({"success": False, "error": "Access denied"})
 
     title = request.form.get("title")
@@ -57,7 +58,7 @@ def create_dashboard_item():
 @login_required
 def update_dashboard_item(item_id):
     """Update an existing dashboard item."""
-    if current_user.role != UserRole.ADMIN.value:
+    if current_user.role not in [UserRole.ADMIN.value, UserRole.USER.value]:
         return jsonify({"success": False, "error": "Access denied"})
 
     title = request.form.get("title")
@@ -71,7 +72,7 @@ def update_dashboard_item(item_id):
 @login_required
 def delete_dashboard_item(item_id):
     """Delete a dashboard item."""
-    if current_user.role != UserRole.ADMIN.value:
+    if current_user.role not in [UserRole.ADMIN.value, UserRole.USER.value]:
         return jsonify({"success": False, "error": "Access denied"})
 
     result = DashboardService.delete_dashboard_item(item_id=item_id)
@@ -93,6 +94,6 @@ def get_aggregate_metrics():
 @login_required
 def user_management_page():
     """Render the User Management page."""
-    if current_user.role != UserRole.ADMIN.value:
+    if current_user.role not in [UserRole.ADMIN.value, UserRole.USER.value]:
         return render_template("error.html", message="Access denied")
     return render_template("user_management.html")

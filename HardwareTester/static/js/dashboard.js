@@ -197,7 +197,25 @@ $(document).ready(function () {
 
     // Dashboard functionality
     function loadOverview() {
-        console.log("Overview section loaded.");
+        $.ajax({
+            url: "/dashboard/overview",
+            method: "GET",
+            success: function (data) {
+                const list = $("#dashboard-data ul");
+                list.empty();
+
+                if (data.length > 0) {
+                    data.forEach((item) => {
+                        list.append(`<li>${item.title}: ${item.description}</li>`);
+                    });
+                } else {
+                    list.append("<li>No data available.</li>");
+                }
+            },
+            error: function () {
+                console.error("Failed to load overview data.");
+            },
+        });
     }
 
     function loadEmulators() {
