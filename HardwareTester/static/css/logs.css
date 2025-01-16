@@ -5,14 +5,32 @@
     font-family: Arial, sans-serif;
     font-size: 0.9rem;
     line-height: 1.5;
+    background-color: #ffffff;
+    border: 1px solid #ced4da;
+    border-radius: 8px;
+    padding: 15px;
+    max-height: 400px;
+    overflow-y: auto;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .log-entry {
     margin-bottom: 15px;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease;
 }
+
+    .log-entry:hover {
+        background-color: #f1f3f5;
+    }
 
     .log-entry strong {
         color: #007bff;
+        font-weight: bold;
     }
 
     .log-entry pre {
@@ -20,4 +38,7 @@
         padding: 10px;
         border-radius: 5px;
         overflow-x: auto;
+        font-family: "Courier New", Courier, monospace;
+        font-size: 0.85rem;
+        border: 1px solid #e9ecef;
     }

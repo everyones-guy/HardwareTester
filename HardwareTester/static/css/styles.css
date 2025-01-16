@@ -96,6 +96,18 @@ p {
     color: #6c757d !important;
 }
 
+.text-danger {
+    color: #dc3545 !important;
+}
+
+.text-success {
+    color: #28a745 !important;
+}
+
+.text-muted {
+    color: #6c757d !important;
+}
+
 /* Testimonials */
 .carousel-item p {
     font-style: italic;

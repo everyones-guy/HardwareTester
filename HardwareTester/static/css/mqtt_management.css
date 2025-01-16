@@ -9,14 +9,54 @@
     line-height: 1.4;
     background-color: #f9f9f9;
     border: 1px solid #ddd;
+    padding: 10px;
+    max-height: 300px;
+    overflow-y: auto;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 button#test-connection,
 button#toggle-dashboard-modal {
     margin: 5px;
+    padding: 10px 15px;
+    font-size: 1rem;
+    color: #ffffff;
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
 }
+
+    button#test-connection:hover,
+    button#toggle-dashboard-modal:hover {
+        background-color: #0056b3;
+    }
+
+    button#test-connection:disabled,
+    button#toggle-dashboard-modal:disabled {
+        background-color: #6c757d;
+        cursor: not-allowed;
+        color: #e9ecef;
+    }
 
 .modal .modal-content {
     border-radius: 10px;
     overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+}
+
+.modal .modal-header {
+    background-color: #007bff;
+    color: #ffffff;
+    font-weight: bold;
+    border-bottom: 1px solid #0056b3;
+}
+
+.modal .modal-body {
+    font-family: Arial, sans-serif;
+    font-size: 0.95rem;
+    color: #495057;
+    line-height: 1.6;
 }

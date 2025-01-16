@@ -1,19 +1,25 @@
-
 /* Settings Management */
 .settings-section {
     padding: 1rem;
     border-bottom: 1px solid #dee2e6;
     margin-bottom: 1rem;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
     .settings-section h3 {
         font-size: 1.2rem;
         color: #495057;
+        margin-bottom: 0.75rem;
+        font-weight: bold;
     }
 
 .settings-form label {
     font-weight: bold;
     margin-bottom: 0.5rem;
+    display: block;
+    color: #343a40;
 }
 
 .settings-form input {
@@ -22,7 +28,16 @@
     margin-bottom: 1rem;
     border: 1px solid #ced4da;
     border-radius: 4px;
+    font-size: 1rem;
+    color: #495057;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
+
+    .settings-form input:focus {
+        border-color: #80bdff;
+        outline: none;
+        box-shadow: 0 0 5px rgba(0, 123, 255, 0.25);
+    }
 
 .save-settings-btn {
     background-color: #007bff;
@@ -30,5 +45,15 @@
     padding: 0.5rem 1rem;
     border: none;
     border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
 }
 
+    .save-settings-btn:hover {
+        background-color: #0056b3;
+    }
+
+    .save-settings-btn:active {
+        background-color: #003f7f;
+    }

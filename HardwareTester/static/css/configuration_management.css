@@ -2,39 +2,65 @@
 .container {
     max-width: 800px;
     margin: auto;
+    padding: 20px;
 }
 
 h1 {
     font-size: 2.5rem;
     color: #333;
+    margin-bottom: 20px;
+    text-align: center;
 }
 
 .btn-primary {
     font-size: 1rem;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
 }
 
 .list-group-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    padding: 10px 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    background-color: #fff;
 }
 
     .list-group-item strong {
         flex-grow: 1;
+        font-size: 1rem;
+        color: #333;
     }
 
     .list-group-item button {
         font-size: 0.9rem;
+        padding: 0.4rem 0.8rem;
+        border-radius: 4px;
+        transition: background-color 0.2s ease;
     }
+
+        .list-group-item button:hover {
+            background-color: #0056b3;
+            color: #fff;
+        }
+
 .card {
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
 }
 
 .card-header {
     background-color: #007bff;
     color: #fff;
     font-weight: bold;
+    padding: 10px 15px;
+    font-size: 1.25rem;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
 }
 
 .card-body {
@@ -44,12 +70,18 @@ h1 {
 #saved-configurations-list {
     max-height: 300px;
     overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+    padding: 10px;
 }
 
 #configuration-preview {
     min-height: 150px;
     text-align: center;
     color: #6c757d;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 10px;
+    background-color: #f8f9fa;
 }
-
-    

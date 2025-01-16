@@ -1,4 +1,3 @@
-
 /* Notifications */
 .notification-card {
     background-color: #fff3cd;
@@ -7,14 +6,29 @@
     border: 1px solid #ffeeba;
     border-radius: 8px;
     margin-bottom: 1rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s ease;
 }
+
+    .notification-card:hover {
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
 
     .notification-card .title {
         font-weight: bold;
+        font-size: 1rem;
+        margin-bottom: 0.5rem;
+        color: #856404;
     }
 
     .notification-card .timestamp {
         font-size: 0.8rem;
         color: #6c757d;
+        font-style: italic;
     }
 
+    .notification-card .message {
+        margin-top: 0.5rem;
+        font-size: 0.9rem;
+        color: #495057;
+    }

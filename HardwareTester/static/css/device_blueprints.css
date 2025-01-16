@@ -2,24 +2,60 @@
 #blueprints-list {
     max-height: 400px;
     overflow-y: auto;
+    margin: 0;
+    padding: 0;
+    list-style: none;
 }
 
     #blueprints-list .list-group-item {
         display: flex;
         justify-content: space-between;
         align-items: center;
+        padding: 10px 15px;
+        margin-bottom: 0.5rem;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        background-color: #ffffff;
+        transition: background-color 0.3s ease, box-shadow 0.3s ease;
     }
+
+        #blueprints-list .list-group-item:hover {
+            background-color: #f8f9fa;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
 
     #blueprints-list .btn {
         font-size: 0.85rem;
+        padding: 0.4rem 0.8rem;
+        border-radius: 4px;
+        background-color: #007bff;
+        color: #ffffff;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
     }
+
+        #blueprints-list .btn:hover {
+            background-color: #0056b3;
+        }
 
 .modal-content {
     background-color: #f8f9fa;
     border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
 }
 
 .modal-title {
     font-size: 1.25rem;
     font-weight: bold;
+    color: #343a40;
+    margin-bottom: 1rem;
+}
+
+.modal-body {
+    padding: 15px;
+    font-size: 0.9rem;
+    color: #495057;
+    line-height: 1.6;
 }

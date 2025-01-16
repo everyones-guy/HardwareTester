@@ -1,4 +1,3 @@
-
 /* Reports */
 .report-card {
     padding: 1.5rem;
@@ -6,10 +5,21 @@
     border-radius: 8px;
     background-color: white;
     margin-bottom: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s ease, background-color 0.3s ease;
 }
+
+    .report-card:hover {
+        background-color: #f8f9fa;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
 
 .report-chart {
     width: 100%;
     height: 300px;
+    background-color: #ffffff;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
-

@@ -8,11 +8,19 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s ease, background-color 0.3s ease;
 }
+
+    .peripheral-card:hover {
+        background-color: #f8f9fa;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
 
     .peripheral-card .peripheral-name {
         font-size: 1.2rem;
         font-weight: 600;
+        color: #343a40;
     }
 
     .peripheral-card .property {
@@ -26,11 +34,27 @@
     padding: 0.5rem 1rem;
     border: none;
     border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
 }
+
+    .add-peripheral-btn:hover {
+        background-color: #218838;
+    }
+
+    .add-peripheral-btn:active {
+        background-color: #1e7e34;
+    }
 
 /* Peripheral Preview */
 #peripheral-preview {
     margin-top: 20px;
+    background-color: #ffffff;
+    padding: 20px;
+    border: 1px solid #ced4da;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
     #peripheral-preview pre {
@@ -40,4 +64,5 @@
         border: 1px solid #ddd;
         font-family: monospace;
         font-size: 0.9rem;
+        overflow-x: auto;
     }
