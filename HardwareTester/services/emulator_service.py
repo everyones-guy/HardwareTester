@@ -118,6 +118,16 @@ class EmulatorService:
         except Exception as e:
             logger.error(f"Error fetching active emulations: {e}")
             return {"success": False, "error": "Failed to fetch active emulations."}
+    
+    @staticmethod
+    def get_emulator_logs() -> Dict[str, Union[bool, Any]]:
+        """Retrieve logs from the emulator."""
+        try:
+            logger.info("Fetching emulator logs.")
+            return {"success": True, "logs": EmulatorService.emulator_state["logs"]}
+        except Exception as e:
+            logger.error(f"Error fetching emulator logs: {e}")
+            return {"success": False, "error": "Failed to fetch emulator logs."}
 
     @staticmethod
     def _log_action(message: str):

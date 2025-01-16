@@ -9,7 +9,7 @@ from HardwareTester.utils.custom_logger import CustomLogger
 logger = CustomLogger.get_logger("hardware_views")
 
 
-hardware_bp = Blueprint("hardware", __name__)
+hardware_bp = Blueprint("hardware", __name__, url_prefix="/hardware")
 mqtt_service = MQTTService(broker="test.mosquitto.org", port=1883)
 mqtt_service.connect()
 

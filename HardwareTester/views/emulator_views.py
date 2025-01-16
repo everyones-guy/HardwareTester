@@ -6,7 +6,7 @@ from HardwareTester.utils.custom_logger import CustomLogger
 logger = CustomLogger.get_logger("emulator_views")
 
 # Define the Blueprint
-emulator_bp = Blueprint("emulator", __name__, url_prefix="/emulators")
+emulator_bp = Blueprint("emulators", __name__, url_prefix="/emulators")
 
 @emulator_bp.route("/", methods=["GET"])
 def emulator_dashboard():

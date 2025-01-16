@@ -9,7 +9,7 @@ from HardwareTester.utils.custom_logger import CustomLogger
 logger = CustomLogger.get_logger("test_plan_service")
 
 # Initialize logger and API manager
-api_manager = create_api_manager("http://127.0.0.1:5000/api")
+api_manager = create_api_manager("http://127.0.0.1:5000/")
 
 class TestPlanService:
     """Service for managing test plans."""
