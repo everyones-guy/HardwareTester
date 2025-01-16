@@ -134,3 +134,27 @@ class EmulatorService:
         """Log an action to the emulator logs."""
         EmulatorService.emulator_state["logs"].append(f"[{datetime.now()}] {message}")
         logger.info(message)
+
+    @staticmethod
+    def load_blueprint(blueprint_name: str) -> Dict[str, Union[bool, Any]]:
+        """Load a specific blueprint by name."""
+        try:
+            # Query the Blueprint model for the blueprint with the given name
+            blueprint = Blueprint.query.filter_by(name=blueprint_name).first()
+            if not blueprint:
+                logger.warning(f"Blueprint '{blueprint_name}' not found.")
+                return {"success": False, "message": f"Blueprint '{blueprint_name}' not found."}
+
+            # Return blueprint details
+            blueprint_details = {
+                "name": blueprint.name,
+                "description": blueprint.description,
+                "created_at": blueprint.created_at.isoformat(),
+                "configuration": blueprint.configuration,  # Assuming 'configuration' is a field in your Blueprint model
+            }
+            logger.info(f"Loaded blueprint '{blueprint_name}'.")
+            return {"success": True, "blueprint": blueprint_details}
+        except Exception as e:
+            logger.error(f"Error loading blueprint '{blueprint_name}': {e}")
+            return {"success": False, "error": "Failed to load blueprint."}
+
