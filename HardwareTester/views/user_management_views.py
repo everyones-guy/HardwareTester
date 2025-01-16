@@ -7,7 +7,7 @@ user_management_bp = Blueprint("user_management", __name__)
 @user_management_bp.route("/users", methods=["GET"])
 def manage_users():
     """Render the user management page."""
-    if current_user.role != 'admin':  # Restrict access to admin users
+    if current_user.role != 'user':  # Restrict access to admin users
         abort(403)
     return render_template("user_management.html")
 
@@ -23,7 +23,7 @@ def list_users_endpoint():
 @user_management_bp.route("/users/add", methods=["POST"])
 def add_user_endpoint():
     """Add a new user."""
-    if current_user.role != 'admin':  # Restrict access
+    if current_user.role != 'user':  # Restrict access
         abort(403)
     data = request.json
     response = UserManagementService.create_user(data["username"], data["email"], data["password"])
@@ -33,7 +33,7 @@ def add_user_endpoint():
 @user_management_bp.route("/users/update/<int:user_id>", methods=["POST"])
 def update_user_endpoint(user_id):
     """Update user details."""
-    if current_user.role != 'admin':  # Restrict access
+    if current_user.role != 'user':  # Restrict access
         abort(403)
     data = request.json
     response = UserManagementService.update_user(
@@ -48,7 +48,7 @@ def update_user_endpoint(user_id):
 @user_management_bp.route("/users/delete/<int:user_id>", methods=["DELETE"])
 def delete_user_endpoint(user_id):
     """Delete a user."""
-    if current_user.role != 'admin':  # Restrict access
+    if current_user.role != 'user':  # Restrict access
         abort(403)
     response = UserManagementService.delete_user(user_id)
     return jsonify(response)
