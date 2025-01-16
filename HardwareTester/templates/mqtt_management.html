@@ -66,11 +66,9 @@
 {% endblock %}
 
 {% block additional_scripts %}
-{{ super() }}
 <script src="{{ url_for('static', filename='js/mqtt_management.js') }}"></script>
 {% endblock %}
 
 {% block extra_styles %}
-{{ super() }}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/mqtt_management.css') }}">
 {% endblock %}

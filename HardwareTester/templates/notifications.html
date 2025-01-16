@@ -38,11 +38,9 @@
 {% endblock %}
 
 {% block additional_scripts %}
-{{ super() }}
 <script src="{{ url_for('static', filename='js/notifications.js') }}"></script>
 {% endblock %}
 
 {% block extra_styles %}
-{{ super() }}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/notifications.css') }}">
 {% endblock %

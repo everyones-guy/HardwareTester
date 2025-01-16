@@ -1,5 +1,11 @@
 {% extends "base.html" %}
 
+{% block title %}System Status{% endblock %}
+
+{% block extra_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/system_status.css') }}">
+{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
     <h2>System Status</h2>
@@ -24,8 +30,6 @@
 {% endblock %}
 
 {% block additional_scripts %}
-{{ super() }}
 <script src="{{ url_for('static', filename='js/system_status.js') }}"></script>
-<link rel="stylesheet" href="{{ url_for('static', filename='css/system_status.css') }}">
 {% endblock %}
 

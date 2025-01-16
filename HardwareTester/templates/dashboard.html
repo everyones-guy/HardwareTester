@@ -1,7 +1,6 @@
 {% extends "auth/base.html" %}
 
 {% block extra_styles %}
-{{ super() }}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
 {% endblock %}
 
@@ -177,7 +176,5 @@
 {% endblock %}
 
 {% block additional_scripts %}
-{{ super() }}
-<script src="{{ url_for('static', filename='scripts/jquery-3.7.1.js') }}"></script>
 <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 {% endblock %}

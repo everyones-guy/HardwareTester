@@ -45,11 +45,9 @@
 {% endblock %}
 
 {% block additional_scripts %}
-{{ super() }}
 <script src="{{ url_for('static', filename='js/logs.js') }}"></script>
 {% endblock %}
 
 {% block extra_styles %}
-{{ super() }}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/logs.css') }}">
 {% endblock %}

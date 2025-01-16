@@ -15,27 +15,33 @@ $(document).ready(function () {
             url: "/test-plans/list",
             method: "GET",
             success: function (data) {
-                testPlansList.empty();
-                if (data.success) {
+                const testPlansList = $("#test-plans-list");
+                testPlansList.empty(); // Clear the list first
+
+                if (data.success && data.testPlans.length > 0) {
+                    // Populate the list with test plans
                     data.testPlans.forEach((plan) => {
                         testPlansList.append(`
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <div>
-                                    <strong>${plan.name}</strong> - Uploaded by ${plan.uploaded_by}
-                                </div>
-                                <button class="btn btn-sm btn-secondary preview-plan-btn" data-id="${plan.id}">Preview</button>
-                            </li>
-                        `);
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>${plan.name}</strong> - Uploaded by ${plan.uploaded_by}
+                            </div>
+                            <button class="btn btn-sm btn-secondary preview-plan-btn" data-id="${plan.id}">Preview</button>
+                        </li>
+                    `);
                     });
                 } else {
-                    testPlansList.html(`<li class="list-group-item text-danger">${data.error}</li>`);
+                    // Display a message if no test plans are available
+                    testPlansList.html(`<li class="list-group-item text-muted">No test plans available.</li>`);
                 }
             },
             error: function (xhr) {
                 console.error("Error loading test plans:", xhr.responseText);
+                alert("Failed to load test plans.");
             },
         });
     }
+
 
     // Handle test plan upload
     $("#upload-test-plan-form").on("submit", function (event) {

@@ -1,5 +1,7 @@
 from flask import Blueprint, jsonify, request, render_template
 from HardwareTester.services.test_plan_service import TestPlanService
+from HardwareTester.models.test_models import TestPlan
+from HardwareTester.extensions import db
 
 # Define the Blueprint for test plan management
 test_plan_bp = Blueprint("test_plans", __name__, url_prefix="/test-plans")
@@ -38,14 +40,19 @@ def execute_plan(test_plan_id):
     return jsonify({"success": False, "error": result["error"]}), 400
 
 @test_plan_bp.route("/list", methods=["GET"])
-def get_test_plans():
-    """
-    Retrieve a list of all uploaded test plans with metadata.
-    """
-    response = TestPlanService.list_test_plans()
-    if response.get("success"):
-        return jsonify(response)
-    return jsonify({"success": False, "error": response.get("error", "Failed to retrieve test plans")}), 500
+def list_test_plans():
+    try:
+        # Replace with your actual query logic
+        plans = TestPlan.query.all()
+        if not plans:  # If no test plans exist
+            return jsonify({"success": True, "testPlans": []})  # Return an empty list
+
+        # Serialize the test plans
+        return jsonify({"success": True, "testPlans": [plan.serialize() for plan in plans]})
+    except Exception as e:
+        app.logger.error(f"Error retrieving test plans: {e}")
+        return jsonify({"success": False, "error": "Failed to retrieve test plans."}), 500
+
 
 @test_plan_bp.route("/run/<int:test_plan_id>", methods=["POST"])
 def run_test_plan_endpoint(test_plan_id):
@@ -67,3 +74,15 @@ def preview_test_plan(test_plan_id):
     if response["success"]:
         return jsonify({"success": True, "plan": response["plan"]})
     return jsonify({"success": False, "error": response["error"]}), 400
+
+@test_plan_bp.route("/seed-test-plans", methods=["POST"])
+def seed_test_plans():
+    try:
+        # Replace with your ORM or database logic
+        test_plan = TestPlan(name="Sample Test Plan", uploaded_by="Admin")
+        db.session.add(test_plan)
+        db.session.commit()
+        return jsonify({"success": True, "message": "Test plans seeded successfully."})
+    except Exception as e:
+        app.logger.error(f"Error seeding test plans: {e}")
+        return jsonify({"success": False, "error": "Failed to seed test plans."}), 500

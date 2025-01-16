@@ -1,5 +1,10 @@
 {% extends "base.html" %}
 
+{% block extra_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/user_management.css') }}">
+{% endblock %}
+
+
 {% block content %}
 <div class="container mt-4">
     <h2>User Management</h2>
@@ -33,11 +38,6 @@
 {% endblock %}
 
 {% block additional_scripts %}
-{{ super() }}
 <script src="{{ url_for('static', filename='js/user_management.js') }}"></script>
 {% endblock %}
 
-{% block extra_styles %}
-{{ super() }}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/user_management.css') }}">
-{% endblock %}

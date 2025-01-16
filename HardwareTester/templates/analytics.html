@@ -3,7 +3,6 @@
 {% block title %}Analytics{% endblock %}
 
 {% block additional_head %}
-{{ super() }}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/analytics.css') }}">
 {% endblock %}
 
@@ -80,7 +79,6 @@
 {% endblock %}
 
 {% block additional_scripts %}
-{{ super() }}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="{{ url_for('static', filename='js/analytics.js') }}"></script>
 {% endblock %}

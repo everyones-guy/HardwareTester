@@ -3,7 +3,6 @@
 {% block title %}Authenticated Area{% endblock %}
 
 {% block extra_styles %}
-{{ super() }}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
 {% endblock %}
 
@@ -47,6 +46,5 @@
 {% endblock %}
 
 {% block additional_scripts %}
-{{ super() }}
 <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
 {% endblock %}
