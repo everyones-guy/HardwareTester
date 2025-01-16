@@ -2,8 +2,9 @@
 
 {% block title %}Hardware Emulator{% endblock %}
 
-{% extra_styles %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/emulator.css') }}">
+{% block extra_styles %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/emulator.css') }}">
 {% endblock %}
 
 {% block content %}
@@ -100,5 +101,6 @@
 {% endblock %}
 
 {% block additional_scripts %}
+{{ super() }}
 <script src="{{ url_for('static', filename='js/emulator.js') }}"></script>
 {% endblock %}

@@ -18,6 +18,7 @@
 {% endblock %}
 
 {% block additional_scripts %}
+{{ super() }}
 <script src="{{ url_for('static', filename='js/upload_spec_sheet.js') }}"></script>
 {% endblock %}
 

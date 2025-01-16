@@ -1,3 +1,4 @@
+import stat
 import serial
 import time
 import serial.tools.list_ports
@@ -21,6 +22,7 @@ class SerialService:
         if self.debug:
             logger.setLevel("DEBUG")
 
+    @staticmethod
     def connect(self):
         if not self.port:
             self.port = self.find_comm_port()
@@ -40,16 +42,19 @@ class SerialService:
             logger.error(f"Failed to connect to {self.port}: {e}")
             return False
 
+    @staticmethod
     def disconnect(self):
         if self.connection and self.connection.is_open:
             self.connection.close()
             logger.info(f"Disconnected from {self.port}.")
 
+    @staticmethod
     def reconnect(self):
         self.disconnect()
         logger.info(f"Attempting to reconnect to {self.port}...")
         return self.connect()
-
+    
+    @staticmethod
     def send_data(self, data):
         if not self.connection or not self.connection.is_open:
             logger.warning("Serial connection is not open. Attempting to reconnect...")
@@ -64,6 +69,7 @@ class SerialService:
             logger.error(f"Error sending data: {e}")
             return False
 
+    @staticmethod
     def read_data(self):
         if not self.connection or not self.connection.is_open:
             logger.error("Serial connection is not open.")
@@ -84,6 +90,7 @@ class SerialService:
         logger.error(f"All {self.retries} attempts to read data failed.")
         return None
 
+    @staticmethod
     def find_comm_port(self):
         logger.info("Searching for COM ports...")
         ports = serial.tools.list_ports.comports()
@@ -94,6 +101,7 @@ class SerialService:
         logger.error("No suitable USB or Serial COM port found.")
         return None
 
+    @staticmethod
     def discover_device(self, timeout=5):
         logger.info("Scanning for serial devices...")
         ports = serial.tools.list_ports.comports()
@@ -114,6 +122,7 @@ class SerialService:
         logger.error("No devices discovered.")
         return None
 
+    @staticmethod
     def configure_device(self, baudrate=9600, parity="N", stopbits=1, databits=8):
         """
         Configure the serial device with the provided settings.
@@ -141,7 +150,7 @@ class SerialService:
         except Exception as e:
             logger.error(f"Failed to configure device: {e}")
             return False
-
+    
     def __enter__(self):
         if not self.connect():
             raise serial.SerialException(f"Failed to connect to {self.port}")

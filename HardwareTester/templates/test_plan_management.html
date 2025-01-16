@@ -2,8 +2,9 @@
 
 {% block title %}Test Plan Management{% endblock %}
 
-{% extra styles %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/test_plan_management.css') }}">
+{% block extra_styles %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/test_plan_management.css') }}">
 {% endblock %}
 
 {% block content %}
@@ -60,5 +61,6 @@
 {% endblock %}
 
 {% block additional_scripts %}
-    <script src="{{ url_for('static', filename='js/test_plan_management.js') }}"></script>
+{{ super() }}
+<script src="{{ url_for('static', filename='js/test_plan_management.js') }}"></script>
 {% endblock %}

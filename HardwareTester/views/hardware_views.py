@@ -14,7 +14,6 @@ mqtt_service = MQTTService(broker="test.mosquitto.org", port=1883)
 mqtt_service.connect()
 
 @hardware_bp.route("/discover-device", methods=["POST"])
-@hardware_bp.route("/discover-device", methods=["POST"])
 def discover_device():
     """Discover device metadata and settings."""
     data = request.json
@@ -65,7 +64,6 @@ def discover_device():
         logger.error(f"Error discovering device {device_id}: {e}")
         db.session.rollback()
         return jsonify({"success": False, "error": str(e)}), 500
-
 
 
 @hardware_bp.route("/device/<string:device_id>", methods=["GET"])

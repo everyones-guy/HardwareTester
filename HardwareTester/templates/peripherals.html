@@ -51,9 +51,11 @@
 {% endblock %}
 
 {% block additional_scripts %}
-    <script src="{{ url_for('static', filename='js/peripherals.js') }}"></script>
+{{ super() }}
+<script src="{{ url_for('static', filename='js/peripherals.js') }}"></script>
 {% endblock %}
 
 {% block extra_styles %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/peripherals.css') }}">
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/peripherals.css') }}">
 {% endblock %
