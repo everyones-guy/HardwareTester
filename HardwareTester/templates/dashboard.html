@@ -48,7 +48,9 @@
                     <div class="tab-pane fade" id="emulators" role="tabpanel">
                         <h3>Emulators</h3>
                         <div id="emulator-container">
-                            <button class="btn btn-primary mb-3" id="add-emulator">Add Emulator</button>
+                            <button class="btn btn-primary mb-3" id="add-emulator" data-bs-toggle="modal" data-bs-target="#addEmulatorModal">
+                                Add Emulator
+                            </button>
                             <ul class="list-group" id="emulator-list">
                                 <li class="list-group-item">No emulators available.</li>
                             </ul>
@@ -173,6 +175,37 @@
         </div>
     </div>
 </div>
+
+<!-- Add Emulator Modal -->
+<div class="modal fade" id="addEmulatorModal" tabindex="-1" aria-labelledby="addEmulatorModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addEmulatorModalLabel">Add Emulator</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="add-emulator-form">
+                    <div class="mb-3">
+                        <label for="emulator-name" class="form-label">Emulator Name</label>
+                        <input type="text" class="form-control" id="emulator-name" name="name" placeholder="Enter emulator name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="emulator-type" class="form-label">Emulator Type</label>
+                        <input type="text" class="form-control" id="emulator-type" name="type" placeholder="Enter emulator type" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="emulator-config" class="form-label">Configuration</label>
+                        <textarea class="form-control" id="emulator-config" name="config" rows="4" placeholder="Enter emulator configuration"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save Emulator</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 {% endblock %}
 
 {% block additional_scripts %}

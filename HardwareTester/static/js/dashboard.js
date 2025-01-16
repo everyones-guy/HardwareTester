@@ -218,31 +218,70 @@ $(document).ready(function () {
         });
     }
 
+    // Event handler for adding emulators
+    $("#add-emulator-form").on("submit", function (event) {
+        event.preventDefault();
 
+        const name = $("#emulator-name").val();
+        const type = $("#emulator-type").val();
+        let config;
+        try {
+            config = JSON.parse($("#emulator-configuration").val());
+        } catch (e) {
+            alert("Invalid JSON in Configuration. Please check the format.");
+            return;
+        }
+
+        $.ajax({
+            url: "/emulators/add",
+            method: "POST",
+            contentType: "application/json",
+            headers: {
+                "X-CSRFToken": $('meta[name="csrf-token"]').attr('content')
+            },
+            data: JSON.stringify({ name, type, configuration: config }),
+            success: function (response) {
+                if (response.success) {
+                    alert(response.message);
+                    $("#add-emulator-modal").modal("hide");
+                    // Reload emulators
+                    loadEmulators();
+                } else {
+                    alert("Error: " + response.error);
+                }
+            },
+            error: function () {
+                alert("Failed to add emulator. Please try again.");
+            }
+        });
+    });
+
+
+    // Function to load emulators
     function loadEmulators() {
-        const list = $("#emulator-list");
-        list.html("<li class='list-group-item'>Loading...</li>");
-
-        apiRequest("/emulators/list", "GET")
-            .done((data) => {
-                list.empty();
-                if (data.success && Array.isArray(data.emulators)) {
-                    data.emulators.forEach((emulator) => {
-                        list.append(`
-                        <li class="list-group-item">
-                            <strong>${emulator.name}</strong> - Status: ${emulator.status}
-                            <button class="btn btn-danger btn-sm float-end stop-emulator" data-id="${emulator.id}">Stop</button>
-                        </li>
-                    `);
+        $.ajax({
+            url: "/emulators/list", // Replace with your server's endpoint
+            type: "GET",
+            success: function (response) {
+                const emulatorList = $("#emulator-list");
+                emulatorList.empty();
+                if (response.success) {
+                    response.emulators.forEach((emulator) => {
+                        emulatorList.append(`
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>${emulator.name}</span>
+                                <button class="btn btn-sm btn-danger" data-id="${emulator.id}">Delete</button>
+                            </li>
+                        `);
                     });
                 } else {
-                    list.append("<li class='list-group-item'>No emulators available.</li>");
+                    emulatorList.append('<li class="list-group-item">No emulators available.</li>');
                 }
-            })
-            .fail(() => {
-                list.empty();
-                alert("Failed to load emulators.");
-            });
+            },
+            error: function (xhr) {
+                console.error("Error loading emulators:", xhr.responseText);
+            },
+        });
     }
 
 

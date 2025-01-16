@@ -117,3 +117,14 @@ def compare_machines():
     except Exception as e:
         logger.error(f"Error comparing machines: {e}")
         return jsonify({"success": False, "error": "Failed to compare machines."}), 500
+
+@emulator_bp.route('/add', methods=['POST'])
+def add_emulator():
+    try:
+        data = request.get_json()
+        print("Received data:", data)  # Debugging
+        # Process and validate the data
+        return {"success": True, "message": "Emulator added successfully"}
+    except Exception as e:
+        print("Error:", str(e))
+        return {"success": False, "error": "Failed to add emulator"}, 400

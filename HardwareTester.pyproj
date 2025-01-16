@@ -254,6 +254,7 @@
     <Folder Include="tests\End_to_end\" />
     <Folder Include="tests\unit\" />
     <Folder Include="uploads\" />
+    <Folder Include="uploads\emulator_configurations\" />
     <Folder Include="uploads\test_plans\" />
     <Folder Include="uploads\spec_sheets\" />
   </ItemGroup>
@@ -345,6 +346,7 @@
     <Content Include="HardwareTester\templates\contact.html" />
     <Content Include="HardwareTester\templates\index.html" />
     <Content Include="HardwareTester\templates\layout.html" />
+    <Content Include="uploads\emulator_configurations\test_emulator_config.cfg" />
   </ItemGroup>
   <ItemGroup>
     <Interpreter Include="env\">
