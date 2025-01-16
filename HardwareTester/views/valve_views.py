@@ -1,11 +1,11 @@
-
 from flask import Blueprint, jsonify, render_template, request
 from HardwareTester.services.valve_service import (
     get_all_valves,
     add_valve,
     delete_valve,
     update_valve,
-    get_valve_status
+    get_valve_status,
+    change_valve_state  # Import new state-changing function
 )
 
 valve_bp = Blueprint("valve", __name__, url_prefix="/valves")
@@ -45,4 +45,18 @@ def update_existing_valve(valve_id):
 def valve_status(valve_id):
     """Get the status of a specific valve."""
     response = get_valve_status(valve_id)
+    return jsonify(response)
+
+@valve_bp.route("/<int:valve_id>/change-state", methods=["POST"])
+def change_valve_state_endpoint(valve_id):
+    """
+    Change the state of a specific valve.
+    States can be: open, closed, faulty, maintenance.
+    """
+    data = request.json
+    new_state = data.get("state")
+    if not new_state:
+        return jsonify({"success": False, "error": "Missing 'state' field in request body"}), 400
+
+    response = change_valve_state(valve_id, new_state)
     return jsonify(response)

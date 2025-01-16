@@ -87,3 +87,11 @@ class DeviceFirmwareHistory(db.Model):
 
     device = db.relationship("Device", backref=db.backref("firmware_history", lazy="dynamic"))
     firmware = db.relationship("Firmware")
+
+class Valve(db.Model):
+    __tablename__ = "valves"
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(255), nullable=False)
+    type = db.Column(db.String(255), nullable=False)
+    specifications = db.Column(db.JSON, nullable=True)
+    state = db.Column(db.String(50), default="closed", nullable=False)  # New field for state
