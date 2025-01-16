@@ -54,7 +54,7 @@ $(document).ready(function () {
             "GET",
             null,
             function (data) {
-                const list = $("#uploaded-test-plans-list");
+                const list = $("#test-plans-list");
                 list.empty();
 
                 if (data.success) {

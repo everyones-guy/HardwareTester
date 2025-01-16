@@ -48,16 +48,6 @@ def upgrade():
     )
 
 
-    # Add foreign key constraint for `user_id` in `dashboard_data`
-    op.create_foreign_key(
-        'fk_dashboard_data_user_id',
-        'dashboard_data',
-        'users',
-        ['user_id'],
-        ['id'],
-        ondelete='CASCADE'
-    )
-
 
 def downgrade():
     # Drop foreign key constraint for `user_id` in `dashboard_data`
