@@ -5,13 +5,13 @@ from HardwareTester.utils.custom_logger import CustomLogger
 # Initialize logger
 logger = CustomLogger.get_logger("settings_views")
 
-settings_bp = Blueprint("settings", __name__)
+settings_bp = Blueprint("settings", __name__, url_prefix="/settings")
 
 # ----------------------
 # Global Settings Endpoints
 # ----------------------
 
-@settings_bp.route("/settings/global/<key>", methods=["GET"])
+@settings_bp.route("/global/<key>", methods=["GET"])
 def get_global_setting_view(key):
     """Retrieve a global setting by key."""
     logger.info(f"Fetching global setting for key: {key}")
@@ -27,7 +27,7 @@ def get_global_setting_view(key):
         return jsonify({"success": False, "message": "Error retrieving global setting."}), 500
 
 
-@settings_bp.route("/settings/global", methods=["POST"])
+@settings_bp.route("/global", methods=["POST"])
 def update_global_setting_view():
     """Update or create a global setting."""
     logger.info("Updating global setting.")
@@ -49,7 +49,7 @@ def update_global_setting_view():
         return jsonify({"success": False, "message": "Error updating global setting."}), 500
 
 
-@settings_bp.route("/settings/global", methods=["GET"])
+@settings_bp.route("/global/list", methods=["GET"])
 def list_global_settings_view():
     """List all global settings."""
     logger.info("Fetching all global settings.")
@@ -66,7 +66,7 @@ def list_global_settings_view():
 # User Settings Endpoints
 # ----------------------
 
-@settings_bp.route("/settings/user/<int:user_id>", methods=["GET"])
+@settings_bp.route("/user/<int:user_id>", methods=["GET"])
 def get_user_settings_view(user_id):
     """Retrieve user-specific settings."""
     logger.info(f"Fetching settings for user ID: {user_id}")
@@ -82,7 +82,7 @@ def get_user_settings_view(user_id):
         return jsonify({"success": False, "message": "Error retrieving settings."}), 500
 
 
-@settings_bp.route("/settings/user/<int:user_id>", methods=["POST"])
+@settings_bp.route("/user/<int:user_id>", methods=["POST"])
 def update_user_settings_view(user_id):
     """Update user-specific settings."""
     logger.info(f"Updating settings for user ID: {user_id}")

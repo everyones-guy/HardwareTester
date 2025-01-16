@@ -126,11 +126,11 @@ $(document).ready(function () {
     }
 
     // API request helper
-    function apiRequest(url, method, data = null) {
+    function apiRequest(url, method, data = {}) {
         return $.ajax({
             url: url,
-            type: method,
-            data: data ? JSON.stringify(data) : null,
+            method: method,
+            data: method === "GET" ? undefined : JSON.stringify(data),
             contentType: "application/json",
         });
     }
@@ -273,15 +273,16 @@ $(document).ready(function () {
                     container.append("<p>No logs available.</p>");
                 }
             })
-            .fail((xhr) => {
+            .fail((xhr, status, error) => {
                 container.empty();
-                alert(`Failed to load logs. Error: ${xhr.statusText}`);
+                console.error("Error loading logs:", error);
+                container.append(`<p class="text-danger">Failed to load logs: ${xhr.statusText}</p>`);
             });
     }
 
 
     function loadSettings() {
-        apiRequest("/settings/global", "GET")
+        apiRequest("/settings/global/list", "GET")
             .done((data) => {
                 const list = $("#global-settings-list");
                 list.empty();

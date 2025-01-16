@@ -19,6 +19,7 @@
     <RootNamespace>HardwareTester</RootNamespace>
     <TestFramework>Pytest</TestFramework>
     <InterpreterId>MSBuild|venv|$(MSBuildProjectFullPath)</InterpreterId>
+    <WebBrowserPort>5000</WebBrowserPort>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>

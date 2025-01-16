@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
 from HardwareTester.services.serial_service import SerialService
 
-serial_bp = Blueprint("serial", __name__, url_prefix=)
+serial_bp = Blueprint("serial", __name__, url_prefix="/serial")
 
 # Global instance of the SerialService
 serial_service = None
