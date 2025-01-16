@@ -11,8 +11,6 @@ logger = CustomLogger.get_logger("test_plan_service")
 # Initialize logger and API manager
 api_manager = create_api_manager("http://127.0.0.1:5000/api")
 
-
-
 class TestPlanService:
     """Service for managing test plans."""
 

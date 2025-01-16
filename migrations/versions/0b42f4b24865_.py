@@ -17,6 +17,12 @@ depends_on = None
 
 
 def upgrade():
+    
+    #first drop the table if it exists
+    op.drop_table('firmwares')
+    op.drop_table('device_firmware_history')
+
+
     # Create the `firmwares` table
     op.create_table(
         'firmwares',
@@ -41,12 +47,6 @@ def upgrade():
         sa.PrimaryKeyConstraint('id')
     )
 
-    # Add columns to the `dashboard_data` table
-    op.add_column('dashboard_data', sa.Column('user_id', sa.Integer(), nullable=False))
-    op.add_column('dashboard_data', sa.Column('title', sa.String(length=255), nullable=False))
-    op.add_column('dashboard_data', sa.Column('type', sa.String(length=50), nullable=False))
-    op.add_column('dashboard_data', sa.Column('created_at', sa.DateTime(), default=sa.func.now()))
-    op.add_column('dashboard_data', sa.Column('updated_at', sa.DateTime(), default=sa.func.now(), onupdate=sa.func.now()))
 
     # Add foreign key constraint for `user_id` in `dashboard_data`
     op.create_foreign_key(

@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, request, render_template
 from HardwareTester.services.test_plan_service import TestPlanService
 
 # Define the Blueprint for test plan management
-test_plan_bp = Blueprint("test_plan", __name__, url_prefix="/test-plans")
+test_plan_bp = Blueprint("test_plans", __name__, url_prefix="/test-plans")
 
 @test_plan_bp.route("/", methods=["GET"])
 def show_test_plans():
