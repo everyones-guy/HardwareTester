@@ -5,6 +5,7 @@ FLASK_APP=HardwareTester:create_app  # Entry point for the Flask app
 FLASK_ENV=development
 FLASK_CONFIG=development
 FLASK_DEBUG=1  # Set to 0 in production
+# TEMPLATES_FOLDER=C:/Users/Gary/source/repos/HardwareTester/HardwareTester/templates
 
 # Database Configuration
 # DATABASE_URL=sqlite:///instance/app.db  # Default SQLite database location
@@ -30,6 +31,7 @@ LOG_FILE=app.log
 
 # File upload settings
 UPLOAD_FOLDER=uploads
+BLUEPRINT_UPLOAD_FOLDER=blueprints/upload
 MAX_CONTENT_LENGTH=16777216  # 16 MB
 ALLOWED_SPEC_SHEET_EXTENSIONS=pdf,docx,xlsx
 ALLOWED_TEST_PLAN_EXTENSIONS=pdf,csv,txt

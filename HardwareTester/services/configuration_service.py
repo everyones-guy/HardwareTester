@@ -1,12 +1,15 @@
-# configuration_service.py imports the Configuration model from models/__init__.py.
-from HardwareTester.extensions import db, logger
+from HardwareTester.extensions import db
+from HardwareTester.utils.custom_logger import CustomLogger
 from HardwareTester.models.configuration_models import Configuration
 import json
+
+# Initialize logger
+logger = CustomLogger.get_logger("configuration_service")
 
 class ConfigurationService:
     @staticmethod
     def save_configuration(name, layout):
-        """dddd
+        """
         Save a configuration layout to the database.
         :param name: Name of the configuration.
         :param layout: JSON layout of valves and peripherals.
@@ -26,6 +29,7 @@ class ConfigurationService:
             db.session.rollback()
             logger.error(f"Error saving configuration: {e}")
             return {"success": False, "error": str(e)}
+
     @staticmethod
     def load_configuration(config_id):
         """
@@ -42,6 +46,7 @@ class ConfigurationService:
         except Exception as e:
             logger.error(f"Error loading configuration: {e}")
             return {"success": False, "error": str(e)}
+
     @staticmethod
     def list_configurations():
         """
@@ -56,3 +61,18 @@ class ConfigurationService:
             logger.error(f"Error listing configurations: {e}")
             return {"success": False, "error": str(e)}
 
+    @staticmethod
+    def generate_preview(config_id):
+        """
+        Generate a preview for a specific configuration.
+        :param config_id: ID of the configuration to preview.
+        :return: HTML snippet or error message.
+        """
+        try:
+            # Mock preview logic
+            configuration = {"id": config_id, "name": f"Config {config_id}"}
+            preview_html = f"<div>Preview: {configuration['name']}</div>"
+            return {"success": True, "preview": preview_html}
+        except Exception as e:
+            logger.error(f"Error generating preview: {e}")
+            return {"success": False, "error": str(e)}

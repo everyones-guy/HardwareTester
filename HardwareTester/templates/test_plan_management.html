@@ -1,45 +1,66 @@
-
 {% extends "base.html" %}
+
+{% block title %}Test Plan Management{% endblock %}
+
+{% block extra_styles %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/test_plan_management.css') }}">
+{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
-    <h2>Test Plan Management</h2>
+    <h2 class="text-center">Test Plan Management</h2>
+
     <div class="row">
         <!-- Test Plans Section -->
         <div class="col-md-8">
             <h5>Uploaded Test Plans</h5>
             <ul id="test-plans-list" class="list-group">
-                <li class="list-group-item">Loading...</li>
+                <li class="list-group-item text-center">Loading...</li>
             </ul>
         </div>
 
         <!-- Upload Section -->
         <div class="col-md-4">
             <h5>Upload New Test Plan</h5>
-            <form id="upload-test-plan-form">
+            <form id="upload-test-plan-form" class="test-plan-upload-form">
                 <div class="mb-3">
-                    <input type="file" name="file" class="form-control" required>
+                    <label for="file" class="form-label">Select File</label>
+                    <input type="file" id="file" name="file" class="form-control" required>
                 </div>
                 <div class="mb-3">
-                    <input type="text" name="uploaded_by" class="form-control" placeholder="Your Name" required>
+                    <label for="uploaded_by" class="form-label">Uploaded By</label>
+                    <input type="text" id="uploaded_by" name="uploaded_by" class="form-control" placeholder="Your Name" required>
                 </div>
-                <button type="submit" class="btn btn-primary w-100">Upload</button>
+                <button type="submit" class="btn btn-primary upload-btn w-100">Upload</button>
             </form>
+        </div>
+    </div>
+
+    <!-- Preview Section -->
+    <div class="mt-4 d-none" id="test-plan-preview-section">
+        <h5>Test Plan Preview</h5>
+        <div class="card">
+            <div class="card-body">
+                <h6 id="preview-plan-name"></h6>
+                <p><strong>Uploaded By:</strong> <span id="preview-uploaded-by"></span></p>
+                <ul id="preview-steps" class="list-group"></ul>
+                <button class="btn btn-success mt-3" id="run-preview-plan">Run This Test Plan</button>
+            </div>
         </div>
     </div>
 
     <!-- Test Results Section -->
     <div class="mt-4">
         <h5>Test Results</h5>
-        <div id="test-results">
-            <p>No test results to display.</p>
+        <div id="test-results" class="border bg-light p-3">
+            <p class="text-muted">No test results to display.</p>
         </div>
     </div>
 </div>
 {% endblock %}
 
-{% block extra_scripts %}
-<script src="{{ url_for('static', filename='js/scripts/test_plan_management.js') }}"></script>
-<link rel="stylesheet" href="{{ url_for('static', filename='css/test_plan_management.css') }}">
+{% block additional_scripts %}
+{{ super() }}
+<script src="{{ url_for('static', filename='js/test_plan_management.js') }}"></script>
 {% endblock %}
-

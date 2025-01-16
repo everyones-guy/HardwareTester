@@ -2,10 +2,17 @@ import json
 import time
 import threading
 from paho.mqtt.client import Client
-from HardwareTester.extensions import logger
+from HardwareTester.utils.custom_logger import CustomLogger
+
+# initialize logger
+logger = CustomLogger.get_logger("mqtt_service")
+
+DEFAULT_RETRY_COUNT = 3
+DEFAULT_RETRY_DELAY = 2  # Seconds between retries
+
 
 class MQTTService:
-    """MQTT Service for interacting with devices."""
+    """Enhanced MQTT Service for interacting with devices."""
 
     def __init__(self, broker: str, port: int = 1883, username: str = None, password: str = None, tls: bool = False):
         """
@@ -36,6 +43,7 @@ class MQTTService:
 
         self.client.on_connect = self.on_connect
         self.client.on_message = self.on_message
+        self.client.on_disconnect = self.on_disconnect
 
     def on_connect(self, client, userdata, flags, rc):
         """Handle MQTT connection events."""
@@ -43,6 +51,12 @@ class MQTTService:
             logger.info(f"Connected to MQTT broker at {self.broker}:{self.port}")
         else:
             logger.error(f"Failed to connect to MQTT broker with code {rc}")
+
+    def on_disconnect(self, client, userdata, rc):
+        """Handle MQTT disconnection events."""
+        if rc != 0:
+            logger.warning(f"Unexpected disconnection from MQTT broker (code {rc}). Attempting to reconnect...")
+            self.connect()
 
     def on_message(self, client, userdata, msg):
         """Handle incoming MQTT messages."""
@@ -70,21 +84,29 @@ class MQTTService:
         self.client.disconnect()
         logger.info("MQTT connection closed.")
 
-    def publish(self, topic: str, payload: dict):
+    def publish(self, topic: str, payload: dict, retries=DEFAULT_RETRY_COUNT):
         """Publish a message to a specific MQTT topic."""
-        try:
-            self.client.publish(topic, json.dumps(payload))
-            logger.info(f"Published to {topic}: {payload}")
-        except Exception as e:
-            logger.error(f"Failed to publish to {topic}: {e}")
+        for attempt in range(retries):
+            try:
+                self.client.publish(topic, json.dumps(payload))
+                logger.info(f"Published to {topic}: {payload}")
+                return
+            except Exception as e:
+                logger.error(f"Failed to publish to {topic} on attempt {attempt + 1}: {e}")
+                time.sleep(DEFAULT_RETRY_DELAY)
+        logger.error(f"All attempts to publish to {topic} failed.")
 
-    def subscribe(self, topic: str):
+    def subscribe(self, topic: str, retries=DEFAULT_RETRY_COUNT):
         """Subscribe to a specific MQTT topic."""
-        try:
-            self.client.subscribe(topic)
-            logger.info(f"Subscribed to {topic}")
-        except Exception as e:
-            logger.error(f"Failed to subscribe to {topic}: {e}")
+        for attempt in range(retries):
+            try:
+                self.client.subscribe(topic)
+                logger.info(f"Subscribed to {topic}")
+                return
+            except Exception as e:
+                logger.error(f"Failed to subscribe to {topic} on attempt {attempt + 1}: {e}")
+                time.sleep(DEFAULT_RETRY_DELAY)
+        logger.error(f"All attempts to subscribe to {topic} failed.")
 
     def send_request(self, topic: str, payload: dict, response_topic: str, timeout: int = 5) -> dict:
         """
@@ -94,7 +116,7 @@ class MQTTService:
         :param payload: Payload to send in the request.
         :param response_topic: Topic to listen for the response.
         :param timeout: Timeout for waiting for a response (in seconds).
-        :return: The response payload or None if timed out.
+        :return: The response payload or an error message if timed out.
         """
         self.response = None
         self.response_event.clear()
@@ -103,10 +125,16 @@ class MQTTService:
         self.publish(topic, payload)
 
         if self.response_event.wait(timeout):
-            return self.response
+            return {"success": True, "response": self.response}
         else:
             logger.warning(f"Timeout waiting for response on {response_topic}")
             return {"success": False, "error": "Timeout waiting for response"}
+
+    def list_topics(self):
+        """List all topics the client is subscribed to."""
+        logger.info("Subscribed topics:")
+        for topic in self.client._userdata:
+            logger.info(f" - {topic}")
 
     def update_firmware(self, device_id: str, firmware_url: str) -> dict:
         """Start a firmware update for a device."""
@@ -117,10 +145,7 @@ class MQTTService:
 
             # Wait for firmware update status
             update_topic = f"device/{device_id}/firmware/status"
-            self.subscribe(update_topic)
-            time.sleep(5)  # Simulate waiting for response
-            logger.info("Firmware update completed successfully.")
-            return {"success": True, "message": "Firmware updated successfully."}
+            return self.send_request(update_topic, {}, update_topic)
         except Exception as e:
             logger.error(f"Firmware update failed: {e}")
             return {"success": False, "error": str(e)}

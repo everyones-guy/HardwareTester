@@ -155,8 +155,12 @@ class RegistrationForm(FlaskForm):
         ]
     )
     password = PasswordField(
-        'Password', 
-        validators=[DataRequired()]
+        "Password",
+        validators=[
+            DataRequired(),
+            PasswordValidator(),
+            Length(min=8, message="Password must be at least 8 characters long."),
+        ]
     )
     confirm_password = PasswordField(
         'Confirm Password', 
@@ -168,9 +172,23 @@ class RegistrationForm(FlaskForm):
     submit = SubmitField('Register')
 
 class ProfileForm(FlaskForm):
-    name = StringField("Name", validators=[DataRequired()])
-    email = StringField("Email", validators=[DataRequired(), Email()])
+    name = StringField(
+        "Name",
+        validators=[
+            DataRequired(message="Name is required."),
+            Length(min=2, max=50, message="Name must be between 2 and 50 characters."),
+        ],
+    )
+    email = StringField(
+        "Email",
+        validators=[
+            DataRequired(message="Email is required."),
+            Email(message="Invalid email address."),
+        ],
+    )
     submit = SubmitField("Update Profile")
+    
+    bio = TextAreaField("Bio", validators=[Optional()])
 
 # User Registration Form
 class RegisterForm(FlaskForm):
@@ -201,13 +219,6 @@ class LoginForm(FlaskForm):
     email = StringField("Email", validators=[DataRequired(), Email()])
     password = PasswordField("Password", validators=[DataRequired()])
     submit = SubmitField("Login")
-
-# Profile Update Form
-class ProfileForm(FlaskForm):
-    username = StringField("Username", validators=[DataRequired()])
-    email = StringField("Email", validators=[DataRequired(), Email()])
-    bio = TextAreaField("Bio", validators=[Optional()])
-    submit = SubmitField("Update Profile")
 
 # Upload Spec Sheet Form
 class UploadSpecSheetForm(FlaskForm):

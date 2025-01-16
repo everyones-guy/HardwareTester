@@ -1,68 +1,122 @@
-
 {% extends "base.html" %}
 
 {% block title %}About & Instructions{% endblock %}
 
 {% block content %}
 <div class="container">
-    <h1 class="mt-4">About the Application</h1>
-    <p>This application is designed to streamline the testing and management of valves, spec sheets, and test plans. Follow the steps below to make the most of its features.</p>
+    <h1 class="mt-5 text-center">About the Universal Hardware Tester</h1>
+    <p class="lead text-center">Your ultimate tool for hardware testing, management, and automation.</p>
+
+    <hr class="my-4">
+
+    <h2 class="mt-4">About the Application</h2>
+    <p>
+        The Universal Hardware Tester is designed to simplify and optimize the testing and management
+        of valves, spec sheets, and test plans. Follow the instructions below to unlock its full potential.
+    </p>
 
     <h2 class="mt-4">Getting Started</h2>
-    <ol>
-        <li>
+    <ol class="list-group list-group-numbered">
+        <li class="list-group-item">
             <strong>Create or Identify Your Valve:</strong>
-            <p>Start by ensuring the valve you want to test is listed in the application. If not, you can add a new valve using the <a href="/add-valve">Add Valve</a> page. Provide a name, type, optional API endpoint, and specifications for the valve.</p>
+            <p>
+                Ensure the valve you want to test is listed in the application. If not, add a new valve using the
+                <a href="/add-valve" class="link-primary">Add Valve</a> page. Provide details like the valve's name,
+                type, optional API endpoint, and specifications.
+            </p>
         </li>
-        <li>
+        <li class="list-group-item">
             <strong>Upload Spec Sheets:</strong>
-            <p>Spec sheets can be uploaded via the <a href="/upload-spec-sheet">Upload Spec Sheet</a> page. This helps associate critical documentation with your valves.</p>
+            <p>
+                Upload spec sheets via the <a href="/upload-spec-sheet" class="link-primary">Upload Spec Sheet</a> page.
+                This helps associate critical documentation with your valves.
+            </p>
             <ul>
-                <li>Accepted formats: PDF, DOCX, XLSX</li>
+                <li>Accepted formats: <code>PDF</code>, <code>DOCX</code>, <code>XLSX</code></li>
                 <li>Optional: Link the spec sheet to a specific valve by providing its ID.</li>
             </ul>
         </li>
-        <li>
+        <li class="list-group-item">
             <strong>Upload Test Plans:</strong>
-            <p>Navigate to the <a href="/upload-test-plan">Upload Test Plan</a> page to upload your test plans. These plans will be parsed and stored for execution.</p>
+            <p>
+                Use the <a href="/upload-test-plan" class="link-primary">Upload Test Plan</a> page to upload your test plans.
+                These plans will be parsed and stored for execution.
+            </p>
             <ul>
-                <li>Accepted formats: PDF, CSV, TXT</li>
-                <li>Each test plan should include steps like "Open Valve 50%".</li>
+                <li>Accepted formats: <code>PDF</code>, <code>CSV</code>, <code>TXT</code></li>
+                <li>Include steps like "Open Valve 50%" or "Set Pressure to 10 PSI".</li>
             </ul>
         </li>
-        <li>
+        <li class="list-group-item">
             <strong>Run Test Plans:</strong>
-            <p>Once your valves and test plans are ready, go to the <a href="/run-test-plan">Run Test Plan</a> page to execute a specific test plan. Provide the ID of the test plan to initiate testing.</p>
+            <p>
+                Navigate to the <a href="/run-test-plan" class="link-primary">Run Test Plan</a> page to execute a test plan.
+                Simply provide the ID of the test plan to start testing.
+            </p>
         </li>
-        <li>
+        <li class="list-group-item">
             <strong>View Test Results:</strong>
-            <p>After running a test plan, you can view the results on the <a href="/view-results">View Results</a> page. Logs and statuses for each step will be displayed.</p>
+            <p>
+                After running a test plan, view results on the <a href="/view-results" class="link-primary">View Results</a> page.
+                Logs and statuses for each step will be displayed for your analysis.
+            </p>
         </li>
     </ol>
 
     <h2 class="mt-4">Additional Features</h2>
-    <ul>
-        <li><strong>Real-Time Logs:</strong> While running test plans, view live logs under the "Real-Time Logs" section on the dashboard.</li>
-        <li><strong>Dashboard Overview:</strong> The main <a href="/">Dashboard</a> provides quick access to key features and live updates.</li>
-        <li><strong>Search & Filter:</strong> Use the search functionality (if enabled) to quickly locate specific valves, spec sheets, or test plans.</li>
+    <ul class="list-group">
+        <li class="list-group-item"><strong>Real-Time Logs:</strong> Monitor live logs during test plan execution under the "Real-Time Logs" section on the dashboard.</li>
+        <li class="list-group-item"><strong>Dashboard Overview:</strong> Access key features and live updates quickly from the <a href="/" class="link-primary">Dashboard</a>.</li>
+        <li class="list-group-item"><strong>Search & Filter:</strong> Use search functionality to quickly locate specific valves, spec sheets, or test plans.</li>
     </ul>
 
     <h2 class="mt-4">Frequently Asked Questions</h2>
-    <h5>What file types are supported for uploads?</h5>
-    <p>Supported file types include:</p>
-    <ul>
-        <li><strong>Spec Sheets:</strong> PDF, DOCX, XLSX</li>
-        <li><strong>Test Plans:</strong> PDF, CSV, TXT</li>
-    </ul>
-
-    <h5>How do I find a valve's ID?</h5>
-    <p>You can view all available valves and their IDs on the <a href="/view-valves">View Valves</a> page.</p>
-
-    <h5>What if a test plan fails?</h5>
-    <p>Check the logs for details about the failure. Ensure the valve and test plan are configured correctly, and try again.</p>
+    <div class="accordion" id="faqAccordion">
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="faqOne">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne">
+                    What file types are supported for uploads?
+                </button>
+            </h2>
+            <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                    <ul>
+                        <li><strong>Spec Sheets:</strong> <code>PDF</code>, <code>DOCX</code>, <code>XLSX</code></li>
+                        <li><strong>Test Plans:</strong> <code>PDF</code>, <code>CSV</code>, <code>TXT</code></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="faqTwo">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo">
+                    How do I find a valve's ID?
+                </button>
+            </h2>
+            <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                    You can view all available valves and their IDs on the <a href="/view-valves" class="link-primary">View Valves</a> page.
+                </div>
+            </div>
+        </div>
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="faqThree">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree">
+                    What if a test plan fails?
+                </button>
+            </h2>
+            <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                    Check the logs for failure details. Ensure the valve and test plan are properly configured and try again.
+                </div>
+            </div>
+        </div>
+    </div>
 
     <h2 class="mt-4">Need Help?</h2>
-    <p>If you encounter issues or need support, contact your system administrator or email <a href="mailto:support@example.com">support@example.com</a>.</p>
+    <p>
+        If you encounter issues or need support, contact your system administrator or email
+        <a href="mailto:support@example.com" class="link-primary">support@example.com</a>.
+    </p>
 </div>
 {% endblock %}
-

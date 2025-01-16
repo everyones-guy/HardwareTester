@@ -1,6 +1,3 @@
-
-/* dashboard.css */
-
 /* General Styles */
 body {
     background-color: #f4f5f7;
@@ -9,113 +6,143 @@ body {
     padding: 0;
 }
 
-/* Dashboard Container */
-.dashboard-container {
-    max-width: 1200px;
-    margin: 20px auto;
-    padding: 20px;
-    background: #ffffff;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+/* Sidebar Styles */
+.list-group-item {
+    font-size: 15px;
+    font-weight: bold;
+    color: #333333;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Header Styles */
-.dashboard-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-    .dashboard-header h1 {
-        font-size: 24px;
-        color: #333333;
+    .list-group-item:hover {
+        background-color: #007bff;
+        color: #ffffff;
     }
 
-    .dashboard-header .action-buttons {
-        display: flex;
-        gap: 10px;
+    .list-group-item.active {
+        background-color: #0056b3;
+        color: #ffffff;
+        border-color: #0056b3;
     }
 
-        .dashboard-header .action-buttons .btn {
-            padding: 10px 20px;
-            font-size: 14px;
-            color: #ffffff;
-            background-color: #007bff;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-            .dashboard-header .action-buttons .btn:hover {
-                background-color: #0056b3;
-            }
-
-/* Grid Layout */
-.dashboard-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 20px;
-}
-
-/* Cards */
-.dashboard-card {
+/* Tab Content */
+.tab-content {
     background: #ffffff;
     border-radius: 8px;
     padding: 20px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease;
+    margin-top: 10px;
+}
+.tab-pane {
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    min-height: 300px; /* Ensure consistent height */
 }
 
-    .dashboard-card:hover {
-        transform: translateY(-5px);
+    .tab-pane p,
+    .tab-pane h3,
+    .tab-pane ul {
+        color: #333333; /* Ensure text is visible */
     }
 
-    .dashboard-card h3 {
-        font-size: 18px;
-        color: #555555;
-        margin-bottom: 10px;
-    }
-
-    .dashboard-card .card-content {
-        font-size: 14px;
-        color: #777777;
-    }
-
-/* Tables */
-.dashboard-table {
+/* Draggable Components */
+.canvas-container {
+    position: relative;
     width: 100%;
-    border-collapse: collapse;
+    height: 400px;
+    background: #e9ecef;
+    border: 1px solid #ced4da;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.draggable {
+    border: 2px solid #007bff;
+    border-radius: 5px;
+    cursor: move;
+    text-align: center;
+    background: #ffffff;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+    .draggable:hover {
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+.component-body {
+    font-size: 14px;
+    font-weight: bold;
+    color: #ffffff;
+    padding: 10px;
+}
+
+/* Device Discovery and Configuration */
+#device-discovery,
+#device-config-form {
+    display: none;
     margin-top: 20px;
 }
 
-    .dashboard-table th,
-    .dashboard-table td {
-        text-align: left;
-        padding: 10px 15px;
-        border-bottom: 1px solid #dddddd;
+    #device-discovery ul,
+    #device-config-form ul {
+        list-style: none;
+        padding: 0;
     }
 
-    .dashboard-table th {
-        background-color: #f9f9f9;
-        color: #333333;
-        font-weight: bold;
-    }
+        #device-discovery ul li,
+        #device-config-form ul li {
+            margin-bottom: 10px;
+            padding: 10px;
+            background: #ffffff;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
 
-    .dashboard-table tr:hover {
-        background-color: #f1f1f1;
-    }
-
-/* Chart Styles */
-.dashboard-chart {
-    padding: 20px;
-    background: #ffffff;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+/* Emulator Section */
+#emulator-container {
+    margin-top: 15px;
 }
 
-/* Notifications */
+#emulator-list .list-group-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+}
+
+#emulator-list .btn {
+    font-size: 12px;
+    padding: 5px 10px;
+}
+
+/* Logs Section */
+#log-container {
+    max-height: 300px;
+    overflow-y: auto;
+    background-color: #f9f9f9;
+    padding: 10px;
+    border-radius: 8px;
+}
+
+    #log-container p {
+        font-size: 14px;
+        margin: 0 0 10px;
+    }
+
+/* Global Settings */
+#global-settings-list .list-group-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+    #global-settings-list .list-group-item strong {
+        font-weight: bold;
+        color: #333;
+    }
+
+/* Notifications Section */
 .dashboard-notifications {
     list-style: none;
     padding: 0;
@@ -143,6 +170,22 @@ body {
             color: #999999;
         }
 
+/* Buttons */
+.btn {
+    padding: 10px 20px;
+    font-size: 14px;
+    color: #ffffff;
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+    .btn:hover {
+        background-color: #0056b3;
+    }
+
 /* Footer */
 .dashboard-footer {
     text-align: center;
@@ -150,4 +193,3 @@ body {
     font-size: 12px;
     color: #aaaaaa;
 }
-

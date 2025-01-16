@@ -15,6 +15,8 @@ from HardwareTester.views.test_plan_views import test_plan_bp
 from HardwareTester.views.user_management_views import user_management_bp
 from HardwareTester.views.notifications_views import notifications_bp
 from HardwareTester.views.upload_views import upload_bp
+from HardwareTester.views.api_views import api_bp
+from HardwareTester.views.valve_views import valve_bp
 
 def register_blueprints(app):
     """Register all blueprints with the Flask app."""
@@ -22,7 +24,7 @@ def register_blueprints(app):
     app.register_blueprint(auth_bp, url_prefix="/auth")
     app.register_blueprint(configuration_bp, url_prefix="/configurations")
     app.register_blueprint(dashboard_bp, url_prefix="/dashboard")
-    app.register_blueprint(emulator_bp, url_prefix="/emulator")
+    app.register_blueprint(emulator_bp, url_prefix="/emulators")
     app.register_blueprint(logs_bp, url_prefix="/logs")
     app.register_blueprint(hardware_bp, url_prefix="/hardware")
     app.register_blueprint(mqtt_bp, url_prefix="/mqtt")
@@ -34,3 +36,5 @@ def register_blueprints(app):
     app.register_blueprint(user_management_bp, url_prefix="/users")
     app.register_blueprint(notifications_bp, url_prefix="/notifications")
     app.register_blueprint(upload_bp, url_prefix="/upload")
+    app.register_blueprint(api_bp, url_prefix="/api")
+    app.register_blueprint(valve_bp, url_prefix="/valves")

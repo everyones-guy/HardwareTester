@@ -1,41 +1,61 @@
 
 # user_management.py
 
-from werkzeug.security import generate_password_hash, check_password_hash
-from HardwareTester.extensions import db, logger
+from HardwareTester.utils.validators import validate_email
+from HardwareTester.utils.custom_logger import CustomLogger
+from HardwareTester.extensions import db
+from HardwareTester.utils.bcrypt_utils import hash_password, check_password, is_strong_password
 from HardwareTester.models.user_models import User
 from sqlalchemy.exc import SQLAlchemyError
 
+# Initialize logger
+logger = CustomLogger.get_logger("user_management_service")
+
 class UserManagementService:
     """Service for managing user accounts."""
-
+    
     @staticmethod
     def create_user(username: str, email: str, password: str) -> dict:
-        """
-        Create a new user.
-        :param username: Unique username.
-        :param email: User's email address.
-        :param password: User's password.
-        :return: Success or error message.
-        """
-        logger.info(f"Creating user '{username}'...")
         try:
+            # Validate email format
+            if not validate_email(email):
+                return {"success": False, "error": "Invalid email format."}
+
+            # Check for existing username or email
             if User.query.filter((User.username == username) | (User.email == email)).first():
-                logger.warning("Username or email already exists.")
                 return {"success": False, "error": "Username or email already exists."}
 
-            hashed_password = generate_password_hash(password, method='sha256')
-            new_user = User(username=username, email=email, password=hashed_password)
+            # Validate password strength
+            if not is_strong_password(password):
+                return {"success": False, "error": "Password is not strong enough."}
+
+            # Create the user
+            hashed_password = hash_password(password)
+            new_user = User(username=username, email=email, password_hash=hashed_password)
             db.session.add(new_user)
             db.session.commit()
             logger.info(f"User '{username}' created successfully.")
             return {"success": True, "message": f"User '{username}' created successfully."}
         except SQLAlchemyError as e:
             db.session.rollback()
-            logger.error(f"Database error creating user '{username}': {e}")
-            return {"success": False, "error": "Failed to create user."}
+            logger.error(f"Database error during user creation: {e}")
+            return {"success": False, "error": "Database error."}
+
+    @staticmethod
+    def list_users(page: int = 1, per_page: int = 10) -> dict:
+        try:
+            paginated_users = User.query.paginate(page=page, per_page=per_page, error_out=False)
+            user_list = [
+                {
+                    "id": user.id,
+                    "username": user.username,
+                    "email": user.email,
+                    "created_at": user.created_at,
+                }
+                for user in paginated_users.items
+            ]
+            return {"success": True, "users": user_list, "total": paginated_users.total}
         except Exception as e:
-            logger.error(f"Unexpected error creating user '{username}': {e}")
             return {"success": False, "error": str(e)}
 
     @staticmethod
@@ -66,25 +86,6 @@ class UserManagementService:
             return {"success": False, "error": str(e)}
 
     @staticmethod
-    def list_users() -> dict:
-        """
-        Retrieve a list of all users.
-        :return: List of users or error message.
-        """
-        logger.info("Fetching list of users...")
-        try:
-            users = User.query.all()
-            user_list = [
-                {"id": user.id, "username": user.username, "email": user.email, "created_at": user.created_at}
-                for user in users
-            ]
-            logger.info(f"Retrieved {len(user_list)} users successfully.")
-            return {"success": True, "users": user_list}
-        except Exception as e:
-            logger.error(f"Error retrieving user list: {e}")
-            return {"success": False, "error": str(e)}
-
-    @staticmethod
     def authenticate_user(username: str, password: str) -> dict:
         """
         Authenticate a user by username and password.
@@ -95,7 +96,7 @@ class UserManagementService:
         logger.info(f"Authenticating user '{username}'...")
         try:
             user = User.query.filter_by(username=username).first()
-            if not user or not check_password_hash(user.password, password):
+            if not user or not check_password(user.password, password):
                 logger.warning(f"Authentication failed for user '{username}'.")
                 return {"success": False, "error": "Invalid username or password."}
 
@@ -127,7 +128,7 @@ class UserManagementService:
             if email:
                 user.email = email
             if password:
-                user.password = generate_password_hash(password)
+                user.password = hash_password(password)
 
             db.session.commit()
             logger.info(f"User ID {user_id} updated successfully.")

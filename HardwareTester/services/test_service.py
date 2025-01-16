@@ -1,11 +1,13 @@
 import os
 import json
-from HardwareTester.extensions import logger
+from HardwareTester.utils.custom_logger import CustomLogger
 from HardwareTester.utils.api_manager import create_api_manager
 
-# Initialize API manager
-api_manager = create_api_manager("https://example.com/api")
+# Initialize logger
+logger = CustomLogger.get_logger("test_service")
 
+# Initialize API manager
+api_manager = create_api_manager("http://127.0.0.1:5000/api")
 
 class TestService:
     """Service for managing and executing tests."""

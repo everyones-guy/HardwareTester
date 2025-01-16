@@ -1,10 +1,12 @@
-
 {% extends "base.html" %}
+
+{% block title %}Hardware Devices{% endblock %}
 
 {% block content %}
 <div class="container">
-    <h1 class="mt-4">Hardware Devices</h1>
+    <h1 class="mt-4 text-center">Hardware Devices</h1>
 
+    <!-- Discover Device Form -->
     <div class="card mt-4">
         <div class="card-header">
             <h3>Discover Device</h3>
@@ -12,13 +14,8 @@
         <div class="card-body">
             <form id="discover-device-form" class="row g-3">
                 <div class="col-md-8">
-                    <label for="device-id" class="form-label">Device ID:</label>
-                    <input type="text"
-                           id="device-id"
-                           name="device_id"
-                           class="form-control"
-                           placeholder="Enter Device ID"
-                           required>
+                    <label for="device-id" class="form-label">Device ID</label>
+                    <input type="text" id="device-id" name="device_id" class="form-control" placeholder="Enter Device ID" required>
                 </div>
                 <div class="col-md-4 align-self-end">
                     <button type="submit" class="btn btn-primary w-100">Discover</button>
@@ -27,6 +24,7 @@
         </div>
     </div>
 
+    <!-- Device Details -->
     <div id="device-details" class="card mt-4 d-none">
         <div class="card-header">
             <h3>Device Details</h3>
@@ -36,64 +34,35 @@
             <div id="device-settings"></div>
         </div>
     </div>
+
+    <!-- Device Firmware Upload-->
+    <div id="firmware-modal" class="modal">
+        <div class="modal-content">
+            <h4>Upload Firmware</h4>
+            <form id="firmware-form">
+                <label for="firmware">Select Firmware:</label>
+                <input type="file" id="firmware" name="firmware" required>
+
+                <label for="machines">Select Machines:</label>
+                <select id="machines" name="machines" multiple>
+                    <!-- Populate dynamically with machine list -->
+                </select>
+
+                <button type="submit">Upload</button>
+            </form>
+        </div>
+    </div>
+
+
 </div>
 {% endblock %}
 
-{% block extra_scripts %}
-<script>
-    $(document).ready(function () {
-        // Discover device
-        $("#discover-device-form").on("submit", function (event) {
-            event.preventDefault();
-            const deviceId = $("#device-id").val();
-
-            if (!deviceId) {
-                alert("Please enter a Device ID.");
-                return;
-            }
-
-            // Show a loading indicator
-            const discoverButton = $(this).find("button[type='submit']");
-            discoverButton.prop("disabled", true).text("Discovering...");
-
-            $.ajax({
-                url: "/hardware/discover-device",
-                type: "POST",
-                contentType: "application/json",
-                data: JSON.stringify({ device_id: deviceId }),
-                success: function (response) {
-                    const device = response.device;
-                    const deviceInfo = `
-                        <p><strong>Name:</strong> ${device.name}</p>
-                        <p><strong>Firmware:</strong> ${device.device_metadata.firmware}</p>
-                        <p><strong>Model:</strong> ${device.device_metadata.model}</p>
-                    `;
-                    const deviceSettings = device.settings.menu.map(menu => `
-                        <div class="mt-3">
-                            <h5>${menu.name}</h5>
-                            <ul class="list-group">
-                                ${menu.options.map(opt => `<li class="list-group-item">${opt}</li>`).join("")}
-                            </ul>
-                        </div>
-                    `).join("");
-
-                    // Populate device details and settings
-                    $("#device-info").html(deviceInfo);
-                    $("#device-settings").html(deviceSettings);
-
-                    // Show the details card
-                    $("#device-details").removeClass("d-none");
-                },
-                error: function (xhr) {
-                    alert(`Error: ${xhr.responseJSON?.error || "Failed to discover device."}`);
-                },
-                complete: function () {
-                    // Restore the discover button
-                    discoverButton.prop("disabled", false).text("Discover");
-                }
-            });
-        });
-    });
-</script>
+{% block additional_scripts %}
+{{ super() }}
+<script src="{{ url_for('static', filename='js/hardware.js') }}"></script>
 {% endblock %}
 
+{% block extra_styles %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/hardware.css') }}">
+{% endblock %}

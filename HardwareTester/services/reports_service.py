@@ -1,8 +1,13 @@
 
 # reports_service.py
 import datetime
-from HardwareTester.extensions import db, logger
+from HardwareTester.extensions import db
+from HardwareTester.utils.custom_logger import CustomLogger
 from HardwareTester.models.report_models import Report
+
+# Initialize logger
+logger = CustomLogger.get_logger("reports_service")
+
 
 def generate_report(user_id, report_type, data):
     """

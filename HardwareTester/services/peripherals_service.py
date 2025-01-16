@@ -1,8 +1,12 @@
 #peripherals_service.py
 
-from HardwareTester.extensions import db, logger
+from HardwareTester.extensions import db
+from HardwareTester.utils.custom_logger import CustomLogger
 from HardwareTester.models.device_models import Peripheral
 from sqlalchemy.exc import SQLAlchemyError
+
+# Initialize logger
+logger = CustomLogger.get_logger("peripherals_service")
 
 class PeripheralsService:
     """Service for managing peripherals."""

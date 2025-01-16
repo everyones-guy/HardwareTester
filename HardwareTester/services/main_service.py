@@ -1,11 +1,17 @@
-# main_service.py uses the Logger class from logger.py to log messages. The Logger class is a wrapper around the Python logging module. It provides methods for logging messages at different levels (DEBUG, INFO, WARNING, ERROR, CRITICAL) and allows for dynamic adjustment of the log level. The logger is initialized with a log file and log level, and log messages are written to both the log file and the console.
+# main_service.py uses the Logger class from logger.py to log messages. 
+# The Logger class is a wrapper around the Python logging module. 
+# It provides methods for logging messages at different levels (DEBUG, INFO, WARNING, ERROR, CRITICAL) and allows for dynamic adjustment of the log level. 
+# The logger is initialized with a log file and log level, and log messages are written to both the log file and the console.
 
 from datetime import datetime
 from HardwareTester.models.user_models import User, ContactMessage, DashboardData
 from HardwareTester.utils.db_utils import db_session
 from sqlalchemy.exc import SQLAlchemyError
-from HardwareTester.extensions import logger
+from HardwareTester.utils.custom_logger import CustomLogger
 import os
+
+# Initialize logger
+logger = CustomLogger.get_logger("main_service")
 
 class MainService:
     @staticmethod

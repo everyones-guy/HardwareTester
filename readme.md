@@ -186,7 +186,7 @@ npm run build
 1. Set the `FLASK_ENV` to `production` in your `.env` file.
 2. Use a production WSGI server like Gunicorn:
    ```bash
-   gunicorn -w 4 -b 0.0.0.0:8000 runserver:app
+   gunicorn -w 4 -b 0.0.0.0:8000  sqlite///HardwareTester:create_app()_
    ```
 
 ---

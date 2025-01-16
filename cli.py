@@ -1,15 +1,25 @@
 import click
 from flask.cli import with_appcontext
-from HardwareTester.extensions import db, logger
+from HardwareTester.extensions import db
+from HardwareTester.utils.bcrypt_utils import hash_password
+from HardwareTester.utils.custom_logger import CustomLogger
 from HardwareTester.services.configuration_service import ConfigurationService
 from HardwareTester.services.emulator_service import EmulatorService
 from HardwareTester.services.mqtt_service import MQTTService
 from HardwareTester.services.test_service import TestService
 from HardwareTester.services.test_plan_service import TestPlanService
-from HardwareTester.models.user_models import User
-from HardwareTester.utils.bcrypt_utils import bcrypt
+from HardwareTester.models.user_models import User, UserRole
+from HardwareTester.models.dashboard_models import DashboardData
+from faker import Faker
 import os
+from dotenv import load_dotenv
 
+# Load .env variables
+load_dotenv()
+
+
+# initialize logger
+logger = CustomLogger.get_logger("cli")
 
 @click.group(help="CLI for Universal Hardware Tester.")
 def cli():
@@ -34,9 +44,11 @@ def init_db():
 
         # Add default admin user
         admin_email = os.getenv("ADMIN_EMAIL", "admin@example.com")
-        admin_password = os.getenv("ADMIN_PASSWORD", "admin123")
+        admin_password = os.getenv("ADMIN_PASSWORD", "adminPassword1!")
         if not User.query.filter_by(email=admin_email).first():
-            hashed_password = bcrypt.generate_password_hash(admin_password).decode("utf-8")
+            hashed_password = hash_password(admin_password)
+            #hashed_password = hash_password(admin_password)
+
             admin = User(email=admin_email, username="admin", password=hashed_password, role="admin")
             db.session.add(admin)
             db.session.commit()
@@ -67,11 +79,11 @@ def seed_data():
         click.echo("Seeding database...")
         if not User.query.filter_by(email="admin@example.com").first():
             admin = User(
-                email="admin@example.com",
+                email=os.getenv("ADMIN_EMAIL", "admin@example.com"),
                 username="admin",
                 role="admin",
             )
-            admin.set_password("admin123")
+            admin.set_password("adminPassword1!")
             db.session.add(admin)
             db.session.commit()
             click.echo("Default admin user created.")
@@ -120,7 +132,7 @@ def emulator():
 
 
 @emulator.command("start")
-@click.option("--machine", required=True, help="Machine name to emulate.")
+@click.option("--machine", required=True)
 def start_emulator(machine):
     """Start the emulator."""
     EmulatorService.start_emulation(machine)
@@ -164,7 +176,7 @@ def test():
     pass
 
 
-@test.command("run")
+@test.command("run", help="Run Test Commands.")
 @click.argument("test_plan_id", type=int)
 def run_test(test_plan_id):
     """Run a specific test plan."""
@@ -172,7 +184,7 @@ def run_test(test_plan_id):
     click.echo(result["message"] if result["success"] else f"Error: {result['error']}")
 
 
-@test.command("list")
+@test.command("list", help="List Available Tests")
 def list_tests():
     """List all test plans."""
     result = TestService.list_tests()
@@ -186,7 +198,7 @@ def list_tests():
 # ----------------------
 # Firmware Commands
 # ----------------------
-@cli.group()
+@cli.group(help="Firmware management commands.")
 def firmware():
     """Firmware management commands."""
     pass
@@ -206,6 +218,97 @@ def upload_firmware(device_id, firmware_path):
     service.upload_firmware(device_id, firmware_path)
     service.disconnect()
     click.echo(f"Firmware uploaded to device {device_id}.")
+
+# ----------------------
+# Data Mocking Commands
+# ----------------------
+@cli.group(help="Data Mocking Commands.")
+def mock():
+    """Mock data commands."""
+    pass
+
+
+@mock.command("users", help="Add mock users to the database.")
+@with_appcontext
+def mock_users():
+    """Add mock users."""
+    fake = Faker()
+    try:
+        click.echo("Adding mock users...")
+        for _ in range(10):
+            user = User(
+                name=fake.name(),
+                email=fake.email(),
+                username=fake.user_name(),
+                role=UserRole.USER.value,
+                password_hash=hash_password("mockpassword"),  # Hash mock password
+            )
+            db.session.add(user)
+
+        admin_user = User(
+            name="Admin User",
+            email="admin@example.com",
+            username="admin",
+            role=UserRole.ADMIN.value,
+            password_hash=hash_password("adminpassword"),  # Hash admin password
+        )
+        db.session.add(admin_user)
+
+        db.session.commit()
+        click.echo("Mock users added successfully!")
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Error adding mock users: {e}")
+        click.echo(f"Error adding mock users: {e}")
+
+
+@mock.command("dashboard", help="Add mock dashboard data.")
+@with_appcontext
+def add_mock_dashboard_data():
+    """Add mock dashboard data."""
+    fake = Faker()
+    try:
+        click.echo("Adding mock dashboard data...")
+        users = User.query.all()
+        if not users:
+            click.echo("No users found. Add mock users first using 'mock users'.")
+            return
+
+        for user in users:
+            for _ in range(5):  # Add 5 items per user
+                dashboard_data = DashboardData(
+                    user_id=user.id,
+                    name=fake.word(),
+                    value=fake.random_int(min=0, max=100),
+                    title=fake.sentence(nb_words=3),
+                    description=fake.text(max_nb_chars=100),
+                    type=fake.word(),
+                )
+                db.session.add(dashboard_data)
+
+        db.session.commit()
+        click.echo("Mock dashboard data added successfully!")
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Error adding mock dashboard data: {e}")
+        click.echo(f"Error adding mock dashboard data: {e}")
+
+
+@mock.command("clear", help="Clear all mock data.")
+@with_appcontext
+def clear_mock_data():
+    """Clear mock data from all tables."""
+    try:
+        click.echo("Clearing mock data...")
+        db.session.query(DashboardData).delete()
+        db.session.query(User).delete()
+        db.session.commit()
+        click.echo("All mock data cleared!")
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Error clearing mock data: {e}")
+        click.echo(f"Error clearing mock data: {e}")
+
 
 
 # ----------------------

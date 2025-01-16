@@ -1,9 +1,13 @@
 # settings_service.py
 
 import os
-from HardwareTester.extensions import db, logger
+from HardwareTester.extensions import db
+from HardwareTester.utils.custom_logger import CustomLogger
 from HardwareTester.models import UserSettings, GlobalSettings
 from sqlalchemy.exc import SQLAlchemyError
+
+# Initialize logger
+logger = CustomLogger.get_logger("settings_service")
 
 class SettingsService:
     """Service for managing user and global settings."""

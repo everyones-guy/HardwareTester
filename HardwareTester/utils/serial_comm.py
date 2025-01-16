@@ -1,145 +1,104 @@
-
 import serial
+import hashlib
 import json
-import logging
 import time
+import serial.tools.list_ports
+from HardwareTester.utils.custom_logger import CustomLogger
+
+logger = CustomLogger.get_logger("serial_comm")  # Use a specific name for this module's logger
+
+
+#logger = logger.getLogger(__name__)
 
 # Set up logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("SerialComm")
-
 DEFAULT_RETRY_COUNT = 3
 DEFAULT_RETRY_DELAY = 2  # Seconds between retries
 
-
 class SerialComm:
-    def __init__(self, port, baudrate=9600, timeout=1, retries=DEFAULT_RETRY_COUNT):
-        """
-        Initialize Serial Communication.
-        :param port: Serial port name (e.g., COM3, /dev/ttyUSB0).
-        :param baudrate: Baud rate for communication (default: 9600).
-        :param timeout: Read timeout in seconds (default: 1).
-        :param retries: Number of retries for communication errors (default: 3).
-        """
+    def __init__(self, port=None, baudrate=9600, timeout=1, retries=DEFAULT_RETRY_COUNT, debug=False):
         self.port = port
         self.baudrate = baudrate
         self.timeout = timeout
         self.retries = retries
         self.connection = None
+        self.debug = debug
+
+        if self.debug:
+            logger.setLevel("DEBUG")
+            logger.debug("Debug mode enabled for Serial Comm.")
 
     def connect(self):
-        """
-        Establishes a serial connection.
-        """
+        if not self.port:
+            self.port = self.find_comm_port()
+            if not self.port:
+                logger.log_error("No suitable COM port found.")
+                raise serial.SerialException("No suitable COM port found.")
+
         try:
             self.connection = serial.Serial(
                 port=self.port,
                 baudrate=self.baudrate,
                 timeout=self.timeout,
             )
-            logger.info(f"Connected to {self.port} at {self.baudrate} baud.")
+            logger.log_info(f"Connected to {self.port} at {self.baudrate} baud.")
         except serial.SerialException as e:
-            logger.error(f"Failed to connect to {self.port}: {e}")
+            logger.log_error(f"Failed to connect to {self.port}: {e}")
             raise e
 
     def disconnect(self):
-        """
-        Closes the serial connection.
-        """
         if self.connection and self.connection.is_open:
             self.connection.close()
-            logger.info(f"Disconnected from {self.port}.")
+            logger.log_info(f"Disconnected from {self.port}.")
 
-    def send_data(self, data):
+    def discover_device(self, timeout=5):
         """
-        Sends data over the serial connection.
-        :param data: Data to send (string or JSON).
-        :return: Dictionary with success or error message.
+        Discover a connected device by scanning serial ports, sending a discovery command,
+        and prompting for credentials or additional info if needed.
         """
-        if not self.connection or not self.connection.is_open:
-            logger.error("Serial connection is not open.")
-            return {"success": False, "error": "Serial connection is not open."}
-
-        try:
-            if isinstance(data, (dict, list)):
-                data = json.dumps(data)  # Convert JSON to string
-            if not isinstance(data, str):
-                raise ValueError("Data must be a string or JSON serializable object.")
-
-            self.connection.write(data.encode('utf-8'))
-            logger.info(f"Data sent successfully: {data}")
-            return {"success": True, "message": "Data sent successfully."}
-        except Exception as e:
-            logger.error(f"Failed to send data: {e}")
-            return {"success": False, "error": str(e)}
-
-    def read_data(self):
-        """
-        Reads data from the serial connection.
-        :return: Dictionary with data or error message.
-        """
-        if not self.connection or not self.connection.is_open:
-            logger.error("Serial connection is not open.")
-            return {"success": False, "error": "Serial connection is not open."}
-
-        for attempt in range(1, self.retries + 1):
+        logger.log_info("Scanning for serial devices...")
+        ports = serial.tools.list_ports.comports()
+        for port in ports:
             try:
-                raw_data = self.connection.readline().decode('utf-8').strip()
-                logger.info(f"Raw data received: {raw_data}")
+                logger.log_info(f"Probing port: {port.device}")
+                with serial.Serial(port.device, self.baudrate, timeout=self.timeout) as ser:
+                    ser.write(b'{"action": "discover"}\n')
+                    start_time = time.time()
+                    while time.time() - start_time < timeout:
+                        response = ser.readline().decode("utf-8").strip()
+                        if response:
+                            try:
+                                data = json.loads(response)
+                                logger.log_info(f"Device discovered on {port.device}: {data}")
 
-                # Try parsing as JSON; fallback to raw data if parsing fails
-                try:
-                    parsed_data = json.loads(raw_data)
-                    return {"success": True, "data": parsed_data}
-                except json.JSONDecodeError:
-                    logger.warning("Data received is not in JSON format.")
-                    return {"success": True, "data": {"raw": raw_data}}
+                                # Prompt for additional input
+                                credentials = self.get_credentials()
+                                data["credentials"] = credentials
+                                return {"success": True, "port": port.device, "device_info": data}
+                            except json.JSONDecodeError:
+                                logger.log_warning(f"Non-JSON response received on {port.device}: {response}")
+                                continue
+            except (serial.SerialException, serial.SerialTimeoutException) as e:
+                logger.log_warning(f"Failed to probe port {port.device}: {e}")
+        logger.log_error("No devices discovered.")
+        return {"success": False, "error": "No devices discovered."}
 
-            except serial.SerialTimeoutException:
-                logger.warning(f"Timeout occurred on attempt {attempt} while reading.")
-                time.sleep(DEFAULT_RETRY_DELAY)
-
-            except Exception as e:
-                logger.error(f"Unexpected error: {e}")
-                return {"success": False, "error": str(e)}
-
-        logger.error(f"All {self.retries} attempts to read data failed.")
-        return {"success": False, "error": "Failed to read data after retries."}
-
-    def discover_device(self):
+    def get_credentials(self):
         """
-        Sends a discovery command to the connected device.
-        :return: Dictionary with device info or error message.
+        Prompt the user for credentials or additional information.
+        :return: A dictionary containing the entered credentials.
         """
-        discovery_command = '{"action": "discover"}'  # Example discovery command
-        self.send_data(discovery_command)
+        print("Enter device credentials:")
+        username = input("Username: ")
+        password = input("Password: ")
+        return {"username": username, "password": password}
 
-        response = self.read_data()
-        if response.get("success"):
-            logger.info("Device discovery successful.")
-            return {"success": True, "device_info": response["data"]}
-        else:
-            logger.error("Device discovery failed.")
-            return {"success": False, "error": response.get("error", "Unknown error.")}
-
-
-if __name__ == "__main__":
-    # Example usage
-    comm = SerialComm(port="COM3", baudrate=9600, timeout=2, retries=3)
-
-    try:
-        comm.connect()
-        # Send a sample command
-        response = comm.send_data({"command": "get_status"})
-        logger.info(f"Send Data Response: {response}")
-
-        # Read response from the device
-        response = comm.read_data()
-        logger.info(f"Read Data Response: {response}")
-
-        # Discover device
-        discovery = comm.discover_device()
-        logger.info(f"Discovery Response: {discovery}")
-    finally:
-        comm.disconnect()
-
+    def find_comm_port(self):
+        logger.log_info("Searching for COM ports...")
+        ports = serial.tools.list_ports.comports()
+        for port in ports:
+            logger.log_info(f"Found port: {port.device} - {port.description}")
+            if "USB" in port.description or "Serial" in port.description:
+                logger.log_info(f"Using port: {port.device}")
+                return port.device
+        logger.log_error("No suitable USB or Serial COM port found.")
+        return None

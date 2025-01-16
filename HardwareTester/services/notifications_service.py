@@ -2,9 +2,13 @@
 # This file contains the NotificationService class, which provides methods for managing user notifications.
 
 from datetime import datetime
-from HardwareTester.extensions import db, logger
+from HardwareTester.extensions import db
+from HardwareTester.utils.custom_logger import CustomLogger
 from HardwareTester.models.log_models import Notification
 from sqlalchemy.exc import SQLAlchemyError
+
+# Initialize logger
+logger = CustomLogger.get_logger("notifications_service")
 
 class NotificationService:
     """Service for managing user notifications."""

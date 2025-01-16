@@ -93,3 +93,8 @@ canvas {
     }
 }
 
+.loading-spinner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 200px;

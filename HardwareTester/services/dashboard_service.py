@@ -2,8 +2,12 @@
 from HardwareTester.models.user_models import User, Role
 from HardwareTester.models.dashboard_models import DashboardData
 from HardwareTester.models.metric_models import Metric  # Update imports based on your models
-from HardwareTester.extensions import db, logger
+from HardwareTester.extensions import db
+from HardwareTester.utils.custom_logger import CustomLogger
 from sqlalchemy.exc import SQLAlchemyError
+
+# Initialize logger
+logger = CustomLogger.get_logger("dashboard_service")
 
 class DashboardService:
     @staticmethod
@@ -20,10 +24,10 @@ class DashboardService:
                 return {"success": False, "error": "User not found"}
 
             # Check if user is an admin
-            admin_role = Role.query.filter_by(name="admin").first()
-            if not admin_role or user.role_id != admin_role.id:
-                logger.warning(f"Access denied for user {user_id}")
-                return {"success": False, "error": "Access denied"}
+            #admin_role = Role.query.filter_by(name="admin").first()
+            #if not admin_role or user.role_id != admin_role.id:
+            #    logger.warning(f"Access denied for user {user_id}")
+            #    return {"success": False, "error": "Access denied"}
 
             # Fetch dashboard data
             data = DashboardData.query.filter_by(user_id=user_id).all()
@@ -35,6 +39,11 @@ class DashboardService:
         except Exception as e:
             logger.error(f"Unexpected error fetching dashboard data for user {user_id}: {e}")
             return {"success": False, "error": str(e)}
+
+        if not data["success"]:
+            logger.error(f"Failed to fetch dashboard data: {data['error']}")
+            return render_template("error.html", message=f"Error: {data['error']}")
+
 
     @staticmethod
     def get_aggregated_metrics() -> dict:
@@ -142,3 +151,14 @@ class DashboardService:
         except Exception as e:
             logger.error(f"Unexpected error deleting dashboard item {item_id}: {e}")
             return {"success": False, "error": str(e)}
+        
+    @staticmethod
+    def get_overview_data(user_id):
+        """
+        Fetch overview data for a given user.
+        """
+        try:
+            data = DashboardData.query.filter_by(user_id=user_id).all()
+            return [{"title": item.title, "description": item.description} for item in data]
+        except Exception as e:
+            raise RuntimeError(f"Error fetching overview data: {e}")

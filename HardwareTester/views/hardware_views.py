@@ -1,15 +1,18 @@
 
 from flask import Blueprint, jsonify, request
 from HardwareTester.services.mqtt_service import MQTTService
-from HardwareTester.extensions import db, logger
+from HardwareTester.extensions import db
 from sqlalchemy.dialects.postgresql import JSON  # Use JSON for metadata and settings storage
+from HardwareTester.utils.custom_logger import CustomLogger
+
+# Initialize logger
+logger = CustomLogger.get_logger("hardware_views")
 
 
-hardware_bp = Blueprint("hardware", __name__)
+hardware_bp = Blueprint("hardware", __name__, url_prefix="/hardware")
 mqtt_service = MQTTService(broker="test.mosquitto.org", port=1883)
 mqtt_service.connect()
 
-@hardware_bp.route("/discover-device", methods=["POST"])
 @hardware_bp.route("/discover-device", methods=["POST"])
 def discover_device():
     """Discover device metadata and settings."""
@@ -63,7 +66,6 @@ def discover_device():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
-
 @hardware_bp.route("/device/<string:device_id>", methods=["GET"])
 def get_device(device_id):
     """Retrieve device information and settings."""
@@ -85,3 +87,29 @@ def get_device(device_id):
         )
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
+
+# Usage
+#GET /blueprints
+#json
+#Copy code
+#{
+#    "success": true,
+#    "blueprints": [
+#        {"id": 1, "name": "Blueprint1.pdf", "url": "/static/blueprints/Blueprint1.pdf"},
+#        {"id": 2, "name": "Blueprint2.dwg", "url": "/static/blueprints/Blueprint2.dwg"}
+#    ]
+#}
+#DELETE /blueprints/delete/<id>
+#json
+#Copy code
+#{
+#    "success": true,
+#    "message": "Blueprint deleted successfully."
+#}
+#POST /blueprints/upload
+#json
+#Copy code
+#{
+#    "success": true,
+#    "message": "Blueprint uploaded successfully."
+#}

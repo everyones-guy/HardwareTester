@@ -1,8 +1,12 @@
 import json
 from datetime import datetime
-from HardwareTester.extensions import db, logger
+from HardwareTester.extensions import db
+from HardwareTester.utils.custom_logger import CustomLogger
 from HardwareTester.models.device_models import Emulation, Blueprint  # Replace with actual path to your model
 from typing import Dict, Any, Union
+
+# Initialize logger
+logger = CustomLogger.get_logger("emulator_service")
 
 class EmulatorService:
     # Emulator state
@@ -114,6 +118,16 @@ class EmulatorService:
         except Exception as e:
             logger.error(f"Error fetching active emulations: {e}")
             return {"success": False, "error": "Failed to fetch active emulations."}
+    
+    @staticmethod
+    def get_emulator_logs() -> Dict[str, Union[bool, Any]]:
+        """Retrieve logs from the emulator."""
+        try:
+            logger.info("Fetching emulator logs.")
+            return {"success": True, "logs": EmulatorService.emulator_state["logs"]}
+        except Exception as e:
+            logger.error(f"Error fetching emulator logs: {e}")
+            return {"success": False, "error": "Failed to fetch emulator logs."}
 
     @staticmethod
     def _log_action(message: str):

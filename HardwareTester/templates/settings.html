@@ -38,8 +38,12 @@
 
     {% endblock %}
 
-    {% block extra_scripts %}
-    <script src="{{ url_for('static', filename='js/scripts/settings.js') }}"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/settings.css') }}">
+    {% block additional_scripts %}
+    {{ super() }}
+    <script src="{{ url_for('static', filename='js/settings.js') }}"></script>
     {% endblock %}
 
+    {% block extra_styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/settings.css') }}">
+    {% endblock %

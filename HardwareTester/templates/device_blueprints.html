@@ -1,27 +1,55 @@
-
 {% extends "base.html" %}
 
+{% block title %}Device Blueprints{% endblock %}
+
 {% block content %}
-<h1>Device Blueprints</h1>
-<form id="upload-blueprint-form" enctype="multipart/form-data">
-    <div class="mb-3">
-        <label for="blueprintFile" class="form-label">Upload Blueprint</label>
-        <input type="file" id="blueprintFile" name="blueprintFile" class="form-control">
+<div class="container mt-5">
+    <h1 class="text-center">Device Blueprints</h1>
+
+    <!-- Blueprint Upload Section -->
+    <form id="upload-blueprint-form" enctype="multipart/form-data" class="mt-4">
+        <div class="mb-3">
+            <label for="blueprintFile" class="form-label">Upload Blueprint</label>
+            <input type="file" id="blueprintFile" name="blueprintFile" class="form-control" required>
+            <div class="form-text">Accepted formats: PDF, DWG, DXF</div>
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Upload Blueprint</button>
+    </form>
+
+    <!-- Blueprint List Section -->
+    <div class="mt-5">
+        <h2 class="text-center">Saved Blueprints</h2>
+        <ul id="blueprints-list" class="list-group">
+            <!-- Dynamically populated list of blueprints -->
+        </ul>
+        <div id="blueprints-empty" class="text-center mt-3 text-muted" style="display: none;">
+            No blueprints uploaded yet.
+        </div>
     </div>
-    <button type="submit" class="btn btn-primary">Upload</button>
-</form>
-<ul id="blueprints-list" class="list-group mt-4">
-    <!-- Dynamically populated list -->
-</ul>
+
+    <!-- Blueprint Preview Modal -->
+    <div class="modal fade" id="blueprintPreviewModal" tabindex="-1" aria-labelledby="blueprintPreviewModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="blueprintPreviewModalLabel">Blueprint Preview</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <iframe id="blueprintPreviewFrame" style="width: 100%; height: 500px; border: none;" src=""></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
-{% block extra_scripts %}
-<script>
-    // Script to handle blueprint uploads and retrieval
-    document.getElementById("upload-blueprint-form").addEventListener("submit", (e) => {
-        e.preventDefault();
-        alert("Blueprint Uploaded!"); // Placeholder for actual implementation
-    });
-</script>
+{% block additional_scripts %}
+{{ super() }}
+<script src="{{ url_for('static', filename='js/device_blueprints.js') }}"></script>
 {% endblock %}
 
+{% block extra_styles %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/device_blueprints.css') }}">
+{% endblock %}

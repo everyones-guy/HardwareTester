@@ -1,0 +1,37 @@
+/* hardware.css */
+
+/* General container styling */
+#device-details {
+    transition: opacity 0.3s ease-in-out;
+}
+
+    #device-details.d-none {
+        opacity: 0;
+        pointer-events: none;
+    }
+
+/* Card styling */
+.card {
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    background-color: #007bff;
+    color: #fff;
+    font-weight: bold;
+    text-align: center;
+}
+
+/* Form input styling */
+form input[type="text"] {
+    border: 2px solid #ddd;
+    border-radius: 5px;
+    padding: 10px;
+}
+
+    form input[type="text"]:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+        outline: none;
+    }

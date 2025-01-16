@@ -1,15 +1,26 @@
-import paho.mqtt.client as mqtt
+import json
+import time
+import threading
 import hashlib
 import os
 from pathlib import Path
-from HardwareTester.extensions import logger
+from paho.mqtt.client import Client
+from HardwareTester.utils.custom_logger import CustomLogger
 
-class FirmwareMQTTClient:
-    """MQTT Client for managing firmware updates."""
+# Initialize logger
+logger = CustomLogger.get_logger("mqtt_client")
+
+DEFAULT_RETRY_COUNT = 3
+DEFAULT_RETRY_DELAY = 2  # Seconds between retries
+CHUNK_SIZE = 4096  # 4KB for firmware chunking
+
+
+class MQTTClient:
+    """Enhanced MQTT Client for managing firmware updates and device interactions."""
 
     def __init__(self, broker: str, port: int = 1883, username: str = None, password: str = None, tls: bool = False):
         """
-        Initialize the MQTT client for firmware updates.
+        Initialize the MQTT client for firmware updates and device management.
 
         :param broker: MQTT broker address.
         :param port: MQTT broker port (default: 1883).
@@ -22,9 +33,12 @@ class FirmwareMQTTClient:
         self.username = username
         self.password = password
         self.tls = tls
-        self.client = mqtt.Client()
+        self.client = Client()
         self._setup_client()
+        self.response = None  # Store the response
+        self.response_event = threading.Event()  # Synchronize request/response
 
+    @staticmethod
     def _setup_client(self):
         """Set up MQTT client with optional authentication and TLS."""
         if self.username and self.password:
@@ -34,7 +48,9 @@ class FirmwareMQTTClient:
 
         self.client.on_connect = self.on_connect
         self.client.on_message = self.on_message
-
+        self.client.on_disconnect = self.on_disconnect
+    
+    @staticmethod
     def on_connect(self, client, userdata, flags, rc):
         """Handle MQTT connection events."""
         if rc == 0:
@@ -42,10 +58,21 @@ class FirmwareMQTTClient:
         else:
             logger.error(f"Failed to connect to MQTT broker with code {rc}")
 
+    @staticmethod
+    def on_disconnect(self, client, userdata, rc):
+        """Handle MQTT disconnection events."""
+        if rc != 0:
+            logger.warning(f"Unexpected disconnection (code {rc}). Attempting to reconnect...")
+            self.connect()
+    
+    @staticmethod
     def on_message(self, client, userdata, msg):
         """Handle received MQTT messages."""
         logger.info(f"Received message on {msg.topic}: {msg.payload.decode()}")
+        self.response = json.loads(msg.payload.decode())
+        self.response_event.set()  # Signal that a response was received
 
+    @staticmethod
     def connect(self):
         """Connect to the MQTT broker and start the client loop."""
         try:
@@ -55,30 +82,43 @@ class FirmwareMQTTClient:
         except Exception as e:
             logger.error(f"Failed to connect to MQTT broker: {e}")
 
-    def publish(self, topic: str, payload: str):
-        """Publish a message to a specific topic."""
-        try:
-            self.client.publish(topic, payload)
-            logger.info(f"Published to {topic}: {payload}")
-        except Exception as e:
-            logger.error(f"Failed to publish to {topic}: {e}")
-
-    def subscribe(self, topic: str):
-        """Subscribe to a specific topic."""
-        try:
-            self.client.subscribe(topic)
-            logger.info(f"Subscribed to {topic}")
-        except Exception as e:
-            logger.error(f"Failed to subscribe to {topic}: {e}")
-
+    @staticmethod
     def disconnect(self):
         """Disconnect from the MQTT broker."""
         self.client.loop_stop()
         self.client.disconnect()
         logger.info("MQTT connection closed.")
 
+    @staticmethod
+    def publish(self, topic: str, payload: str, retries=DEFAULT_RETRY_COUNT):
+        """Publish a message to a specific topic with retry mechanism."""
+        for attempt in range(retries):
+            try:
+                self.client.publish(topic, payload)
+                logger.info(f"Published to {topic}: {payload}")
+                return
+            except Exception as e:
+                logger.error(f"Failed to publish to {topic} on attempt {attempt + 1}: {e}")
+                time.sleep(DEFAULT_RETRY_DELAY)
+        logger.error(f"All attempts to publish to {topic} failed.")
+
+    @staticmethod
+    def subscribe(self, topic: str, retries=DEFAULT_RETRY_COUNT):
+        """Subscribe to a specific topic with retry mechanism."""
+        for attempt in range(retries):
+            try:
+                self.client.subscribe(topic)
+                logger.info(f"Subscribed to {topic}")
+                return
+            except Exception as e:
+                logger.error(f"Failed to subscribe to {topic} on attempt {attempt + 1}: {e}")
+                time.sleep(DEFAULT_RETRY_DELAY)
+        logger.error(f"All attempts to subscribe to {topic} failed.")
+
+    
+    @staticmethod    
     def upload_firmware(self, device_id: str, firmware_path: str):
-        """Upload firmware to a device."""
+        """Upload firmware to a device in chunks."""
         topic = f"device/{device_id}/firmware/update"
         firmware_hash = self.validate_firmware_file(firmware_path)
         if not firmware_hash:
@@ -87,26 +127,35 @@ class FirmwareMQTTClient:
 
         try:
             with open(firmware_path, "rb") as f:
-                firmware_data = f.read()
-                payload = {
-                    "action": "upload",
-                    "firmware_hash": firmware_hash,
-                    "firmware": firmware_data.hex(),
-                }
-                self.publish(topic, str(payload))
-                logger.info(f"Firmware file {firmware_path} uploaded to {device_id}.")
-                return {"success": True, "message": "Firmware uploaded successfully."}
+                chunk_number = 1
+                while chunk := f.read(CHUNK_SIZE):
+                    payload = {
+                        "action": "upload_chunk",
+                        "firmware_hash": firmware_hash,
+                        "chunk_number": chunk_number,
+                        "chunk": chunk.hex(),
+                    }
+                    self.publish(topic, json.dumps(payload))
+                    logger.info(f"Chunk {chunk_number} uploaded for {firmware_path}")
+                    chunk_number += 1
+
+            # Finalize the upload
+            self.publish(topic, json.dumps({"action": "finalize_upload", "firmware_hash": firmware_hash}))
+            logger.info(f"Firmware file {firmware_path} uploaded to {device_id}.")
+            return {"success": True, "message": "Firmware uploaded successfully."}
         except Exception as e:
             logger.error(f"Failed to upload firmware: {e}")
             return {"success": False, "error": str(e)}
-
+    
+    @staticmethod
     def validate_firmware(self, device_id: str):
         """Send a firmware validation request to a device."""
         topic = f"device/{device_id}/firmware/validate"
         payload = {"action": "validate"}
-        self.publish(topic, str(payload))
+        self.publish(topic, json.dumps(payload))
         logger.info(f"Firmware validation request sent for device {device_id}.")
-
+    
+    @staticmethod
     def check_firmware_status(self, device_id: str):
         """Subscribe to firmware update status topic."""
         topic = f"device/{device_id}/firmware/status"

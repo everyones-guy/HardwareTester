@@ -1,29 +1,59 @@
-
 $(document).ready(function () {
     const canvas = $("#canvas-container");
     const socket = io();
 
-    // Function to add a valve or peripheral visually
+    // Function to handle tab switching
+    function handleTabs() {
+        $(".list-group-item").on("click", function (e) {
+            e.preventDefault();
+            const targetId = $(this).attr("href").substring(1);
+
+            // Update active tab class
+            $(".list-group-item").removeClass("active");
+            $(this).addClass("active");
+
+            // Update tab-pane visibility
+            $(".tab-pane").removeClass("show active");
+            $(`#${targetId}`).addClass("show active");
+        });
+    }
+
+    // Function to add a device visually
     function addComponent(id, type, x = 50, y = 50) {
-        const element = $(`<div id="component-${id}" class="draggable"
-                    data-id="${id}" data-type="${type}"
-                    style="position: absolute; left: ${x}px; top: ${y}px;">
-                    <div class="component-body p-2 text-white bg-primary rounded">${type}</div>
-                </div>`);
+        const element = $(`
+            <div id="component-${id}" class="draggable" 
+                data-id="${id}" data-type="${type}" 
+                style="position: absolute; left: ${x}px; top: ${y}px;">
+                <div class="component-body p-2 text-white bg-primary rounded">${type}</div>
+            </div>
+        `);
         canvas.append(element);
         enableDrag(element);
     }
 
     // Real-time updates using Socket.IO
-    socket.on("valve_update", (data) => {
-        const { id, state, value } = data; // state: 'open', 'closed', 'flow'
+    socket.on("device_update", (data) => {
+        const { id, type, state, value } = data;
         const component = $(`#component-${id}`);
         if (component.length) {
-            animateValve(component, state, value);
+            animateDevice(component, type, state, value);
         }
     });
 
-    // Function to animate valves
+    // Function to animate devices
+    function animateDevice(element, type, state, value) {
+        const animations = {
+            valve: animateValve,
+            motor: animateMotor,
+            sensor: animateSensor,
+        };
+
+        if (animations[type]) {
+            animations[type](element, state, value);
+        }
+    }
+
+    // Specific animations for valves
     function animateValve(element, state, value) {
         if (state === "open") {
             anime({
@@ -54,6 +84,28 @@ $(document).ready(function () {
         }
     }
 
+    // Specific animations for motors
+    function animateMotor(element, state, speed) {
+        if (state === "running") {
+            anime({
+                targets: element[0],
+                rotate: 360,
+                duration: 1000 / speed,
+                easing: "linear",
+                loop: true,
+            });
+            element.find(".component-body").text(`Motor Running (${speed} RPM)`);
+        } else if (state === "stopped") {
+            anime.remove(element[0]); // Stop any ongoing animation
+            element.find(".component-body").text("Motor Stopped");
+        }
+    }
+
+    // Specific animations for sensors
+    function animateSensor(element, state, value) {
+        element.find(".component-body").text(`Sensor (${state}): ${value}`);
+    }
+
     // Drag-and-drop functionality
     function enableDrag(element) {
         interact(element[0]).draggable({
@@ -63,7 +115,6 @@ $(document).ready(function () {
                     const x = (parseFloat(target.getAttribute("data-x")) || 0) + event.dx;
                     const y = (parseFloat(target.getAttribute("data-y")) || 0) + event.dy;
 
-                    // Restrict movement to canvas bounds
                     if (x >= 0 && y >= 0 && x <= canvas.width() - 100 && y <= canvas.height() - 50) {
                         target.style.transform = `translate(${x}px, ${y}px)`;
                         target.setAttribute("data-x", x);
@@ -74,7 +125,48 @@ $(document).ready(function () {
         });
     }
 
-    // Save Configuration
+    // API request helper
+    function apiRequest(url, method, data = null) {
+        return $.ajax({
+            url: url,
+            type: method,
+            data: data ? JSON.stringify(data) : null,
+            contentType: "application/json",
+        });
+    }
+
+    // Discover devices
+    $("#discover-devices").click(function () {
+        apiRequest("/serial/discover", "GET")
+            .done((data) => {
+                const deviceList = $("#device-list");
+                deviceList.empty();
+                if (data.success && data.devices.length) {
+                    data.devices.forEach(device => {
+                        deviceList.append(`<li>${device.port} - ${JSON.stringify(device.info)}</li>`);
+                    });
+                } else {
+                    deviceList.append("<li>No devices discovered.</li>");
+                }
+            })
+            .fail(() => alert("Failed to discover devices."));
+    });
+
+    // Configure a device
+    $("#configure-device").submit(function (event) {
+        event.preventDefault();
+        const formData = $(this).serializeArray();
+        const payload = {};
+        formDatal.data.forEach(field => payload[field.name] = field.value);
+
+        apiRequest("/serial/configure", "POST", payload)
+            .done((data) => {
+                alert(data.success ? data.message : `Error: ${data.error}`);
+            })
+            .fail(() => alert("Failed to configure device."));
+    });
+
+    // Save and load configurations
     $("#save-config").click(function () {
         const layout = [];
         $(".draggable").each(function () {
@@ -85,130 +177,134 @@ $(document).ready(function () {
             layout.push({ id, type, x, y });
         });
 
-        $.post("/save-configuration", { layout: JSON.stringify(layout) }, function (response) {
-            alert(response.message);
-        }).fail(() => alert("Failed to save configuration."));
+        apiRequest("/save-configuration", "POST", { layout })
+            .done((response) => alert(response.message))
+            .fail(() => alert("Failed to save configuration."));
     });
 
-
-    // Load Configuration
     $("#load-config").click(function () {
-        $.get("/load-configuration", function (data) {
-            if (data.success) {
-                canvas.empty();
-                data.layout.forEach(item => addComponent(item.id, item.type, item.x, item.y));
-            } else {
-                alert(data.error || "Failed to load configuration.");
-            }
-        }).fail(() => alert("Failed to load configuration."));
+        apiRequest("/load-configuration", "GET")
+            .done((data) => {
+                if (data.success) {
+                    canvas.empty();
+                    data.layout.forEach(item => addComponent(item.id, item.type, item.x, item.y));
+                } else {
+                    alert(data.error || "Failed to load configuration.");
+                }
+            })
+            .fail(() => alert("Failed to load configuration."));
     });
 
-    // Add initial components for demo
-    addComponent(1, "Valve");
-    addComponent(2, "Temperature Sensor", 200, 200);
-
-
-    socket.on("peripheral_update", (data) => {
-        const peripheral = $(`.peripheral-node:contains('${data.name}')`);
-        if (peripheral.length) {
-            peripheral.find(`.property-value:contains('${data.property}')`).text(data.value);
-        }
-    });
-
-    // Overview section (placeholder for future enhancements)
+    // Dashboard functionality
     function loadOverview() {
-        console.log("Overview section loaded.");
+        $.ajax({
+            url: "/dashboard/overview",
+            method: "GET",
+            success: function (data) {
+                const list = $("#dashboard-data ul");
+                list.empty();
+
+                if (data && Array.isArray(data)) {
+                    data.forEach((item) => {
+                        list.append(`<li>${item.title}: ${item.description}</li>`);
+                    });
+                } else {
+                    list.append("<li>No data available.</li>");
+                }
+            },
+            error: function () {
+                console.error("Failed to load overview data.");
+            },
+        });
     }
 
-    // Load emulators
+
     function loadEmulators() {
-        $.get("/emulators/list", function (data) {
-            const list = $("#emulator-list");
-            list.empty();
-            if (data.success) {
-                data.emulators.forEach((emulator) => {
-                    list.append(`
-                    <li class="list-group-item">
-                        <strong>${emulator.name}</strong> - Status: ${emulator.status}
-                        <button class="btn btn-danger btn-sm float-end stop-emulator" data-id="${emulator.id}">Stop</button>
-                    </li>
-                `);
-                });
-            } else {
-                list.append(`<li class="list-group-item text-danger">Error loading emulators.</li>`);
-            }
-        });
+        const list = $("#emulator-list");
+        list.html("<li class='list-group-item'>Loading...</li>");
+
+        apiRequest("/emulators/list", "GET")
+            .done((data) => {
+                list.empty();
+                if (data.success && Array.isArray(data.emulators)) {
+                    data.emulators.forEach((emulator) => {
+                        list.append(`
+                        <li class="list-group-item">
+                            <strong>${emulator.name}</strong> - Status: ${emulator.status}
+                            <button class="btn btn-danger btn-sm float-end stop-emulator" data-id="${emulator.id}">Stop</button>
+                        </li>
+                    `);
+                    });
+                } else {
+                    list.append("<li class='list-group-item'>No emulators available.</li>");
+                }
+            })
+            .fail(() => {
+                list.empty();
+                alert("Failed to load emulators.");
+            });
     }
 
-    // Stop emulator
+
+    // Event handler for stopping emulators
     $(document).on("click", ".stop-emulator", function () {
-        const id = $(this).data("id");
-        $.post(`/emulators/stop/${id}`, function (data) {
-            if (data.success) {
-                alert("Emulator stopped.");
-                loadEmulators();
-            } else {
-                alert("Failed to stop emulator.");
-            }
-        });
+        const emulatorId = $(this).data("id");
+        apiRequest(`/emulators/stop`, "POST", { id: emulatorId })
+            .done(() => {
+                alert(`Emulator ${emulatorId} stopped successfully.`);
+                loadEmulators(); // Refresh the list after stopping
+            })
+            .fail(() => alert("Failed to stop emulator."));
     });
 
-    // Load logs
+
     function loadLogs() {
-        $.get("/logs/recent", function (data) {
-            const container = $("#log-output");
-            container.empty();
-            if (data.success) {
-                data.logs.forEach((log) => {
-                    container.append(`<p>${log}</p>`);
-                });
-            } else {
-                container.append("<p>Error loading logs.</p>");
-            }
-        });
+        const container = $("#log-output");
+        container.html("<p>Loading logs...</p>"); // Placeholder while fetching logs
+
+        apiRequest("/logs/recent", "GET")
+            .done((data) => {
+                container.empty(); // Clear placeholder
+                if (data.success && Array.isArray(data.logs) && data.logs.length > 0) {
+                    data.logs.forEach((log) => {
+                        container.append($("<p>").text(log.trim())); // Escape HTML characters and trim
+                    });
+                } else {
+                    container.append("<p>No logs available.</p>");
+                }
+            })
+            .fail((xhr) => {
+                container.empty();
+                alert(`Failed to load logs. Error: ${xhr.statusText}`);
+            });
     }
 
-    // Load settings
+
     function loadSettings() {
-        $.get("/settings/global", function (data) {
-            const list = $("#global-settings-list");
-            list.empty();
-            if (data.success) {
-                data.settings.forEach((setting) => {
-                    list.append(`
-                    <li class="list-group-item">
-                        <strong>${setting.key}</strong>: ${JSON.stringify(setting.value)}
-                    </li>
-                `);
-                });
-            } else {
-                list.append("<li class="list - group - item text - danger">Error loading settings.</li>");
-            }
-        });
+        apiRequest("/settings/global", "GET")
+            .done((data) => {
+                const list = $("#global-settings-list");
+                list.empty();
+                if (data.success && Array.isArray(data.settings)) {
+                    data.settings.forEach((setting) => {
+                        list.append(`
+                        <li class="list-group-item">
+                            <strong>${setting.key}</strong>: ${JSON.stringify(setting.value)}
+                        </li>
+                    `);
+                    });
+                } else {
+                    list.append("<li class='list-group-item'>No settings available.</li>");
+                }
+            })
+            .fail(() => alert("Failed to load settings."));
     }
 
-    // Update global setting
-    $("#update-global-setting-form").on("submit", function (event) {
-        event.preventDefault();
-        const key = $("#setting-key").val();
-        const value = $("#setting-value").val();
 
-        $.post("/settings/global", { key, value }, function (data) {
-            if (data.success) {
-                alert("Setting updated.");
-                loadSettings();
-            } else {
-                alert("Error updating setting.");
-            }
-        });
-    });
-
-    // Initialize dashboard functionality
-    $(document).ready(function () {
-        loadOverview();
-        loadEmulators();
-        loadLogs();
-        loadSettings();
-    });
+    // Initialize dashboard
+    handleTabs();
+    loadOverview();
+    loadEmulators();
+    loadLogs();
+    loadSettings();
 });
-

@@ -1,49 +1,76 @@
-
 {% extends "base.html" %}
 
-{% block content %}
-<h1>MQTT Management</h1>
+{% block title %}MQTT Management{% endblock %}
 
-<div>
-    <h3>MQTT Configuration</h3>
-    <form id="mqtt-config-form">
-        <label for="mqtt-host">Host:</label>
-        <input type="text" id="mqtt-host" name="host" required>
-        <label for="mqtt-port">Port:</label>
-        <input type="number" id="mqtt-port" name="port" value="1883" required>
-        <label for="mqtt-topic">Topic:</label>
-        <input type="text" id="mqtt-topic" name="topic" required>
-        <button type="submit">Connect</button>
-    </form>
+{% block content %}
+<div class="container mt-4">
+    <h1 class="text-center">MQTT Management</h1>
+
+    <!-- MQTT Configuration Section -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <h3>MQTT Configuration</h3>
+        </div>
+        <div class="card-body">
+            <form id="mqtt-config-form">
+                <div class="mb-3">
+                    <label for="mqtt-host" class="form-label">Host</label>
+                    <input type="text" id="mqtt-host" name="host" class="form-control" placeholder="Enter MQTT Host" required>
+                </div>
+                <div class="mb-3">
+                    <label for="mqtt-port" class="form-label">Port</label>
+                    <input type="number" id="mqtt-port" name="port" class="form-control" value="1883" required>
+                </div>
+                <div class="mb-3">
+                    <label for="mqtt-topic" class="form-label">Topic</label>
+                    <input type="text" id="mqtt-topic" name="topic" class="form-control" placeholder="Enter MQTT Topic" required>
+                </div>
+                <button type="submit" class="btn btn-success w-100">Connect</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MQTT Messages Section -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <h3>MQTT Messages</h3>
+        </div>
+        <div class="card-body">
+            <div id="mqtt-messages" class="border bg-light p-3" style="height: 300px; overflow-y: auto;">
+                <!-- MQTT messages will appear here -->
+            </div>
+        </div>
+        <div class="card-footer text-center">
+            <button id="test-connection" class="btn btn-primary">Test Connection</button>
+            <button id="toggle-dashboard-modal" class="btn btn-secondary">Open Live Dashboard</button>
+        </div>
+    </div>
 </div>
 
-<div class="mt-4">
-    <h3>MQTT Messages</h3>
-    <div id="mqtt-messages" class="border bg-light p-3" style="height: 300px; overflow-y: auto;">
-        <!-- MQTT messages will appear here -->
+<!-- Live Dashboard Modal -->
+<div class="modal fade" id="dashboard-modal" tabindex="-1" aria-labelledby="dashboard-modal-label" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="dashboard-modal-label">Live Dashboard</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="dashboard-live-feed" class="border bg-light p-3" style="height: 400px; overflow-y: auto;">
+                    <!-- Live messages will appear here -->
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
 
-{% block extra_scripts %}
-<script>
-    $(document).ready(function () {
-        $("#mqtt-config-form").on("submit", function (event) {
-            event.preventDefault();
-            const formData = $(this).serialize();
-            $.post("/mqtt/connect", formData, function (response) {
-                alert(response.message);
-            });
-        });
-
-        const mqttMessages = $("#mqtt-messages");
-        const socket = io();
-
-        socket.on("mqtt_message", function (data) {
-            mqttMessages.append(`<div>${data.topic}: ${data.message}</div>`);
-            mqttMessages.scrollTop(mqttMessages.prop("scrollHeight"));
-        });
-    });
-</script>
+{% block additional_scripts %}
+{{ super() }}
+<script src="{{ url_for('static', filename='js/mqtt_management.js') }}"></script>
 {% endblock %}
 
+{% block extra_styles %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/mqtt_management.css') }}">
+{% endblock %}

@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}API Overview{% endblock %}
+
+{% block extra_styles %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/api_overview.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="text-center">API Overview</h1>
+    <p class="text-center">Interact with available API endpoints and preview their responses below.</p>
+
+    <!-- Section: Test API Endpoints -->
+    <div class="card mt-4">
+        <div class="card-header bg-primary text-white">Test API Endpoints</div>
+        <div class="card-body">
+            <form id="api-test-form" class="row g-3">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="col-md-6">
+                    <label for="endpoint" class="form-label">Endpoint</label>
+                    <select id="endpoint" class="form-select" required>
+                        <option value="/api/test-connection" selected>Test Connection</option>
+                        <option value="/api/fetch-data">Fetch Data</option>
+                        <option value="/api/push-data">Push Data</option>
+                        <option value="/api/endpoints">List Endpoints</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label for="params" class="form-label">Parameters (JSON)</label>
+                    <textarea id="params" class="form-control" rows="2" placeholder='{"key": "value"}'></textarea>
+                </div>
+                <div class="col-md-12 text-center">
+                    <button type="submit" class="btn btn-primary w-50">Send Request</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Section: Response Preview -->
+    <div class="card mt-4">
+        <div class="card-header bg-secondary text-white">Response Preview</div>
+        <div class="card-body">
+            <pre id="response-preview" class="border p-3 bg-light" style="height: 300px; overflow-y: auto;">No response yet...</pre>
+        </div>
+    </div>
+
+    <!-- Section: Available Endpoints -->
+    <div class="card mt-4">
+        <div class="card-header bg-info text-white">Available Endpoints</div>
+        <div class="card-body">
+            <ul id="available-endpoints" class="list-group">
+                <!-- Dynamically populated endpoints will be listed here -->
+                <li class="list-group-item text-center">Loading available endpoints...</li>
+            </ul>
+            <button class="btn btn-info mt-3 w-100" id="refresh-endpoints">Refresh Endpoints</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block additional_scripts %}
+{{ super() }}
+<script src="{{ url_for('static', filename='js/api_overview.js') }}"></script>
+{% endblock %}

@@ -1,6 +1,23 @@
 {% extends "auth/base.html" %}
 
 {% block content %}
-<h1>Verify Your Email</h1>
-<p>An email verification link has been sent to your email.</p>
+<div class="container mt-5">
+    <div class="text-center">
+        <h1 class="mb-4">Verify Your Email</h1>
+        <p class="lead">
+            A verification link has been sent to your email address. Please check your inbox and click the link to verify your email.
+        </p>
+        <p>
+            Didn't receive the email? Check your spam folder or click the button below to resend the verification link.
+        </p>
+
+        <form method="post" action="{{ url_for('auth.resend_verification') }}">
+            <button type="submit" class="btn btn-primary btn-lg mt-3">Resend Verification Email</button>
+        </form>
+
+        <div class="mt-4">
+            <a href="{{ url_for('auth.login') }}" class="btn btn-secondary">Back to Login</a>
+        </div>
+    </div>
+</div>
 {% endblock %}

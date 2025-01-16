@@ -1,4 +1,3 @@
-
 /* Peripherals Dashboard */
 .peripheral-card {
     background: white;
@@ -29,3 +28,16 @@
     border-radius: 4px;
 }
 
+/* Peripheral Preview */
+#peripheral-preview {
+    margin-top: 20px;
+}
+
+    #peripheral-preview pre {
+        background-color: #f8f9fa;
+        padding: 10px;
+        border-radius: 5px;
+        border: 1px solid #ddd;
+        font-family: monospace;
+        font-size: 0.9rem;
+    }

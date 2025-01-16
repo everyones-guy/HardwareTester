@@ -1,15 +1,17 @@
-
 {% extends "auth/base.html" %}
 
 {% block title %}Analytics{% endblock %}
 
 {% block additional_head %}
+{{ super() }}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/analytics.css') }}">
 {% endblock %}
 
 {% block auth_content %}
 <div class="container mt-4">
     <h1 class="text-center">Analytics Dashboard</h1>
+
+    <!-- Activity Overview Section -->
     <div class="row">
         <div class="col-md-6">
             <div class="card">
@@ -17,21 +19,35 @@
                     <h5>Activity Overview</h5>
                 </div>
                 <div class="card-body">
-                    <canvas id="activityChart"></canvas>
+                    <div id="activityChartContainer" class="loading-spinner">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                    <canvas id="activityChart" style="display: none;"></canvas>
                 </div>
             </div>
         </div>
+
+        <!-- Performance Metrics Section -->
         <div class="col-md-6">
             <div class="card">
                 <div class="card-header">
                     <h5>Performance Metrics</h5>
                 </div>
                 <div class="card-body">
-                    <canvas id="performanceChart"></canvas>
+                    <div id="performanceChartContainer" class="loading-spinner">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                    <canvas id="performanceChart" style="display: none;"></canvas>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Data Insights Section -->
     <div class="row mt-4">
         <div class="col-md-12">
             <div class="card">
@@ -39,7 +55,12 @@
                     <h5>Data Insights</h5>
                 </div>
                 <div class="card-body">
-                    <table class="table table-striped" id="analyticsTable">
+                    <div id="analyticsTableContainer" class="loading-spinner">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                    <table class="table table-striped" id="analyticsTable" style="display: none;">
                         <thead>
                             <tr>
                                 <th>Metric</th>
@@ -59,7 +80,7 @@
 {% endblock %}
 
 {% block additional_scripts %}
+{{ super() }}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="{{ url_for('static', filename='js/scripts/analytics.js') }}"></script>
+<script src="{{ url_for('static', filename='js/analytics.js') }}"></script>
 {% endblock %}
-

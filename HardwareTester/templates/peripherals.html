@@ -1,9 +1,10 @@
-
 {% extends "base.html" %}
+
+{% block title %}Peripherals Management{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
-    <h1>Peripherals Management</h1>
+    <h1 class="text-center">Peripherals Management</h1>
 
     <!-- Add Peripheral Form -->
     <div class="card mb-4">
@@ -12,19 +13,19 @@
             <form id="add-peripheral-form">
                 <div class="mb-3">
                     <label for="peripheral-name" class="form-label">Peripheral Name</label>
-                    <input type="text" id="peripheral-name" class="form-control" required>
+                    <input type="text" id="peripheral-name" class="form-control" placeholder="Enter Peripheral Name" required>
                 </div>
                 <div class="mb-3">
                     <label for="peripheral-properties" class="form-label">Properties (JSON Format)</label>
-                    <textarea id="peripheral-properties" class="form-control" rows="3" required></textarea>
+                    <textarea id="peripheral-properties" class="form-control" rows="3" placeholder='{"key": "value"}' required></textarea>
                 </div>
-                <button type="submit" class="btn btn-primary">Add Peripheral</button>
+                <button type="submit" class="btn btn-primary w-100">Add Peripheral</button>
             </form>
         </div>
     </div>
 
     <!-- Peripherals List -->
-    <div class="card">
+    <div class="card mb-4">
         <div class="card-header">Existing Peripherals</div>
         <div class="card-body">
             <ul id="peripherals-list" class="list-group">
@@ -32,11 +33,29 @@
             </ul>
         </div>
     </div>
+
+    <!-- Peripheral Preview -->
+    <div id="peripheral-preview" class="card d-none">
+        <div class="card-header">Peripheral Preview</div>
+        <div class="card-body">
+            <p><strong>Name:</strong> <span id="preview-name"></span></p>
+            <p><strong>Properties:</strong></p>
+            <pre id="preview-properties"></pre>
+            <div class="d-flex justify-content-between">
+                <button id="test-connection" class="btn btn-secondary">Test Connection</button>
+                <button id="test-device" class="btn btn-success">Test Device</button>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
 
-{% block extra_scripts %}
-<script src="{{ url_for('static', filename='js/scripts/peripherals.js') }}"></script>
-<link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+{% block additional_scripts %}
+{{ super() }}
+<script src="{{ url_for('static', filename='js/peripherals.js') }}"></script>
 {% endblock %}
 
+{% block extra_styles %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/peripherals.css') }}">
+{% endblock %

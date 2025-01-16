@@ -1,0 +1,23 @@
+/* logs.css */
+
+/* General log container styling */
+#log-container {
+    font-family: Arial, sans-serif;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.log-entry {
+    margin-bottom: 15px;
+}
+
+    .log-entry strong {
+        color: #007bff;
+    }
+
+    .log-entry pre {
+        background: #f8f9fa;
+        padding: 10px;
+        border-radius: 5px;
+        overflow-x: auto;
+    }

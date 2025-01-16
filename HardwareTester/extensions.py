@@ -6,6 +6,8 @@ from flask_migrate import Migrate
 from flask_wtf.csrf import CSRFProtect
 from flask_login import LoginManager
 from flask_marshmallow import Marshmallow
+from flask_bcrypt import Bcrypt
+
 import os
 
 # Initialize extensions
@@ -15,18 +17,11 @@ migrate = Migrate()
 csrf = CSRFProtect()
 login_manager = LoginManager()
 ma = Marshmallow()
-
-# Customize LoginManager settings
-login_manager.login_view = "auth.login"
-login_manager.login_message = "Please log in to access this page."
-login_manager.login_message_category = "warning"
+bcrypt = Bcrypt()
 
 # Configure global logger
 logger = logging.getLogger("HardwareTester")
 logger.setLevel(logging.INFO)
-
-# Ensure the logs directory exists
-os.makedirs("logs", exist_ok=True)
 
 # File handler with rotation
 file_handler = RotatingFileHandler("logs/app.log", maxBytes=5 * 1024 * 1024, backupCount=5)
@@ -38,6 +33,11 @@ console_handler = logging.StreamHandler()
 console_handler.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
 console_handler.setLevel(logging.INFO)
 
+# Customize LoginManager settings
+login_manager.login_view = "auth.login"
+login_manager.login_message = "Please log in to access this page."
+login_manager.login_message_category = "warning"
+
 # Add handlers to the logger
 logger.addHandler(file_handler)
 logger.addHandler(console_handler)
@@ -48,3 +48,5 @@ try:
 except Exception as e:
     logger.error(f"Error initializing extensions: {e}")
     raise e
+
+
