@@ -157,7 +157,7 @@ $(document).ready(function () {
         event.preventDefault();
         const formData = $(this).serializeArray();
         const payload = {};
-        formData.forEach(field => payload[field.name] = field.value);
+        formDatal.data.forEach(field => payload[field.name] = field.value);
 
         apiRequest("/serial/configure", "POST", payload)
             .done((data) => {
@@ -204,7 +204,7 @@ $(document).ready(function () {
                 const list = $("#dashboard-data ul");
                 list.empty();
 
-                if (data.length > 0) {
+                if (data && Array.isArray(data)) {
                     data.forEach((item) => {
                         list.append(`<li>${item.title}: ${item.description}</li>`);
                     });
@@ -218,36 +218,33 @@ $(document).ready(function () {
         });
     }
 
+
     function loadEmulators() {
         const list = $("#emulator-list");
-        list.html("<li class='list-group-item'>Loading...</li>"); // Show loading indicator
+        list.html("<li class='list-group-item'>Loading...</li>");
 
         apiRequest("/emulators/list", "GET")
             .done((data) => {
                 list.empty();
-                if (data.success) {
-                    const emulators = data.emulators || [];
-                    if (emulators.length > 0) {
-                        emulators.forEach((emulator) => {
-                            list.append(`
-                            <li class="list-group-item">
-                                <strong>${emulator.name}</strong> - Status: ${emulator.status}
-                                <button class="btn btn-danger btn-sm float-end stop-emulator" data-id="${emulator.id}">Stop</button>
-                            </li>
-                        `);
-                        });
-                    } else {
-                        list.append("<li class='list-group-item'>No emulators available.</li>");
-                    }
+                if (data.success && Array.isArray(data.emulators)) {
+                    data.emulators.forEach((emulator) => {
+                        list.append(`
+                        <li class="list-group-item">
+                            <strong>${emulator.name}</strong> - Status: ${emulator.status}
+                            <button class="btn btn-danger btn-sm float-end stop-emulator" data-id="${emulator.id}">Stop</button>
+                        </li>
+                    `);
+                    });
                 } else {
-                    alert(data.error || "An error occurred while loading emulators.");
+                    list.append("<li class='list-group-item'>No emulators available.</li>");
                 }
             })
             .fail(() => {
-                list.empty(); // Clear the list on failure
+                list.empty();
                 alert("Failed to load emulators.");
             });
     }
+
 
     // Event handler for stopping emulators
     $(document).on("click", ".stop-emulator", function () {
@@ -262,27 +259,33 @@ $(document).ready(function () {
 
 
     function loadLogs() {
+        const container = $("#log-output");
+        container.html("<p>Loading logs...</p>"); // Placeholder while fetching logs
+
         apiRequest("/logs/recent", "GET")
             .done((data) => {
-                const container = $("#log-output");
-                container.empty();
-                if (data.success && data.logs.length) {
+                container.empty(); // Clear placeholder
+                if (data.success && Array.isArray(data.logs) && data.logs.length > 0) {
                     data.logs.forEach((log) => {
-                        container.append(`<p>${log}</p>`);
+                        container.append($("<p>").text(log.trim())); // Escape HTML characters and trim
                     });
                 } else {
                     container.append("<p>No logs available.</p>");
                 }
             })
-            .fail(() => alert("Failed to load logs."));
+            .fail((xhr) => {
+                container.empty();
+                alert(`Failed to load logs. Error: ${xhr.statusText}`);
+            });
     }
+
 
     function loadSettings() {
         apiRequest("/settings/global", "GET")
             .done((data) => {
                 const list = $("#global-settings-list");
                 list.empty();
-                if (data.success && data.settings.length) {
+                if (data.success && Array.isArray(data.settings)) {
                     data.settings.forEach((setting) => {
                         list.append(`
                         <li class="list-group-item">
@@ -296,6 +299,7 @@ $(document).ready(function () {
             })
             .fail(() => alert("Failed to load settings."));
     }
+
 
     // Initialize dashboard
     handleTabs();
