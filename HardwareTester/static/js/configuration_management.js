@@ -1,143 +1,160 @@
-document.addEventListener("DOMContentLoaded", () => {
-    const saveForm = document.getElementById("save-configuration-form");
-    const savedList = document.getElementById("saved-configurations-list");
-    const previewCard = document.getElementById("configuration-preview-card");
-    const previewContent = document.getElementById("configuration-preview");
-    const applyButton = document.getElementById("apply-configuration");
-    const discardButton = document.getElementById("discard-preview");
-    const saveConfigButton = document.getElementById("save-configuration");
-    const savedConfigurationsList = document.getElementById("saved-configurations-list");
-
+$(document).ready(function () {
+    const saveForm = $("#save-configuration-form");
+    const savedList = $("#saved-configurations-list");
+    const previewCard = $("#configuration-preview-card");
+    const previewContent = $("#configuration-preview");
+    const applyButton = $("#apply-configuration");
+    const discardButton = $("#discard-preview");
+    const saveConfigButton = $("#save-configuration");
 
     // Fetch saved configurations
     function fetchConfigurations() {
-        fetch("/configurations/list")
-            .then((response) => response.json())
-            .then((data) => {
+        $.ajax({
+            url: "/configurations/list",
+            method: "GET",
+            success: function (data) {
+                savedList.empty();
                 if (data.success) {
-                    savedList.innerHTML = "";
-                    data.configurations.forEach((config) => {
-                        const listItem = document.createElement("li");
-                        listItem.className = "list-group-item d-flex justify-content-between align-items-center";
-                        listItem.innerHTML = `
-                            <span>${config.name}</span>
-                            <div>
-                                <button class="btn btn-sm btn-primary" onclick="previewConfiguration(${config.id})">Preview</button>
-                            </div>
-                        `;
-                        savedList.appendChild(listItem);
+                    data.configurations.forEach(function (config) {
+                        const listItem = `
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>${config.name}</span>
+                                <div>
+                                    <button class="btn btn-sm btn-primary preview-config" data-id="${config.id}">Preview</button>
+                                </div>
+                            </li>`;
+                        savedList.append(listItem);
                     });
                 } else {
-                    savedList.innerHTML = `<li class="list-group-item text-danger">${data.error}</li>`;
+                    savedList.html(`<li class="list-group-item text-danger">${data.error}</li>`);
                 }
-            })
-            .catch((error) => console.error("Error fetching configurations:", error));
+            },
+            error: function (xhr) {
+                console.error("Error fetching configurations:", xhr);
+            },
+        });
     }
+
     // Save current configuration
-    saveConfigButton.addEventListener("click", () => {
-        fetch("/save-configuration", { method: "POST" })
-            .then(response => response.json())
-            .then(data => {
+    saveConfigButton.on("click", function () {
+        $.ajax({
+            url: "/save-configuration",
+            method: "POST",
+            success: function (data) {
                 if (data.success) {
                     alert("Configuration saved successfully!");
                     loadConfigurations();
                 } else {
                     alert("Error saving configuration: " + data.message);
                 }
-            })
-            .catch(error => console.error("Error saving configuration:", error));
+            },
+            error: function (xhr) {
+                console.error("Error saving configuration:", xhr);
+            },
+        });
     });
 
     // Load configurations into the list
     function loadConfigurations() {
-        fetch("/get-configurations")
-            .then(response => response.json())
-            .then(data => {
-                savedConfigurationsList.innerHTML = ""; // Clear list
+        $.ajax({
+            url: "/get-configurations",
+            method: "GET",
+            success: function (data) {
+                savedList.empty();
                 if (data.success) {
-                    data.configurations.forEach(config => {
-                        const listItem = document.createElement("li");
-                        listItem.className = "list-group-item d-flex justify-content-between align-items-center";
-                        listItem.innerHTML = `
-                            <strong>${config.name}</strong>
-                            <button class="btn btn-primary btn-sm" data-id="${config.id}">Load</button>
-                        `;
-                        listItem.querySelector("button").addEventListener("click", () => loadConfiguration(config.id));
-                        savedConfigurationsList.appendChild(listItem);
+                    data.configurations.forEach(function (config) {
+                        const listItem = `
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <strong>${config.name}</strong>
+                                <button class="btn btn-primary btn-sm load-config" data-id="${config.id}">Load</button>
+                            </li>`;
+                        savedList.append(listItem);
                     });
                 } else {
-                    const errorItem = document.createElement("li");
-                    errorItem.className = "list-group-item text-danger";
-                    errorItem.textContent = "Error loading configurations.";
-                    savedConfigurationsList.appendChild(errorItem);
+                    savedList.html("<li class='list-group-item text-danger'>Error loading configurations.</li>");
                 }
-            })
-            .catch(error => console.error("Error fetching configurations:", error));
+            },
+            error: function (xhr) {
+                console.error("Error fetching configurations:", xhr);
+            },
+        });
     }
 
     // Load a specific configuration
-    function loadConfiguration(id) {
-        fetch(`/load-configuration/${id}`)
-            .then(response => response.json())
-            .then(data => {
+    $(document).on("click", ".load-config", function () {
+        const configId = $(this).data("id");
+        $.ajax({
+            url: `/load-configuration/${configId}`,
+            method: "GET",
+            success: function (data) {
                 if (data.success) {
                     alert("Configuration loaded successfully!");
                 } else {
                     alert("Error loading configuration: " + data.message);
                 }
-            })
-            .catch(error => console.error("Error loading configuration:", error));
-    }
+            },
+            error: function (xhr) {
+                console.error("Error loading configuration:", xhr);
+            },
+        });
+    });
 
     // Save configuration
-    saveForm.addEventListener("submit", (event) => {
+    saveForm.on("submit", function (event) {
         event.preventDefault();
-        const name = document.getElementById("configuration-name").value;
+        const name = $("#configuration-name").val();
 
-        fetch("/configurations/save", {
+        $.ajax({
+            url: "/configurations/save",
             method: "POST",
+            contentType: "application/json",
             headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": document.querySelector("meta[name='csrf-token']").content,
+                "X-CSRFToken": $("meta[name='csrf-token']").attr("content"),
             },
-            body: JSON.stringify({ name, layout: {} }),
-        })
-            .then((response) => response.json())
-            .then((data) => {
+            data: JSON.stringify({ name, layout: {} }),
+            success: function (data) {
                 if (data.success) {
                     alert(data.message);
-                    saveForm.reset();
+                    saveForm[0].reset();
                     fetchConfigurations();
                 } else {
                     alert(`Error: ${data.error}`);
                 }
-            })
-            .catch((error) => console.error("Error saving configuration:", error));
+            },
+            error: function (xhr) {
+                console.error("Error saving configuration:", xhr);
+            },
+        });
     });
 
     // Preview configuration
-    window.previewConfiguration = (id) => {
-        fetch(`/configurations/preview/${id}`)
-            .then((response) => response.json())
-            .then((data) => {
+    $(document).on("click", ".preview-config", function () {
+        const configId = $(this).data("id");
+        $.ajax({
+            url: `/configurations/preview/${configId}`,
+            method: "GET",
+            success: function (data) {
                 if (data.success) {
-                    previewContent.innerHTML = data.preview;
-                    previewCard.classList.remove("d-none");
+                    previewContent.html(data.preview);
+                    previewCard.removeClass("d-none");
                 } else {
                     alert(`Error: ${data.error}`);
                 }
-            })
-            .catch((error) => console.error("Error fetching preview:", error));
-    };
+            },
+            error: function (xhr) {
+                console.error("Error fetching preview:", xhr);
+            },
+        });
+    });
 
     // Discard preview
-    discardButton.addEventListener("click", () => {
-        previewCard.classList.add("d-none");
-        previewContent.innerHTML = "";
+    discardButton.on("click", function () {
+        previewCard.addClass("d-none");
+        previewContent.empty();
     });
 
     // Apply configuration (mock)
-    applyButton.addEventListener("click", () => {
+    applyButton.on("click", function () {
         alert("Configuration applied successfully.");
         discardButton.click();
     });

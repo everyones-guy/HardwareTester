@@ -1,4 +1,3 @@
-
 // Fetch and display the list of users
 function loadUsers() {
     $.getJSON("/users/list", function (data) {
@@ -9,7 +8,7 @@ function loadUsers() {
                 list.append(
                     `<li class="list-group-item">
                         <strong>${user.username}</strong> - ${user.email}
-                        <button class="btn btn-sm btn-danger float-end" onclick="deleteUser(${user.id})">Delete</button>
+                        <button class="btn btn-sm btn-danger float-end delete-user" data-id="${user.id}">Delete</button>
                     </li>`
                 );
             });
@@ -30,7 +29,7 @@ function handleAddUser() {
             url: "/users/add",
             type: "POST",
             headers: {
-                "X-CSRFToken": $('meta[name="csrf-token"]').attr('content')  // Ensure CSRF token is sent
+                "X-CSRFToken": $("meta[name='csrf-token']").attr("content")  // Ensure CSRF token is sent
             },
             contentType: "application/json",
             data: JSON.stringify(payload),
@@ -42,6 +41,9 @@ function handleAddUser() {
                     alert(`Error: ${response.error}`);
                 }
             },
+            error: function (xhr) {
+                alert(`Error: ${xhr.statusText}`);
+            }
         });
     });
 }
@@ -53,7 +55,7 @@ function deleteUser(userId) {
             url: `/users/delete/${userId}`,
             type: "DELETE",
             headers: {
-                "X-CSRFToken": $('meta[name="csrf-token"]').attr('content')  // Ensure CSRF token is sent
+                "X-CSRFToken": $("meta[name='csrf-token']").attr("content")  // Ensure CSRF token is sent
             },
             success: function (response) {
                 if (response.success) {
@@ -63,6 +65,9 @@ function deleteUser(userId) {
                     alert(`Error: ${response.error}`);
                 }
             },
+            error: function (xhr) {
+                alert(`Error: ${xhr.statusText}`);
+            }
         });
     }
 }
@@ -71,5 +76,10 @@ function deleteUser(userId) {
 $(document).ready(function () {
     loadUsers();
     handleAddUser();
-});
 
+    // Delegate delete user click event to dynamically added elements
+    $("#user-list").on("click", ".delete-user", function () {
+        const userId = $(this).data("id");
+        deleteUser(userId);
+    });
+});

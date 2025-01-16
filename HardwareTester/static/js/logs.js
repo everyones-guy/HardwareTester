@@ -1,21 +1,20 @@
-document.addEventListener("DOMContentLoaded", () => {
-    const logContainer = document.getElementById("log-container");
+$(document).ready(function () {
+    const logContainer = $("#log-container");
 
     // Fetch and display logs
     function fetchLogs(filters = {}) {
-        fetch("/logs", {
+        $.ajax({
+            url: "/logs",
             method: "GET",
+            contentType: "application/json",
             headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": document.querySelector('meta[name="csrf-token"]').getAttribute("content"),
+                "X-CSRFToken": $("meta[name='csrf-token']").attr("content"),
             },
-            body: JSON.stringify(filters),
-        })
-            .then(response => response.json())
-            .then(data => {
-                logContainer.innerHTML = "";
+            data: filters,
+            success: function (data) {
+                logContainer.empty();
                 if (data.success) {
-                    data.logs.forEach(log => {
+                    data.logs.forEach(function (log) {
                         const logEntry = `
                             <div class="log-entry">
                                 <strong>${log.level}</strong> [${log.timestamp}]: ${log.message}
@@ -23,25 +22,26 @@ document.addEventListener("DOMContentLoaded", () => {
                             </div>
                             <hr>
                         `;
-                        logContainer.insertAdjacentHTML("beforeend", logEntry);
+                        logContainer.append(logEntry);
                     });
                 } else {
-                    logContainer.innerHTML = "<p class='text-danger'>Failed to load logs.</p>";
+                    logContainer.html("<p class='text-danger'>Failed to load logs.</p>");
                 }
-            })
-            .catch(error => {
-                console.error("Error fetching logs:", error);
-                logContainer.innerHTML = "<p class='text-danger'>An unexpected error occurred.</p>";
-            });
+            },
+            error: function (xhr) {
+                console.error("Error fetching logs:", xhr);
+                logContainer.html("<p class='text-danger'>An unexpected error occurred.</p>");
+            },
+        });
     }
 
     // Apply filters
-    document.getElementById("filter-logs").addEventListener("click", () => {
+    $("#filter-logs").on("click", function () {
         const filters = {
-            level: document.getElementById("log-level").value,
-            keyword: document.getElementById("log-keyword").value,
-            start_date: document.getElementById("log-start-date").value,
-            end_date: document.getElementById("log-end-date").value,
+            level: $("#log-level").val(),
+            keyword: $("#log-keyword").val(),
+            start_date: $("#log-start-date").val(),
+            end_date: $("#log-end-date").val(),
         };
         fetchLogs(filters);
     });

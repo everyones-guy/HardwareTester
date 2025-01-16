@@ -1,4 +1,3 @@
-
 // Fetch and display system summary
 function loadSystemSummary() {
     $.getJSON("/system-status/summary", function (data) {
@@ -50,4 +49,3 @@ $(document).ready(function () {
     loadSystemSummary();
     loadSystemMetrics();
 });
-

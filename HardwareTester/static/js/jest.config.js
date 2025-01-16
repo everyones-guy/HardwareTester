@@ -1,6 +1,6 @@
 
 module.exports = {
     testEnvironment: "jsdom",
-    setupFiles: ["./test/setup.js"], // Add JSDOM setup
+    setupFiles: ["../scripts/setup.js"], // Add JSDOM setup
 };
 

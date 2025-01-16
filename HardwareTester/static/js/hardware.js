@@ -1,37 +1,30 @@
-document.addEventListener("DOMContentLoaded", () => {
-    const discoverDeviceForm = document.getElementById("discover-device-form");
-    const deviceDetailsCard = document.getElementById("device-details");
-    const deviceInfoContainer = document.getElementById("device-info");
-    const deviceSettingsContainer = document.getElementById("device-settings");
+$(document).ready(function () {
+    const discoverDeviceForm = $("#discover-device-form");
+    const deviceDetailsCard = $("#device-details");
+    const deviceInfoContainer = $("#device-info");
+    const deviceSettingsContainer = $("#device-settings");
 
-    discoverDeviceForm.addEventListener("submit", (event) => {
+    discoverDeviceForm.on("submit", function (event) {
         event.preventDefault();
-        const deviceId = document.getElementById("device-id").value;
+        const deviceId = $("#device-id").val();
 
         if (!deviceId) {
             alert("Please enter a Device ID.");
             return;
         }
 
-        const discoverButton = discoverDeviceForm.querySelector("button[type='submit']");
-        discoverButton.disabled = true;
-        discoverButton.textContent = "Discovering...";
+        const discoverButton = discoverDeviceForm.find("button[type='submit']");
+        discoverButton.prop("disabled", true).text("Discovering...");
 
-        fetch("/hardware/discover-device", {
+        $.ajax({
+            url: "/hardware/discover-device",
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "X-CSRFToken": document.querySelector('meta[name="csrf-token"]').getAttribute("content"),
+                "X-CSRFToken": $("meta[name='csrf-token']").attr("content"),
             },
-            body: JSON.stringify({ device_id: deviceId }),
-        })
-            .then((response) => {
-                if (!response.ok) {
-                    throw new Error("Failed to discover device.");
-                }
-                return response.json();
-            })
-            .then((data) => {
+            data: JSON.stringify({ device_id: deviceId }),
+            success: function (data) {
                 const { device } = data;
                 const deviceInfo = `
                     <p><strong>Name:</strong> ${device.name}</p>
@@ -51,37 +44,43 @@ document.addEventListener("DOMContentLoaded", () => {
                     )
                     .join("");
 
-                deviceInfoContainer.innerHTML = deviceInfo;
-                deviceSettingsContainer.innerHTML = deviceSettings;
-                deviceDetailsCard.classList.remove("d-none");
-            })
-            .catch((error) => {
-                alert(`Error: ${error.message}`);
-            })
-            .finally(() => {
-                discoverButton.disabled = false;
-                discoverButton.textContent = "Discover";
-            });
+                deviceInfoContainer.html(deviceInfo);
+                deviceSettingsContainer.html(deviceSettings);
+                deviceDetailsCard.removeClass("d-none");
+            },
+            error: function (xhr) {
+                alert(`Error: ${xhr.responseJSON?.message || xhr.statusText}`);
+            },
+            complete: function () {
+                discoverButton.prop("disabled", false).text("Discover");
+            },
+        });
     });
-    document.getElementById("firmware-form").addEventListener("submit", async (event) => {
+
+    $("#firmware-form").on("submit", function (event) {
         event.preventDefault();
 
         const formData = new FormData();
-        formData.append("firmware", document.getElementById("firmware").files[0]);
-        const machines = Array.from(document.getElementById("machines").selectedOptions).map(opt => opt.value);
+        formData.append("firmware", $("#firmware")[0].files[0]);
+        const machines = $("#machines").val();
         machines.forEach(machine => formData.append("machines", machine));
 
-        const response = await fetch("/firmware/upload", {
+        $.ajax({
+            url: "/firmware/upload",
             method: "POST",
-            body: formData
+            processData: false,
+            contentType: false,
+            data: formData,
+            success: function (result) {
+                if (result.success) {
+                    alert("Firmware uploaded successfully!");
+                } else {
+                    alert(`Error: ${result.error}`);
+                }
+            },
+            error: function (xhr) {
+                alert(`Error: ${xhr.responseJSON?.message || xhr.statusText}`);
+            },
         });
-
-        const result = await response.json();
-        if (result.success) {
-            alert("Firmware uploaded successfully!");
-        } else {
-            alert(`Error: ${result.error}`);
-        }
     });
-
 });

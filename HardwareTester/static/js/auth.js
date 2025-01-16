@@ -1,38 +1,34 @@
-// auth.js
-
-document.addEventListener("DOMContentLoaded", () => {
+$(document).ready(function () {
     console.log("Auth.js loaded successfully");
 
     // Highlight active navigation links
-    const navLinks = document.querySelectorAll(".navbar-nav .nav-link");
-    const currentPath = window.location.pathname;
-
-    navLinks.forEach(link => {
-        if (link.getAttribute("href") === currentPath) {
-            link.classList.add("active");
+    $(".navbar-nav .nav-link").each(function () {
+        const currentPath = window.location.pathname;
+        if ($(this).attr("href") === currentPath) {
+            $(this).addClass("active");
         } else {
-            link.classList.remove("active");
+            $(this).removeClass("active");
         }
     });
 
     // Handle sidebar navigation highlighting
-    const sidebarLinks = document.querySelectorAll("aside ul li a");
-    sidebarLinks.forEach(link => {
-        if (link.getAttribute("href") === currentPath) {
-            link.classList.add("active");
+    $("aside ul li a").each(function () {
+        const currentPath = window.location.pathname;
+        if ($(this).attr("href") === currentPath) {
+            $(this).addClass("active");
         } else {
-            link.classList.remove("active");
+            $(this).removeClass("active");
         }
     });
 
     // Logout confirmation (optional)
-    const logoutLink = document.querySelector("a[href='/auth/logout']");
-    if (logoutLink) {
-        logoutLink.addEventListener("click", (e) => {
+    const logoutLink = $("a[href='/auth/logout']");
+    if (logoutLink.length) {
+        logoutLink.on("click", function (e) {
             e.preventDefault();
             const confirmed = confirm("Are you sure you want to logout?");
             if (confirmed) {
-                window.location.href = logoutLink.getAttribute("href");
+                window.location.href = $(this).attr("href");
             }
         });
     }
@@ -40,40 +36,38 @@ document.addEventListener("DOMContentLoaded", () => {
     // Example AJAX utility for authenticated areas
     function fetchData(url, method = "GET", data = null) {
         const options = {
-            method,
+            url: url,
+            method: method,
             headers: {
                 "Content-Type": "application/json",
-                "X-CSRFToken": document.querySelector("[name=csrf_token]").value
+                "X-CSRFToken": $("[name=csrf_token]").val()
+            },
+            dataType: "json",
+            success: function (response) {
+                return response;
+            },
+            error: function (xhr, status, error) {
+                console.error("Error fetching data:", error);
+                alert("An error occurred. Please try again.");
             }
         };
 
         if (data) {
-            options.body = JSON.stringify(data);
+            options.data = JSON.stringify(data);
         }
 
-        return fetch(url, options)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .catch(error => {
-                console.error("Error fetching data:", error);
-                alert("An error occurred. Please try again.");
-            });
+        return $.ajax(options);
     }
 
     // Example: Fetch notifications for authenticated users
-    const notificationsContainer = document.querySelector("#notifications-container");
-    if (notificationsContainer) {
+    const notificationsContainer = $("#notifications-container");
+    if (notificationsContainer.length) {
         fetchData("/notifications/api")
-            .then(data => {
+            .done(function (data) {
                 if (data.success) {
-                    data.notifications.forEach(notification => {
-                        const listItem = document.createElement("li");
-                        listItem.textContent = notification.message;
-                        notificationsContainer.appendChild(listItem);
+                    data.notifications.forEach(function (notification) {
+                        const listItem = `<li>${notification.message}</li>`;
+                        notificationsContainer.append(listItem);
                     });
                 } else {
                     console.error("Failed to load notifications:", data.error);

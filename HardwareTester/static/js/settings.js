@@ -1,4 +1,3 @@
-
 // Fetch and render user settings
 function loadUserSettings() {
     $.getJSON("/settings/user", function (data) {
@@ -54,7 +53,7 @@ $("#user-settings-form").on("submit", function (event) {
         method: "POST",
         contentType: "application/json",
         headers: {
-            "X-CSRFToken": $('meta[name="csrf-token"]').attr('content')  // Ensure CSRF token is sent
+            "X-CSRFToken": $("meta[name='csrf-token']").attr('content')  // Ensure CSRF token is sent
         },
         data: JSON.stringify({ settings: formData }),
         success: function (response) {
@@ -67,7 +66,7 @@ $("#user-settings-form").on("submit", function (event) {
 });
 
 // Fetch and display global settings
-function loadGlobalSettings() {
+function loadGlobalSettingsList() {
     $.get("/settings/global", function (data) {
         const list = $("#global-settings-list");
         list.empty();
@@ -95,22 +94,15 @@ $("#update-global-setting-form").on("submit", function (event) {
     $.post("/settings/global", { key, value }, function (data) {
         if (data.success) {
             alert(data.message);
-            loadGlobalSettings();
+            loadGlobalSettingsList();
         } else {
             alert(data.message);
         }
     });
 });
 
-$(document).ready(function () {
-    loadGlobalSettings();
-});
-
-
-
 // Initialize settings page
 $(document).ready(function () {
     loadUserSettings();
     loadGlobalSettings();
 });
-
