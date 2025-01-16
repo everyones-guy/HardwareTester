@@ -1,99 +1,120 @@
-document.addEventListener("DOMContentLoaded", () => {
-    const testPlansList = document.getElementById("test-plans-list");
-    const testResults = document.getElementById("test-results");
-    const previewSection = document.getElementById("test-plan-preview-section");
-    const previewPlanName = document.getElementById("preview-plan-name");
-    const previewUploadedBy = document.getElementById("preview-uploaded-by");
-    const previewSteps = document.getElementById("preview-steps");
-    const runPreviewPlanButton = document.getElementById("run-preview-plan");
+$(document).ready(function () {
+    const testPlansList = $("#test-plans-list");
+    const testResults = $("#test-results");
+    const previewSection = $("#test-plan-preview-section");
+    const previewPlanName = $("#preview-plan-name");
+    const previewUploadedBy = $("#preview-uploaded-by");
+    const previewSteps = $("#preview-steps");
+    const runPreviewPlanButton = $("#run-preview-plan");
 
     let currentPreviewPlanId = null;
 
     // Fetch and display test plans
     function loadTestPlans() {
-        fetch("/test-plans/list")
-            .then((response) => response.json())
-            .then((data) => {
-                testPlansList.innerHTML = "";
+        $.ajax({
+            url: "/test-plans/list",
+            method: "GET",
+            success: function (data) {
+                testPlansList.empty();
                 if (data.success) {
                     data.testPlans.forEach((plan) => {
-                        const listItem = document.createElement("li");
-                        listItem.className = "list-group-item d-flex justify-content-between align-items-center";
-                        listItem.innerHTML = `
-                            <div>
-                                <strong>${plan.name}</strong> - Uploaded by ${plan.uploaded_by}
-                            </div>
-                            <button class="btn btn-sm btn-secondary" onclick="previewTestPlan(${plan.id})">Preview</button>
-                        `;
-                        testPlansList.appendChild(listItem);
+                        testPlansList.append(`
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>${plan.name}</strong> - Uploaded by ${plan.uploaded_by}
+                                </div>
+                                <button class="btn btn-sm btn-secondary preview-plan-btn" data-id="${plan.id}">Preview</button>
+                            </li>
+                        `);
                     });
                 } else {
-                    testPlansList.innerHTML = `<li class="list-group-item text-danger">${data.error}</li>`;
+                    testPlansList.html(`<li class="list-group-item text-danger">${data.error}</li>`);
                 }
-            })
-            .catch((error) => console.error("Error loading test plans:", error));
+            },
+            error: function (xhr) {
+                console.error("Error loading test plans:", xhr.responseText);
+            },
+        });
     }
 
     // Handle test plan upload
-    document.getElementById("upload-test-plan-form").addEventListener("submit", (event) => {
+    $("#upload-test-plan-form").on("submit", function (event) {
         event.preventDefault();
-        const formData = new FormData(event.target);
-        fetch("/test-plans/upload", {
+        const formData = new FormData(this);
+        $.ajax({
+            url: "/test-plans/upload",
             method: "POST",
-            body: formData,
+            data: formData,
+            processData: false,
+            contentType: false,
             headers: {
-                "X-CSRFToken": document.querySelector('meta[name="csrf-token"]').getAttribute("content"),
+                "X-CSRFToken": $("meta[name='csrf-token']").attr("content"),
             },
-        })
-            .then((response) => response.json())
-            .then((data) => {
+            success: function (data) {
                 if (data.success) {
                     alert(data.message);
                     loadTestPlans();
                 } else {
                     alert(`Error: ${data.error}`);
                 }
-            })
-            .catch((error) => console.error("Error uploading test plan:", error));
+            },
+            error: function (xhr) {
+                console.error("Error uploading test plan:", xhr.responseText);
+            },
+        });
     });
 
     // Preview a test plan
-    window.previewTestPlan = (testPlanId) => {
-        fetch(`/test-plans/${testPlanId}/preview`)
-            .then((response) => response.json())
-            .then((data) => {
+    testPlansList.on("click", ".preview-plan-btn", function () {
+        const testPlanId = $(this).data("id");
+        $.ajax({
+            url: `/test-plans/${testPlanId}/preview`,
+            method: "GET",
+            success: function (data) {
                 if (data.success) {
                     currentPreviewPlanId = testPlanId;
-                    previewPlanName.textContent = data.plan.name;
-                    previewUploadedBy.textContent = data.plan.uploaded_by;
-                    previewSteps.innerHTML = data.plan.steps
-                        .map((step, index) => `<li class="list-group-item">Step ${index + 1}: ${step.description}</li>`)
-                        .join("");
-                    previewSection.classList.remove("d-none");
+                    previewPlanName.text(data.plan.name);
+                    previewUploadedBy.text(data.plan.uploaded_by);
+                    previewSteps.html(
+                        data.plan.steps
+                            .map(
+                                (step, index) =>
+                                    `<li class="list-group-item">Step ${index + 1}: ${step.description}</li>`
+                            )
+                            .join("")
+                    );
+                    previewSection.removeClass("d-none");
                 } else {
                     alert(data.error);
                 }
-            })
-            .catch((error) => console.error("Error fetching test plan preview:", error));
-    };
+            },
+            error: function (xhr) {
+                console.error("Error fetching test plan preview:", xhr.responseText);
+            },
+        });
+    });
 
     // Run the previewed test plan
-    runPreviewPlanButton.addEventListener("click", () => {
+    runPreviewPlanButton.on("click", function () {
         if (currentPreviewPlanId) {
-            fetch(`/test-plans/run/${currentPreviewPlanId}`, { method: "POST" })
-                .then((response) => response.json())
-                .then((data) => {
-                    testResults.innerHTML = "";
+            $.ajax({
+                url: `/test-plans/run/${currentPreviewPlanId}`,
+                method: "POST",
+                success: function (data) {
+                    testResults.empty();
                     if (data.success) {
                         const resultsHTML = data.results
                             .map((result) => `<li>${result.step.Step}: ${result.result}</li>`)
                             .join("");
-                        testResults.innerHTML = `<ul>${resultsHTML}</ul>`;
+                        testResults.html(`<ul>${resultsHTML}</ul>`);
                     } else {
-                        testResults.innerHTML = `<p class="text-danger">${data.error}</p>`;
+                        testResults.html(`<p class="text-danger">${data.error}</p>`);
                     }
-                })
-                .catch((error) => console.error("Error running test plan:", error));
+                },
+                error: function (xhr) {
+                    console.error("Error running test plan:", xhr.responseText);
+                },
+            });
         }
     });
 

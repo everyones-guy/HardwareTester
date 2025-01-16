@@ -1,4 +1,5 @@
 from HardwareTester.extensions import db
+from HardwareTester.models.device_models import Valve
 from HardwareTester.utils.custom_logger import CustomLogger
 
 
@@ -7,7 +8,7 @@ logger = CustomLogger.get_logger("ValveService")
 def get_all_valves():
     """Retrieve all valves from the database."""
     try:
-        valves = db.Valve.query.all()
+        valves = Valve.query.all()
         valve_list = [
             {
                 "id": valve.id,
@@ -27,7 +28,7 @@ def get_all_valves():
 def add_valve(data):
     """Add a new valve to the database."""
     try:
-        valve = db.Valve(
+        valve = Valve(
             name=data.get("name"),
             type=data.get("type"),
             specifications=data.get("specifications"),
@@ -45,7 +46,7 @@ def add_valve(data):
 def delete_valve(valve_id):
     """Delete a valve from the database."""
     try:
-        valve = db.Valve.query.get(valve_id)
+        valve = Valve.query.get(valve_id)
         if not valve:
             return {"success": False, "error": "Valve not found"}
         db.session.delete(valve)
@@ -60,7 +61,7 @@ def delete_valve(valve_id):
 def update_valve(valve_id, data):
     """Update valve details."""
     try:
-        valve = db.Valve.query.get(valve_id)
+        valve = Valve.query.get(valve_id)
         if not valve:
             return {"success": False, "error": "Valve not found"}
         valve.name = data.get("name", valve.name)
@@ -78,7 +79,7 @@ def update_valve(valve_id, data):
 def get_valve_status(valve_id):
     """Get the status of a specific valve."""
     try:
-        valve = db.Valve.query.get(valve_id)
+        valve = Valve.query.get(valve_id)
         if not valve:
             return {"success": False, "error": "Valve not found"}
         status = {"id": valve.id, "status": valve.state}  # Use dynamic state
@@ -91,7 +92,7 @@ def get_valve_status(valve_id):
 def change_valve_state(valve_id, new_state):
     """Change the state of a valve."""
     try:
-        valve = db.Valve.query.get(valve_id)
+        valve = Valve.query.get(valve_id)
         if not valve:
             return {"success": False, "error": "Valve not found"}
         if new_state not in ["open", "closed", "faulty", "maintenance"]:

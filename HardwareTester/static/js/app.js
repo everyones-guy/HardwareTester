@@ -174,29 +174,24 @@ $(document).ready(function () {
 
     // Fetch valve statuses and display them
     function refreshValveStatus() {
-        ajaxRequest(
-            "/valves/<valve_id>/status",
-            "GET",
-            null,
-            function (data) {
-                const container = $("#valve-status-container");
-                container.empty();
+        // Loop through each valve and fetch its status
+        $("#valve-list .list-group-item").each(function () {
+            const valveId = $(this).find(".delete-valve").data("id");
 
-                if (data.success) {
-                    const statuses = data.statuses;
-                    statuses.forEach((status) => {
-                        container.append(
-                            `<div>
-                                <strong>Valve ${status.id}</strong>: ${status.status}
-                                <small class="text-muted">(Last updated: ${status.last_updated})</small>
-                            </div>`
-                        );
-                    });
-                } else {
-                    showAlert(data.message, "danger");
-                }
-            }
-        );
+            // Make a request for the specific valve's status
+            ajaxRequest(
+                `/valves/${valveId}/status`,
+                "GET",
+                null,
+                function (data) {
+                    if (data.success) {
+                        $(this).find(".valve-state").text(data.status.state);
+                    } else {
+                        showAlert(data.message, "danger");
+                    }
+                }.bind(this) // Ensure `this` is the current list item
+            );
+        });
     }
 
     // Handle test plan upload form submission

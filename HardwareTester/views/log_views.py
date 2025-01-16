@@ -1,7 +1,11 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, render_template
 from HardwareTester.services.log_service import LogService
+from HardwareTester.utils.custom_logger import CustomLogger
 
-logs_bp = Blueprint("logs", __name__)
+# Initialize logger
+logger = CustomLogger.get_logger("log_views")
+
+logs_bp = Blueprint("logs", __name__, url_prefix="/logs")
 
 # Activity Logs
 @logs_bp.route("/activity", methods=["GET"])
