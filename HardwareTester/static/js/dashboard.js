@@ -16,14 +16,12 @@ $(document).ready(function () {
             $(".tab-pane").removeClass("show active");
             $(`#${targetId}`).addClass("show active");
 
-            // Initialize emulator form when the emulator tab is selected
-            if (targetId === "add-emulator-tab") {
-                if (typeof initializeEmulatorForm === "function") {
-                    initializeEmulatorForm();
-                }
+            // Initialize emulator form or other actions based on the tab
+            if (targetId === "add-emulator-tab" && typeof initializeEmulatorForm === "function") {
+                initializeEmulatorForm();
+            } else if (targetId === "compare-emulators-tab" && typeof loadAvailableEmulators === "function") {
+                loadAvailableEmulators();
             }
-            // Trigger when the modal opens
-            $("#compareMachinesModal").on("show.bs.modal", loadAvailableEmulators);
         });
     }
 
