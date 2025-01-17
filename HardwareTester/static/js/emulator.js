@@ -14,15 +14,14 @@ $(document).ready(function () {
             },
             error: (xhr) => {
                 toggleLoading(false);
-                (onError || function () {
-                    console.error("API Error:", xhr.responseText);
-                    alert(`An error occurred: ${xhr.statusText} (${xhr.status}).`);
-                })(xhr);
+                console.error("API Error:", xhr.responseText);
+                alert(`An error occurred: ${xhr.statusText} (${xhr.status}).`);
+                if (onError) onError(xhr);
             },
         });
     }
 
-    // Loading indicator toggle
+    // Toggle loading indicator
     function toggleLoading(state) {
         $("#add-emulator-submit-btn").prop("disabled", state);
         $("#loading-spinner").toggle(state);
@@ -31,6 +30,9 @@ $(document).ready(function () {
     // Parse JSON input from file or text
     async function parseJsonInput(fileInput, textInput) {
         if (fileInput) {
+            if (fileInput.size > 5 * 1024 * 1024) { // 5MB limit
+                throw new Error("The file is too large. Please upload a file smaller than 5MB.");
+            }
             const fileText = await fileInput.text();
             return JSON.parse(fileText);
         }
@@ -48,60 +50,18 @@ $(document).ready(function () {
             event.preventDefault();
             const fileInput = $("#json-file")[0].files[0];
             const textInput = $("#json-text").val().trim();
-            let jsonData;
 
             try {
-                jsonData = await parseJsonInput(fileInput, textInput); // Use the async parseJsonInput function
-                apiCall(
-                    "/api/add-emulator",
-                    "POST",
-                    jsonData,
-                    (response) => {
-                        alert(response.message);
-                        if (response.success) {
-                            $("#add-emulator-modal").modal("hide");
-                            fetchBlueprints(); // Refresh blueprints after adding an emulator
-                        }
-                    },
-                    (xhr) => {
-                        alert("Failed to add emulator. Check logs for details.");
-                        console.error(xhr.responseText);
-                    }
-                );
+                const jsonData = await parseJsonInput(fileInput, textInput);
+                submitEmulator(jsonData);
             } catch (error) {
                 alert(`Invalid JSON: ${error.message}. Please correct the input.`);
             }
         });
     }
 
-    // Handle emulator addition
-    $("#add-emulator-form").on("submit", function (event) {
-        event.preventDefault();
-        const fileInput = $("#json-file")[0].files[0];
-        const textInput = $("#json-text").val().trim();
-        let jsonData;
-
-        try {
-            if (fileInput) {
-                fileInput.text().then(fileText => {
-                    jsonData = JSON.parse(fileText);
-                    validateAndSubmitEmulator(jsonData);
-                }).catch(() => {
-                    alert("Error reading the file.");
-                });
-            } else if (textInput) {
-                jsonData = JSON.parse(textInput);
-                validateAndSubmitEmulator(jsonData);
-            } else {
-                throw new Error("No input provided.");
-            }
-        } catch (error) {
-            alert("Invalid JSON. Please correct the input.");
-        }
-    });
-
-    // Validate and submit emulator data
-    function validateAndSubmitEmulator(data) {
+    // Submit emulator data
+    function submitEmulator(data) {
         const requiredFields = ["name", "description", "protocol", "connection", "settings", "commands", "data_format", "default_state"];
         const missingFields = requiredFields.filter(field => !data[field]);
 
@@ -111,13 +71,14 @@ $(document).ready(function () {
         }
 
         apiCall(
-            "/api/add-emulator", // Ensure this matches your backend route
+            "/api/add-emulator",
             "POST",
             data,
             (response) => {
                 alert(response.message);
                 if (response.success) {
                     $("#add-emulator-modal").modal("hide");
+                    fetchBlueprints();
                 }
             },
             (xhr) => {
@@ -193,69 +154,7 @@ $(document).ready(function () {
         });
     }
 
-    // Handle blueprint upload
-    $("#blueprint-upload-form").on("submit", function (event) {
-        event.preventDefault();
-        const formData = new FormData(this);
-
-        $.ajax({
-            url: "/emulators/load-blueprint",
-            type: "POST",
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function () {
-                alert("Blueprint uploaded successfully.");
-                fetchBlueprints();
-            },
-            error: function () {
-                alert("Failed to upload blueprint.");
-            },
-        });
-    });
-
-    // Handle starting a new emulation
-    $("#start-emulation-form").on("submit", function (event) {
-        event.preventDefault();
-        const machineName = $("#machine-name").val();
-        const blueprint = $("#blueprint-select").val();
-        const stressTest = $("#stress-test").is(":checked");
-
-        if (!machineName || !blueprint) {
-            alert("Please provide both a machine name and a blueprint.");
-            return;
-        }
-
-        apiCall(
-            "/emulators/start",
-            "POST",
-            { machine_name: machineName, blueprint, stress_test: stressTest },
-            () => {
-                alert("Emulation started successfully.");
-                fetchActiveEmulations();
-            },
-            () => alert("Failed to start emulation.")
-        );
-    });
-
-    // Handle stopping an emulation
-    $(document).on("click", ".stop-emulation", function () {
-        const machineName = $(this).data("machine");
-
-        apiCall(
-            "/emulators/stop",
-            "POST",
-            { machine_name: machineName },
-            () => {
-                alert("Emulation stopped successfully.");
-                fetchActiveEmulations();
-            },
-            () => alert("Failed to stop emulation.")
-        );
-    });
-
-
-    // Handle blueprint preview
+    // Preview blueprint
     $(document).on("click", ".preview-blueprint", function () {
         const blueprintName = $(this).data("blueprint");
         const previewModal = new bootstrap.Modal(document.getElementById("preview-modal"));
@@ -280,25 +179,21 @@ $(document).ready(function () {
         previewModal.show();
     });
 
-    // Load available emulators for selection
-    function loadAvailableEmulators() {
-        apiCall("/emulators/list", "GET", null, (data) => {
-            const emulatorList = $("#emulator-list");
-            emulatorList.empty();
+    // Stop an emulation
+    $(document).on("click", ".stop-emulation", function () {
+        const machineName = $(this).data("machine");
 
-            if (data.success && data.emulations.length > 0) {
-                data.emulations.forEach((emulation) => {
-                    emulatorList.append(`<option value="${emulation.machine_name}">${emulation.machine_name}</option>`);
-                });
-            } else {
-                emulatorList.append('<option disabled>No emulators available.</option>');
-            }
-        });
-    }
-
-    // Globalize helper functions
-    window.initializeEmulatorForm = initializeEmulatorForm;
-    window.loadAvailableEmulators = loadAvailableEmulators;
+        apiCall(
+            "/emulators/stop",
+            "POST",
+            { machine_name: machineName },
+            () => {
+                alert("Emulation stopped successfully.");
+                fetchActiveEmulations();
+            },
+            () => alert("Failed to stop emulation.")
+        );
+    });
 
     // Initial data load
     fetchBlueprints();

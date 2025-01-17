@@ -2,7 +2,7 @@ $(document).ready(function () {
     const canvas = $("#canvas-container");
     const socket = io();
 
-    // Function to handle tab switching
+    // Handle tab switching
     function handleTabs() {
         $(".list-group-item").on("click", function (e) {
             e.preventDefault();
@@ -16,7 +16,7 @@ $(document).ready(function () {
             $(".tab-pane").removeClass("show active");
             $(`#${targetId}`).addClass("show active");
 
-            // Initialize emulator form or other actions based on the tab
+            // Initialize or load data based on tab
             if (targetId === "add-emulator-tab" && typeof initializeEmulatorForm === "function") {
                 initializeEmulatorForm();
             } else if (targetId === "compare-emulators-tab" && typeof loadAvailableEmulators === "function") {
@@ -25,7 +25,7 @@ $(document).ready(function () {
         });
     }
 
-    // Function to add a device visually
+    // Add components visually to the dashboard
     function addComponent(id, type, x = 50, y = 50) {
         const element = $(`
             <div id="component-${id}" class="draggable" 
@@ -38,7 +38,7 @@ $(document).ready(function () {
         enableDrag(element);
     }
 
-    // Real-time updates using Socket.IO
+    // Handle real-time updates using Socket.IO
     socket.on("device_update", (data) => {
         const { id, type, state, value } = data;
         const component = $(`#component-${id}`);
@@ -47,7 +47,7 @@ $(document).ready(function () {
         }
     });
 
-    // Function to animate devices
+    // Animate devices based on type and state
     function animateDevice(element, type, state, value) {
         const animations = {
             valve: animateValve,
@@ -60,7 +60,7 @@ $(document).ready(function () {
         }
     }
 
-    // Specific animations for valves
+    // Valve animations
     function animateValve(element, state, value) {
         if (state === "open") {
             anime({
@@ -91,7 +91,7 @@ $(document).ready(function () {
         }
     }
 
-    // Specific animations for motors
+    // Motor animations
     function animateMotor(element, state, speed) {
         if (state === "running") {
             anime({
@@ -103,17 +103,17 @@ $(document).ready(function () {
             });
             element.find(".component-body").text(`Motor Running (${speed} RPM)`);
         } else if (state === "stopped") {
-            anime.remove(element[0]); // Stop any ongoing animation
+            anime.remove(element[0]); // Stop ongoing animation
             element.find(".component-body").text("Motor Stopped");
         }
     }
 
-    // Specific animations for sensors
+    // Sensor animations
     function animateSensor(element, state, value) {
         element.find(".component-body").text(`Sensor (${state}): ${value}`);
     }
 
-    // Drag-and-drop functionality
+    // Enable drag-and-drop functionality for elements
     function enableDrag(element) {
         interact(element[0]).draggable({
             listeners: {
@@ -132,22 +132,13 @@ $(document).ready(function () {
         });
     }
 
-    // API request helper
-    function apiRequest(url, method, data = {}) {
-        return $.ajax({
-            url: url,
-            method: method,
-            data: method === "GET" ? undefined : JSON.stringify(data),
-            contentType: "application/json",
-        });
-    }
-
-    // Dashboard functionality
+    // Fetch overview data for the dashboard
     function loadOverview() {
-        $.ajax({
-            url: "/dashboard/overview",
-            method: "GET",
-            success: function (data) {
+        apiCall(
+            "/dashboard/overview",
+            "GET",
+            null,
+            (data) => {
                 const list = $("#dashboard-data ul");
                 list.empty();
 
@@ -159,13 +150,11 @@ $(document).ready(function () {
                     list.append("<li>No data available.</li>");
                 }
             },
-            error: function () {
-                console.error("Failed to load overview data.");
-            },
-        });
+            () => console.error("Failed to load overview data.")
+        );
     }
 
-    // Initialize dashboard
+    // Initialize tabs and data loading
     handleTabs();
     loadOverview();
 });
