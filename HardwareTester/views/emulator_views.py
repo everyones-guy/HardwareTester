@@ -148,7 +148,7 @@ def compare_machines():
         logger.error(f"Error comparing machines: {e}")
         return jsonify({"success": False, "error": "Failed to compare machines."}), 500
 
-@emulator_bp.route("/add-blueprint", methods=["POST"])
+@emulator_bp.route("/add-emulator", methods=["POST"])
 def add_blueprint_or_emulator():
     """Add a new blueprint or emulator."""
     try:

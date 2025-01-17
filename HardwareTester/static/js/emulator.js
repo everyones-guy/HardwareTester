@@ -59,6 +59,93 @@ $(document).ready(function () {
             }
         });
     }
+    // Handle blueprint upload
+    $("#blueprint-upload-form").on("submit", function (event) {
+        event.preventDefault();
+        const formData = new FormData(this);
+
+        $.ajax({
+            url: "/emulators/load-blueprint",
+            type: "POST",
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function () {
+                alert("Blueprint uploaded successfully.");
+                fetchBlueprints();
+            },
+            error: function () {
+                alert("Failed to upload blueprint.");
+            },
+        });
+    });
+
+    // Handle starting a new emulation
+    $("#start-emulation-form").on("submit", function (event) {
+        event.preventDefault();
+        const machineName = $("#machine-name").val();
+        const blueprint = $("#blueprint-select").val();
+        const stressTest = $("#stress-test").is(":checked");
+
+        if (!machineName || !blueprint) {
+            alert("Please provide both a machine name and a blueprint.");
+            return;
+        }
+
+        apiCall(
+            "/emulators/start",
+            "POST",
+            { machine_name: machineName, blueprint, stress_test: stressTest },
+            () => {
+                alert("Emulation started successfully.");
+                fetchActiveEmulations();
+            },
+            () => alert("Failed to start emulation.")
+        );
+    });
+
+    // Handle stopping an emulation
+    $(document).on("click", ".stop-emulation", function () {
+        const machineName = $(this).data("machine");
+
+        apiCall(
+            "/emulators/stop",
+            "POST",
+            { machine_name: machineName },
+            () => {
+                alert("Emulation stopped successfully.");
+                fetchActiveEmulations();
+            },
+            () => alert("Failed to stop emulation.")
+        );
+    });
+
+    // Handle emulator addition
+    $("#add-emulator-form").on("submit", function (event) {
+        event.preventDefault();
+        const fileInput = $("#json-file")[0].files[0];
+        const textInput = $("#json-text").val().trim();
+        let jsonData;
+
+        try {
+            if (fileInput) {
+                fileInput.text().then(fileText => {
+                    jsonData = JSON.parse(fileText);
+                    validateAndSubmitEmulator(jsonData);
+                }).catch(() => {
+                    alert("Error reading the file.");
+                });
+            } else if (textInput) {
+                jsonData = JSON.parse(textInput);
+                validateAndSubmitEmulator(jsonData);
+            } else {
+                throw new Error("No input provided.");
+            }
+        } catch (error) {
+            alert("Invalid JSON. Please correct the input.");
+        }
+    });
+
 
     // Submit emulator data
     function submitEmulator(data) {
@@ -153,6 +240,70 @@ $(document).ready(function () {
             }
         });
     }
+
+    // Handle blueprint upload
+    $("#blueprint-upload-form").on("submit", function (event) {
+        event.preventDefault();
+        const formData = new FormData(this);
+
+        $.ajax({
+            url: "/emulators/load-blueprint",
+            type: "POST",
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function () {
+                alert("Blueprint uploaded successfully.");
+                fetchBlueprints();
+            },
+            error: function () {
+                alert("Failed to upload blueprint.");
+            },
+        });
+    });
+
+    // Handle starting a new emulation
+    $("#start-emulation-form").on("submit", function (event) {
+        event.preventDefault();
+        const machineName = $("#machine-name").val();
+        const blueprint = $("#blueprint-select").val();
+        const stressTest = $("#stress-test").is(":checked");
+
+        if (!machineName || !blueprint) {
+            alert("Please provide both a machine name and a blueprint.");
+            return;
+        }
+
+        apiCall(
+            "/emulators/start",
+            "POST",
+            { machine_name: machineName, blueprint, stress_test: stressTest },
+            () => {
+                alert("Emulation started successfully.");
+                fetchActiveEmulations();
+            },
+            () => alert("Failed to start emulation.")
+        );
+    });
+
+    // Handle stopping an emulation
+    $(document).on("click", ".stop-emulation", function () {
+        const machineName = $(this).data("machine");
+
+        apiCall(
+            "/emulators/stop",
+            "POST",
+            { machine_name: machineName },
+            () => {
+                alert("Emulation stopped successfully.");
+                fetchActiveEmulations();
+            },
+            () => alert("Failed to stop emulation.")
+        );
+    });
+
+
+    // Handle blueprint preview
 
     // Preview blueprint
     $(document).on("click", ".preview-blueprint", function () {
