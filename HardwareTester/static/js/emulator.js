@@ -30,7 +30,7 @@ $(document).ready(function () {
     // Parse JSON input from file or text
     async function parseJsonInput(fileInput, textInput) {
         if (fileInput) {
-            if (fileInput.size > 5 * 1024 * 1024) { // 5MB limit
+            if (fileInput.size > 5 * 1024 * 1024) {
                 throw new Error("The file is too large. Please upload a file smaller than 5MB.");
             }
             const fileText = await fileInput.text();
@@ -75,7 +75,6 @@ $(document).ready(function () {
             }
         );
     }
-
 
     // Handle form submission for adding emulator
     function initializeEmulatorForm() {
