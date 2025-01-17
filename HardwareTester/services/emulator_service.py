@@ -184,5 +184,3 @@ class EmulatorService:
             logger.error(f"Error adding blueprint '{name}': {e}")
             db.session.rollback()
             return {"success": False, "message": f"Failed to add blueprint '{name}': {str(e)}"}
-
-
