@@ -29,30 +29,6 @@ def get_blueprints():
         logger.error(f"Error fetching blueprints: {e}")
         return jsonify({"success": False, "error": "Failed to fetch blueprints."}), 500
 
-@emulator_bp.route("/add-blueprint", methods=["POST"])
-def add_blueprint():
-    """Add a new blueprint."""
-    try:
-        data = request.json
-        if not data:
-            return jsonify({"success": False, "message": "No data provided"}), 400
-
-        # Extract fields
-        name = data.get("name")
-        description = data.get("description")
-        configuration = data.get("configuration")
-        version = data.get("version")
-        author = data.get("author")
-
-        if not name or not description:
-            return jsonify({"success": False, "message": "Name and description are required."}), 400
-
-        response = EmulatorService.add_blueprint(name, description, configuration, version, author)
-        return jsonify(response), 200 if response["success"] else 400
-    except Exception as e:
-        logger.error(f"Error adding blueprint: {e}")
-        return jsonify({"success": False, "message": "Failed to add blueprint."}), 500
-
 @emulator_bp.route("/load-blueprint", methods=["POST"])
 def load_blueprint_endpoint():
     """Load a new blueprint."""
@@ -172,47 +148,47 @@ def compare_machines():
         logger.error(f"Error comparing machines: {e}")
         return jsonify({"success": False, "error": "Failed to compare machines."}), 500
 
-@emulator_bp.route("/add-emulator", methods=["POST"])
-def add_emulator():
-    """Add a new emulator."""
+@emulator_bp.route("/add-blueprint", methods=["POST"])
+def add_blueprint_or_emulator():
+    """Add a new blueprint or emulator."""
     try:
         data = request.json
         if not data:
-            logger.error("No data received for adding emulator.")
+            logger.error("No data received for adding blueprint/emulator.")
             return jsonify({"success": False, "message": "No data provided."}), 400
 
-        # Extract required fields from the JSON
+        # Extract required fields
         name = data.get("name")
         description = data.get("description")
-        configuration = data.get("configuration")
-        if not name or not description or not configuration:
-            logger.error("Missing required fields in emulator data.")
+        blueprint_type = data.get("type", "blueprint")  # Default to blueprint if type is not provided
+
+        if not name or not description:
+            logger.error("Missing required fields in blueprint/emulator data.")
             return jsonify({"success": False, "message": "Missing required fields."}), 400
 
-        # Call EmulatorService to save the emulator
-        result = EmulatorService.add_blueprint(name=name, description=description, configuration=configuration)
+        # Add the blueprint/emulator
+        result = EmulatorService.add_blueprint(
+            name=name,
+            description=description,
+            protocol=data.get("protocol"),
+            connection=data.get("connection"),
+            settings=data.get("settings"),
+            commands=data.get("commands"),
+            data_format=data.get("data_format"),
+            default_state=data.get("default_state"),
+            version=data.get("version"),
+            author=data.get("author"),
+        )
+
         if result["success"]:
-            logger.info(f"Successfully added emulator '{name}'.")
+            logger.info(f"Successfully added {blueprint_type} '{name}'.")
             return jsonify(result), 200
         else:
-            logger.error(f"Failed to add emulator: {result['message']}")
+            logger.error(f"Failed to add {blueprint_type}: {result['message']}")
             return jsonify(result), 400
+
     except Exception as e:
-        logger.exception("Error while adding emulator.")
+        logger.exception("Error while adding blueprint/emulator.")
         return jsonify({"success": False, "message": "Internal server error."}), 500
 
-@emulator_bp.route('/add-blueprint', methods=['POST'])
-def add_blueprint():
-    data = request.json
-    if not data or 'name' not in data or 'description' not in data:
-        return jsonify({"success": False, "message": "Missing required fields: 'name' and 'description'"}), 400
-
-    result = EmulatorService.add_blueprint(
-        name=data['name'],
-        description=data['description'],
-        configuration=data.get('configuration'),
-        version=data.get('version'),
-        author=data.get('author')
-    )
-    return jsonify(result), 200 if result["success"] else 400
 

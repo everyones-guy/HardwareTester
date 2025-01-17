@@ -15,6 +15,7 @@ $(document).ready(function () {
         });
     }
 
+    // Handle emulator addition
     $("#add-emulator-form").on("submit", function (event) {
         event.preventDefault();
         const fileInput = $("#json-file")[0].files[0];
@@ -25,13 +26,13 @@ $(document).ready(function () {
             if (fileInput) {
                 fileInput.text().then(fileText => {
                     jsonData = JSON.parse(fileText);
-                    submitEmulator(jsonData);
+                    validateAndSubmitEmulator(jsonData);
                 }).catch(() => {
                     alert("Error reading the file.");
                 });
             } else if (textInput) {
                 jsonData = JSON.parse(textInput);
-                submitEmulator(jsonData);
+                validateAndSubmitEmulator(jsonData);
             } else {
                 throw new Error("No input provided.");
             }
@@ -40,25 +41,32 @@ $(document).ready(function () {
         }
     });
 
-    function submitEmulator(data) {
-        $.ajax({
-            url: "/api/add-emulator", // Ensure this matches your backend route
-            method: "POST",
-            contentType: "application/json",
-            data: JSON.stringify(data),
-            success: (response) => {
+    // Validate and submit emulator data
+    function validateAndSubmitEmulator(data) {
+        const requiredFields = ["name", "description", "protocol", "connection", "settings", "commands", "data_format", "default_state"];
+        const missingFields = requiredFields.filter(field => !data[field]);
+
+        if (missingFields.length > 0) {
+            alert(`Missing required fields: ${missingFields.join(", ")}`);
+            return;
+        }
+
+        apiCall(
+            "/api/add-emulator", // Ensure this matches your backend route
+            "POST",
+            data,
+            (response) => {
                 alert(response.message);
                 if (response.success) {
                     $("#add-emulator-modal").modal("hide");
                 }
             },
-            error: (xhr) => {
+            (xhr) => {
                 alert("Failed to add emulator. Check logs for details.");
                 console.error(xhr.responseText);
-            },
-        });
+            }
+        );
     }
-
 
     // Fetch blueprints
     function fetchBlueprints() {
@@ -187,6 +195,7 @@ $(document).ready(function () {
         );
     });
 
+
     // Handle blueprint preview
     $(document).on("click", ".preview-blueprint", function () {
         const blueprintName = $(this).data("blueprint");
@@ -227,7 +236,6 @@ $(document).ready(function () {
             }
         });
     }
-
     // Initialize emulator form
     function initializeEmulatorForm() {
         const addEmulatorForm = $("#add-emulator-form");
@@ -266,6 +274,7 @@ $(document).ready(function () {
             );
         });
     }
+
 
     // Globalize helper functions
     window.initializeEmulatorForm = initializeEmulatorForm;
