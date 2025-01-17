@@ -172,3 +172,47 @@ def compare_machines():
         logger.error(f"Error comparing machines: {e}")
         return jsonify({"success": False, "error": "Failed to compare machines."}), 500
 
+@emulator_bp.route("/add-emulator", methods=["POST"])
+def add_emulator():
+    """Add a new emulator."""
+    try:
+        data = request.json
+        if not data:
+            logger.error("No data received for adding emulator.")
+            return jsonify({"success": False, "message": "No data provided."}), 400
+
+        # Extract required fields from the JSON
+        name = data.get("name")
+        description = data.get("description")
+        configuration = data.get("configuration")
+        if not name or not description or not configuration:
+            logger.error("Missing required fields in emulator data.")
+            return jsonify({"success": False, "message": "Missing required fields."}), 400
+
+        # Call EmulatorService to save the emulator
+        result = EmulatorService.add_blueprint(name=name, description=description, configuration=configuration)
+        if result["success"]:
+            logger.info(f"Successfully added emulator '{name}'.")
+            return jsonify(result), 200
+        else:
+            logger.error(f"Failed to add emulator: {result['message']}")
+            return jsonify(result), 400
+    except Exception as e:
+        logger.exception("Error while adding emulator.")
+        return jsonify({"success": False, "message": "Internal server error."}), 500
+
+@emulator_bp.route('/add-blueprint', methods=['POST'])
+def add_blueprint():
+    data = request.json
+    if not data or 'name' not in data or 'description' not in data:
+        return jsonify({"success": False, "message": "Missing required fields: 'name' and 'description'"}), 400
+
+    result = EmulatorService.add_blueprint(
+        name=data['name'],
+        description=data['description'],
+        configuration=data.get('configuration'),
+        version=data.get('version'),
+        author=data.get('author')
+    )
+    return jsonify(result), 200 if result["success"] else 400
+

@@ -15,6 +15,51 @@ $(document).ready(function () {
         });
     }
 
+    $("#add-emulator-form").on("submit", function (event) {
+        event.preventDefault();
+        const fileInput = $("#json-file")[0].files[0];
+        const textInput = $("#json-text").val().trim();
+        let jsonData;
+
+        try {
+            if (fileInput) {
+                fileInput.text().then(fileText => {
+                    jsonData = JSON.parse(fileText);
+                    submitEmulator(jsonData);
+                }).catch(() => {
+                    alert("Error reading the file.");
+                });
+            } else if (textInput) {
+                jsonData = JSON.parse(textInput);
+                submitEmulator(jsonData);
+            } else {
+                throw new Error("No input provided.");
+            }
+        } catch (error) {
+            alert("Invalid JSON. Please correct the input.");
+        }
+    });
+
+    function submitEmulator(data) {
+        $.ajax({
+            url: "/api/add-emulator", // Ensure this matches your backend route
+            method: "POST",
+            contentType: "application/json",
+            data: JSON.stringify(data),
+            success: (response) => {
+                alert(response.message);
+                if (response.success) {
+                    $("#add-emulator-modal").modal("hide");
+                }
+            },
+            error: (xhr) => {
+                alert("Failed to add emulator. Check logs for details.");
+                console.error(xhr.responseText);
+            },
+        });
+    }
+
+
     // Fetch blueprints
     function fetchBlueprints() {
         apiCall("/emulators/blueprints", "GET", null, (data) => {

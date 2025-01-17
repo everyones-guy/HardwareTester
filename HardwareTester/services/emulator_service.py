@@ -178,28 +178,54 @@ class EmulatorService:
 
     # Add a new blueprint to the database
     @staticmethod
-    def add_blueprint(name: str, description: str, configuration: dict = None, version: str = None, author: str = None) -> Dict[str, Union[bool, str]]:
+    def add_blueprint(
+        name: str,
+        description: str,
+        protocol: str,
+        connection: dict,
+        settings: dict,
+        commands: list,
+        data_format: dict,
+        default_state: dict,
+        version: str = None,
+        author: str = None,
+    ) -> Dict[str, Union[bool, str]]:
         """
         Add a new blueprint to the database.
 
         :param name: The name of the blueprint.
         :param description: A description of the blueprint.
-        :param configuration: Optional configuration details as a dictionary.
-        :param version: Optional version of the blueprint.
-        :param author: Optional author of the blueprint.
+        :param protocol: The communication protocol (e.g., MQTT, HTTP).
+        :param connection: Connection details such as host, port, topic, or endpoint.
+        :param settings: Configuration settings (e.g., frequency, data range).
+        :param commands: List of commands supported by the emulator.
+        :param data_format: The data format (e.g., JSON schema).
+        :param default_state: The default state for the emulator.
+        :param version: (Optional) Version of the blueprint.
+        :param author: (Optional) Author of the blueprint.
         :return: A dictionary indicating success or failure with a message.
         """
         try:
+            logger.info(f"Adding blueprint: {name}, {description}")
+
             # Check if a blueprint with the same name already exists
             existing_blueprint = Blueprint.query.filter_by(name=name).first()
             if existing_blueprint:
+                logger.warning(f"Blueprint '{name}' already exists.")
                 return {"success": False, "message": f"Blueprint with name '{name}' already exists."}
 
             # Create and add the new blueprint
             new_blueprint = Blueprint(
                 name=name,
                 description=description,
-                configuration=configuration,
+                configuration={
+                    "protocol": protocol,
+                    "connection": connection,
+                    "settings": settings,
+                    "commands": commands,
+                    "data_format": data_format,
+                    "default_state": default_state,
+                },
                 version=version,
                 author=author,
             )
@@ -212,6 +238,7 @@ class EmulatorService:
             logger.error(f"Error adding blueprint '{name}': {e}")
             db.session.rollback()
             return {"success": False, "message": f"Failed to add blueprint '{name}': {str(e)}"}
+
 
     # Compare different machines
     @staticmethod
