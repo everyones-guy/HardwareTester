@@ -1,17 +1,76 @@
 $(document).ready(function () {
     // Utility function for API calls
     function apiCall(endpoint, method, data, onSuccess, onError) {
+        toggleLoading(true);
         $.ajax({
             url: endpoint,
             type: method,
             contentType: method === "POST" ? "application/json" : undefined,
             data: method === "POST" ? JSON.stringify(data) : data,
             processData: method !== "POST",
-            success: onSuccess,
-            error: onError || function (xhr) {
-                console.error("API Error:", xhr.responseText);
-                alert("An error occurred while communicating with the server.");
+            success: (response) => {
+                toggleLoading(false);
+                onSuccess(response);
             },
+            error: (xhr) => {
+                toggleLoading(false);
+                (onError || function () {
+                    console.error("API Error:", xhr.responseText);
+                    alert(`An error occurred: ${xhr.statusText} (${xhr.status}).`);
+                })(xhr);
+            },
+        });
+    }
+
+    // Loading indicator toggle
+    function toggleLoading(state) {
+        $("#add-emulator-submit-btn").prop("disabled", state);
+        $("#loading-spinner").toggle(state);
+    }
+
+    // Parse JSON input from file or text
+    async function parseJsonInput(fileInput, textInput) {
+        if (fileInput) {
+            const fileText = await fileInput.text();
+            return JSON.parse(fileText);
+        }
+        if (textInput) {
+            return JSON.parse(textInput);
+        }
+        throw new Error("No input provided.");
+    }
+
+    // Initialize emulator form
+    async function initializeEmulatorForm() {
+        const addEmulatorForm = $("#add-emulator-form");
+
+        addEmulatorForm.off("submit").on("submit", async function (event) {
+            event.preventDefault();
+            const fileInput = $("#json-file")[0].files[0];
+            const textInput = $("#json-text").val().trim();
+            let jsonData;
+
+            try {
+                jsonData = await parseJsonInput(fileInput, textInput); // Use the async parseJsonInput function
+                apiCall(
+                    "/api/add-emulator",
+                    "POST",
+                    jsonData,
+                    (response) => {
+                        alert(response.message);
+                        if (response.success) {
+                            $("#add-emulator-modal").modal("hide");
+                            fetchBlueprints(); // Refresh blueprints after adding an emulator
+                        }
+                    },
+                    (xhr) => {
+                        alert("Failed to add emulator. Check logs for details.");
+                        console.error(xhr.responseText);
+                    }
+                );
+            } catch (error) {
+                alert(`Invalid JSON: ${error.message}. Please correct the input.`);
+            }
         });
     }
 
@@ -236,45 +295,6 @@ $(document).ready(function () {
             }
         });
     }
-    // Initialize emulator form
-    function initializeEmulatorForm() {
-        const addEmulatorForm = $("#add-emulator-form");
-
-        addEmulatorForm.off("submit").on("submit", async function (event) {
-            event.preventDefault();
-            const fileInput = $("#json-file")[0].files[0];
-            const textInput = $("#json-text").val().trim();
-            let jsonData;
-
-            try {
-                if (fileInput) {
-                    const fileText = await fileInput.text();
-                    jsonData = JSON.parse(fileText);
-                } else if (textInput) {
-                    jsonData = JSON.parse(textInput);
-                } else {
-                    throw new Error("No input provided.");
-                }
-            } catch (error) {
-                alert("Invalid JSON. Please correct the input.");
-                return;
-            }
-
-            apiCall(
-                "/api/add-emulator",
-                "POST",
-                jsonData,
-                (response) => {
-                    alert(response.message);
-                    if (response.success) {
-                        $("#add-emulator-modal").modal("hide");
-                    }
-                },
-                () => alert("Failed to add emulator.")
-            );
-        });
-    }
-
 
     // Globalize helper functions
     window.initializeEmulatorForm = initializeEmulatorForm;
