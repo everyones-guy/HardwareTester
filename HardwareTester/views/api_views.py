@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request, render_template
 from HardwareTester.services.api_service import APIService
-from HardwareTester.services.serial_service import SerialService
+from HardwareTester.services.serial_service import SerialService, EmulatorService
 from HardwareTester.utils.custom_logger import CustomLogger
 from HardwareTester.extensions import csrf
 
@@ -126,3 +126,18 @@ def simulate_device():
     except Exception as e:
         logger.error(f"Simulation failed: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
+
+@api_bp.route('/add-blueprint', methods=['POST'])
+def add_blueprint():
+    data = request.json
+    if not data or 'name' not in data or 'description' not in data:
+        return jsonify({"success": False, "message": "Missing required fields: 'name' and 'description'"}), 400
+
+    result = EmulatorService.add_blueprint(
+        name=data['name'],
+        description=data['description'],
+        configuration=data.get('configuration'),
+        version=data.get('version'),
+        author=data.get('author')
+    )
+    return jsonify(result), 200 if result["success"] else 400

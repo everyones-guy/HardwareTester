@@ -39,18 +39,31 @@ class EmulatorService:
         except Exception as e:
             logger.error(f"Error initializing emulator state: {e}")
 
+    # Fetch blueprint data
     @staticmethod
     def fetch_blueprints() -> Dict[str, Union[bool, Any]]:
         """Fetch available blueprints."""
         try:
             blueprints = Blueprint.query.all()
-            blueprint_list = [{"name": b.name, "description": b.description, "created_at": b.created_at} for b in blueprints]
+            blueprint_list = [
+                {
+                    "name": b.name,
+                    "description": b.description,
+                    "created_at": b.created_at,
+                    "updated_at": b.updated_at,
+                    "version": b.version,
+                    "author": b.author,
+                    "configuration": b.configuration,
+                }
+                for b in blueprints
+            ]
             logger.info("Fetching blueprints.")
             return {"success": True, "blueprints": blueprint_list}
         except Exception as e:
             logger.error(f"Error fetching blueprints: {e}")
             return {"success": False, "error": "Failed to fetch blueprints."}
 
+    # Start an emulation
     @staticmethod
     def start_emulation(machine_name: str, blueprint: str, stress_test: bool = False) -> Dict[str, Union[bool, str]]:
         """Start a new emulation."""
@@ -84,6 +97,7 @@ class EmulatorService:
             db.session.rollback()
             return {"success": False, "error": "Failed to start emulation."}
 
+    # Stop an emulation by name
     @staticmethod
     def stop_emulation(machine_name: str) -> Dict[str, Union[bool, str]]:
         """Stop an active emulation."""
@@ -109,6 +123,7 @@ class EmulatorService:
             db.session.rollback()
             return {"success": False, "error": "Failed to stop emulation."}
 
+    # List all active emulations
     @staticmethod
     def list_active_emulations() -> Dict[str, Union[bool, Any]]:
         """List all active emulations."""
@@ -119,6 +134,7 @@ class EmulatorService:
             logger.error(f"Error fetching active emulations: {e}")
             return {"success": False, "error": "Failed to fetch active emulations."}
     
+    # Fetch emulator logs
     @staticmethod
     def get_emulator_logs() -> Dict[str, Union[bool, Any]]:
         """Retrieve logs from the emulator."""
@@ -135,22 +151,24 @@ class EmulatorService:
         EmulatorService.emulator_state["logs"].append(f"[{datetime.now()}] {message}")
         logger.info(message)
 
+    # Load Blueprint by name
     @staticmethod
     def load_blueprint(blueprint_name: str) -> Dict[str, Union[bool, Any]]:
         """Load a specific blueprint by name."""
         try:
-            # Query the Blueprint model for the blueprint with the given name
             blueprint = Blueprint.query.filter_by(name=blueprint_name).first()
             if not blueprint:
                 logger.warning(f"Blueprint '{blueprint_name}' not found.")
                 return {"success": False, "message": f"Blueprint '{blueprint_name}' not found."}
 
-            # Return blueprint details
             blueprint_details = {
                 "name": blueprint.name,
                 "description": blueprint.description,
                 "created_at": blueprint.created_at.isoformat(),
-                "configuration": blueprint.configuration,  # Assuming 'configuration' is a field in your Blueprint model
+                "updated_at": blueprint.updated_at.isoformat() if blueprint.updated_at else None,
+                "version": blueprint.version,
+                "author": blueprint.author,
+                "configuration": blueprint.configuration,
             }
             logger.info(f"Loaded blueprint '{blueprint_name}'.")
             return {"success": True, "blueprint": blueprint_details}
@@ -158,26 +176,36 @@ class EmulatorService:
             logger.error(f"Error loading blueprint '{blueprint_name}': {e}")
             return {"success": False, "error": "Failed to load blueprint."}
 
+    # Add a new blueprint to the database
     @staticmethod
-    def add_blueprint(name: str, description: str) -> Dict[str, Union[bool, str]]:
+    def add_blueprint(name: str, description: str, configuration: dict = None, version: str = None, author: str = None) -> Dict[str, Union[bool, str]]:
         """
         Add a new blueprint to the database.
-        
+
         :param name: The name of the blueprint.
         :param description: A description of the blueprint.
+        :param configuration: Optional configuration details as a dictionary.
+        :param version: Optional version of the blueprint.
+        :param author: Optional author of the blueprint.
         :return: A dictionary indicating success or failure with a message.
         """
         try:
-            # Check if blueprint with the same name already exists
+            # Check if a blueprint with the same name already exists
             existing_blueprint = Blueprint.query.filter_by(name=name).first()
             if existing_blueprint:
                 return {"success": False, "message": f"Blueprint with name '{name}' already exists."}
-            
+
             # Create and add the new blueprint
-            new_blueprint = Blueprint(name=name, description=description)
+            new_blueprint = Blueprint(
+                name=name,
+                description=description,
+                configuration=configuration,
+                version=version,
+                author=author,
+            )
             db.session.add(new_blueprint)
             db.session.commit()
-            
+
             logger.info(f"Blueprint '{name}' added successfully.")
             return {"success": True, "message": f"Blueprint '{name}' added successfully."}
         except Exception as e:

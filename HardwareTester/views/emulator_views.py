@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify, request, render_template
+from HardwareTester.extensions import db
 from HardwareTester.services.emulator_service import EmulatorService
 from HardwareTester.utils.custom_logger import CustomLogger
 
