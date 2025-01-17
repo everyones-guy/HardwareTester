@@ -204,9 +204,24 @@ $(document).ready(function () {
             });
         });
     }
+    function loadAvailableEmulators() {
+        apiCall("/emulators/list", "GET", null, (data) => {
+            const emulatorList = $("#emulator-list");
+            emulatorList.empty();
+
+            if (data.success && data.emulations.length > 0) {
+                data.emulations.forEach((emulation) => {
+                    emulatorList.append(`<option value="${emulation.machine_name}">${emulation.machine_name}</option>`);
+                });
+            } else {
+                emulatorList.append('<option disabled>No emulators available.</option>');
+            }
+        });
+    }
 
     // Make this function globally accessible
     window.initializeEmulatorForm = initializeEmulatorForm;
+    window.loadAvailableEmulators = loadAvailableEmulators;
 
 
     // Initial data load

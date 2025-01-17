@@ -22,6 +22,8 @@ $(document).ready(function () {
                     initializeEmulatorForm();
                 }
             }
+            // Trigger when the modal opens
+            $("#compareMachinesModal").on("show.bs.modal", loadAvailableEmulators);
         });
     }
 

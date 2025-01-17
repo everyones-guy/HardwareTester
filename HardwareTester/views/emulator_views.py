@@ -1,5 +1,6 @@
-from flask import Blueprint, jsonify, request, render_template
+from flask import Blueprint as FlaskBlueprint, jsonify, request, render_template
 from HardwareTester.extensions import db
+from HardwareTester.models import Blueprint, Emulation
 from HardwareTester.services.emulator_service import EmulatorService
 from HardwareTester.utils.custom_logger import CustomLogger
 
@@ -7,7 +8,7 @@ from HardwareTester.utils.custom_logger import CustomLogger
 logger = CustomLogger.get_logger("emulator_views")
 
 # Define the Blueprint
-emulator_bp = Blueprint("emulators", __name__, url_prefix="/emulators")
+emulator_bp = FlaskBlueprint("emulators", __name__, url_prefix="/emulators")
 
 @emulator_bp.route("/", methods=["GET"])
 def emulator_dashboard():
@@ -105,13 +106,32 @@ def stop_emulation_endpoint():
 
 @emulator_bp.route("/list", methods=["GET"])
 def list_emulations():
-    """List all active emulations."""
+    """List all active emulations with additional details."""
     try:
-        response = EmulatorService.list_active_emulations()
-        return jsonify(response)
+        # Fetch active emulations
+        emulations = Emulation.query.all()
+        detailed_emulations = []
+
+        for emulation in emulations:
+            # Fetch associated blueprint details
+            blueprint = Blueprint.query.filter_by(name=emulation.blueprint).first()
+            detailed_emulations.append({
+                "machine_id": emulation.id,
+                "machine_name": emulation.machine_name,
+                "status": emulation.status,
+                "blueprint": emulation.blueprint,
+                "blueprint_description": blueprint.description if blueprint else None,
+                "configuration": json.loads(emulation.logs) if emulation.logs else None,
+                "stress_test": emulation.stress_test,
+                "start_time": emulation.start_time.isoformat(),
+                "controller_id": emulation.controller_id
+            })
+
+        return jsonify({"success": True, "emulations": detailed_emulations})
     except Exception as e:
         logger.error(f"Error listing active emulations: {e}")
         return jsonify({"success": False, "error": "Failed to fetch active emulations."}), 500
+
 
 @emulator_bp.route("/logs", methods=["GET"])
 def get_logs():
@@ -129,12 +149,13 @@ def compare_machines():
     data = request.json
     machine_ids = data.get("machine_ids", [])
 
+    # Validate input
     if not machine_ids or len(machine_ids) < 2:
         logger.warning("Invalid comparison request: Less than two machines provided.")
         return jsonify({"success": False, "error": "At least two machine IDs are required for comparison."}), 400
 
     try:
-        # Fetch status for each machine
+        # Fetch the status of each machine
         machine_statuses = []
         for machine_id in machine_ids:
             status_response = EmulatorService.get_machine_status(machine_id)
@@ -142,10 +163,12 @@ def compare_machines():
                 return jsonify({"success": False, "error": f"Failed to fetch status for machine ID {machine_id}."}), 400
             machine_statuses.append({"machine_id": machine_id, "status": status_response["status"]})
 
-        # Perform comparison
+        # Perform the comparison
         differences = EmulatorService.compare_operations(machine_statuses)
 
+        # Return the results
         return jsonify({"success": True, "differences": differences})
     except Exception as e:
         logger.error(f"Error comparing machines: {e}")
         return jsonify({"success": False, "error": "Failed to compare machines."}), 500
+

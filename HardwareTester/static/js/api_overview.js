@@ -91,6 +91,36 @@ $(document).ready(function () {
         loadAvailableEndpoints();
     });
 
+    function fetchActiveEmulations() {
+        apiCall("/emulators/list", "GET", null, (data) => {
+            const emulationsList = $("#active-emulations-list");
+            emulationsList.empty();
+
+            if (data.success && data.emulations.length > 0) {
+                data.emulations.forEach((emulation) => {
+                    emulationsList.append(`
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>${emulation.machine_name}</strong> (${emulation.blueprint})
+                            <br>
+                            Status: ${emulation.status} | Stress Test: ${emulation.stress_test ? "Enabled" : "Disabled"}
+                            <br>
+                            Start Time: ${emulation.start_time}
+                        </div>
+                        <button class="btn btn-sm btn-danger stop-emulation" data-machine="${emulation.machine_name}">
+                            Stop
+                        </button>
+                    </li>
+                `);
+                });
+            } else {
+                emulationsList.append('<li class="list-group-item text-center">No active emulations.</li>');
+            }
+        });
+    }
+
+
+
     // Initial load of available endpoints
     loadAvailableEndpoints();
 });

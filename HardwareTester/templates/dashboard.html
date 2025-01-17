@@ -175,12 +175,6 @@
     </div>
 </div>
 
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
 <!-- Add Emulator Modal -->
 <div class="modal fade" id="add-emulator-modal" tabindex="-1" aria-labelledby="addEmulatorModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
@@ -205,6 +199,30 @@
         </div>
     </div>
 </div>
+
+<!-- Compare Machines Modal -->
+<div class="modal fade" id="compareMachinesModal" tabindex="-1" aria-labelledby="compareMachinesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="compareMachinesModalLabel">Select Emulators to Compare</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="compare-machines-form">
+                    <div class="mb-3">
+                        <label for="emulator-list" class="form-label">Available Emulators</label>
+                        <select id="emulator-list" class="form-select" multiple>
+                            <!-- Dynamically populated with available emulators -->
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Compare</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block additional_scripts %}
