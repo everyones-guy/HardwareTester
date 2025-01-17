@@ -8,7 +8,8 @@ $(document).ready(function () {
             data: method === "POST" ? JSON.stringify(data) : data,
             processData: method !== "POST",
             success: onSuccess,
-            error: onError || function () {
+            error: onError || function (xhr) {
+                console.error("API Error:", xhr.responseText);
                 alert("An error occurred while communicating with the server.");
             },
         });
@@ -166,6 +167,23 @@ $(document).ready(function () {
         previewModal.show();
     });
 
+    // Load available emulators for selection
+    function loadAvailableEmulators() {
+        apiCall("/emulators/list", "GET", null, (data) => {
+            const emulatorList = $("#emulator-list");
+            emulatorList.empty();
+
+            if (data.success && data.emulations.length > 0) {
+                data.emulations.forEach((emulation) => {
+                    emulatorList.append(`<option value="${emulation.machine_name}">${emulation.machine_name}</option>`);
+                });
+            } else {
+                emulatorList.append('<option disabled>No emulators available.</option>');
+            }
+        });
+    }
+
+    // Initialize emulator form
     function initializeEmulatorForm() {
         const addEmulatorForm = $("#add-emulator-form");
 
@@ -189,40 +207,24 @@ $(document).ready(function () {
                 return;
             }
 
-            $.ajax({
-                url: "/api/add-emulator",
-                method: "POST",
-                contentType: "application/json",
-                data: JSON.stringify(jsonData),
-                success: (response) => {
+            apiCall(
+                "/api/add-emulator",
+                "POST",
+                jsonData,
+                (response) => {
                     alert(response.message);
                     if (response.success) {
                         $("#add-emulator-modal").modal("hide");
                     }
                 },
-                error: () => alert("Failed to add emulator."),
-            });
-        });
-    }
-    function loadAvailableEmulators() {
-        apiCall("/emulators/list", "GET", null, (data) => {
-            const emulatorList = $("#emulator-list");
-            emulatorList.empty();
-
-            if (data.success && data.emulations.length > 0) {
-                data.emulations.forEach((emulation) => {
-                    emulatorList.append(`<option value="${emulation.machine_name}">${emulation.machine_name}</option>`);
-                });
-            } else {
-                emulatorList.append('<option disabled>No emulators available.</option>');
-            }
+                () => alert("Failed to add emulator.")
+            );
         });
     }
 
-    // Make this function globally accessible
+    // Globalize helper functions
     window.initializeEmulatorForm = initializeEmulatorForm;
     window.loadAvailableEmulators = loadAvailableEmulators;
-
 
     // Initial data load
     fetchBlueprints();

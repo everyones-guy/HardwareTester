@@ -7,7 +7,7 @@ from HardwareTester.utils.custom_logger import CustomLogger
 # Initialize logger
 logger = CustomLogger.get_logger("emulator_views")
 
-# Define the Blueprint
+# Define the Flask Blueprint - for the front end
 emulator_bp = FlaskBlueprint("emulators", __name__, url_prefix="/emulators")
 
 @emulator_bp.route("/", methods=["GET"])
