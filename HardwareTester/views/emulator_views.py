@@ -28,16 +28,41 @@ def get_blueprints():
         logger.error(f"Error fetching blueprints: {e}")
         return jsonify({"success": False, "error": "Failed to fetch blueprints."}), 500
 
+@emulator_bp.route("/add-blueprint", methods=["POST"])
+def add_blueprint():
+    """Add a new blueprint."""
+    try:
+        data = request.json
+        if not data:
+            return jsonify({"success": False, "message": "No data provided"}), 400
+
+        # Extract fields
+        name = data.get("name")
+        description = data.get("description")
+        configuration = data.get("configuration")
+        version = data.get("version")
+        author = data.get("author")
+
+        if not name or not description:
+            return jsonify({"success": False, "message": "Name and description are required."}), 400
+
+        response = EmulatorService.add_blueprint(name, description, configuration, version, author)
+        return jsonify(response), 200 if response["success"] else 400
+    except Exception as e:
+        logger.error(f"Error adding blueprint: {e}")
+        return jsonify({"success": False, "message": "Failed to add blueprint."}), 500
+
 @emulator_bp.route("/load-blueprint", methods=["POST"])
 def load_blueprint_endpoint():
     """Load a new blueprint."""
-    blueprint_file = request.files.get("blueprint_file")
-    if not blueprint_file:
-        logger.warning("No blueprint file provided.")
-        return jsonify({"success": False, "error": "No blueprint file provided."}), 400
     try:
-        response = EmulatorService.load_blueprint(blueprint_file)
-        return jsonify(response)
+        data = request.json
+        if not data or "name" not in data:
+            logger.warning("Invalid blueprint load request.")
+            return jsonify({"success": False, "message": "Invalid data. 'name' is required."}), 400
+
+        response = EmulatorService.load_blueprint(data["name"])
+        return jsonify(response), 200 if response["success"] else 400
     except Exception as e:
         logger.error(f"Error loading blueprint: {e}")
         return jsonify({"success": False, "error": "Failed to load blueprint."}), 500
@@ -45,38 +70,38 @@ def load_blueprint_endpoint():
 @emulator_bp.route("/start", methods=["POST"])
 def start_emulation_endpoint():
     """Start a machine emulation."""
-    data = request.json
-    machine_name = data.get("machine_name")
-    blueprint = data.get("blueprint")
-    stress_test = data.get("stress_test", False)
-
-    if not machine_name or not blueprint:
-        logger.warning("Machine name or blueprint is missing.")
-        return jsonify({"success": False, "error": "Machine name and blueprint are required."}), 400
-
     try:
+        data = request.json
+        machine_name = data.get("machine_name")
+        blueprint = data.get("blueprint")
+        stress_test = data.get("stress_test", False)
+
+        if not machine_name or not blueprint:
+            logger.warning("Machine name or blueprint is missing.")
+            return jsonify({"success": False, "message": "Machine name and blueprint are required."}), 400
+
         response = EmulatorService.start_emulation(machine_name, blueprint, stress_test)
-        return jsonify(response)
+        return jsonify(response), 200 if response["success"] else 400
     except Exception as e:
         logger.error(f"Error starting emulation for {machine_name}: {e}")
-        return jsonify({"success": False, "error": "Failed to start emulation."}), 500
+        return jsonify({"success": False, "message": "Failed to start emulation."}), 500
 
 @emulator_bp.route("/stop", methods=["POST"])
 def stop_emulation_endpoint():
     """Stop a machine emulation."""
-    data = request.json
-    machine_name = data.get("machine_name")
-
-    if not machine_name:
-        logger.warning("Machine name is missing.")
-        return jsonify({"success": False, "error": "Machine name is required."}), 400
-
     try:
+        data = request.json
+        machine_name = data.get("machine_name")
+
+        if not machine_name:
+            logger.warning("Machine name is missing.")
+            return jsonify({"success": False, "message": "Machine name is required."}), 400
+
         response = EmulatorService.stop_emulation(machine_name)
-        return jsonify(response)
+        return jsonify(response), 200 if response["success"] else 400
     except Exception as e:
         logger.error(f"Error stopping emulation for {machine_name}: {e}")
-        return jsonify({"success": False, "error": "Failed to stop emulation."}), 500
+        return jsonify({"success": False, "message": "Failed to stop emulation."}), 500
 
 @emulator_bp.route("/list", methods=["GET"])
 def list_emulations():
@@ -106,45 +131,21 @@ def compare_machines():
 
     if not machine_ids or len(machine_ids) < 2:
         logger.warning("Invalid comparison request: Less than two machines provided.")
-        return jsonify({"success": False, "error": "At least two machines are required for comparison."}), 400
+        return jsonify({"success": False, "error": "At least two machine IDs are required for comparison."}), 400
 
     try:
-        comparisons = [
-            {"machine_id": machine_id, "status": EmulatorService.get_machine_status(machine_id)}
-            for machine_id in machine_ids
-        ]
-        differences = EmulatorService.compare_operations(comparisons)
+        # Fetch status for each machine
+        machine_statuses = []
+        for machine_id in machine_ids:
+            status_response = EmulatorService.get_machine_status(machine_id)
+            if not status_response["success"]:
+                return jsonify({"success": False, "error": f"Failed to fetch status for machine ID {machine_id}."}), 400
+            machine_statuses.append({"machine_id": machine_id, "status": status_response["status"]})
+
+        # Perform comparison
+        differences = EmulatorService.compare_operations(machine_statuses)
+
         return jsonify({"success": True, "differences": differences})
     except Exception as e:
         logger.error(f"Error comparing machines: {e}")
         return jsonify({"success": False, "error": "Failed to compare machines."}), 500
-
-# blueprint is the same as a configuration so adding a blueprint is the same adding an emulator...
-@emulator_bp.route('/add', methods=['POST'])
-def add_emulator():
-    try:
-        data = request.json
-        if not data:
-            return jsonify({"success": False, "message": "No data provided"}), 400
-
-        # Validate data structure
-        required_fields = ["name", "type", "configuration"]
-        for field in required_fields:
-            if field not in data:
-                return jsonify({"success": False, "message": f"Missing field: {field}"}), 400
-
-        # Save to database
-        new_emulator = Emulator(
-            name=data["name"],
-            type=data["type"],
-            configuration=json.dumps(data["configuration"])
-        )
-        db.session.add(new_emulator)
-        db.session.commit()
-
-        return jsonify({"success": True, "message": "Emulator added successfully"}), 200
-    except Exception as e:
-        logger.error(f"Error adding emulator: {e}")
-        db.session.rollback()
-        return jsonify({"success": False, "message": "Failed to add emulator"}), 500
-

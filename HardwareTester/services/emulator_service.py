@@ -212,3 +212,58 @@ class EmulatorService:
             logger.error(f"Error adding blueprint '{name}': {e}")
             db.session.rollback()
             return {"success": False, "message": f"Failed to add blueprint '{name}': {str(e)}"}
+
+    # Compare different machines
+    @staticmethod
+    def get_machine_status(machine_id: int) -> Dict[str, Union[bool, Any]]:
+        """Fetch the status of a specific machine."""
+        try:
+            machine = Emulation.query.filter_by(id=machine_id).first()
+            if not machine:
+                return {"success": False, "message": f"Machine with ID {machine_id} not found."}
+
+            return {
+                "success": True,
+                "status": {
+                    "machine_id": machine.id,
+                    "machine_name": machine.machine_name,
+                    "blueprint": machine.blueprint,
+                    "status": machine.status,
+                    "logs": machine.logs,
+                },
+            }
+        except Exception as e:
+            logger.error(f"Error fetching status for machine ID {machine_id}: {e}")
+            return {"success": False, "message": "Failed to fetch machine status."}
+    
+    @staticmethod
+    def compare_operations(machine_statuses: list) -> list:
+        """Compare operations across all pairs of machines."""
+        try:
+            differences = []
+
+            # Compare every machine with every other machine
+            for i, baseline in enumerate(machine_statuses):
+                for j, machine in enumerate(machine_statuses):
+                    if i >= j:  # Skip self-comparison and already compared pairs
+                        continue
+                
+                    diff = {
+                        "baseline_machine_id": baseline["machine_id"],
+                        "compared_machine_id": machine["machine_id"],
+                        "differences": {},
+                    }
+                    for key in baseline["status"].keys():
+                        if machine["status"].get(key) != baseline["status"].get(key):
+                            diff["differences"][key] = {
+                                "baseline": baseline["status"].get(key),
+                                "current": machine["status"].get(key),
+                            }
+                    if diff["differences"]:
+                        differences.append(diff)
+
+            return differences
+        except Exception as e:
+            logger.error(f"Error comparing operations: {e}")
+            return []
+
