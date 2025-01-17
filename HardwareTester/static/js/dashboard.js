@@ -15,6 +15,13 @@ $(document).ready(function () {
             // Update tab-pane visibility
             $(".tab-pane").removeClass("show active");
             $(`#${targetId}`).addClass("show active");
+
+            // Initialize emulator form when the emulator tab is selected
+            if (targetId === "add-emulator-tab") {
+                if (typeof initializeEmulatorForm === "function") {
+                    initializeEmulatorForm();
+                }
+            }
         });
     }
 
@@ -135,66 +142,6 @@ $(document).ready(function () {
         });
     }
 
-    // Discover devices
-    $("#discover-devices").click(function () {
-        apiRequest("/serial/discover", "GET")
-            .done((data) => {
-                const deviceList = $("#device-list");
-                deviceList.empty();
-                if (data.success && data.devices.length) {
-                    data.devices.forEach(device => {
-                        deviceList.append(`<li>${device.port} - ${JSON.stringify(device.info)}</li>`);
-                    });
-                } else {
-                    deviceList.append("<li>No devices discovered.</li>");
-                }
-            })
-            .fail(() => alert("Failed to discover devices."));
-    });
-
-    // Configure a device
-    $("#configure-device").submit(function (event) {
-        event.preventDefault();
-        const formData = $(this).serializeArray();
-        const payload = {};
-        formDatal.data.forEach(field => payload[field.name] = field.value);
-
-        apiRequest("/serial/configure", "POST", payload)
-            .done((data) => {
-                alert(data.success ? data.message : `Error: ${data.error}`);
-            })
-            .fail(() => alert("Failed to configure device."));
-    });
-
-    // Save and load configurations
-    $("#save-config").click(function () {
-        const layout = [];
-        $(".draggable").each(function () {
-            const id = $(this).data("id");
-            const type = $(this).data("type");
-            const x = $(this).position().left;
-            const y = $(this).position().top;
-            layout.push({ id, type, x, y });
-        });
-
-        apiRequest("/save-configuration", "POST", { layout })
-            .done((response) => alert(response.message))
-            .fail(() => alert("Failed to save configuration."));
-    });
-
-    $("#load-config").click(function () {
-        apiRequest("/load-configuration", "GET")
-            .done((data) => {
-                if (data.success) {
-                    canvas.empty();
-                    data.layout.forEach(item => addComponent(item.id, item.type, item.x, item.y));
-                } else {
-                    alert(data.error || "Failed to load configuration.");
-                }
-            })
-            .fail(() => alert("Failed to load configuration."));
-    });
-
     // Dashboard functionality
     function loadOverview() {
         $.ajax({
@@ -218,133 +165,7 @@ $(document).ready(function () {
         });
     }
 
-    // Event handler for adding emulators
-    $("#add-emulator-form").on("submit", function (event) {
-        event.preventDefault();
-
-        const name = $("#emulator-name").val();
-        const type = $("#emulator-type").val();
-        let config;
-        try {
-            config = JSON.parse($("#emulator-configuration").val());
-        } catch (e) {
-            alert("Invalid JSON in Configuration. Please check the format.");
-            return;
-        }
-
-        $.ajax({
-            url: "/emulators/add",
-            method: "POST",
-            contentType: "application/json",
-            headers: {
-                "X-CSRFToken": $('meta[name="csrf-token"]').attr('content')
-            },
-            data: JSON.stringify({ name, type, configuration: config }),
-            success: function (response) {
-                if (response.success) {
-                    alert(response.message);
-                    $("#add-emulator-modal").modal("hide");
-                    // Reload emulators
-                    loadEmulators();
-                } else {
-                    alert("Error: " + response.error);
-                }
-            },
-            error: function () {
-                alert("Failed to add emulator. Please try again.");
-            }
-        });
-    });
-
-
-    // Function to load emulators
-    function loadEmulators() {
-        $.ajax({
-            url: "/emulators/list", // Replace with your server's endpoint
-            type: "GET",
-            success: function (response) {
-                const emulatorList = $("#emulator-list");
-                emulatorList.empty();
-                if (response.success) {
-                    response.emulators.forEach((emulator) => {
-                        emulatorList.append(`
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <span>${emulator.name}</span>
-                                <button class="btn btn-sm btn-danger" data-id="${emulator.id}">Delete</button>
-                            </li>
-                        `);
-                    });
-                } else {
-                    emulatorList.append('<li class="list-group-item">No emulators available.</li>');
-                }
-            },
-            error: function (xhr) {
-                console.error("Error loading emulators:", xhr.responseText);
-            },
-        });
-    }
-
-
-    // Event handler for stopping emulators
-    $(document).on("click", ".stop-emulator", function () {
-        const emulatorId = $(this).data("id");
-        apiRequest(`/emulators/stop`, "POST", { id: emulatorId })
-            .done(() => {
-                alert(`Emulator ${emulatorId} stopped successfully.`);
-                loadEmulators(); // Refresh the list after stopping
-            })
-            .fail(() => alert("Failed to stop emulator."));
-    });
-
-
-    function loadLogs() {
-        const container = $("#log-output");
-        container.html("<p>Loading logs...</p>"); // Placeholder while fetching logs
-
-        apiRequest("/logs/recent", "GET")
-            .done((data) => {
-                container.empty(); // Clear placeholder
-                if (data.success && Array.isArray(data.logs) && data.logs.length > 0) {
-                    data.logs.forEach((log) => {
-                        container.append($("<p>").text(log.trim())); // Escape HTML characters and trim
-                    });
-                } else {
-                    container.append("<p>No logs available.</p>");
-                }
-            })
-            .fail((xhr, status, error) => {
-                container.empty();
-                console.error("Error loading logs:", error);
-                container.append(`<p class="text-danger">Failed to load logs: ${xhr.statusText}</p>`);
-            });
-    }
-
-
-    function loadSettings() {
-        apiRequest("/settings/global/list", "GET")
-            .done((data) => {
-                const list = $("#global-settings-list");
-                list.empty();
-                if (data.success && Array.isArray(data.settings)) {
-                    data.settings.forEach((setting) => {
-                        list.append(`
-                        <li class="list-group-item">
-                            <strong>${setting.key}</strong>: ${JSON.stringify(setting.value)}
-                        </li>
-                    `);
-                    });
-                } else {
-                    list.append("<li class='list-group-item'>No settings available.</li>");
-                }
-            })
-            .fail(() => alert("Failed to load settings."));
-    }
-
-
     // Initialize dashboard
     handleTabs();
     loadOverview();
-    loadEmulators();
-    loadLogs();
-    loadSettings();
 });

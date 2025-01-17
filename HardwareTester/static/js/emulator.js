@@ -166,6 +166,49 @@ $(document).ready(function () {
         previewModal.show();
     });
 
+    function initializeEmulatorForm() {
+        const addEmulatorForm = $("#add-emulator-form");
+
+        addEmulatorForm.off("submit").on("submit", async function (event) {
+            event.preventDefault();
+            const fileInput = $("#json-file")[0].files[0];
+            const textInput = $("#json-text").val().trim();
+            let jsonData;
+
+            try {
+                if (fileInput) {
+                    const fileText = await fileInput.text();
+                    jsonData = JSON.parse(fileText);
+                } else if (textInput) {
+                    jsonData = JSON.parse(textInput);
+                } else {
+                    throw new Error("No input provided.");
+                }
+            } catch (error) {
+                alert("Invalid JSON. Please correct the input.");
+                return;
+            }
+
+            $.ajax({
+                url: "/api/add-emulator",
+                method: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(jsonData),
+                success: (response) => {
+                    alert(response.message);
+                    if (response.success) {
+                        $("#add-emulator-modal").modal("hide");
+                    }
+                },
+                error: () => alert("Failed to add emulator."),
+            });
+        });
+    }
+
+    // Make this function globally accessible
+    window.initializeEmulatorForm = initializeEmulatorForm;
+
+
     // Initial data load
     fetchBlueprints();
     fetchActiveEmulations();
