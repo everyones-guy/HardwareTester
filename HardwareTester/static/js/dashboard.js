@@ -154,7 +154,125 @@ $(document).ready(function () {
         );
     }
 
+    // Discover devices
+    $("#discover-devices").click(function () {
+        apiRequest("/serial/discover", "GET")
+            .done((data) => {
+                const deviceList = $("#device-list");
+                deviceList.empty();
+                if (data.success && data.devices.length) {
+                    data.devices.forEach(device => {
+                        deviceList.append(`<li>${device.port} - ${JSON.stringify(device.info)}</li>`);
+                    });
+                } else {
+                    deviceList.append("<li>No devices discovered.</li>");
+                }
+            })
+            .fail(() => alert("Failed to discover devices."));
+    });
+
+    // Configure a device
+    $("#configure-device").submit(function (event) {
+        event.preventDefault();
+        const formData = $(this).serializeArray();
+        const payload = {};
+        formDatal.data.forEach(field => payload[field.name] = field.value);
+
+        apiRequest("/serial/configure", "POST", payload)
+            .done((data) => {
+                alert(data.success ? data.message : `Error: ${data.error}`);
+            })
+            .fail(() => alert("Failed to configure device."));
+    });
+
+    // Save and load configurations
+    $("#save-config").click(function () {
+        const layout = [];
+        $(".draggable").each(function () {
+            const id = $(this).data("id");
+            const type = $(this).data("type");
+            const x = $(this).position().left;
+            const y = $(this).position().top;
+            layout.push({ id, type, x, y });
+        });
+
+        apiRequest("/save-configuration", "POST", { layout })
+            .done((response) => alert(response.message))
+            .fail(() => alert("Failed to save configuration."));
+    });
+
+    $("#load-config").click(function () {
+        apiRequest("/load-configuration", "GET")
+            .done((data) => {
+                if (data.success) {
+                    canvas.empty();
+                    data.layout.forEach(item => addComponent(item.id, item.type, item.x, item.y));
+                } else {
+                    alert(data.error || "Failed to load configuration.");
+                }
+            })
+            .fail(() => alert("Failed to load configuration."));
+    });
+
+
+    // Event handler for stopping emulators
+    $(document).on("click", ".stop-emulator", function () {
+        const emulatorId = $(this).data("id");
+        apiRequest(`/emulators/stop`, "POST", { id: emulatorId })
+            .done(() => {
+                alert(`Emulator ${emulatorId} stopped successfully.`);
+                loadEmulators(); // Refresh the list after stopping
+            })
+            .fail(() => alert("Failed to stop emulator."));
+    });
+
+
+    function loadLogs() {
+        const container = $("#log-output");
+        container.html("<p>Loading logs...</p>"); // Placeholder while fetching logs
+
+        apiRequest("/logs/recent", "GET")
+            .done((data) => {
+                container.empty(); // Clear placeholder
+                if (data.success && Array.isArray(data.logs) && data.logs.length > 0) {
+                    data.logs.forEach((log) => {
+                        container.append($("<p>").text(log.trim())); // Escape HTML characters and trim
+                    });
+                } else {
+                    container.append("<p>No logs available.</p>");
+                }
+            })
+            .fail((xhr, status, error) => {
+                container.empty();
+                console.error("Error loading logs:", error);
+                container.append(`<p class="text-danger">Failed to load logs: ${xhr.statusText}</p>`);
+            });
+    }
+
+
+    function loadSettings() {
+        apiRequest("/settings/global/list", "GET")
+            .done((data) => {
+                const list = $("#global-settings-list");
+                list.empty();
+                if (data.success && Array.isArray(data.settings)) {
+                    data.settings.forEach((setting) => {
+                        list.append(`
+                        <li class="list-group-item">
+                            <strong>${setting.key}</strong>: ${JSON.stringify(setting.value)}
+                        </li>
+                    `);
+                    });
+                } else {
+                    list.append("<li class='list-group-item'>No settings available.</li>");
+                }
+            })
+            .fail(() => alert("Failed to load settings."));
+    }
+
     // Initialize tabs and data loading
     handleTabs();
     loadOverview();
+    loadLogs();
+    loadSettings();
 });
