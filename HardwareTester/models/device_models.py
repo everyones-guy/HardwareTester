@@ -65,10 +65,14 @@ class Blueprint(db.Model):
     id = db.Column(Integer, primary_key=True)
     name = db.Column(String(255), nullable=False, unique=True, index=True)
     description = db.Column(Text, nullable=True)
+    configuration = db.Column(JSON, nullable=True)  # JSON configuration details for the blueprint
     created_at = db.Column(DateTime, default=datetime.utcnow)
+    updated_at = db.Column(DateTime, onupdate=datetime.utcnow)  # Automatically updated when modified
+    version = db.Column(String(50), nullable=True)  # Optional versioning field for the blueprint
+    author = db.Column(String(255), nullable=True)  # Field to track the creator of the blueprint
 
     def __repr__(self):
-        return f"<Blueprint {self.name}>"
+        return f"<Blueprint {self.name} (ID={self.id}, Version={self.version})>"
 
 class Firmware(db.Model):
     __tablename__ = "firmwares"

@@ -158,3 +158,31 @@ class EmulatorService:
             logger.error(f"Error loading blueprint '{blueprint_name}': {e}")
             return {"success": False, "error": "Failed to load blueprint."}
 
+    @staticmethod
+    def add_blueprint(name: str, description: str) -> Dict[str, Union[bool, str]]:
+        """
+        Add a new blueprint to the database.
+        
+        :param name: The name of the blueprint.
+        :param description: A description of the blueprint.
+        :return: A dictionary indicating success or failure with a message.
+        """
+        try:
+            # Check if blueprint with the same name already exists
+            existing_blueprint = Blueprint.query.filter_by(name=name).first()
+            if existing_blueprint:
+                return {"success": False, "message": f"Blueprint with name '{name}' already exists."}
+            
+            # Create and add the new blueprint
+            new_blueprint = Blueprint(name=name, description=description)
+            db.session.add(new_blueprint)
+            db.session.commit()
+            
+            logger.info(f"Blueprint '{name}' added successfully.")
+            return {"success": True, "message": f"Blueprint '{name}' added successfully."}
+        except Exception as e:
+            logger.error(f"Error adding blueprint '{name}': {e}")
+            db.session.rollback()
+            return {"success": False, "message": f"Failed to add blueprint '{name}': {str(e)}"}
+
+

@@ -118,13 +118,32 @@ def compare_machines():
         logger.error(f"Error comparing machines: {e}")
         return jsonify({"success": False, "error": "Failed to compare machines."}), 500
 
+# blueprint is the same as a configuration so adding a blueprint is the same adding an emulator...
 @emulator_bp.route('/add', methods=['POST'])
 def add_emulator():
     try:
-        data = request.get_json()
-        print("Received data:", data)  # Debugging
-        # Process and validate the data
-        return {"success": True, "message": "Emulator added successfully"}
+        data = request.json
+        if not data:
+            return jsonify({"success": False, "message": "No data provided"}), 400
+
+        # Validate data structure
+        required_fields = ["name", "type", "configuration"]
+        for field in required_fields:
+            if field not in data:
+                return jsonify({"success": False, "message": f"Missing field: {field}"}), 400
+
+        # Save to database
+        new_emulator = Emulator(
+            name=data["name"],
+            type=data["type"],
+            configuration=json.dumps(data["configuration"])
+        )
+        db.session.add(new_emulator)
+        db.session.commit()
+
+        return jsonify({"success": True, "message": "Emulator added successfully"}), 200
     except Exception as e:
-        print("Error:", str(e))
-        return {"success": False, "error": "Failed to add emulator"}, 400
+        logger.error(f"Error adding emulator: {e}")
+        db.session.rollback()
+        return jsonify({"success": False, "message": "Failed to add emulator"}), 500
+
