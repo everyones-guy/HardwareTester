@@ -68,17 +68,38 @@
         </div>
     </div>
 
-    <!-- Section: Upload Blueprint -->
+    <!-- Section: Add Emulator -->
     <div class="card mb-4">
-        <div class="card-header bg-dark text-white">Upload New Blueprint</div>
+        <div class="card-header bg-dark text-white">Add New Emulator</div>
         <div class="card-body">
-            <form id="blueprint-upload-form">
-                <div class="mb-3">
-                    <label for="blueprint-file" class="form-label">Select Blueprint File</label>
-                    <input type="file" id="blueprint-file" name="blueprint_file" class="form-control" required>
+            <button class="btn btn-primary w-100" id="add-emulator" data-bs-toggle="modal" data-bs-target="#add-emulator-modal">
+                Add Emulator
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal: Add Emulator -->
+    <div class="modal fade" id="add-emulator-modal" tabindex="-1" aria-labelledby="addEmulatorModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addEmulatorModalLabel">Add Emulator</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <button type="submit" class="btn btn-dark w-100">Upload Blueprint</button>
-            </form>
+                <div class="modal-body">
+                    <form id="add-emulator-form">
+                        <div class="mb-3">
+                            <label for="json-file" class="form-label">Upload JSON File</label>
+                            <input type="file" id="json-file" class="form-control" accept=".json">
+                        </div>
+                        <div class="mb-3">
+                            <label for="json-text" class="form-label">Paste JSON Text</label>
+                            <textarea id="json-text" class="form-control" rows="5" placeholder='{"key": "value"}'></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Add Emulator</button>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 
