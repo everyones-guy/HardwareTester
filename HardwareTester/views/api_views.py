@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request, render_template
 from HardwareTester.services.api_service import APIService
-from HardwareTester.services.serial_service import SerialService, EmulatorService
+from HardwareTester.services.serial_service import SerialService
+from HardwareTester.services.emulator_service import EmulatorService
 from HardwareTester.utils.custom_logger import CustomLogger
 from HardwareTester.extensions import csrf
 
