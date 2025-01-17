@@ -43,15 +43,21 @@ $(document).ready(function () {
     }
 
     // Validate and submit emulator data
-    function submitEmulator(data) {
-        const requiredFields = ["name", "description", "protocol", "connection", "settings", "commands", "data_format", "default_state"];
-        const missingFields = requiredFields.filter(field => !data[field]);
-
-        if (missingFields.length > 0) {
-            alert(`Missing required fields: ${missingFields.join(", ")}`);
+    function validateAndSubmitEmulator(data) {
+        if (!data.configuration) {
+            alert("Missing required configuration object.");
             return;
         }
 
+        const requiredFields = ["settings", "commands", "data_format"];
+        const missingFields = requiredFields.filter(field => !data.configuration[field]);
+
+        if (missingFields.length > 0) {
+            alert(`Missing required fields in configuration: ${missingFields.join(", ")}`);
+            return;
+        }
+
+        // Proceed to API call
         apiCall(
             "/emulators/add-emulator",
             "POST",
@@ -60,7 +66,7 @@ $(document).ready(function () {
                 alert(response.message);
                 if (response.success) {
                     $("#add-emulator-modal").modal("hide");
-                    fetchBlueprints();
+                    fetchBlueprints(); // Refresh blueprints
                 }
             },
             (xhr) => {
@@ -69,6 +75,7 @@ $(document).ready(function () {
             }
         );
     }
+
 
     // Handle form submission for adding emulator
     function initializeEmulatorForm() {
@@ -81,7 +88,7 @@ $(document).ready(function () {
 
             try {
                 const jsonData = await parseJsonInput(fileInput, textInput);
-                submitEmulator(jsonData);
+                validateAndSubmitEmulator(jsonData);
             } catch (error) {
                 alert(`Invalid JSON: ${error.message}. Please correct the input.`);
             }
