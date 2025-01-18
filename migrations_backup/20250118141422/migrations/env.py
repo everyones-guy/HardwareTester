@@ -32,12 +32,6 @@ def run_migrations_offline():
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
-        naming_convention={
-            "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
-            "uq": "uq_%(table_name)s_%(column_0_name)s",
-            "ix": "ix_%(table_name)s_%(column_0_name)s",
-            "ck": "ck_%(table_name)s_%(constraint_name)s",
-            "pk": "pk_%(table_name)s"},
     )
     with context.begin_transaction():
         context.run_migrations()
@@ -55,12 +49,6 @@ def run_migrations_online():
             connection=connection,
             target_metadata=target_metadata,
             render_as_batch=True,  # Enable batch mode for SQLite
-            naming_convention={
-                "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
-                "uq": "uq_%(table_name)s_%(column_0_name)s",
-                "ix": "ix_%(table_name)s_%(column_0_name)s",
-                "ck": "ck_%(table_name)s_%(constraint_name)s",
-                "pk": "pk_%(table_name)s"},
         )
         with context.begin_transaction():
             context.run_migrations()
