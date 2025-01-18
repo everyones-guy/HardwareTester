@@ -191,6 +191,9 @@
     <Compile Include="HardwareTester\views\__init__.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="manage_migrations.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="runserver.py" />
     <Compile Include="HardwareTester\__init__.py" />
     <Compile Include="tests\Front_End\test_api_views.py">
