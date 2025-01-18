@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request, render_template
 from HardwareTester.services.emulator_service import EmulatorService
 from HardwareTester.utils.custom_logger import CustomLogger
+import json
 
 # Initialize logger
 logger = CustomLogger.get_logger("emulator_views")
@@ -121,29 +122,44 @@ def compare_machines():
 # blueprint is the same as a configuration so adding a blueprint is the same adding an emulator...
 @emulator_bp.route('/add', methods=['POST'])
 def add_emulator():
+    """
+    Add a new emulator by creating a blueprint.
+    """
     try:
         data = request.json
         if not data:
-            return jsonify({"success": False, "message": "No data provided"}), 400
+            logger.warning("No data provided for adding emulator.")
+            return jsonify({"success": False, "message": "No data provided."}), 400
 
-        # Validate data structure
-        required_fields = ["name", "type", "configuration"]
+        # Validate required fields
+        required_fields = ["name", "description", "configuration", "author"]
         for field in required_fields:
             if field not in data:
+                logger.warning(f"Missing required field: {field}.")
                 return jsonify({"success": False, "message": f"Missing field: {field}"}), 400
 
-        # Save to database
-        new_emulator = Emulator(
-            name=data["name"],
-            type=data["type"],
-            configuration=json.dumps(data["configuration"])
-        )
-        db.session.add(new_emulator)
-        db.session.commit()
+        # Add the optional version field if provided
+        version = data.get("version", "1.0")  # Default to "1.0" if version not specified
 
-        return jsonify({"success": True, "message": "Emulator added successfully"}), 200
+        # Call the service to add a blueprint
+        response = EmulatorService.add_blueprint(
+            name=data["name"],
+            description=data["description"],
+            configuration=data["configuration"],  # Assuming configuration is passed as a dict
+            version=version,
+            author=data["author"]
+        )
+
+        # Check response and return appropriate message
+        if response["success"]:
+            return jsonify({"success": True, "message": response["message"]}), 201
+        else:
+            logger.error(f"Failed to add emulator: {response['message']}")
+            return jsonify({"success": False, "message": response["message"]}), 400
+
     except Exception as e:
         logger.error(f"Error adding emulator: {e}")
-        db.session.rollback()
-        return jsonify({"success": False, "message": "Failed to add emulator"}), 500
+        return jsonify({"success": False, "message": "Failed to add emulator."}), 500
+
+
 
