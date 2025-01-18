@@ -6,7 +6,7 @@ from pathlib import Path
 
 def archive_migrations():
     """Archive the current migrations folder."""
-    timestamp = time.strftime("%Y%m%d")
+    timestamp = time.strftime("%Y%m%d%H%M%S")
     backup_dir = f"migrations_backup/{timestamp}"
     os.makedirs(backup_dir, exist_ok=True)
 
