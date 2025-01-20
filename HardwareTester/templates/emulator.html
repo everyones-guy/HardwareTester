@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "auth/base.html" %}
 
 {% block title %}Hardware Emulator{% endblock %}
 
@@ -36,7 +36,8 @@
     <div class="card mb-4">
         <div class="card-header bg-success text-white">Start Emulation</div>
         <div class="card-body">
-            <form id="start-emulation-form">
+            <form id="start-emulation-form" method="POST" action="{{ url_for('emulators.start_emulation_endpoint') }}">
+                {{ form.hidden_tag() }}
                 <div class="mb-3">
                     <label for="machine-name" class="form-label">Machine Name</label>
                     <input type="text" id="machine-name" name="machine_name" class="form-control" required>
@@ -82,21 +83,24 @@
     <div class="modal fade" id="add-emulator-modal" tabindex="-1" aria-labelledby="addEmulatorModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
-                <div class="modal-header">
+                <div class="modal-header bg-dark text-white">
                     <h5 class="modal-title" id="addEmulatorModalLabel">Add Emulator</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="add-emulator-form">
+                    <form id="add-emulator-form" method="POST" action="{{ url_for('emulators.add_emulator') }}">
+                        {{ form.hidden_tag() }}
                         <div class="mb-3">
                             <label for="json-file" class="form-label">Upload JSON File</label>
-                            <input type="file" id="json-file" class="form-control" accept=".json">
+                            <input type="file" id="json-file" name="file" class="form-control" accept=".json">
                         </div>
                         <div class="mb-3">
                             <label for="json-text" class="form-label">Paste JSON Text</label>
-                            <textarea id="json-text" class="form-control" rows="5" placeholder='{"key": "value"}'></textarea>
+                            <textarea id="json-text" name="json_text" class="form-control" rows="5" placeholder='{"key": "value"}'></textarea>
                         </div>
-                        <button type="submit" class="btn btn-primary w-100">Add Emulator</button>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">Add Emulator</button>
+                        </div>
                     </form>
                 </div>
             </div>
@@ -107,7 +111,7 @@
     <div class="modal fade" id="preview-modal" tabindex="-1" aria-labelledby="preview-modal-label" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
-                <div class="modal-header">
+                <div class="modal-header bg-dark text-white">
                     <h5 class="modal-title" id="preview-modal-label">Blueprint Preview</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>

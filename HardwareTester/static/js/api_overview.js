@@ -2,7 +2,7 @@ $(document).ready(function () {
     const responsePreview = $("#response-preview");
     const endpointDropdown = $("#endpoint");
     const availableEndpointsList = $("#available-endpoints");
-    const csrfToken = $('meta[name="csrf-token"]').attr("content");
+    const csrfToken = $('meta[name="csrf-token"]').content
 
     // Utility: Update Response Preview
     function updateResponsePreview(message, isError = false) {
@@ -63,7 +63,7 @@ $(document).ready(function () {
             method: method,
             headers: {
                 "Content-Type": "application/json",
-                "X-CSRFToken": csrfToken,
+                "X-CSRFToken": $("[name=csrf_token]").val()
             },
             success: function (data) {
                 updateResponsePreview(JSON.stringify(data, null, 4));

@@ -13,6 +13,7 @@ class Config:
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     INSTANCE_DIR = os.path.join(BASE_DIR, "instance")
     os.makedirs(INSTANCE_DIR, exist_ok=True)  # Ensure the instance directory exists
+    WTF_CSRF_ENABLED = False  # Disable CSRF for easier testing
 
     # Flask settings
     SECRET_KEY = os.getenv("SECRET_KEY", "default-secret-key")
@@ -67,7 +68,7 @@ class TestingConfig(Config):
     """Testing configuration with a separate test database."""
     TESTING = True
     SQLALCHEMY_DATABASE_URI = "sqlite:///C:/Users/Gary/source/repos/HardwareTester/HardwareTester/instance/app.db"
-    #WTF_CSRF_ENABLED = False  # Disable CSRF for easier testing
+    WTF_CSRF_ENABLED = False  # Disable CSRF for easier testing
     LOG_LEVEL = "WARNING"
     ENV = "testing"
     LOGIN_DISABLED = True

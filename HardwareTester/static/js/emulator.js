@@ -1,21 +1,37 @@
 $(document).ready(function () {
+    // Retrieve CSRF token from meta tag
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+
     // Utility function for API calls
     function apiCall(endpoint, method, data, onSuccess, onError) {
+        const isPostMethod = method.toUpperCase() === "POST";
+
         $.ajax({
             url: endpoint,
             type: method,
-            contentType: method === "POST" ? "application/json" : undefined,
-            data: method === "POST" ? JSON.stringify(data) : data,
-            processData: method !== "POST",
-            success: onSuccess,
+            contentType: isPostMethod ? "application/json" : false,
+            headers: {
+                "X-CSRFToken": $("[name=csrf_token]").val(), // Use CSRF token from the hidden input field
+            },
+            data: isPostMethod ? JSON.stringify(data) : null, // Only stringify data for POST requests
+            processData: false, // Prevent jQuery from processing data for non-POST requests
+            success: function (response) {
+                if (onSuccess) onSuccess(response);
+            },
             error: function (xhr) {
-                const errorMessage = xhr.responseJSON?.message || "An error occurred while communicating with the server.";
+                const errorMessage =
+                    xhr.responseJSON?.message || "An error occurred while communicating with the server.";
                 console.error(`API Error (${method} ${endpoint}):`, errorMessage);
-                if (onError) onError(xhr);
-                else alert(errorMessage);
+
+                if (onError) {
+                    onError(xhr);
+                } else {
+                    alert(errorMessage);
+                }
             },
         });
     }
+
 
     // Fetch and display available blueprints
     function fetchBlueprints() {
@@ -40,7 +56,7 @@ $(document).ready(function () {
             } else {
                 blueprintList.append('<li class="list-group-item text-center">No blueprints available.</li>');
             }
-        }, () => alert("Failed to fetch blueprints."));
+        });
     }
 
     // Fetch and display active emulations
@@ -62,7 +78,7 @@ $(document).ready(function () {
             } else {
                 emulationsList.append('<li class="list-group-item text-center">No active emulations.</li>');
             }
-        }, () => alert("Failed to fetch active emulations."));
+        });
     }
 
     // Fetch and display emulator logs
@@ -74,33 +90,15 @@ $(document).ready(function () {
 
             if (data.success && data.logs.length > 0) {
                 data.logs.forEach((log) => {
-                    logsContainer.append(`<div class="${log.type === "error" ? "text-danger" : "text-secondary"}">${log.message}</div>`);
+                    logsContainer.append(
+                        `<div class="${log.type === "error" ? "text-danger" : "text-secondary"}">${log.message}</div>`
+                    );
                 });
             } else {
                 logsContainer.append('<div class="text-center">No logs available.</div>');
             }
-        }, () => alert("Failed to fetch logs."));
-    }
-
-    // Upload a new blueprint
-    $("#blueprint-upload-form").on("submit", function (event) {
-        event.preventDefault();
-        console.log("Uploading blueprint...");
-        const formData = new FormData(this);
-
-        $.ajax({
-            url: "/emulators/load-blueprint",
-            type: "POST",
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function () {
-                alert("Blueprint uploaded successfully.");
-                fetchBlueprints();
-            },
-            error: () => alert("Failed to upload blueprint."),
         });
-    });
+    }
 
     // Start a new emulation
     $("#start-emulation-form").on("submit", function (event) {
@@ -122,8 +120,7 @@ $(document).ready(function () {
             () => {
                 alert("Emulation started successfully.");
                 fetchActiveEmulations();
-            },
-            () => alert("Failed to start emulation.")
+            }
         );
     });
 
@@ -139,8 +136,7 @@ $(document).ready(function () {
             () => {
                 alert("Emulation stopped successfully.");
                 fetchActiveEmulations();
-            },
-            () => alert("Failed to stop emulation.")
+            }
         );
     });
 
@@ -153,68 +149,52 @@ $(document).ready(function () {
 
         modalBody.html(`<p>Loading preview for ${blueprintName}...</p>`);
 
-        apiCall(
-            `/emulators/preview/${blueprintName}`,
-            "GET",
-            null,
-            (data) => {
-                if (data.success) {
-                    modalBody.html(`<img src="${data.preview_url}" alt="${blueprintName}" class="img-fluid">`);
-                } else {
-                    modalBody.html(`<p class="text-danger">Failed to load preview for ${blueprintName}.</p>`);
-                }
-            },
-            () => modalBody.html(`<p class="text-danger">An error occurred while fetching the preview.</p>`)
-        );
+        apiCall(`/emulators/preview/${blueprintName}`, "GET", null, (data) => {
+            if (data.success) {
+                modalBody.html(`<img src="${data.preview_url}" alt="${blueprintName}" class="img-fluid">`);
+            } else {
+                modalBody.html(`<p class="text-danger">Failed to load preview for ${blueprintName}.</p>`);
+            }
+        });
 
         previewModal.show();
     });
 
-    // Initialize Add Emulator Form
-    function initializeEmulatorForm() {
-        $("#add-emulator-modal").on("show.bs.modal", function () {
-            $("#json-file").val(null);
-            $("#json-text").val("");
-        });
+    // Add Emulator Form Submission
+    $("#add-emulator-form").on("submit", async function (event) {
+        event.preventDefault();
+        console.log("Adding emulator...");
+        const fileInput = $("#json-file")[0]?.files[0];
+        const textInput = $("#json-text").val().trim();
+        let jsonData;
 
-        $("#add-emulator-form").off("submit").on("submit", async function (event) {
-            event.preventDefault();
-            console.log("Adding emulator...");
-            const fileInput = $("#json-file")[0]?.files[0];
-            const textInput = $("#json-text").val().trim();
-            let jsonData;
-
-            try {
-                if (fileInput) {
-                    const fileText = await fileInput.text();
-                    jsonData = JSON.parse(fileText);
-                } else if (textInput) {
-                    jsonData = JSON.parse(textInput);
-                } else {
-                    throw new Error("No input provided.");
-                }
-            } catch (error) {
-                alert("Invalid JSON. Please correct the input.");
-                return;
+        try {
+            if (fileInput) {
+                const fileText = await fileInput.text();
+                jsonData = JSON.parse(fileText);
+            } else if (textInput) {
+                jsonData = JSON.parse(textInput);
+            } else {
+                throw new Error("No input provided.");
             }
+        } catch (error) {
+            alert("Invalid JSON. Please correct the input.");
+            return;
+        }
 
-            apiCall(
-                "/api/add-emulator",
-                "POST",
-                jsonData,
-                (response) => {
-                    alert(response.message);
-                    if (response.success) {
-                        $("#add-emulator-modal").modal("hide");
-                        fetchActiveEmulations();
-                    }
-                },
-                () => alert("Failed to add emulator.")
-            );
-        });
-    }
-
-    window.initializeEmulatorForm = initializeEmulatorForm;
+        apiCall(
+            "/emulators/add",
+            "POST",
+            jsonData,
+            (response) => {
+                alert(response.message);
+                if (response.success) {
+                    $("#add-emulator-modal").modal("hide");
+                    fetchActiveEmulations();
+                }
+            }
+        );
+    });
 
     // Initial data load
     fetchBlueprints();

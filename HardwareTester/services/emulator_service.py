@@ -214,3 +214,64 @@ class EmulatorService:
         except SQLAlchemyError as e:
             db.session.rollback()
             raise ValueError(f"Database error: {e}")
+        
+    @staticmethod
+    def fetch_commands_from_firmware(blueprint_name: str) -> list:
+        """
+        Fetch all commands for the given blueprint directly from the firmware.
+        :param blueprint_name: Name of the blueprint or hardware configuration.
+        :return: List of commands, each as a dictionary with details.
+        """
+        try:
+            # Example API interaction to retrieve commands
+            response = EmulatorService.api_call(
+                f"/firmware/{blueprint_name}/full-command-list",
+                method="GET"
+            )
+            if response.get("success"):
+                return response.get("commands", [])
+            else:
+                logger.warning(f"Failed to fetch commands from firmware for {blueprint_name}: {response.get('error')}")
+                return []
+        except Exception as e:
+            logger.error(f"Error fetching commands for {blueprint_name}: {e}")
+            return []
+
+    @staticmethod
+    def fetch_commands_via_mqtt(topic: str, broker: str = "localhost", port: int = 1883) -> list:
+        """
+        Fetch command listing via MQTT by subscribing to a specific topic.
+        :param topic: MQTT topic to listen to for command listing.
+        :param broker: Address of the MQTT broker.
+        :param port: Port of the MQTT broker.
+        :return: List of commands received from MQTT.
+        """
+        commands = []
+
+        def on_message(client, userdata, msg):
+            try:
+                payload = json.loads(msg.payload.decode())
+                commands.extend(payload.get("commands", []))
+            except Exception as e:
+                logger.error(f"Error parsing MQTT message: {e}")
+
+        client = mqtt.Client()
+        client.on_message = on_message
+
+        try:
+            logger.info(f"Connecting to MQTT broker at {broker}:{port}...")
+            client.connect(broker, port, 60)
+            client.subscribe(topic)
+            client.loop_start()
+
+            # Wait for the message (adjust timeout as needed)
+            import time
+            time.sleep(5)
+
+            client.loop_stop()
+            client.disconnect()
+            logger.info("MQTT command listing fetched successfully.")
+        except Exception as e:
+            logger.error(f"Error fetching commands via MQTT: {e}")
+
+        return commands
