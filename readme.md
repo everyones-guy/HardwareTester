@@ -76,7 +76,7 @@ Hardware Tester is a Flask-based application for testing and managing hardware d
    ```env
    FLASK_ENV=development
    SECRET_KEY=your-secret-key
-   DATABASE_URL=sqlite:///instance/app.db
+   DATABASE_URL=sqlite:///C:/Users/Gary/source/repos/HardwareTester/instance/app.db
    BASE_URL=http://127.0.0.1:5000
    MQTT_BROKER=test.mosquitto.org
    MQTT_PORT=1883

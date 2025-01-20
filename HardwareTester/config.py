@@ -29,7 +29,7 @@ class Config:
     LOG_FILE = os.getenv("LOG_FILE", "app.log")
 
     # Database settings
-    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", f"sqlite:///{INSTANCE_DIR}/app.db")
+    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", f"sqlite:///C:/Users/Gary/source/repos/HardwareTester/HardwareTester/instance/app.db")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # File upload settings
@@ -66,7 +66,7 @@ class DevelopmentConfig(Config):
 class TestingConfig(Config):
     """Testing configuration with a separate test database."""
     TESTING = True
-    SQLALCHEMY_DATABASE_URI = "sqlite:///instance/test.db"
+    SQLALCHEMY_DATABASE_URI = "sqlite:///C:/Users/Gary/source/repos/HardwareTester/HardwareTester/instance/app.db"
     #WTF_CSRF_ENABLED = False  # Disable CSRF for easier testing
     LOG_LEVEL = "WARNING"
     ENV = "testing"
@@ -76,7 +76,7 @@ class ProductionConfig(Config):
     """Production configuration."""
     DEBUG = False
     LOG_LEVEL = "ERROR"
-    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", f"sqlite:///{Config.INSTANCE_DIR}/prod.db")
+    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", f"sqlite:///C:/Users/Gary/source/repos/HardwareTester/HardwareTester/instance/app.db")
     SESSION_COOKIE_SECURE = True
     REMEMBER_COOKIE_SECURE = True
     ENV = "production"
