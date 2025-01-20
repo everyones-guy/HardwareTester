@@ -1,11 +1,22 @@
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, render_template
+from HardwareTester.extensions import logger
 from HardwareTester.services.mqtt_service import MQTTService
 
 mqtt_bp = Blueprint("mqtt", __name__, url_prefix="/mqtt")
 
 # Initialize MQTT service (update with your broker details)
 mqtt_service = MQTTService(broker="mqtt.example.com", port=1883)
+
+
+@mqtt_bp.route("/", methods=["GET"])
+def hardware_dashboard():
+    """Render the emulator dashboard."""
+    try:
+        return render_template("mqtt_management.html")
+    except Exception as e:
+        logger.error(f"Error rendering emulator dashboard: {e}")
+        return jsonify({"success": False, "error": "Failed to render the emulator dashboard."}), 500
 
 @mqtt_bp.route("/connect", methods=["POST"])
 def connect_mqtt():

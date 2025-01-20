@@ -30,7 +30,6 @@ def run_migrations_offline():
     context.configure(
         url=config.get_main_option("sqlalchemy.url"),
         target_metadata=target_metadata,
-        render_as_batch=True,  # Enable batch mode for SQLite
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
         naming_convention={
@@ -66,7 +65,7 @@ def run_migrations_online():
         with context.begin_transaction():
             context.run_migrations()
 
-if context.is_offline_mode(): 
+if context.is_offline_mode():
     run_migrations_offline()
 else:
     run_migrations_online()

@@ -1,26 +1,54 @@
-/* Emulator Dashboard */
+/* General Emulator Styles */
+body {
+    background-color: #f4f5f7; /* Matching dashboard style */
+    font-family: 'Roboto', sans-serif;
+}
+
+/* Header Styles */
 .emulator-header {
-    font-size: 1.5rem;
+    font-size: 1.8rem;
     font-weight: bold;
     color: #343a40;
-    margin-bottom: 1.5rem;
+    margin-bottom: 2rem;
+    text-align: center;
 }
 
-.blueprint-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
+/* List Styles */
+.list-group-item {
+    font-size: 15px;
+    font-weight: bold;
+    color: #333333;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    padding: 10px 15px;
+    border: 1px solid #e9ecef;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
+    .list-group-item:hover {
+        background-color: #007bff;
+        color: #ffffff;
+    }
+
+    .list-group-item.active {
+        background-color: #0056b3;
+        color: #ffffff;
+        border-color: #0056b3;
+    }
+
+/* Blueprint Section */
 .blueprint-list-item {
-    padding: 0.75rem 1rem;
-    border: 1px solid #ced4da;
+    background-color: #ffffff;
+    border: 1px solid #e9ecef;
     border-radius: 4px;
+    padding: 10px;
     margin-bottom: 0.5rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: #ffffff;
     transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
@@ -30,12 +58,12 @@
     }
 
     .blueprint-list-item button {
-        font-size: 0.9rem;
-        padding: 0.5rem 1rem;
+        font-size: 14px;
+        padding: 8px 12px;
         border: none;
         border-radius: 4px;
         background-color: #007bff;
-        color: #ffffff;
+        color: white;
         cursor: pointer;
         transition: background-color 0.3s ease;
     }
@@ -47,3 +75,115 @@
         .blueprint-list-item button:active {
             background-color: #003f7f;
         }
+
+/* Form Section */
+form {
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+    form label {
+        font-weight: bold;
+        color: #333333;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    form input, form select, form textarea {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 15px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        font-size: 14px;
+        color: #495057;
+    }
+
+    form button {
+        width: 100%;
+        padding: 10px;
+        background-color: #007bff;
+        color: white;
+        font-size: 16px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+        form button:hover {
+            background-color: #0056b3;
+        }
+
+/* Modal Styles */
+.modal-content {
+    border-radius: 8px;
+    padding: 20px;
+}
+
+.modal-header {
+    border-bottom: 1px solid #e9ecef;
+    font-weight: bold;
+    font-size: 18px;
+    color: #343a40;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+/* Logs Section */
+#emulator-logs {
+    max-height: 300px;
+    overflow-y: auto;
+    background-color: #f8f9fa;
+    padding: 10px;
+    border-radius: 8px;
+}
+
+    #emulator-logs div {
+        font-size: 14px;
+        margin-bottom: 10px;
+        padding: 8px;
+        border-radius: 5px;
+    }
+
+        #emulator-logs div.text-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        #emulator-logs div.text-secondary {
+            background-color: #e2e3e5;
+            color: #383d41;
+        }
+
+/* Buttons */
+.btn {
+    padding: 10px 20px;
+    font-size: 14px;
+    color: white;
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+    .btn:hover {
+        background-color: #0056b3;
+    }
+
+/* Add Emulator Modal */
+#add-emulator-form textarea {
+    resize: none;
+}
+
+#add-emulator-form .form-label {
+    font-size: 14px;
+    font-weight: bold;
+    color: #495057;
+}

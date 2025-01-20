@@ -1,5 +1,5 @@
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, render_template
 from HardwareTester.services.mqtt_service import MQTTService
 from HardwareTester.extensions import db
 from sqlalchemy.dialects.postgresql import JSON  # Use JSON for metadata and settings storage
@@ -12,6 +12,16 @@ logger = CustomLogger.get_logger("hardware_views")
 hardware_bp = Blueprint("hardware", __name__, url_prefix="/hardware")
 mqtt_service = MQTTService(broker="test.mosquitto.org", port=1883)
 mqtt_service.connect()
+
+
+@hardware_bp.route("/", methods=["GET"])
+def hardware_dashboard():
+    """Render the emulator dashboard."""
+    try:
+        return render_template("hardware.html")
+    except Exception as e:
+        logger.error(f"Error rendering emulator dashboard: {e}")
+        return jsonify({"success": False, "error": "Failed to render the emulator dashboard."}), 500
 
 @hardware_bp.route("/discover-device", methods=["POST"])
 def discover_device():

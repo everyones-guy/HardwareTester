@@ -131,12 +131,13 @@ def add_emulator():
             logger.warning("No data provided for adding emulator.")
             return jsonify({"success": False, "message": "No data provided."}), 400
 
-        # Validate required fields
-        required_fields = ["name", "description", "configuration", "author"]
+         # Validate required fields
+        required_fields = ["name", "description", "configuration"]
         for field in required_fields:
             if field not in data:
-                logger.warning(f"Missing required field: {field}.")
+                logger.warning(f"Missing field: {field}")
                 return jsonify({"success": False, "message": f"Missing field: {field}"}), 400
+
 
         # Add the optional version field if provided
         version = data.get("version", "1.0")  # Default to "1.0" if version not specified
@@ -161,5 +162,19 @@ def add_emulator():
         logger.error(f"Error adding emulator: {e}")
         return jsonify({"success": False, "message": "Failed to add emulator."}), 500
 
-
+@emulator_bp.route('/upload', methods=['GET', 'POST'])
+def upload():
+    if request.method == 'POST':
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file part in the request'}), 400
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({'error': 'No file selected'}), 400
+        
+        try:
+            result = EmulatorService.handle_file_upload(file)
+            return jsonify({'message': 'File uploaded successfully', 'result': result}), 200
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+    return render_template('emulator.html')
 

@@ -22,7 +22,7 @@ class TestPlanService:
         """
         logger.info("Fetching list of test plans...")
         try:
-            response = api_manager.get("test-plans")
+            response = api_manager.get("test-plans/list")
             if "error" in response:
                 logger.error(f"Failed to fetch test plans: {response['error']}")
                 return {"success": False, "error": response["error"]}

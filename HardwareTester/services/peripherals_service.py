@@ -1,6 +1,6 @@
 #peripherals_service.py
 
-from HardwareTester.extensions import db
+from HardwareTester.extensions import db, logger
 from HardwareTester.utils.custom_logger import CustomLogger
 from HardwareTester.models.device_models import Peripheral
 from sqlalchemy.exc import SQLAlchemyError

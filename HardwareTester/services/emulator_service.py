@@ -3,7 +3,11 @@ from datetime import datetime
 from HardwareTester.extensions import db
 from HardwareTester.utils.custom_logger import CustomLogger
 from HardwareTester.models.device_models import Emulation, Blueprint  # Replace with actual path to your model
+from HardwareTester.models.upload_files import UploadedFile
 from typing import Dict, Any, Union
+from werkzeug.utils import secure_filename
+from sqlalchemy.exc import SQLAlchemyError
+import os
 
 # Initialize logger
 logger = CustomLogger.get_logger("emulator_service")
@@ -160,30 +164,29 @@ class EmulatorService:
 
 
     @staticmethod
-    def add_blueprint(name: str, description: str, configuration: dict, version: str, author: str) -> Dict[str, Union[bool, str]]:
+    def add_blueprint(name: str, description: str, configuration: dict) -> Dict[str, Union[bool, str]]:
         """
         Add a new blueprint to the database.
-
         :param name: The name of the blueprint.
         :param description: A description of the blueprint.
-        :param configuration: JSON configuration details for the blueprint.
-        :param version: Version information for the blueprint.
-        :param author: Author of the blueprint.
+        :param configuration: Configuration data as a dictionary.
         :return: A dictionary indicating success or failure with a message.
         """
         try:
-            # Check if a blueprint with the same name already exists
+            logger.info(f"Attempting to add blueprint: {name}")
+        
+            # Check if blueprint with the same name already exists
             existing_blueprint = Blueprint.query.filter_by(name=name).first()
             if existing_blueprint:
+                logger.warning(f"Blueprint '{name}' already exists.")
                 return {"success": False, "message": f"Blueprint with name '{name}' already exists."}
-
+        
             # Create and add the new blueprint
             new_blueprint = Blueprint(
                 name=name,
                 description=description,
-                configuration=configuration,
-                version=version,
-                author=author
+                configuration=configuration,  # Ensure this is valid JSON
+                created_at=datetime.utcnow()
             )
             db.session.add(new_blueprint)
             db.session.commit()
@@ -194,3 +197,20 @@ class EmulatorService:
             logger.error(f"Error adding blueprint '{name}': {e}")
             db.session.rollback()
             return {"success": False, "message": f"Failed to add blueprint '{name}': {str(e)}"}
+
+
+    @staticmethod
+    def handle_file_upload(file):
+        filename = secure_filename(file.filename)
+        save_path = os.path.join('/path/to/upload', filename)
+        file.save(save_path)
+
+        new_file = UploadedFile(filename=filename, path=save_path)
+        db.session.add(new_file)
+
+        try:
+            db.session.commit()
+            return {'id': new_file.id, 'filename': filename}
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            raise ValueError(f"Database error: {e}")
