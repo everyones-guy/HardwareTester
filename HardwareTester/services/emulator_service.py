@@ -8,7 +8,7 @@ from datetime import datetime
 from HardwareTester.extensions import db
 from HardwareTester.utils.custom_logger import CustomLogger
 from HardwareTester.services.mqtt_client import MQTTClient
-from HardwareTester.models.device_models import Emulation, Blueprint  # Replace with actual path to your model
+from HardwareTester.models.device_models import Emulation, Blueprint, Controller  # Replace with actual path to your model
 from HardwareTester.models.upload_files import UploadedFile
 from HardwareTester.services.peripherals_service import PeripheralsService
 from HardwareTester.services.serial_service import SerialService
@@ -73,7 +73,13 @@ class EmulatorService:
             if self.emulator_state["running"]:
                 return {"success": False, "message": "An emulation is already running."}
 
+            # Set a valid controller ID (replace with your logic)
+            controller_id = self.get_available_controller_id()
+            if not controller_id:
+                return {"success": False, "message": "No available controller."}
+
             emulation = Emulation(
+                controller_id=controller_id,
                 machine_name=machine_name,
                 blueprint=blueprint,
                 stress_test=stress_test,
@@ -99,6 +105,7 @@ class EmulatorService:
             logger.error(f"Error starting emulation: {e}")
             db.session.rollback()
             return {"success": False, "error": "Failed to start emulation."}
+
 
     def stop_emulation(self, machine_name: str) -> Dict[str, Union[bool, str]]:
         """Stop an active emulation."""
@@ -260,3 +267,10 @@ class EmulatorService:
         """Log an action to the emulator logs."""
         EmulatorService.emulator_state["logs"].append(f"[{datetime.now()}] {message}")
         logger.info(message)
+        
+    def get_available_controller_id(self) -> Union[int, None]:
+        """Get an available controller ID."""
+        # Replace this with the logic to determine the controller
+        controller = Controller.query.filter_by(available=True).first()  # Example logic
+        return controller.id if controller else None
+

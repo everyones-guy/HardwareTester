@@ -36,6 +36,8 @@ class Controller(db.Model):
     firmware_version = db.Column(String(50), nullable=True)
     device_metadata = db.Column(JSON, nullable=True)
     device_id = db.Column(Integer, ForeignKey("devices.id"), nullable=True, index=True)
+    available = db.Column(db.Boolean, default=True)  # Add this column
+
 
     device = db.relationship("Device", backref=db.backref("controllers", lazy="dynamic"))
 

@@ -74,15 +74,20 @@ def load_blueprint_endpoint():
         return jsonify({"success": False, "error": "Failed to load blueprint."}), 500
 
 
-@emulator_bp.route("/start", methods=["GET", "POST"])
+@emulator_bp.route("/start", methods=["POST"])
 @login_required
 def start_emulation_endpoint():
     """Start a machine emulation."""
     form = StartEmulationForm()
 
-    # Populate the blueprint choices dynamically
-    blueprints = emulator_service.fetch_blueprints()
-    form.blueprint.choices = [(bp['id'], bp['name']) for bp in blueprints]
+    # Fetch blueprints and check success
+    blueprint_response = emulator_service.fetch_blueprints()
+    if blueprint_response["success"]:
+        blueprints = blueprint_response["blueprints"]
+        form.blueprint.choices = [(bp["name"], bp["name"]) for bp in blueprints]
+    else:
+        blueprints = []
+        logger.warning("Failed to fetch blueprints for start emulation.")
 
     if form.validate_on_submit():
         machine_name = form.machine_name.data
@@ -100,8 +105,9 @@ def start_emulation_endpoint():
             logger.error(f"Error starting emulation: {e}")
             return jsonify({"success": False, "error": "Failed to start emulation."}), 500
 
-    # Render the form if GET request or validation fails
-    return render_template("start_emulation.html", form=form)
+    # If form validation fails, return an error
+    return jsonify({"success": False, "error": "Invalid form submission."}), 400
+
 
 
 @emulator_bp.route("/stop", methods=["POST"])
