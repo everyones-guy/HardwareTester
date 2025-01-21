@@ -15,7 +15,13 @@
         <div class="card-header bg-primary text-white">Available Blueprints</div>
         <div class="card-body">
             <ul id="blueprint-list" class="list-group">
-                <!-- Blueprint items will be dynamically loaded here -->
+                {% for blueprint in blueprints %}
+                <li class="list-group-item">
+                    <strong>{{ blueprint.name }}</strong> - {{ blueprint.description }}
+                </li>
+                {% else %}
+                <li class="list-group-item text-muted">No blueprints available.</li>
+                {% endfor %}
             </ul>
             <button class="btn btn-primary mt-3 w-100" id="refresh-blueprints">Refresh Blueprints</button>
         </div>
@@ -39,21 +45,24 @@
             <form id="start-emulation-form" method="POST" action="{{ url_for('emulators.start_emulation_endpoint') }}">
                 {{ form.hidden_tag() }}
                 <div class="mb-3">
-                    <label for="machine-name" class="form-label">Machine Name</label>
-                    <input type="text" id="machine-name" name="machine_name" class="form-control" required>
+                    {{ form.machine_name.label(class="form-label") }}
+                    {{ form.machine_name(class="form-control", id="machine-name") }}
+                    {% for error in form.machine_name.errors %}
+                    <small class="text-danger">{{ error }}</small>
+                    {% endfor %}
                 </div>
                 <div class="mb-3">
-                    <label for="blueprint-select" class="form-label">Blueprint</label>
-                    <select id="blueprint-select" name="blueprint" class="form-select" required>
-                        <option value="">Select Blueprint</option>
-                        <!-- Options dynamically populated -->
-                    </select>
+                    {{ form.blueprint.label(class="form-label") }}
+                    {{ form.blueprint(class="form-select", id="blueprint-select") }}
+                    {% for error in form.blueprint.errors %}
+                    <small class="text-danger">{{ error }}</small>
+                    {% endfor %}
                 </div>
                 <div class="form-check mb-3">
-                    <input type="checkbox" id="stress-test" name="stress_test" class="form-check-input">
-                    <label for="stress-test" class="form-check-label">Enable Stress Test</label>
+                    {{ form.stress_test(class="form-check-input", id="stress-test") }}
+                    {{ form.stress_test.label(class="form-check-label", for="stress-test") }}
                 </div>
-                <button type="submit" class="btn btn-success w-100">Start Emulation</button>
+                <button type="submit" class="btn btn-success w-100">{{ form.submit.label.text }}</button>
             </form>
         </div>
     </div>
@@ -89,17 +98,17 @@
                 </div>
                 <div class="modal-body">
                     <form id="add-emulator-form" method="POST" action="{{ url_for('emulators.add_emulator') }}">
-                        {{ form.hidden_tag() }}
+                        {{ add_form.hidden_tag() }}
                         <div class="mb-3">
-                            <label for="json-file" class="form-label">Upload JSON File</label>
-                            <input type="file" id="json-file" name="file" class="form-control" accept=".json">
+                            {{ add_form.file.label(class="form-label") }}
+                            {{ add_form.file(class="form-control", id="json-file", accept=".json") }}
                         </div>
                         <div class="mb-3">
-                            <label for="json-text" class="form-label">Paste JSON Text</label>
-                            <textarea id="json-text" name="json_text" class="form-control" rows="5" placeholder='{"key": "value"}'></textarea>
+                            {{ add_form.json_text.label(class="form-label") }}
+                            {{ add_form.json_text(class="form-control", id="json-text", rows="5") }}
                         </div>
                         <div class="d-grid">
-                            <button type="submit" class="btn btn-primary">Add Emulator</button>
+                            <button type="submit" class="btn btn-primary">{{ add_form.submit.label.text }}</button>
                         </div>
                     </form>
                 </div>

@@ -1,0 +1,14 @@
+<form id="add-emulator-form" method="POST" action="{{ url_for('emulators.add_emulator') }}">
+    {{ add_form.hidden_tag() }}
+    <div class="mb-3">
+        {{ add_form.file.label(class="form-label") }}
+        {{ add_form.file(class="form-control", id="json-file", accept=".json") }}
+    </div>
+    <div class="mb-3">
+        {{ add_form.json_text.label(class="form-label") }}
+        {{ add_form.json_text(class="form-control", id="json-text", rows="5") }}
+    </div>
+    <div class="d-grid">
+        <button type="submit" class="btn btn-primary">{{ add_form.submit.label.text }}</button>
+    </div>
+</form>

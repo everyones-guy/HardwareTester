@@ -2,7 +2,8 @@ from flask import Blueprint, jsonify, request, render_template
 from flask_login import login_required, current_user
 from HardwareTester.services.emulator_service import EmulatorService
 from HardwareTester.utils.custom_logger import CustomLogger
-from flask_wtf.csrf import generate_csrf
+from HardwareTester.utils.token_utils import get_token
+from HardwareTester.forms import StartEmulationForm, AddEmulatorForm
 
 import json
 
@@ -15,13 +16,31 @@ emulator_bp = Blueprint("emulators", __name__, url_prefix="/emulators")
 # Instantiate EmulatorService
 emulator_service = EmulatorService()
 
-@emulator_bp.route("/", methods=["GET"])
+@emulator_bp.route("/", methods=["GET", "POST"])
 @login_required
 def emulator_dashboard():
     """Render the emulator dashboard."""
     try:
-        csrf_token = generate_csrf()
-        return render_template("emulator.html", csrf_token=csrf_token)
+        form = StartEmulationForm()
+        add_form = AddEmulatorForm()
+
+        # Fetch blueprints using the EmulatorService
+        blueprint_response = emulator_service.fetch_blueprints()
+
+        if blueprint_response["success"]:
+            blueprints = blueprint_response["blueprints"]
+            # Populate blueprint choices dynamically
+            form.blueprint.choices = [(bp["name"], bp["name"]) for bp in blueprints]
+        else:
+            blueprints = []
+            logger.warning("Failed to fetch blueprints for dashboard display.")
+
+        return render_template(
+            "emulator.html",
+            form=form,
+            add_form=add_form,
+            blueprints=blueprints
+        )
     except Exception as e:
         logger.error(f"Error rendering emulator dashboard: {e}")
         return jsonify({"success": False, "error": "Failed to render the emulator dashboard."}), 500
@@ -55,25 +74,34 @@ def load_blueprint_endpoint():
         return jsonify({"success": False, "error": "Failed to load blueprint."}), 500
 
 
-@emulator_bp.route("/start", methods=["POST"])
+@emulator_bp.route("/start", methods=["GET", "POST"])
 @login_required
 def start_emulation_endpoint():
     """Start a machine emulation."""
-    try:
-        data = request.json or {}
-        machine_name = data.get("machine_name")
-        blueprint = data.get("blueprint")
-        stress_test = data.get("stress_test", False)
+    form = StartEmulationForm()
 
-        if not machine_name or not blueprint:
-            logger.warning("Machine name or blueprint is missing.")
-            return jsonify({"success": False, "error": "Machine name and blueprint are required."}), 400
+    # Populate the blueprint choices dynamically
+    blueprints = emulator_service.fetch_blueprints()
+    form.blueprint.choices = [(bp['id'], bp['name']) for bp in blueprints]
 
-        response = emulator_service.start_emulation(machine_name, blueprint, stress_test)
-        return jsonify(response)
-    except Exception as e:
-        logger.error(f"Error starting emulation: {e}")
-        return jsonify({"success": False, "error": "Failed to start emulation."}), 500
+    if form.validate_on_submit():
+        machine_name = form.machine_name.data
+        blueprint = form.blueprint.data
+        stress_test = form.stress_test.data
+
+        try:
+            # Start the emulation process
+            response = emulator_service.start_emulation(machine_name, blueprint, stress_test)
+            if response["success"]:
+                return jsonify({"success": True, "message": "Emulation started successfully!"})
+            else:
+                return jsonify({"success": False, "error": response["message"]}), 400
+        except Exception as e:
+            logger.error(f"Error starting emulation: {e}")
+            return jsonify({"success": False, "error": "Failed to start emulation."}), 500
+
+    # Render the form if GET request or validation fails
+    return render_template("start_emulation.html", form=form)
 
 
 @emulator_bp.route("/stop", methods=["POST"])
@@ -142,37 +170,49 @@ def compare_machines():
         return jsonify({"success": False, "error": "Failed to compare machines."}), 500
 
 
-@emulator_bp.route("/add", methods=["POST"])
+@emulator_bp.route("/add", methods=["GET", "POST"])
 @login_required
 def add_emulator():
     """Add a new emulator by creating a blueprint."""
-    try:
-        data = request.json or {}
+    add_form = AddEmulatorForm()
 
-        if not data:
-            logger.warning("No data provided for adding emulator.")
-            return jsonify({"success": False, "message": "No data provided."}), 400
+    if add_form.validate_on_submit():
+        try:
+            file = add_form.file.data
+            json_text = add_form.json_text.data
 
-        required_fields = ["name", "description", "configuration"]
-        for field in required_fields:
-            if field not in data:
-                logger.warning(f"Missing field: {field}")
-                return jsonify({"success": False, "message": f"Missing field: {field}"}), 400
+            # Ensure at least one source is provided
+            if not file and not json_text:
+                logger.warning("No file or JSON text provided.")
+                return jsonify({"success": False, "message": "Either a file or JSON text must be provided."}), 400
 
-        response = emulator_service.add_blueprint(
-            name=data["name"],
-            description=data["description"],
-            configuration=data["configuration"]
-        )
+            # Process uploaded file if available
+            configuration = None
+            if file:
+                configuration = file.read().decode("utf-8")
+            else:
+                configuration = json_text
 
-        if response["success"]:
-            return jsonify({"success": True, "message": response["message"]}), 201
-        else:
-            logger.error(f"Failed to add emulator: {response['message']}")
-            return jsonify({"success": False, "message": response["message"]}), 400
-    except Exception as e:
-        logger.error(f"Error adding emulator: {e}")
-        return jsonify({"success": False, "message": "Failed to add emulator."}), 500
+            # Add blueprint to the service
+            response = emulator_service.add_blueprint(
+                name=add_form.name.data,
+                description=add_form.description.data,
+                configuration=configuration,
+            )
+
+            if response["success"]:
+                logger.info(f"Successfully added emulator: {response['message']}")
+                return jsonify({"success": True, "message": response["message"]}), 201
+            else:
+                logger.error(f"Failed to add emulator: {response['message']}")
+                return jsonify({"success": False, "message": response["message"]}), 400
+
+        except Exception as e:
+            logger.error(f"Error adding emulator: {e}")
+            return jsonify({"success": False, "message": "Failed to add emulator."}), 500
+
+    # Render the form if GET request or validation fails
+    return render_template("add_emulator.html", add_form=add_form)
 
 
 @emulator_bp.route("/upload", methods=["POST"])
@@ -189,3 +229,19 @@ def upload():
     except Exception as e:
         logger.error(f"Error handling file upload: {e}")
         return jsonify({"error": str(e)}), 500
+
+@emulator_bp.route("/preview/<string:blueprint_name>", methods=["GET"])
+@login_required
+def preview_blueprint(blueprint_name):
+    """Generate a preview for a blueprint."""
+    try:
+        # Replace with the actual logic to generate a preview
+        blueprint = emulator_service.load_blueprint(blueprint_name)
+        if not blueprint["success"]:
+            return jsonify({"success": False, "message": blueprint["message"]}), 404
+
+        # Assuming `preview_url` is a field in your blueprint model or logic
+        return jsonify({"success": True, "preview_url": blueprint["blueprint"].get("preview_url", "")})
+    except Exception as e:
+        logger.error(f"Error generating preview for blueprint '{blueprint_name}': {e}")
+        return jsonify({"success": False, "error": "Failed to generate blueprint preview."}), 500

@@ -1,0 +1,32 @@
+<form method="POST" action="{{ url_for('emulators.start_emulation_endpoint') }}">
+    {{ form.hidden_tag() }}
+
+    <!-- Machine Name Field -->
+    <div class="form-group">
+        <label for="machine-name">{{ form.machine_name.label }}</label>
+        {{ form.machine_name(class="form-control", id="machine-name") }}
+        {% for error in form.machine_name.errors %}
+        <small class="text-danger">{{ error }}</small>
+        {% endfor %}
+    </div>
+
+    <!-- Blueprint Dropdown -->
+    <div class="form-group">
+        <label for="blueprint">{{ form.blueprint.label }}</label>
+        {{ form.blueprint(class="form-control", id="blueprint") }}
+        {% for error in form.blueprint.errors %}
+        <small class="text-danger">{{ error }}</small>
+        {% endfor %}
+    </div>
+
+    <!-- Stress Test Checkbox -->
+    <div class="form-check">
+        {{ form.stress_test(class="form-check-input", id="stress-test") }}
+        <label class="form-check-label" for="stress-test">{{ form.stress_test.label }}</label>
+    </div>
+
+    <!-- Submit Button -->
+    <div class="form-group">
+        <button type="submit" class="btn btn-primary">{{ form.submit.label.text }}</button>
+    </div>
+</form>

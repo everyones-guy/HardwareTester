@@ -1,5 +1,10 @@
 import json
+from typing import Dict, Any, Union
+from werkzeug.utils import secure_filename
+from sqlalchemy.exc import SQLAlchemyError
+import os
 from datetime import datetime
+
 from HardwareTester.extensions import db
 from HardwareTester.utils.custom_logger import CustomLogger
 from HardwareTester.services.mqtt_client import MQTTClient
@@ -7,31 +12,25 @@ from HardwareTester.models.device_models import Emulation, Blueprint  # Replace 
 from HardwareTester.models.upload_files import UploadedFile
 from HardwareTester.services.peripherals_service import PeripheralsService
 from HardwareTester.services.serial_service import SerialService
-from typing import Dict, Any, Union
-from werkzeug.utils import secure_filename
-from sqlalchemy.exc import SQLAlchemyError
-import os
+
 
 # Initialize logger
 logger = CustomLogger.get_logger("emulator_service")
 
 class EmulatorService:
     # Emulator state
+    emulator_state = {
+        "running": False,
+        "config": {"default_machine_name": "Machine1", "stress_test_mode": False},
+        "active_emulations": [],
+        "logs": [],
+    }
+
     def __init__(self):
         self.mqtt_client = MQTTClient(broker="localhost")
         self.serial_service = SerialService()
         self.peripherals_service = PeripheralsService()
-        self.emulator_state = {
-            "running": False,
-            "config": {
-                "default_machine_name": "Machine1",
-                "stress_test_mode": False,
-            },
-            "active_emulations": [],
-            "logs": [],
-        }
 
-    @staticmethod
     def initialize_state(self):
         """Load the emulator state from the database."""
         try:
@@ -50,19 +49,24 @@ class EmulatorService:
         except Exception as e:
             logger.error(f"Error initializing emulator state: {e}")
 
-    @staticmethod
     def fetch_blueprints(self) -> Dict[str, Union[bool, Any]]:
         """Fetch available blueprints."""
         try:
             blueprints = Blueprint.query.all()
-            blueprint_list = [{"name": b.name, "description": b.description, "created_at": b.created_at} for b in blueprints]
+            blueprint_list = [
+                {
+                    "name": b.name,
+                    "description": b.description,
+                    "created_at": b.created_at.isoformat(),
+                }
+                for b in blueprints
+            ]
             logger.info("Fetching blueprints.")
             return {"success": True, "blueprints": blueprint_list}
         except Exception as e:
             logger.error(f"Error fetching blueprints: {e}")
             return {"success": False, "error": "Failed to fetch blueprints."}
 
-    @staticmethod
     def start_emulation(self, machine_name: str, blueprint: str, stress_test: bool = False) -> Dict[str, Union[bool, str]]:
         """Start a new emulation."""
         try:
@@ -79,12 +83,14 @@ class EmulatorService:
             db.session.commit()
 
             # Update in-memory state
-            self.emulator_state["active_emulations"].append({
-                "machine_name": machine_name,
-                "blueprint": blueprint,
-                "stress_test": stress_test,
-                "start_time": emulation.start_time.isoformat(),
-            })
+            self.emulator_state["active_emulations"].append(
+                {
+                    "machine_name": machine_name,
+                    "blueprint": blueprint,
+                    "stress_test": stress_test,
+                    "start_time": emulation.start_time.isoformat(),
+                }
+            )
             self.emulator_state["running"] = True
 
             self._log_action(f"Started emulation for {machine_name} using blueprint '{blueprint}'")
@@ -94,7 +100,6 @@ class EmulatorService:
             db.session.rollback()
             return {"success": False, "error": "Failed to start emulation."}
 
-    @staticmethod
     def stop_emulation(self, machine_name: str) -> Dict[str, Union[bool, str]]:
         """Stop an active emulation."""
         try:
@@ -118,48 +123,37 @@ class EmulatorService:
             db.session.rollback()
             return {"success": False, "error": "Failed to stop emulation."}
 
-    @staticmethod
-    def list_active_emulations() -> Dict[str, Union[bool, Any]]:
+    def list_active_emulations(self) -> Dict[str, Union[bool, Any]]:
         """List all active emulations."""
         try:
             logger.info("Fetching list of active emulations.")
-            return {"success": True, "emulations": EmulatorService.emulator_state["active_emulations"]}
+            return {"success": True, "emulations": self.emulator_state["active_emulations"]}
         except Exception as e:
             logger.error(f"Error fetching active emulations: {e}")
             return {"success": False, "error": "Failed to fetch active emulations."}
-    
-    @staticmethod
-    def get_emulator_logs() -> Dict[str, Union[bool, Any]]:
+
+    def get_emulator_logs(self) -> Dict[str, Union[bool, Any]]:
         """Retrieve logs from the emulator."""
         try:
             logger.info("Fetching emulator logs.")
-            return {"success": True, "logs": EmulatorService.emulator_state["logs"]}
+            return {"success": True, "logs": self.emulator_state["logs"]}
         except Exception as e:
             logger.error(f"Error fetching emulator logs: {e}")
             return {"success": False, "error": "Failed to fetch emulator logs."}
 
-    @staticmethod
-    def _log_action(message: str):
-        """Log an action to the emulator logs."""
-        EmulatorService.emulator_state["logs"].append(f"[{datetime.now()}] {message}")
-        logger.info(message)
-
-    @staticmethod
-    def load_blueprint(blueprint_name: str) -> Dict[str, Union[bool, Any]]:
+    def load_blueprint(self, blueprint_name: str) -> Dict[str, Union[bool, Any]]:
         """Load a specific blueprint by name."""
         try:
-            # Query the Blueprint model for the blueprint with the given name
             blueprint = Blueprint.query.filter_by(name=blueprint_name).first()
             if not blueprint:
                 logger.warning(f"Blueprint '{blueprint_name}' not found.")
                 return {"success": False, "message": f"Blueprint '{blueprint_name}' not found."}
 
-            # Return blueprint details
             blueprint_details = {
                 "name": blueprint.name,
                 "description": blueprint.description,
                 "created_at": blueprint.created_at.isoformat(),
-                "configuration": blueprint.configuration,  #  'Configuration' is a field in the Blueprint model. Just look at the device models or the service
+                "configuration": blueprint.configuration,
             }
             logger.info(f"Loaded blueprint '{blueprint_name}'.")
             return {"success": True, "blueprint": blueprint_details}
@@ -167,33 +161,21 @@ class EmulatorService:
             logger.error(f"Error loading blueprint '{blueprint_name}': {e}")
             return {"success": False, "error": "Failed to load blueprint."}
 
-
-    @staticmethod
-    def add_blueprint(self, name: str, description: str, configuration: dict) -> Dict[str, Union[bool, str]]:
-        """
-        Add a new blueprint to the database.
-        :param name: The name of the blueprint.
-        :param description: A description of the blueprint.
-        :param configuration: Configuration data as a dictionary.
-        :return: A dictionary indicating success or failure with a message.
-        """
+    def add_blueprint(self, name: str, description: str, configuration: Dict) -> Dict[str, Union[bool, str]]:
+        """Add a new blueprint to the database."""
         try:
-            logger.info(f"Attempting to add blueprint: {name}")
-        
-            # Check if blueprint with the same name already exists
-            self.existing_blueprint = Blueprint.query.filter_by(name=name).first()
-            if self.existing_blueprint:
+            existing_blueprint = Blueprint.query.filter_by(name=name).first()
+            if existing_blueprint:
                 logger.warning(f"Blueprint '{name}' already exists.")
                 return {"success": False, "message": f"Blueprint with name '{name}' already exists."}
-        
-            # Create and add the new blueprint
-            self.new_blueprint = Blueprint(
+
+            new_blueprint = Blueprint(
                 name=name,
                 description=description,
-                configuration=configuration,  # Ensure this is valid JSON
-                created_at=datetime.utcnow()
+                configuration=configuration,
+                created_at=datetime.utcnow(),
             )
-            db.session.add(self.new_blueprint)
+            db.session.add(new_blueprint)
             db.session.commit()
 
             logger.info(f"Blueprint '{name}' added successfully.")
@@ -201,26 +183,27 @@ class EmulatorService:
         except Exception as e:
             logger.error(f"Error adding blueprint '{name}': {e}")
             db.session.rollback()
-            return {"success": False, "message": f"Failed to add blueprint '{name}': {str(e)}"}
+            return {"success": False, "error": f"Failed to add blueprint: {e}"}
 
-
-    @staticmethod
-    def handle_file_upload(self, file):
-        filename = secure_filename(file.filename)
-        save_path = os.path.join('uploads/blueprints', filename)
-        file.save(save_path)
-
-        new_file = UploadedFile(filename=filename, path=save_path)
-        db.session.add(new_file)
-
+    def handle_file_upload(self, file) -> Dict[str, Union[str, int]]:
+        """Handle file upload for blueprints."""
         try:
+            filename = secure_filename(file.filename)
+            save_path = os.path.join("uploads/blueprints", filename)
+            file.save(save_path)
+
+            new_file = UploadedFile(filename=filename, path=save_path)
+            db.session.add(new_file)
             db.session.commit()
-            return {'id': new_file.id, 'filename': filename}
+
+            logger.info(f"File '{filename}' uploaded successfully.")
+            return {"id": new_file.id, "filename": filename}
         except SQLAlchemyError as e:
+            logger.error(f"Database error while uploading file: {e}")
             db.session.rollback()
-            raise ValueError(f"Database error: {e}")
+            return {"success": False, "error": "Failed to upload file."}
         
-    @staticmethod
+
     def fetch_commands_from_firmware(self, blueprint_name: str) -> list:
         """
         Fetch all commands for the given blueprint directly from the firmware.
@@ -242,7 +225,6 @@ class EmulatorService:
             logger.error(f"Error fetching commands for {blueprint_name}: {e}")
             return []
 
-    @staticmethod
     def fetch_commands_via_mqtt(self, topic: str, broker: str = "localhost", port: int = 1883) -> list:
         """Fetch command listing via MQTT by subscribing to a specific topic."""
         commands = []
@@ -273,3 +255,8 @@ class EmulatorService:
             logger.error(f"Error fetching commands via MQTT: {e}")
 
         return commands
+ 
+    def _log_action(message: str):
+        """Log an action to the emulator logs."""
+        EmulatorService.emulator_state["logs"].append(f"[{datetime.now()}] {message}")
+        logger.info(message)

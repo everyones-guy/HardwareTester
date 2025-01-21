@@ -1,9 +1,10 @@
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, render_template, request, g
 from HardwareTester.config import config
 from HardwareTester.extensions import db, socketio, migrate, csrf, login_manager, ma, bcrypt
 from HardwareTester.views import register_blueprints
 from HardwareTester.models.user_models import User
 from HardwareTester.utils.custom_logger import CustomLogger
+from HardwareTester.utils.token_utils import get_token
 from datetime import datetime
 from cli import register_commands
 
@@ -33,9 +34,21 @@ def create_app(config_name="default"):
     register_error_handlers(app)
 
 
+    #@app.context_processor
+    #def inject_now():
+    #    return {"now": datetime.utcnow()}
+    
     @app.context_processor
-    def inject_now():
-        return {"now": datetime.utcnow()}
+    def inject_context():
+        """
+        Inject variables available globally to templates.
+        """
+        user_id = getattr(g, "user", None).id if hasattr(g, "user") and g.user else None
+        csrf_token = get_token(user_id) if user_id else None  # Retrieve or create the CSRF token
+        return {
+            "now": datetime.utcnow(),
+            "csrf_token": csrf_token
+        }
 
     logger.info("App initialized successfully.")
 

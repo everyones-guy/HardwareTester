@@ -1,7 +1,4 @@
 $(document).ready(function () {
-    // Retrieve CSRF token from meta tag
-    const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
-
     // Utility function for API calls
     function apiCall(endpoint, method, data, onSuccess, onError) {
         const isPostMethod = method.toUpperCase() === "POST";
@@ -11,16 +8,16 @@ $(document).ready(function () {
             type: method,
             contentType: isPostMethod ? "application/json" : false,
             headers: {
-                "X-CSRFToken": $("[name=csrf_token]").val(), // Use CSRF token from the hidden input field
+                "X-CSRFToken": $("[name=csrf_token]").val(), // CSRF token from hidden input
             },
-            data: isPostMethod ? JSON.stringify(data) : null, // Only stringify data for POST requests
-            processData: false, // Prevent jQuery from processing data for non-POST requests
+            data: isPostMethod ? JSON.stringify(data) : null, // Only stringify data for POST
+            processData: false, // Prevent processing for non-POST
             success: function (response) {
                 if (onSuccess) onSuccess(response);
             },
             error: function (xhr) {
                 const errorMessage =
-                    xhr.responseJSON?.message || "An error occurred while communicating with the server.";
+                    xhr.responseJSON?.error || "An error occurred while communicating with the server.";
                 console.error(`API Error (${method} ${endpoint}):`, errorMessage);
 
                 if (onError) {
@@ -32,7 +29,6 @@ $(document).ready(function () {
         });
     }
 
-
     // Fetch and display available blueprints
     function fetchBlueprints() {
         console.log("Fetching blueprints...");
@@ -43,7 +39,7 @@ $(document).ready(function () {
             blueprintList.empty();
             blueprintSelect.empty().append('<option value="">Select Blueprint</option>');
 
-            if (data.success && data.blueprints.length > 0) {
+            if (data.success && data.blueprints?.length > 0) {
                 data.blueprints.forEach((blueprint) => {
                     blueprintList.append(`
                         <li class="list-group-item d-flex justify-content-between align-items-center">
@@ -66,7 +62,7 @@ $(document).ready(function () {
             const emulationsList = $("#active-emulations-list");
             emulationsList.empty();
 
-            if (data.success && data.emulations.length > 0) {
+            if (data.success && data.emulations?.length > 0) {
                 data.emulations.forEach((emulation) => {
                     emulationsList.append(`
                         <li class="list-group-item d-flex justify-content-between align-items-center">
@@ -88,7 +84,7 @@ $(document).ready(function () {
             const logsContainer = $("#emulator-logs");
             logsContainer.empty();
 
-            if (data.success && data.logs.length > 0) {
+            if (data.success && data.logs?.length > 0) {
                 data.logs.forEach((log) => {
                     logsContainer.append(
                         `<div class="${log.type === "error" ? "text-danger" : "text-secondary"}">${log.message}</div>`
@@ -142,23 +138,29 @@ $(document).ready(function () {
 
     // Preview a blueprint
     $(document).on("click", ".preview-blueprint", function () {
-        const blueprintName = $(this).data("blueprint");
-        console.log(`Previewing blueprint: ${blueprintName}`);
-        const previewModal = new bootstrap.Modal(document.getElementById("preview-modal"));
-        const modalBody = $("#preview-modal-body");
+    const blueprintName = $(this).data("blueprint");
+    console.log(`Previewing blueprint: ${blueprintName}`);
+    const previewModal = new bootstrap.Modal(document.getElementById("preview-modal"));
+    const modalBody = $("#preview-modal-body");
 
-        modalBody.html(`<p>Loading preview for ${blueprintName}...</p>`);
+    modalBody.html(`<p>Loading preview for ${blueprintName}...</p>`);
 
-        apiCall(`/emulators/preview/${blueprintName}`, "GET", null, (data) => {
-            if (data.success) {
-                modalBody.html(`<img src="${data.preview_url}" alt="${blueprintName}" class="img-fluid">`);
-            } else {
-                modalBody.html(`<p class="text-danger">Failed to load preview for ${blueprintName}.</p>`);
-            }
-        });
-
-        previewModal.show();
+    apiCall(`/emulators/preview/${blueprintName}`, "GET", null, (data) => {
+        if (data.success) {
+            modalBody.html(`<img src="${data.preview_url}" alt="${blueprintName}" class="img-fluid">`);
+        } else {
+            modalBody.html(`<p class="text-danger">Failed to load preview for ${blueprintName}.</p>`);
+        }
     });
+
+    previewModal.show();
+
+    // Focus on a valid element inside the modal
+    setTimeout(() => {
+        modalBody.find("img").focus();
+    }, 500);
+});
+
 
     // Add Emulator Form Submission
     $("#add-emulator-form").on("submit", async function (event) {
@@ -182,6 +184,11 @@ $(document).ready(function () {
             return;
         }
 
+        if (!jsonData.name || !jsonData.description || !jsonData.configuration) {
+            alert("JSON must include 'name', 'description', and 'configuration' fields.");
+            return;
+        }
+
         apiCall(
             "/emulators/add",
             "POST",
@@ -190,11 +197,12 @@ $(document).ready(function () {
                 alert(response.message);
                 if (response.success) {
                     $("#add-emulator-modal").modal("hide");
-                    fetchActiveEmulations();
+                    fetchBlueprints();
                 }
             }
         );
     });
+
 
     // Initial data load
     fetchBlueprints();

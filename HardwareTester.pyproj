@@ -134,6 +134,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="HardwareTester\utils\test_utils.py" />
+    <Compile Include="HardwareTester\utils\token_utils.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="HardwareTester\views\auth_views.py">
       <SubType>Code</SubType>
     </Compile>
@@ -294,6 +297,7 @@
     <Content Include="HardwareTester\static\scripts\setup.js" />
     <Content Include="HardwareTester\static\js\valve_management.js" />
     <Content Include="HardwareTester\static\scripts\jquery-3.7.1.min.js" />
+    <Content Include="HardwareTester\templates\add_emulator.html" />
     <Content Include="HardwareTester\templates\analytics.html" />
     <Content Include="HardwareTester\templates\api_overview.html" />
     <Content Include="HardwareTester\templates\auth\base.html" />
@@ -318,6 +322,7 @@
     <Content Include="HardwareTester\templates\privacy.html" />
     <Content Include="HardwareTester\templates\reports.html" />
     <Content Include="HardwareTester\templates\settings.html" />
+    <Content Include="HardwareTester\templates\start_emulation.html" />
     <Content Include="HardwareTester\templates\system_status.html" />
     <Content Include="HardwareTester\templates\terms.html" />
     <Content Include="HardwareTester\templates\test_plan_management.html" />

@@ -6,7 +6,9 @@ from wtforms import (
     SubmitField, 
     TextAreaField, 
     PasswordField, 
-    SelectField
+    SelectField, 
+    BooleanField,
+    HiddenField
 )
 from wtforms.validators import (
     DataRequired, 
@@ -214,12 +216,6 @@ class RegisterForm(FlaskForm):
     )
     submit = SubmitField("Register")
 
-# User Login Form
-class LoginForm(FlaskForm):
-    email = StringField("Email", validators=[DataRequired(), Email()])
-    password = PasswordField("Password", validators=[DataRequired()])
-    submit = SubmitField("Login")
-
 # Upload Spec Sheet Form
 class UploadSpecSheetForm(FlaskForm):
     spec_sheet = FileField(
@@ -279,3 +275,30 @@ class SettingsForm(FlaskForm):
     value = StringField("Setting Value", validators=[DataRequired()])
     submit = SubmitField("Save Setting")
     
+class StartEmulationForm(FlaskForm):
+    csrf_token = HiddenField()  # CSRF Token Field
+    machine_name = StringField(
+        "Machine Name", 
+        validators=[DataRequired(message="Machine name is required.")],
+        render_kw={"class": "form-control", "placeholder": "Enter machine name"}
+    )
+    blueprint = SelectField(
+        "Blueprint", 
+        validators=[DataRequired(message="Please select a blueprint.")],
+        render_kw={"class": "form-control"}
+    )
+    stress_test = BooleanField(
+        "Stress Test", 
+        render_kw={"class": "form-check-input"}
+    )
+    submit = SubmitField(
+        "Start Emulation", 
+        render_kw={"class": "btn btn-primary"}
+    )
+
+class AddEmulatorForm(FlaskForm):
+    name = StringField("Name", validators=[DataRequired()])
+    description = StringField("Description", validators=[DataRequired()])
+    file = FileField("Upload JSON File", validators=[Optional()])
+    json_text = TextAreaField("Paste JSON Text", validators=[Optional()])
+    submit = SubmitField("Add Emulator")
