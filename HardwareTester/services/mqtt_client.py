@@ -38,7 +38,6 @@ class MQTTClient:
         self.response = None  # Store the response
         self.response_event = threading.Event()  # Synchronize request/response
 
-    @staticmethod
     def _setup_client(self):
         """Set up MQTT client with optional authentication and TLS."""
         if self.username and self.password:
@@ -49,8 +48,7 @@ class MQTTClient:
         self.client.on_connect = self.on_connect
         self.client.on_message = self.on_message
         self.client.on_disconnect = self.on_disconnect
-    
-    @staticmethod
+
     def on_connect(self, client, userdata, flags, rc):
         """Handle MQTT connection events."""
         if rc == 0:
@@ -58,21 +56,21 @@ class MQTTClient:
         else:
             logger.error(f"Failed to connect to MQTT broker with code {rc}")
 
-    @staticmethod
     def on_disconnect(self, client, userdata, rc):
         """Handle MQTT disconnection events."""
         if rc != 0:
             logger.warning(f"Unexpected disconnection (code {rc}). Attempting to reconnect...")
             self.connect()
-    
-    @staticmethod
+
     def on_message(self, client, userdata, msg):
         """Handle received MQTT messages."""
         logger.info(f"Received message on {msg.topic}: {msg.payload.decode()}")
-        self.response = json.loads(msg.payload.decode())
-        self.response_event.set()  # Signal that a response was received
+        try:
+            self.response = json.loads(msg.payload.decode())
+            self.response_event.set()  # Signal that a response was received
+        except json.JSONDecodeError as e:
+            logger.error(f"Error decoding MQTT message payload: {e}")
 
-    @staticmethod
     def connect(self):
         """Connect to the MQTT broker and start the client loop."""
         try:
@@ -82,14 +80,12 @@ class MQTTClient:
         except Exception as e:
             logger.error(f"Failed to connect to MQTT broker: {e}")
 
-    @staticmethod
     def disconnect(self):
         """Disconnect from the MQTT broker."""
         self.client.loop_stop()
         self.client.disconnect()
         logger.info("MQTT connection closed.")
 
-    @staticmethod
     def publish(self, topic: str, payload: str, retries=DEFAULT_RETRY_COUNT):
         """Publish a message to a specific topic with retry mechanism."""
         for attempt in range(retries):
@@ -102,7 +98,6 @@ class MQTTClient:
                 time.sleep(DEFAULT_RETRY_DELAY)
         logger.error(f"All attempts to publish to {topic} failed.")
 
-    @staticmethod
     def subscribe(self, topic: str, retries=DEFAULT_RETRY_COUNT):
         """Subscribe to a specific topic with retry mechanism."""
         for attempt in range(retries):
@@ -115,8 +110,6 @@ class MQTTClient:
                 time.sleep(DEFAULT_RETRY_DELAY)
         logger.error(f"All attempts to subscribe to {topic} failed.")
 
-    
-    @staticmethod    
     def upload_firmware(self, device_id: str, firmware_path: str):
         """Upload firmware to a device in chunks."""
         topic = f"device/{device_id}/firmware/update"
@@ -146,24 +139,21 @@ class MQTTClient:
         except Exception as e:
             logger.error(f"Failed to upload firmware: {e}")
             return {"success": False, "error": str(e)}
-    
-    @staticmethod
+
     def validate_firmware(self, device_id: str):
         """Send a firmware validation request to a device."""
         topic = f"device/{device_id}/firmware/validate"
         payload = {"action": "validate"}
         self.publish(topic, json.dumps(payload))
         logger.info(f"Firmware validation request sent for device {device_id}.")
-    
-    @staticmethod
+
     def check_firmware_status(self, device_id: str):
         """Subscribe to firmware update status topic."""
         topic = f"device/{device_id}/firmware/status"
         self.subscribe(topic)
         logger.info(f"Subscribed to firmware status updates for {device_id}.")
 
-    @staticmethod
-    def validate_firmware_file(firmware_path: str) -> str:
+    def validate_firmware_file(self, firmware_path: str) -> str:
         """
         Validate firmware file for supported formats and return its hash.
 

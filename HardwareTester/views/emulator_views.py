@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify, request, render_template
+from flask_login import login_required, current_user
 from HardwareTester.services.emulator_service import EmulatorService
 from HardwareTester.utils.custom_logger import CustomLogger
 from flask_wtf.csrf import generate_csrf
@@ -11,23 +12,27 @@ logger = CustomLogger.get_logger("emulator_views")
 # Define the Blueprint
 emulator_bp = Blueprint("emulators", __name__, url_prefix="/emulators")
 
+# Instantiate EmulatorService
+emulator_service = EmulatorService()
 
 @emulator_bp.route("/", methods=["GET"])
+@login_required
 def emulator_dashboard():
     """Render the emulator dashboard."""
     try:
         csrf_token = generate_csrf()
-        return render_template("emulator.html")
+        return render_template("emulator.html", csrf_token=csrf_token)
     except Exception as e:
         logger.error(f"Error rendering emulator dashboard: {e}")
         return jsonify({"success": False, "error": "Failed to render the emulator dashboard."}), 500
 
 
 @emulator_bp.route("/blueprints", methods=["GET"])
+@login_required
 def get_blueprints():
     """Fetch available blueprints."""
     try:
-        response = EmulatorService.fetch_blueprints()
+        response = emulator_service.fetch_blueprints()
         return jsonify(response)
     except Exception as e:
         logger.error(f"Error fetching blueprints: {e}")
@@ -35,6 +40,7 @@ def get_blueprints():
 
 
 @emulator_bp.route("/load-blueprint", methods=["POST"])
+@login_required
 def load_blueprint_endpoint():
     """Load a new blueprint."""
     blueprint_file = request.files.get("blueprint_file")
@@ -42,7 +48,7 @@ def load_blueprint_endpoint():
         logger.warning("No blueprint file provided.")
         return jsonify({"success": False, "error": "No blueprint file provided."}), 400
     try:
-        response = EmulatorService.load_blueprint(blueprint_file)
+        response = emulator_service.load_blueprint(blueprint_file)
         return jsonify(response)
     except Exception as e:
         logger.error(f"Error loading blueprint: {e}")
@@ -50,6 +56,7 @@ def load_blueprint_endpoint():
 
 
 @emulator_bp.route("/start", methods=["POST"])
+@login_required
 def start_emulation_endpoint():
     """Start a machine emulation."""
     try:
@@ -62,7 +69,7 @@ def start_emulation_endpoint():
             logger.warning("Machine name or blueprint is missing.")
             return jsonify({"success": False, "error": "Machine name and blueprint are required."}), 400
 
-        response = EmulatorService.start_emulation(machine_name, blueprint, stress_test)
+        response = emulator_service.start_emulation(machine_name, blueprint, stress_test)
         return jsonify(response)
     except Exception as e:
         logger.error(f"Error starting emulation: {e}")
@@ -70,6 +77,7 @@ def start_emulation_endpoint():
 
 
 @emulator_bp.route("/stop", methods=["POST"])
+@login_required
 def stop_emulation_endpoint():
     """Stop a machine emulation."""
     try:
@@ -80,7 +88,7 @@ def stop_emulation_endpoint():
             logger.warning("Machine name is missing.")
             return jsonify({"success": False, "error": "Machine name is required."}), 400
 
-        response = EmulatorService.stop_emulation(machine_name)
+        response = emulator_service.stop_emulation(machine_name)
         return jsonify(response)
     except Exception as e:
         logger.error(f"Error stopping emulation: {e}")
@@ -88,10 +96,11 @@ def stop_emulation_endpoint():
 
 
 @emulator_bp.route("/list", methods=["GET"])
+@login_required
 def list_emulations():
     """List all active emulations."""
     try:
-        response = EmulatorService.list_active_emulations()
+        response = emulator_service.list_active_emulations()
         return jsonify(response)
     except Exception as e:
         logger.error(f"Error listing active emulations: {e}")
@@ -99,10 +108,11 @@ def list_emulations():
 
 
 @emulator_bp.route("/logs", methods=["GET"])
+@login_required
 def get_logs():
     """Fetch emulator logs."""
     try:
-        response = EmulatorService.get_emulator_logs()
+        response = emulator_service.get_emulator_logs()
         return jsonify(response)
     except Exception as e:
         logger.error(f"Error fetching emulator logs: {e}")
@@ -110,6 +120,7 @@ def get_logs():
 
 
 @emulator_bp.route("/compare", methods=["POST"])
+@login_required
 def compare_machines():
     """Compare the operation of machines running different firmware."""
     try:
@@ -121,10 +132,10 @@ def compare_machines():
             return jsonify({"success": False, "error": "At least two machines are required for comparison."}), 400
 
         comparisons = [
-            {"machine_id": machine_id, "status": EmulatorService.get_machine_status(machine_id)}
+            {"machine_id": machine_id, "status": emulator_service.get_machine_status(machine_id)}
             for machine_id in machine_ids
         ]
-        differences = EmulatorService.compare_operations(comparisons)
+        differences = emulator_service.compare_operations(comparisons)
         return jsonify({"success": True, "differences": differences})
     except Exception as e:
         logger.error(f"Error comparing machines: {e}")
@@ -132,6 +143,7 @@ def compare_machines():
 
 
 @emulator_bp.route("/add", methods=["POST"])
+@login_required
 def add_emulator():
     """Add a new emulator by creating a blueprint."""
     try:
@@ -147,7 +159,7 @@ def add_emulator():
                 logger.warning(f"Missing field: {field}")
                 return jsonify({"success": False, "message": f"Missing field: {field}"}), 400
 
-        response = EmulatorService.add_blueprint(
+        response = emulator_service.add_blueprint(
             name=data["name"],
             description=data["description"],
             configuration=data["configuration"]
@@ -164,6 +176,7 @@ def add_emulator():
 
 
 @emulator_bp.route("/upload", methods=["POST"])
+@login_required
 def upload():
     """Handle file uploads for emulators."""
     try:
@@ -171,7 +184,7 @@ def upload():
         if not file or file.filename == "":
             return jsonify({"error": "No file provided or selected."}), 400
 
-        result = EmulatorService.handle_file_upload(file)
+        result = emulator_service.handle_file_upload(file)
         return jsonify({"message": "File uploaded successfully", "result": result}), 200
     except Exception as e:
         logger.error(f"Error handling file upload: {e}")

@@ -47,9 +47,6 @@
                     <div class="tab-pane fade" id="emulators" role="tabpanel">
                         <h3>Emulators</h3>
                         <div id="emulator-container">
-                            <button class="btn btn-primary mb-3" id="add-emulator" data-bs-toggle="modal" data-bs-target="#add-emulator-modal">
-                                Add Emulator
-                            </button>
                             <ul class="list-group" id="emulator-list">
                                 <li class="list-group-item">No emulators available.</li>
                             </ul>
@@ -174,33 +171,8 @@
         </div>
     </div>
 </div>
-<!-- Add Emulator Modal -->
-<div class="modal fade" id="add-emulator-modal" tabindex="-1" aria-labelledby="addEmulatorModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="addEmulatorModalLabel">Add Emulator</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="add-emulator-form">
-                    <div class="mb-3">
-                        <label for="json-file" class="form-label">Upload JSON File</label>
-                        <input type="file" id="json-file" class="form-control" accept=".json">
-                    </div>
-                    <div class="mb-3">
-                        <label for="json-text" class="form-label">Paste JSON Text</label>
-                        <textarea id="json-text" class="form-control" rows="5" placeholder='{"key": "value"}'></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100">Add Emulator</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
 {% endblock %}
 
 {% block additional_scripts %}
 <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
-<script src="{{ url_for('static', filename='js/emulator.js') }}"></script>
 {% endblock %}

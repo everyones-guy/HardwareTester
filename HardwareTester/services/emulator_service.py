@@ -2,8 +2,11 @@ import json
 from datetime import datetime
 from HardwareTester.extensions import db
 from HardwareTester.utils.custom_logger import CustomLogger
+from HardwareTester.services.mqtt_client import MQTTClient
 from HardwareTester.models.device_models import Emulation, Blueprint  # Replace with actual path to your model
 from HardwareTester.models.upload_files import UploadedFile
+from HardwareTester.services.peripherals_service import PeripheralsService
+from HardwareTester.services.serial_service import SerialService
 from typing import Dict, Any, Union
 from werkzeug.utils import secure_filename
 from sqlalchemy.exc import SQLAlchemyError
@@ -14,22 +17,26 @@ logger = CustomLogger.get_logger("emulator_service")
 
 class EmulatorService:
     # Emulator state
-    emulator_state = {
-        "running": False,
-        "config": {
-            "default_machine_name": "Machine1",
-            "stress_test_mode": False,
-        },
-        "active_emulations": [],
-        "logs": [],
-    }
+    def __init__(self):
+        self.mqtt_client = MQTTClient(broker="localhost")
+        self.serial_service = SerialService()
+        self.peripherals_service = PeripheralsService()
+        self.emulator_state = {
+            "running": False,
+            "config": {
+                "default_machine_name": "Machine1",
+                "stress_test_mode": False,
+            },
+            "active_emulations": [],
+            "logs": [],
+        }
 
     @staticmethod
-    def initialize_state():
+    def initialize_state(self):
         """Load the emulator state from the database."""
         try:
             emulations = Emulation.query.all()
-            EmulatorService.emulator_state["active_emulations"] = [
+            self.emulator_state["active_emulations"] = [
                 {
                     "machine_name": e.machine_name,
                     "blueprint": e.blueprint,
@@ -38,13 +45,13 @@ class EmulatorService:
                 }
                 for e in emulations
             ]
-            EmulatorService.emulator_state["running"] = bool(emulations)
+            self.emulator_state["running"] = bool(emulations)
             logger.info("Emulator state initialized from the database.")
         except Exception as e:
             logger.error(f"Error initializing emulator state: {e}")
 
     @staticmethod
-    def fetch_blueprints() -> Dict[str, Union[bool, Any]]:
+    def fetch_blueprints(self) -> Dict[str, Union[bool, Any]]:
         """Fetch available blueprints."""
         try:
             blueprints = Blueprint.query.all()
@@ -56,10 +63,10 @@ class EmulatorService:
             return {"success": False, "error": "Failed to fetch blueprints."}
 
     @staticmethod
-    def start_emulation(machine_name: str, blueprint: str, stress_test: bool = False) -> Dict[str, Union[bool, str]]:
+    def start_emulation(self, machine_name: str, blueprint: str, stress_test: bool = False) -> Dict[str, Union[bool, str]]:
         """Start a new emulation."""
         try:
-            if EmulatorService.emulator_state["running"]:
+            if self.emulator_state["running"]:
                 return {"success": False, "message": "An emulation is already running."}
 
             emulation = Emulation(
@@ -72,16 +79,15 @@ class EmulatorService:
             db.session.commit()
 
             # Update in-memory state
-            EmulatorService.emulator_state["active_emulations"].append({
+            self.emulator_state["active_emulations"].append({
                 "machine_name": machine_name,
                 "blueprint": blueprint,
                 "stress_test": stress_test,
                 "start_time": emulation.start_time.isoformat(),
             })
-            EmulatorService.emulator_state["running"] = True
+            self.emulator_state["running"] = True
 
-            log_message = f"Started emulation for {machine_name} using blueprint '{blueprint}'"
-            EmulatorService._log_action(log_message)
+            self._log_action(f"Started emulation for {machine_name} using blueprint '{blueprint}'")
             return {"success": True, "message": f"Emulation started for machine '{machine_name}'."}
         except Exception as e:
             logger.error(f"Error starting emulation: {e}")
@@ -89,7 +95,7 @@ class EmulatorService:
             return {"success": False, "error": "Failed to start emulation."}
 
     @staticmethod
-    def stop_emulation(machine_name: str) -> Dict[str, Union[bool, str]]:
+    def stop_emulation(self, machine_name: str) -> Dict[str, Union[bool, str]]:
         """Stop an active emulation."""
         try:
             emulation = Emulation.query.filter_by(machine_name=machine_name).first()
@@ -100,13 +106,12 @@ class EmulatorService:
             db.session.commit()
 
             # Update in-memory state
-            EmulatorService.emulator_state["active_emulations"] = [
-                e for e in EmulatorService.emulator_state["active_emulations"] if e["machine_name"] != machine_name
+            self.emulator_state["active_emulations"] = [
+                e for e in self.emulator_state["active_emulations"] if e["machine_name"] != machine_name
             ]
-            EmulatorService.emulator_state["running"] = len(EmulatorService.emulator_state["active_emulations"]) > 0
+            self.emulator_state["running"] = len(self.emulator_state["active_emulations"]) > 0
 
-            log_message = f"Stopped emulation for machine '{machine_name}'"
-            EmulatorService._log_action(log_message)
+            self._log_action(f"Stopped emulation for machine '{machine_name}'")
             return {"success": True, "message": f"Emulation stopped for machine '{machine_name}'."}
         except Exception as e:
             logger.error(f"Error stopping emulation: {e}")
@@ -154,7 +159,7 @@ class EmulatorService:
                 "name": blueprint.name,
                 "description": blueprint.description,
                 "created_at": blueprint.created_at.isoformat(),
-                "configuration": blueprint.configuration,  # Assuming 'configuration' is a field in your Blueprint model
+                "configuration": blueprint.configuration,  #  'Configuration' is a field in the Blueprint model. Just look at the device models or the service
             }
             logger.info(f"Loaded blueprint '{blueprint_name}'.")
             return {"success": True, "blueprint": blueprint_details}
@@ -164,7 +169,7 @@ class EmulatorService:
 
 
     @staticmethod
-    def add_blueprint(name: str, description: str, configuration: dict) -> Dict[str, Union[bool, str]]:
+    def add_blueprint(self, name: str, description: str, configuration: dict) -> Dict[str, Union[bool, str]]:
         """
         Add a new blueprint to the database.
         :param name: The name of the blueprint.
@@ -176,19 +181,19 @@ class EmulatorService:
             logger.info(f"Attempting to add blueprint: {name}")
         
             # Check if blueprint with the same name already exists
-            existing_blueprint = Blueprint.query.filter_by(name=name).first()
-            if existing_blueprint:
+            self.existing_blueprint = Blueprint.query.filter_by(name=name).first()
+            if self.existing_blueprint:
                 logger.warning(f"Blueprint '{name}' already exists.")
                 return {"success": False, "message": f"Blueprint with name '{name}' already exists."}
         
             # Create and add the new blueprint
-            new_blueprint = Blueprint(
+            self.new_blueprint = Blueprint(
                 name=name,
                 description=description,
                 configuration=configuration,  # Ensure this is valid JSON
                 created_at=datetime.utcnow()
             )
-            db.session.add(new_blueprint)
+            db.session.add(self.new_blueprint)
             db.session.commit()
 
             logger.info(f"Blueprint '{name}' added successfully.")
@@ -200,9 +205,9 @@ class EmulatorService:
 
 
     @staticmethod
-    def handle_file_upload(file):
+    def handle_file_upload(self, file):
         filename = secure_filename(file.filename)
-        save_path = os.path.join('/path/to/upload', filename)
+        save_path = os.path.join('uploads/blueprints', filename)
         file.save(save_path)
 
         new_file = UploadedFile(filename=filename, path=save_path)
@@ -216,7 +221,7 @@ class EmulatorService:
             raise ValueError(f"Database error: {e}")
         
     @staticmethod
-    def fetch_commands_from_firmware(blueprint_name: str) -> list:
+    def fetch_commands_from_firmware(self, blueprint_name: str) -> list:
         """
         Fetch all commands for the given blueprint directly from the firmware.
         :param blueprint_name: Name of the blueprint or hardware configuration.
@@ -224,7 +229,7 @@ class EmulatorService:
         """
         try:
             # Example API interaction to retrieve commands
-            response = EmulatorService.api_call(
+            response = self.api_call(
                 f"/firmware/{blueprint_name}/full-command-list",
                 method="GET"
             )
@@ -238,14 +243,8 @@ class EmulatorService:
             return []
 
     @staticmethod
-    def fetch_commands_via_mqtt(topic: str, broker: str = "localhost", port: int = 1883) -> list:
-        """
-        Fetch command listing via MQTT by subscribing to a specific topic.
-        :param topic: MQTT topic to listen to for command listing.
-        :param broker: Address of the MQTT broker.
-        :param port: Port of the MQTT broker.
-        :return: List of commands received from MQTT.
-        """
+    def fetch_commands_via_mqtt(self, topic: str, broker: str = "localhost", port: int = 1883) -> list:
+        """Fetch command listing via MQTT by subscribing to a specific topic."""
         commands = []
 
         def on_message(client, userdata, msg):
@@ -255,21 +254,20 @@ class EmulatorService:
             except Exception as e:
                 logger.error(f"Error parsing MQTT message: {e}")
 
-        client = mqtt.Client()
-        client.on_message = on_message
+        self.mqtt_client.client.on_message = on_message
 
         try:
             logger.info(f"Connecting to MQTT broker at {broker}:{port}...")
-            client.connect(broker, port, 60)
-            client.subscribe(topic)
-            client.loop_start()
+            self.mqtt_client.client.connect(broker, port, 60)
+            self.mqtt_client.client.subscribe(topic)
+            self.mqtt_client.client.loop_start()
 
             # Wait for the message (adjust timeout as needed)
             import time
             time.sleep(5)
 
-            client.loop_stop()
-            client.disconnect()
+            self.mqtt_client.client.loop_stop()
+            self.mqtt_client.client.disconnect()
             logger.info("MQTT command listing fetched successfully.")
         except Exception as e:
             logger.error(f"Error fetching commands via MQTT: {e}")

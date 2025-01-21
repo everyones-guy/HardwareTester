@@ -124,3 +124,10 @@ def test_{command['name'].lower()}_input(self):
     self.assertEqual(response.status_code, 200)
     self.assertIn("{command['expected_output']}", response.json()["message"])
 """
+
+###
+#
+#flask generate-tests --method=firmware --output-dir="tests/firmware"
+#
+#flask generate-tests --method=mqtt --mqtt-topic="hardware/commands" --output-dir="tests/mqtt"
+###    
