@@ -169,7 +169,9 @@ class EmulatorService:
             return {"success": False, "error": "Failed to load blueprint."}
 
     def add_blueprint(self, name: str, description: str, configuration: Dict) -> Dict[str, Union[bool, str]]:
-        """Add a new blueprint to the database."""
+        """
+        Add a blueprint by file or JSON text. One of them must be provided.
+        """
         try:
             existing_blueprint = Blueprint.query.filter_by(name=name).first()
             if existing_blueprint:
@@ -274,3 +276,106 @@ class EmulatorService:
         controller = Controller.query.filter_by(available=True).first()  # Example logic
         return controller.id if controller else None
 
+    def load_blueprint_from_file(self, file_path: str) -> Dict[str, Union[bool, str]]:
+        """
+        Load a blueprint from a JSON file and store it in the database.
+        :param file_path: Path to the JSON file containing the blueprint configuration.
+        :return: A dictionary indicating success or failure with a message.
+        """
+        try:
+            # Read the JSON file
+            with open(file_path, "r") as file:
+                blueprint_data = json.load(file)
+
+            # Validate required fields in JSON
+            required_fields = ["controller", "controller.name", "controller.connection", "controller.peripherals"]
+            for field in required_fields:
+                keys = field.split(".")
+                data = blueprint_data
+                for key in keys:
+                    if key not in data:
+                        raise ValueError(f"Missing required field in JSON: {field}")
+                    data = data[key]
+
+            # Extract controller details
+            controller_name = blueprint_data["controller"]["name"]
+            controller_connection = blueprint_data["controller"]["connection"]
+            peripherals = blueprint_data["controller"]["peripherals"]
+
+            # Add or update the controller in the database
+            controller = Controller.query.filter_by(name=controller_name).first()
+            if not controller:
+                controller = Controller(
+                    name=controller_name,
+                    device_metadata=controller_connection,
+                )
+                db.session.add(controller)
+                db.session.flush()  # Ensure `controller.id` is available
+
+            # Handle peripherals
+            self._add_or_update_peripherals(controller.id, peripherals)
+
+            # Add blueprint to the database
+            blueprint_name = blueprint_data["controller"]["name"]
+            blueprint_description = f"Blueprint for {controller_name}"
+            blueprint_configuration = blueprint_data
+
+            existing_blueprint = Blueprint.query.filter_by(name=blueprint_name).first()
+            if existing_blueprint:
+                return {"success": False, "message": f"Blueprint '{blueprint_name}' already exists."}
+
+            new_blueprint = Blueprint(
+                name=blueprint_name,
+                description=blueprint_description,
+                configuration=blueprint_configuration,
+            )
+            db.session.add(new_blueprint)
+
+            # Commit all changes to the database
+            db.session.commit()
+
+            logger.info(f"Blueprint '{blueprint_name}' loaded successfully.")
+            return {"success": True, "message": f"Blueprint '{blueprint_name}' loaded successfully."}
+
+        except FileNotFoundError:
+            logger.error(f"File not found: {file_path}")
+            return {"success": False, "message": f"File not found: {file_path}"}
+        except json.JSONDecodeError as e:
+            logger.error(f"Invalid JSON format in file: {file_path}")
+            return {"success": False, "message": f"Invalid JSON format: {str(e)}"}
+        except Exception as e:
+            logger.error(f"Error loading blueprint from file: {e}")
+            db.session.rollback()
+            return {"success": False, "message": f"Error loading blueprint: {str(e)}"}
+
+    def _add_or_update_peripherals(self, controller_id: int, peripherals: list):
+        """
+        Add or update peripherals for a given controller.
+        :param controller_id: ID of the associated controller.
+        :param peripherals: List of peripheral dictionaries.
+        """
+        for peripheral_data in peripherals:
+            try:
+                # Validate required peripheral fields
+                if "name" not in peripheral_data or "type" not in peripheral_data:
+                    raise ValueError("Peripheral must have 'name' and 'type' fields.")
+
+                # Check if the peripheral already exists
+                peripheral = Peripheral.query.filter_by(name=peripheral_data["name"], device_id=controller_id).first()
+                if peripheral:
+                    # Update existing peripheral properties
+                    peripheral.type = peripheral_data["type"]
+                    peripheral.properties = peripheral_data
+                else:
+                    # Add a new peripheral
+                    peripheral = Peripheral(
+                        name=peripheral_data["name"],
+                        type=peripheral_data["type"],
+                        properties=peripheral_data,
+                        device_id=controller_id,
+                    )
+                    db.session.add(peripheral)
+
+            except Exception as e:
+                logger.error(f"Error adding/updating peripheral '{peripheral_data.get('name', 'Unknown')}': {e}")
+                raise

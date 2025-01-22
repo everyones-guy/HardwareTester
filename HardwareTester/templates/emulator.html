@@ -64,6 +64,10 @@
                 </div>
                 <button type="submit" class="btn btn-success w-100">{{ form.submit.label.text }}</button>
             </form>
+            <p>Start a new emulation with detailed configuration options.</p>
+            <a href="{{ url_for('emulators.start_emulation_page') }}" class="btn btn-success w-100 mt-3">
+                Go to Start Emulation Page
+            </a>
         </div>
     </div>
 
@@ -100,6 +104,14 @@
                     <form id="add-emulator-form" method="POST" action="{{ url_for('emulators.add_emulator') }}">
                         {{ add_form.hidden_tag() }}
                         <div class="mb-3">
+                            <label for="emulator-name" class="form-label">Emulator Name</label>
+                            <input type="text" id="emulator-name" name="name" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="emulator-description" class="form-label">Description</label>
+                            <input type="text" id="emulator-description" name="description" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
                             {{ add_form.file.label(class="form-label") }}
                             {{ add_form.file(class="form-control", id="json-file", accept=".json") }}
                         </div>
@@ -111,6 +123,7 @@
                             <button type="submit" class="btn btn-primary">{{ add_form.submit.label.text }}</button>
                         </div>
                     </form>
+
                 </div>
             </div>
         </div>

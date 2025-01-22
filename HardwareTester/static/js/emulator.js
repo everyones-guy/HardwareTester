@@ -41,12 +41,28 @@ $(document).ready(function () {
 
             if (data.success && data.blueprints?.length > 0) {
                 data.blueprints.forEach((blueprint) => {
+                    const controller = blueprint.controller || {};
+                    const peripherals = controller.peripherals || [];
+
+                    // Add to the blueprint list
                     blueprintList.append(`
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            ${blueprint.name}
-                            <button class="btn btn-sm btn-info preview-blueprint" data-blueprint="${blueprint.name}">Preview</button>
-                        </li>
-                    `);
+                            <li class="list-group-item">
+                                <strong>${blueprint.name}</strong> - ${blueprint.description}
+                                <button class="btn btn-sm btn-info preview-blueprint mt-2" data-blueprint="${blueprint.name}">Preview</button>
+                                <ul class="mt-2">
+                                    <li><strong>Controller:</strong> ${controller.name || "Not Specified"}</li>
+                                    <li><strong>Connection Type:</strong> ${controller.connection?.type || "Not Specified"}</li>
+                                    <li><strong>Peripherals:</strong></li>
+                                    <ul>
+                                        ${peripherals.map(peripheral => `
+                                            <li>${peripheral.name} (${peripheral.type})</li>
+                                        `).join("")}
+                                    </ul>
+                                </ul>
+                            </li>
+                        `);
+
+                    // Add to the blueprint dropdown
                     blueprintSelect.append(`<option value="${blueprint.name}">${blueprint.name}</option>`);
                 });
             } else {
@@ -136,72 +152,149 @@ $(document).ready(function () {
         );
     });
 
+    // Before showing the modal
+    const previewModal = new bootstrap.Modal(document.getElementById("preview-modal"));
+
     // Preview a blueprint
     $(document).on("click", ".preview-blueprint", function () {
-    const blueprintName = $(this).data("blueprint");
-    console.log(`Previewing blueprint: ${blueprintName}`);
-    const previewModal = new bootstrap.Modal(document.getElementById("preview-modal"));
-    const modalBody = $("#preview-modal-body");
+        const blueprintName = $(this).data("blueprint");
+        console.log(`Previewing blueprint: ${blueprintName}`);
 
-    modalBody.html(`<p>Loading preview for ${blueprintName}...</p>`);
+        const modalBody = $("#preview-modal-body");
 
-    apiCall(`/emulators/preview/${blueprintName}`, "GET", null, (data) => {
-        if (data.success) {
-            modalBody.html(`<img src="${data.preview_url}" alt="${blueprintName}" class="img-fluid">`);
-        } else {
-            modalBody.html(`<p class="text-danger">Failed to load preview for ${blueprintName}.</p>`);
-        }
+        modalBody.html(`<p>Loading preview for ${blueprintName}...</p>`);
+
+        apiCall(`/emulators/preview/${blueprintName}`, "GET", null, (data) => {
+            if (data.success) {
+                const blueprint = data.blueprint || {};
+                const controller = blueprint.controller || {};
+                const peripherals = controller.peripherals || [];
+
+                modalBody.html(`
+                    <h5>${blueprint.name}</h5>
+                    <p>${blueprint.description}</p>
+                    <h6>Controller:</h6>
+                    <ul>
+                        <li><strong>Name:</strong> ${controller.name || "N/A"}</li>
+                        <li><strong>Connection:</strong> ${JSON.stringify(controller.connection || {}, null, 2)}</li>
+                    </ul>
+                    <h6>Peripherals:</h6>
+                    <ul>
+                        ${peripherals.map(peripheral => `
+                            <li>
+                                <strong>${peripheral.name}</strong> (${peripheral.type})
+                                <ul>
+                                    <li><strong>Polling Frequency:</strong> ${peripheral.polling_frequency || "N/A"}</li>
+                                    <li><strong>Read Command:</strong> ${peripheral.read_command || "N/A"}</li>
+                                    <li><strong>Threshold:</strong> ${peripheral.threshold || "N/A"}</li>
+                                </ul>
+                            </li>
+                        `).join("")}
+                    </ul>
+                `);
+            } else {
+                modalBody.html(`<p class="text-danger">Failed to load preview for ${blueprintName}.</p>`);
+            }
+        });
+
+        previewModal.show();
     });
 
-    previewModal.show();
-
-    // Focus on a valid element inside the modal
-    setTimeout(() => {
-        modalBody.find("img").focus();
-    }, 500);
-});
+    // After the modal is hidden, ensure focus is removed
+    $("#preview-modal").on("hidden.bs.modal", function () {
+        $(this).find("*").blur(); // Remove focus from all elements inside the modal
+    });
 
 
     // Add Emulator Form Submission
     $("#add-emulator-form").on("submit", async function (event) {
         event.preventDefault();
         console.log("Adding emulator...");
+
         const fileInput = $("#json-file")[0]?.files[0];
         const textInput = $("#json-text").val().trim();
-        let jsonData;
+        const name = $("#emulator-name").val();
+        const description = $("#emulator-description").val();
+
+        let configuration;
 
         try {
+            // Parse JSON from file or text
             if (fileInput) {
                 const fileText = await fileInput.text();
-                jsonData = JSON.parse(fileText);
+                configuration = JSON.parse(fileText);
             } else if (textInput) {
-                jsonData = JSON.parse(textInput);
+                configuration = JSON.parse(textInput);
             } else {
-                throw new Error("No input provided.");
+                throw new Error("Please provide either a JSON file or text input.");
             }
-        } catch (error) {
-            alert("Invalid JSON. Please correct the input.");
-            return;
-        }
 
-        if (!jsonData.name || !jsonData.description || !jsonData.configuration) {
-            alert("JSON must include 'name', 'description', and 'configuration' fields.");
-            return;
-        }
+            // Validate top-level fields
+            if (!name) throw new Error("Name is required.");
+            if (!description) throw new Error("Description is required.");
+            if (!configuration) throw new Error("Configuration is required.");
 
-        apiCall(
-            "/emulators/add",
-            "POST",
-            jsonData,
-            (response) => {
-                alert(response.message);
-                if (response.success) {
-                    $("#add-emulator-modal").modal("hide");
-                    fetchBlueprints();
+            // Validate JSON structure
+            validateConfiguration(configuration);
+
+            // Send the request to the API
+            apiCall(
+                "/emulators/add",
+                "POST",
+                { name, description, configuration },
+                (response) => {
+                    alert(response.message);
+                    if (response.success) {
+                        $("#add-emulator-modal").modal("hide");
+                        fetchBlueprints();
+                    }
                 }
-            }
-        );
+            );
+        } catch (error) {
+            console.error(error);
+            alert("Error: " + error.message);
+        }
     });
+
+    /**
+     * Validate the configuration JSON structure.
+     * @param {Object} configuration - Parsed JSON object.
+     * @throws Will throw an error if validation fails.
+     */
+    function validateConfiguration(configuration) {
+        if (!configuration.id) throw new Error("Configuration must include an 'id' field.");
+        if (!configuration.name) throw new Error("Configuration must include a 'name' field.");
+        if (!configuration.type) throw new Error("Configuration must include a 'type' field.");
+        if (!configuration.description) throw new Error("Configuration must include a 'description' field.");
+        if (!configuration.protocol) throw new Error("Configuration must include a 'protocol' field.");
+
+        if (!configuration.controller) throw new Error("Configuration must include a 'controller' field.");
+        if (!configuration.controller.name) throw new Error("Controller must include a 'name' field.");
+        if (!configuration.controller.connection) throw new Error("Controller must include a 'connection' field.");
+        if (!configuration.controller.peripherals || !Array.isArray(configuration.controller.peripherals)) {
+            throw new Error("Controller must include a 'peripherals' array.");
+        }
+
+        // Validate each peripheral
+        configuration.controller.peripherals.forEach((peripheral, index) => {
+            if (!peripheral.name) throw new Error(`Peripheral ${index + 1} must include a 'name' field.`);
+            if (!peripheral.type) throw new Error(`Peripheral ${index + 1} must include a 'type' field.`);
+            if (!peripheral.connection) throw new Error(`Peripheral ${index + 1} must include a 'connection' field.`);
+        });
+
+        if (!configuration.commands || !Array.isArray(configuration.commands)) {
+            throw new Error("Configuration must include a 'commands' array.");
+        }
+
+        // Validate each command
+        configuration.commands.forEach((command, index) => {
+            if (!command.name) throw new Error(`Command ${index + 1} must include a 'name' field.`);
+            if (!command.description) throw new Error(`Command ${index + 1} must include a 'description' field.`);
+        });
+
+        console.log("Configuration validation passed.");
+    }
+
 
 
     // Initial data load

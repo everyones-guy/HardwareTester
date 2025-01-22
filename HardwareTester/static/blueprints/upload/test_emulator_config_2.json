@@ -1,0 +1,110 @@
+{
+    "id": "emulator-001",
+    "name": "Temperature Sensor Emulator",
+    "type": "sensor",
+    "description": "Simulates a temperature sensor device for testing.",
+    "protocol": "MQTT",
+    "connection": {
+        "host": "127.0.0.1",
+        "port": 1883,
+        "topic": "hardware/emulator/temperature",
+        "auth": {
+            "username": "emulator_user",
+            "password": "secure_password"
+        }
+    },
+    "controller": {
+        "name": "Hero Controller",
+        "connection": {
+            "type": "usb_to_serial",
+            "port": "/dev/ttyUSB0",
+            "baud_rate": 9600,
+            "data_format": "8N1"
+        },
+        "peripherals": [
+            {
+                "type": "temperature_sensor",
+                "name": "Temperature Sensor 1",
+                "connection": {
+                    "port": "/dev/ttyS1",
+                    "protocol": "ascii"
+                },
+                "polling_frequency": 1,
+                "read_command": "TEMP1?",
+                "threshold": 75
+            },
+            {
+                "type": "temperature_sensor",
+                "name": "Temperature Sensor 2",
+                "connection": {
+                    "port": "/dev/ttyS2",
+                    "protocol": "ascii"
+                },
+                "polling_frequency": 1,
+                "read_command": "TEMP2?",
+                "threshold": 75
+            },
+            {
+                "type": "ph_sensor",
+                "name": "pH Sensor",
+                "connection": {
+                    "port": "/dev/ttyS3",
+                    "protocol": "ascii"
+                },
+                "polling_frequency": 5,
+                "read_command": "PH?"
+            },
+            {
+                "type": "alarm",
+                "name": "Alarm",
+                "trigger_condition": "temperature >= 75",
+                "activation_command": "ALARM ON",
+                "deactivation_command": "ALARM OFF"
+            }
+        ]
+    },
+    "settings": {
+        "frequency": "1Hz",
+        "data_range": {
+            "max": 50,
+            "min": -20
+        },
+        "units": "Celsius"
+    },
+    "commands": [
+        {
+            "name": "START",
+            "description": "Starts the emulator",
+            "response": "Emulator started"
+        },
+        {
+            "name": "STOP",
+            "description": "Stops the emulator",
+            "response": "Emulator stopped"
+        },
+        {
+            "name": "SET_FREQUENCY",
+            "description": "Adjust the data generation frequency",
+            "parameters": [
+                {
+                    "name": "frequency",
+                    "type": "string",
+                    "allowed_values": ["1Hz", "2Hz", "5Hz"]
+                }
+            ],
+            "response": "Frequency updated"
+        }
+    ],
+    "data_format": {
+        "type": "JSON",
+        "schema": {
+            "timestamp": "ISO_8601",
+            "temperature": "float"
+        }
+    },
+    "default_state": {
+        "status": "idle",
+        "frequency": "1Hz",
+        "last_generated_value": null
+    }
+}

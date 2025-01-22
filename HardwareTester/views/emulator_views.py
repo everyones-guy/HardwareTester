@@ -66,9 +66,24 @@ def load_blueprint_endpoint():
     if not blueprint_file:
         logger.warning("No blueprint file provided.")
         return jsonify({"success": False, "error": "No blueprint file provided."}), 400
+
     try:
-        response = emulator_service.load_blueprint(blueprint_file)
+        # Save the file temporarily and load it into the database
+        temp_path = f"/tmp/{secure_filename(blueprint_file.filename)}"
+        blueprint_file.save(temp_path)
+
+        response = emulator_service.load_blueprint_from_file(temp_path)
+
+        # Remove the temporary file after processing
+        os.remove(temp_path)
+
         return jsonify(response)
+    except json.JSONDecodeError:
+        logger.error("Invalid JSON format in blueprint file.")
+        return jsonify({"success": False, "message": "Invalid JSON format."}), 400
+    except FileNotFoundError:
+        logger.error("Temporary file not found during processing.")
+        return jsonify({"success": False, "message": "Temporary file handling error."}), 500
     except Exception as e:
         logger.error(f"Error loading blueprint: {e}")
         return jsonify({"success": False, "error": "Failed to load blueprint."}), 500
@@ -192,16 +207,15 @@ def add_emulator():
                 logger.warning("No file or JSON text provided.")
                 return jsonify({"success": False, "message": "Either a file or JSON text must be provided."}), 400
 
-            # Process uploaded file if available
-            configuration = None
+            # Load configuration from file or JSON text
             if file:
-                configuration = file.read().decode("utf-8")
+                configuration = json.loads(file.read().decode("utf-8"))
             else:
-                configuration = json_text
+                configuration = json.loads(json_text)
 
-            # Add blueprint to the service
+            # Add blueprint using emulator_service
             response = emulator_service.add_blueprint(
-                name=add_form.name.data,
+                name=configuration.get("controller", {}).get("name", add_form.name.data),
                 description=add_form.description.data,
                 configuration=configuration,
             )
@@ -213,6 +227,9 @@ def add_emulator():
                 logger.error(f"Failed to add emulator: {response['message']}")
                 return jsonify({"success": False, "message": response["message"]}), 400
 
+        except json.JSONDecodeError:
+            logger.error("Invalid JSON format in file or text.")
+            return jsonify({"success": False, "message": "Invalid JSON format."}), 400
         except Exception as e:
             logger.error(f"Error adding emulator: {e}")
             return jsonify({"success": False, "message": "Failed to add emulator."}), 500
@@ -251,3 +268,36 @@ def preview_blueprint(blueprint_name):
     except Exception as e:
         logger.error(f"Error generating preview for blueprint '{blueprint_name}': {e}")
         return jsonify({"success": False, "error": "Failed to generate blueprint preview."}), 500
+    
+@emulator_bp.route("/start", methods=["GET", "POST"])
+@login_required
+def start_emulation_page():
+    """Render the standalone start emulation page."""
+    form = StartEmulationForm()
+
+    # Fetch blueprints and populate choices
+    blueprint_response = emulator_service.fetch_blueprints()
+    if blueprint_response["success"]:
+        blueprints = blueprint_response["blueprints"]
+        form.blueprint.choices = [(bp["name"], bp["name"]) for bp in blueprints]
+    else:
+        blueprints = []
+        logger.warning("Failed to fetch blueprints for the start emulation page.")
+
+    if form.validate_on_submit():
+        machine_name = form.machine_name.data
+        blueprint = form.blueprint.data
+        stress_test = form.stress_test.data
+
+        try:
+            response = emulator_service.start_emulation(machine_name, blueprint, stress_test)
+            if response["success"]:
+                return jsonify({"success": True, "message": response["message"]})
+            else:
+                return jsonify({"success": False, "error": response["message"]}), 400
+        except Exception as e:
+            logger.error(f"Error starting emulation: {e}")
+            return jsonify({"success": False, "error": "Failed to start emulation."}), 500
+
+    return render_template("start_emulation.html", form=form)
+
