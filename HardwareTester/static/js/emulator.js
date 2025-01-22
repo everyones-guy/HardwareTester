@@ -205,7 +205,6 @@ $(document).ready(function () {
         $(this).find("*").blur(); // Remove focus from all elements inside the modal
     });
 
-
     // Add Emulator Form Submission
     $("#add-emulator-form").on("submit", async function (event) {
         event.preventDefault();
@@ -230,9 +229,7 @@ $(document).ready(function () {
             }
 
             // Ensure the configuration has the necessary fields
-            if (!configuration.id) throw new Error("Configuration must include an 'id' field.");
-            if (!configuration.name) throw new Error("Configuration must include a 'name' field.");
-            if (!configuration.description) throw new Error("Configuration must include a 'description' field.");
+            validateConfiguration(configuration);
 
             // Override fields if provided in the form
             if (nameOverride) configuration.name = nameOverride;
@@ -257,7 +254,6 @@ $(document).ready(function () {
         }
     });
 
-
     /**
      * Validate the configuration JSON structure.
      * @param {Object} configuration - Parsed JSON object.
@@ -269,8 +265,6 @@ $(document).ready(function () {
         if (!configuration.type) throw new Error("Configuration must include a 'type' field.");
         if (!configuration.description) throw new Error("Configuration must include a 'description' field.");
         if (!configuration.protocol) throw new Error("Configuration must include a 'protocol' field.");
-        if (!configuration.controller) throw new Error("Configuration must include a 'controller' field.");
-
         if (!configuration.controller) throw new Error("Configuration must include a 'controller' field.");
         if (!configuration.controller.name) throw new Error("Controller must include a 'name' field.");
         if (!configuration.controller.connection) throw new Error("Controller must include a 'connection' field.");
@@ -297,8 +291,6 @@ $(document).ready(function () {
 
         console.log("Configuration validation passed.");
     }
-
-
 
     // Initial data load
     fetchBlueprints();

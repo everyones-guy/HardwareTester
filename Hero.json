@@ -2,7 +2,7 @@
   "name": "Temperature Sensor Emulator",
   "description": "Simulates a temperature sensor device for testing.",
   "configuration": {
-    "id": "emulator-001",
+    "id": "2",
     "name": "Temperature Sensor Emulator",
     "type": "sensor",
     "description": "Simulates a temperature sensor device for testing.",
