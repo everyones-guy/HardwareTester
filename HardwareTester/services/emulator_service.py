@@ -4,6 +4,7 @@ from werkzeug.utils import secure_filename
 from sqlalchemy.exc import SQLAlchemyError
 import os
 from datetime import datetime
+from threading import Lock
 
 from HardwareTester.extensions import db
 from HardwareTester.utils.custom_logger import CustomLogger
@@ -25,9 +26,11 @@ class EmulatorService:
         "active_emulations": [],
         "logs": [],
     }
+    
+    emulator_state_lock = Lock()
 
     def __init__(self):
-        self.mqtt_client = MQTTClient(broker="localhost")
+        self.mqtt_client = MQTTClient(broker=os.getenv("MQTT_BROKER", "localhost"))
         self.serial_service = SerialService()
         self.peripherals_service = PeripheralsService()
 
@@ -35,17 +38,18 @@ class EmulatorService:
         """Load the emulator state from the database."""
         try:
             emulations = Emulation.query.all()
-            self.emulator_state["active_emulations"] = [
-                {
-                    "machine_name": e.machine_name,
-                    "blueprint": e.blueprint,
-                    "stress_test": e.stress_test,
-                    "start_time": e.start_time.isoformat(),
-                }
-                for e in emulations
-            ]
-            self.emulator_state["running"] = bool(emulations)
-            logger.info("Emulator state initialized from the database.")
+            with self.emulator_state_lock:
+                self.emulator_state["active_emulations"] = [
+                    {
+                        "machine_name": e.machine_name,
+                        "blueprint": e.blueprint,
+                        "stress_test": e.stress_test,
+                        "start_time": e.start_time.isoformat(),
+                    }
+                    for e in emulations
+                ]
+                self.emulator_state["running"] = bool(emulations)
+            logger.info("Emulator state initialized.")
         except Exception as e:
             logger.error(f"Error initializing emulator state: {e}")
 
@@ -61,19 +65,22 @@ class EmulatorService:
                 }
                 for b in blueprints
             ]
-            logger.info("Fetching blueprints.")
+            logger.info("Blueprints fetched successfully.")
             return {"success": True, "blueprints": blueprint_list}
         except Exception as e:
             logger.error(f"Error fetching blueprints: {e}")
-            return {"success": False, "error": "Failed to fetch blueprints."}
+            return {"success": False, "error": "Failed to fetch blueprints due to database issues."}
+
 
     def start_emulation(self, machine_name: str, blueprint: str, stress_test: bool = False) -> Dict[str, Union[bool, str]]:
         """Start a new emulation."""
+        if not machine_name or not blueprint:
+            return {"success": False, "message": "Machine name and blueprint are required."}
+
         try:
             if self.emulator_state["running"]:
                 return {"success": False, "message": "An emulation is already running."}
 
-            # Set a valid controller ID (replace with your logic)
             controller_id = self.get_available_controller_id()
             if not controller_id:
                 return {"success": False, "message": "No available controller."}
@@ -88,18 +95,18 @@ class EmulatorService:
             db.session.add(emulation)
             db.session.commit()
 
-            # Update in-memory state
-            self.emulator_state["active_emulations"].append(
-                {
-                    "machine_name": machine_name,
-                    "blueprint": blueprint,
-                    "stress_test": stress_test,
-                    "start_time": emulation.start_time.isoformat(),
-                }
-            )
-            self.emulator_state["running"] = True
+            with self.emulator_state_lock:
+                self.emulator_state["active_emulations"].append(
+                    {
+                        "machine_name": machine_name,
+                        "blueprint": blueprint,
+                        "stress_test": stress_test,
+                        "start_time": emulation.start_time.isoformat(),
+                    }
+                )
+                self.emulator_state["running"] = True
 
-            self._log_action(f"Started emulation for {machine_name} using blueprint '{blueprint}'")
+            self._log_action(f"Started emulation for {machine_name} using blueprint '{blueprint}'.")
             return {"success": True, "message": f"Emulation started for machine '{machine_name}'."}
         except Exception as e:
             logger.error(f"Error starting emulation: {e}")
@@ -109,6 +116,9 @@ class EmulatorService:
 
     def stop_emulation(self, machine_name: str) -> Dict[str, Union[bool, str]]:
         """Stop an active emulation."""
+        if not machine_name:
+            return {"success": False, "message": "Machine name is required."}
+
         try:
             emulation = Emulation.query.filter_by(machine_name=machine_name).first()
             if not emulation:
@@ -117,13 +127,13 @@ class EmulatorService:
             db.session.delete(emulation)
             db.session.commit()
 
-            # Update in-memory state
-            self.emulator_state["active_emulations"] = [
-                e for e in self.emulator_state["active_emulations"] if e["machine_name"] != machine_name
-            ]
-            self.emulator_state["running"] = len(self.emulator_state["active_emulations"]) > 0
+            with self.emulator_state_lock:
+                self.emulator_state["active_emulations"] = [
+                    e for e in self.emulator_state["active_emulations"] if e["machine_name"] != machine_name
+                ]
+                self.emulator_state["running"] = len(self.emulator_state["active_emulations"]) > 0
 
-            self._log_action(f"Stopped emulation for machine '{machine_name}'")
+            self._log_action(f"Stopped emulation for machine '{machine_name}'.")
             return {"success": True, "message": f"Emulation stopped for machine '{machine_name}'."}
         except Exception as e:
             logger.error(f"Error stopping emulation: {e}")
@@ -265,9 +275,13 @@ class EmulatorService:
 
         return commands
  
-    def _log_action(message: str):
-        """Log an action to the emulator logs."""
-        EmulatorService.emulator_state["logs"].append(f"[{datetime.now()}] {message}")
+    def _log_action(self, message: str):
+        """Log an action with rotation to limit memory growth."""
+        timestamp = datetime.now().isoformat()
+        with self.emulator_state_lock:
+            self.emulator_state["logs"].append(f"[{timestamp}] {message}")
+            if len(self.emulator_state["logs"]) > 1000:
+                self.emulator_state["logs"] = self.emulator_state["logs"][-1000:]
         logger.info(message)
         
     def get_available_controller_id(self) -> Union[int, None]:
@@ -354,28 +368,25 @@ class EmulatorService:
         :param controller_id: ID of the associated controller.
         :param peripherals: List of peripheral dictionaries.
         """
-        for peripheral_data in peripherals:
-            try:
-                # Validate required peripheral fields
-                if "name" not in peripheral_data or "type" not in peripheral_data:
-                    raise ValueError("Peripheral must have 'name' and 'type' fields.")
+        try:
+            for peripheral in peripherals:
+                if "name" not in peripheral or "type" not in peripheral:
+                    raise ValueError("Peripheral must include 'name' and 'type'.")
 
-                # Check if the peripheral already exists
-                peripheral = Peripheral.query.filter_by(name=peripheral_data["name"], device_id=controller_id).first()
-                if peripheral:
-                    # Update existing peripheral properties
-                    peripheral.type = peripheral_data["type"]
-                    peripheral.properties = peripheral_data
+                existing_peripheral = Peripheral.query.filter_by(name=peripheral["name"], device_id=controller_id).first()
+                if existing_peripheral:
+                    existing_peripheral.type = peripheral["type"]
+                    existing_peripheral.properties = peripheral
                 else:
-                    # Add a new peripheral
-                    peripheral = Peripheral(
-                        name=peripheral_data["name"],
-                        type=peripheral_data["type"],
-                        properties=peripheral_data,
+                    new_peripheral = Peripheral(
+                        name=peripheral["name"],
+                        type=peripheral["type"],
+                        properties=peripheral,
                         device_id=controller_id,
                     )
-                    db.session.add(peripheral)
+                    db.session.add(new_peripheral)
+            db.session.commit()
 
-            except Exception as e:
-                logger.error(f"Error adding/updating peripheral '{peripheral_data.get('name', 'Unknown')}': {e}")
-                raise
+        except Exception as e:
+            logger.error(f"Error adding/updating peripherals: {e}")
+            raise
