@@ -52,7 +52,8 @@ class Emulation(db.Model):
     status = db.Column(String(50), default="running", nullable=False)
     logs = db.Column(Text, nullable=True)
     machine_name = db.Column(String(255), nullable=False, index=True)
-    blueprint = db.Column(String(255), nullable=False)
+    blueprint_id = db.Column(Integer, ForeignKey("blueprints.id"), nullable=False)
+    blueprint = db.relationship("Blueprint", backref=db.backref("emulations", lazy="dynamic"))
     stress_test = db.Column(Boolean, default=False)
     start_time = db.Column(DateTime, default=datetime.utcnow)
 
