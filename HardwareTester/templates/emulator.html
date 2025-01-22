@@ -105,25 +105,38 @@
                         {{ add_form.hidden_tag() }}
                         <div class="mb-3">
                             <label for="emulator-name" class="form-label">Emulator Name</label>
-                            <input type="text" id="emulator-name" name="name" class="form-control" required>
+                            <input type="text"
+                                   id="emulator-name"
+                                   name="name"
+                                   class="form-control"
+                                   placeholder="Override JSON Name"
+                                   data-bs-toggle="tooltip"
+                                   title="This field will override the 'name' field in your JSON configuration if provided.">
                         </div>
                         <div class="mb-3">
                             <label for="emulator-description" class="form-label">Description</label>
-                            <input type="text" id="emulator-description" name="description" class="form-control" required>
+                            <input type="text"
+                                   id="emulator-description"
+                                   name="description"
+                                   class="form-control"
+                                   placeholder="Override JSON Description"
+                                   data-bs-toggle="tooltip"
+                                   title="This field will override the 'description' field in your JSON configuration if provided.">
                         </div>
                         <div class="mb-3">
-                            {{ add_form.file.label(class="form-label") }}
+                            <label for="json-file" class="form-label">Upload JSON File</label>
                             {{ add_form.file(class="form-control", id="json-file", accept=".json") }}
+                            <small class="form-text text-muted">You can upload a JSON file containing your emulator configuration here.</small>
                         </div>
                         <div class="mb-3">
-                            {{ add_form.json_text.label(class="form-label") }}
+                            <label for="json-text" class="form-label">Paste JSON Text</label>
                             {{ add_form.json_text(class="form-control", id="json-text", rows="5") }}
+                            <small class="form-text text-muted">Alternatively, paste the JSON configuration directly here.</small>
                         </div>
                         <div class="d-grid">
-                            <button type="submit" class="btn btn-primary">{{ add_form.submit.label.text }}</button>
+                            <button type="submit" class="btn btn-primary" data-bs-toggle="tooltip" title="Click to add the emulator.">{{ add_form.submit.label.text }}</button>
                         </div>
                     </form>
-
                 </div>
             </div>
         </div>

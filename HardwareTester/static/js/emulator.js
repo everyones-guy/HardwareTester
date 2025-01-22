@@ -213,35 +213,36 @@ $(document).ready(function () {
 
         const fileInput = $("#json-file")[0]?.files[0];
         const textInput = $("#json-text").val().trim();
-        const name = $("#emulator-name").val();
-        const description = $("#emulator-description").val();
+        const nameOverride = $("#emulator-name").val().trim();
+        const descriptionOverride = $("#emulator-description").val().trim();
 
         let configuration;
 
         try {
-            // Parse JSON from file or text
+            // Load the JSON configuration from the file or text input
             if (fileInput) {
                 const fileText = await fileInput.text();
                 configuration = JSON.parse(fileText);
             } else if (textInput) {
                 configuration = JSON.parse(textInput);
             } else {
-                throw new Error("Please provide either a JSON file or text input.");
+                throw new Error("No file or JSON text provided.");
             }
 
-            // Validate top-level fields
-            if (!name) throw new Error("Name is required.");
-            if (!description) throw new Error("Description is required.");
-            if (!configuration) throw new Error("Configuration is required.");
+            // Ensure the configuration has the necessary fields
+            if (!configuration.id) throw new Error("Configuration must include an 'id' field.");
+            if (!configuration.name) throw new Error("Configuration must include a 'name' field.");
+            if (!configuration.description) throw new Error("Configuration must include a 'description' field.");
 
-            // Validate JSON structure
-            validateConfiguration(configuration);
+            // Override fields if provided in the form
+            if (nameOverride) configuration.name = nameOverride;
+            if (descriptionOverride) configuration.description = descriptionOverride;
 
             // Send the request to the API
             apiCall(
                 "/emulators/add",
                 "POST",
-                { name, description, configuration },
+                { name: configuration.name, description: configuration.description, configuration },
                 (response) => {
                     alert(response.message);
                     if (response.success) {
@@ -256,6 +257,7 @@ $(document).ready(function () {
         }
     });
 
+
     /**
      * Validate the configuration JSON structure.
      * @param {Object} configuration - Parsed JSON object.
@@ -267,6 +269,7 @@ $(document).ready(function () {
         if (!configuration.type) throw new Error("Configuration must include a 'type' field.");
         if (!configuration.description) throw new Error("Configuration must include a 'description' field.");
         if (!configuration.protocol) throw new Error("Configuration must include a 'protocol' field.");
+        if (!configuration.controller) throw new Error("Configuration must include a 'controller' field.");
 
         if (!configuration.controller) throw new Error("Configuration must include a 'controller' field.");
         if (!configuration.controller.name) throw new Error("Controller must include a 'name' field.");
