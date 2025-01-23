@@ -1,29 +1,30 @@
 $(document).ready(function () {
     // Utility function for API calls
-    function apiCall(endpoint, method, data, onSuccess, onError) {
+    function apiCall(endpoint, method, data = {}, onSuccess, onError) {
         const isPostMethod = method.toUpperCase() === "POST";
+        const isGetMethod = method.toUpperCase() === "GET";
 
         $.ajax({
             url: endpoint,
             type: method,
-            contentType: isPostMethod ? "application/json" : false,
+            contentType: isGetMethod ? undefined : "application/json", // Content-Type for non-GET methods
             headers: {
-                "X-CSRFToken": $("[name=csrf_token]").val(), // CSRF token from hidden input
+                "X-CSRFToken": $("[name=csrf_token]").val(), // Include CSRF token
             },
-            data: isPostMethod ? JSON.stringify(data) : null, // Only stringify data for POST
-            processData: false, // Prevent processing for non-POST
+            data: isGetMethod ? undefined : JSON.stringify(data), // Only stringify for POST/PUT
+            processData: false, // Ensure no data processing by jQuery
             success: function (response) {
-                if (onSuccess) onSuccess(response);
+                if (onSuccess) {
+                    onSuccess(response); // Call the success callback
+                }
             },
             error: function (xhr) {
-                const errorMessage =
-                    xhr.responseJSON?.error || "An error occurred while communicating with the server.";
+                const errorMessage = xhr.responseJSON?.error || xhr.statusText || "An error occurred while communicating with the server.";
                 console.error(`API Error (${method} ${endpoint}):`, errorMessage);
-
                 if (onError) {
-                    onError(xhr);
+                    onError(xhr); // Call the error callback if provided
                 } else {
-                    alert(errorMessage);
+                    alert(errorMessage); // Fallback to alert for unhandled errors
                 }
             },
         });
@@ -299,7 +300,6 @@ $(document).ready(function () {
      * @throws Will throw an error if validation fails.
      */
     function validateConfiguration(configuration) {
-        if (!configuration.id) throw new Error("Configuration must include an 'id' field.");
         if (!configuration.name) throw new Error("Configuration must include a 'name' field.");
         if (!configuration.type) throw new Error("Configuration must include a 'type' field.");
         if (!configuration.description) throw new Error("Configuration must include a 'description' field.");

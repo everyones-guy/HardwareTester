@@ -1,5 +1,5 @@
-<form method="POST" action="{{ url_for('emulators.start_emulation_endpoint') }}">
-    {{ form.hidden_tag() }}
+<form method="post" action="{{ url_for('emulators.start_emulation_endpoint') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
 
     <!-- Machine Name Field -->
     <div class="form-group">

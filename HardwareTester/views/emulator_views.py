@@ -4,6 +4,7 @@ from HardwareTester.services.emulator_service import EmulatorService
 from HardwareTester.utils.custom_logger import CustomLogger
 from HardwareTester.utils.token_utils import get_token
 from HardwareTester.forms import StartEmulationForm, AddEmulatorForm
+from werkzeug.utils import secure_filename
 
 import json
 
@@ -191,55 +192,41 @@ def compare_machines():
         return jsonify({"success": False, "error": "Failed to compare machines."}), 500
 
 
-@emulator_bp.route("/add", methods=["GET", "POST"])
+@emulator_bp.route("/add", methods=["POST"])
 @login_required
 def add_emulator():
     """Add a new emulator by creating a blueprint."""
-    add_form = AddEmulatorForm()
+    try:
+        if request.content_type != "application/json":
+            return jsonify({"success": False, "message": "content-type must be application/json."}), 415
+        
+        data = request.get_json()
+        if not data:
+            logger.warning("No data provided for adding emulator.")
+            return jsonify({"success": False, "message": "No data provided."}), 400
 
-    if add_form.validate_on_submit():
-        try:
-            json_file = add_form.json_file.data
-            json_text = add_form.json_text.data
+        required_fields = ["name", "description", "configuration"]
+        for field in required_fields:
+            if field not in data:
+                logger.warning(f"Missing field: {field}")
+                return jsonify({"success": False, "message": f"Missing field: {field}"}), 400
 
-            # Log inputs for debugging
-            logger.info(f"Form data received: file={json_file}, text={json_text}")
+        #response = emulator_service.add_blueprint(data)
+        response = emulator_service.add_blueprint(
+            name=data["name"],
+            description=data["description"],
+            configuration=data
+        )
+        
+        if response["success"]:
+            return jsonify({"success": True, "message": response["message"]}), 201
+        else:
+            logger.error(f"Failed to add emulator: {response['message']}")
+            return jsonify({"success": False, "message": response["message"]}), 400
+    except Exception as e:
+        logger.error(f"Error adding emulator: {e}")
+        return jsonify({"success": False, "message": "Failed to add emulator."}), 500
 
-            if not json_file and not json_text:
-                logger.warning("No file or JSON text provided.")
-                return jsonify({"success": False, "message": "Either a file or JSON text must be provided."}), 400
-
-            if json_file:
-                try:
-                    configuration = json.loads(json_file.read().decode("utf-8"))
-                except (UnicodeDecodeError, json.JSONDecodeError) as e:
-                    logger.error(f"File error: {e}")
-                    return jsonify({"success": False, "message": "Invalid JSON in file."}), 400
-            else:
-                try:
-                    configuration = json.loads(json_text)
-                except json.JSONDecodeError as e:
-                    logger.error(f"Text error: {e}")
-                    return jsonify({"success": False, "message": "Invalid JSON in text."}), 400
-
-            response = emulator_service.add_blueprint(
-                name=configuration.get("controller", {}).get("name", add_form.name.data),
-                description=add_form.description.data,
-                configuration=configuration,
-            )
-
-            if response["success"]:
-                logger.info(f"Successfully added emulator: {response['message']}")
-                return jsonify({"success": True, "message": response["message"]}), 201
-            else:
-                logger.error(f"Failed to add emulator: {response['message']}")
-                return jsonify({"success": False, "message": response["message"]}), 400
-
-        except Exception as e:
-            logger.error(f"Unexpected error: {e}")
-            return jsonify({"success": False, "message": "Failed to add emulator."}), 500
-
-    return render_template("emulator.html", add_form=add_form)
 
 
 @emulator_bp.route("/upload", methods=["POST"])

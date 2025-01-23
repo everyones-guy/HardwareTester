@@ -1,4 +1,4 @@
-{% extends "auth/base.html" %}
+{% extends "base.html" %}
 
 {% block title %}Hardware Emulator{% endblock %}
 
@@ -23,7 +23,9 @@
                 <li class="list-group-item text-muted">No blueprints available.</li>
                 {% endfor %}
             </ul>
-            <button class="btn btn-primary mt-3 w-100" id="refresh-blueprints">Refresh Blueprints</button>
+            <button class="btn btn-primary mt-3 w-100" id="refresh-blueprints" data-action="refresh-blueprints">
+                Refresh Blueprints
+            </button>
         </div>
     </div>
 
@@ -34,7 +36,9 @@
             <ul id="active-emulations-list" class="list-group">
                 <!-- Active emulation items will be dynamically loaded here -->
             </ul>
-            <button class="btn btn-info mt-3 w-100" id="refresh-emulations">Refresh Emulations</button>
+            <button class="btn btn-info mt-3 w-100" id="refresh-emulations" data-action="refresh-emulations">
+                Refresh Emulations
+            </button>
         </div>
     </div>
 
@@ -42,8 +46,8 @@
     <div class="card mb-4">
         <div class="card-header bg-success text-white">Start Emulation</div>
         <div class="card-body">
-            <form id="start-emulation-form" method="POST" action="{{ url_for('emulators.start_emulation_endpoint') }}">
-                {{ form.hidden_tag() }}
+            <form id="start-emulation-form" method="post" action="{{ url_for('emulators.start_emulation_endpoint') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                 <div class="mb-3">
                     {{ form.machine_name.label(class="form-label") }}
                     {{ form.machine_name(class="form-control", id="machine-name") }}
@@ -64,10 +68,6 @@
                 </div>
                 <button type="submit" class="btn btn-success w-100">{{ form.submit.label.text }}</button>
             </form>
-            <p>Start a new emulation with detailed configuration options.</p>
-            <a href="{{ url_for('emulators.start_emulation_page') }}" class="btn btn-success w-100 mt-3">
-                Go to Start Emulation Page
-            </a>
         </div>
     </div>
 
@@ -78,7 +78,9 @@
             <div id="emulator-logs" class="border p-3" style="height: 300px; overflow-y: auto; background: #f8f9fa;">
                 <!-- Logs will be dynamically added here -->
             </div>
-            <button class="btn btn-secondary mt-3 w-100" id="refresh-logs">Refresh Logs</button>
+            <button class="btn btn-secondary mt-3 w-100" id="refresh-logs" data-action="refresh-logs">
+                Refresh Logs
+            </button>
         </div>
     </div>
 
@@ -101,46 +103,31 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="add-emulator-form" method="POST" action="{{ url_for('emulators.add_emulator') }}">
-                        {{ add_form.hidden_tag() }}
+                    <form id="add-emulator-form" method="post" action="{{ url_for('emulators.add_emulator') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                         <div class="mb-3">
                             <label for="emulator-name" class="form-label">Emulator Name</label>
-                            <input type="text"
-                                   id="emulator-name"
-                                   name="name"
-                                   class="form-control"
-                                   placeholder="Override JSON Name"
-                                   data-bs-toggle="tooltip"
-                                   title="This field will override the 'name' field in your JSON configuration if provided.">
+                            <input type="text" id="emulator-name" name="name" class="form-control" placeholder="Override JSON Name">
                         </div>
                         <div class="mb-3">
                             <label for="emulator-description" class="form-label">Description</label>
-                            <input type="text"
-                                   id="emulator-description"
-                                   name="description"
-                                   class="form-control"
-                                   placeholder="Override JSON Description"
-                                   data-bs-toggle="tooltip"
-                                   title="This field will override the 'description' field in your JSON configuration if provided.">
+                            <input type="text" id="emulator-description" name="description" class="form-control" placeholder="Override JSON Description">
                         </div>
                         <div class="mb-3">
                             <label for="json-file" class="form-label">Upload JSON File</label>
-                            {{ add_form.json_file(class="form-control", id="json-file", accept=".json") }}
-                            <small class="form-text text-muted">You can upload a JSON file containing your emulator configuration here.</small>
+                            <input type="file" id="json-file" name="json_file" class="form-control" accept=".json">
                         </div>
                         <div class="mb-3">
                             <label for="json-text" class="form-label">Paste JSON Text</label>
-                            {{ add_form.json_text(class="form-control", id="json-text", rows="5") }}
-                            <small class="form-text text-muted">Alternatively, paste the JSON configuration directly here.</small>
+                            <textarea id="json-text" name="json_text" class="form-control" rows="5"></textarea>
                         </div>
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary" data-bs-toggle="tooltip" title="Click to add the emulator.">{{ add_form.submit.label.text }}</button>
-                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Add Emulator</button>
                     </form>
                 </div>
             </div>
         </div>
     </div>
+
 
     <!-- Modal: Blueprint Preview -->
     <div class="modal fade" id="preview-modal" tabindex="-1" aria-labelledby="preview-modal-label" aria-hidden="true">

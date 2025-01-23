@@ -8,7 +8,7 @@
 
 {% block content %}
 <header>
-    {{ form.csrf_token }}
+    {{ csrf_token }}
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container-fluid">
             <a class="navbar-brand" href="{{ url_for('main.dashboard') }}">Dashboard</a>

@@ -1,10 +1,10 @@
-{% extends "emulator.html" %}
+{% extends "auth/base.html" %}
 
 {% block title %}Hardware Emulator{% endblock %}
 
 {% block content %}
-<form id="add-emulator-form" method="POST" action="{{ url_for('emulators.add_emulator') }}">
-    {{ add_form.hidden_tag() }}
+<form id="add-emulator-form" method="post" action="{{ url_for('emulators.add_emulator') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
     <div class="mb-3">
         <label for="emulator-name" class="form-label">Emulator Name</label>
         <input type="text"
@@ -27,7 +27,7 @@
     </div>
     <div class="mb-3">
         <label for="json-file" class="form-label">Upload JSON File</label>
-        {{ add_form.json_file(class="form-control", id="json-file", accept=".json") }}
+        {{ add_form.file(class="form-control", id="json-file", accept=".json") }}
         <small class="form-text text-muted">You can upload a JSON file containing your emulator configuration here.</small>
     </div>
     <div class="mb-3">

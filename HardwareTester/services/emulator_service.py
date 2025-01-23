@@ -5,6 +5,9 @@ from sqlalchemy.exc import SQLAlchemyError
 import os
 from datetime import datetime
 from threading import Lock
+from sqlalchemy.sql import func
+
+
 
 from HardwareTester.extensions import db
 from HardwareTester.utils.custom_logger import CustomLogger
@@ -183,15 +186,19 @@ class EmulatorService:
         Add a blueprint by file or JSON text. One of them must be provided.
         """
         try:
+            # First Generate the ID dynamically
+            id = self.get_available_blueprint_id()
+
             existing_blueprint = Blueprint.query.filter_by(name=name).first()
             if existing_blueprint:
                 logger.warning(f"Blueprint '{name}' already exists.")
                 return {"success": False, "message": f"Blueprint with name '{name}' already exists."}
 
             new_blueprint = Blueprint(
+                id=id,
                 name=name,
                 description=description,
-                configuration=configuration,
+                configuration=json.dumps(configuration),
                 created_at=datetime.utcnow(),
             )
             db.session.add(new_blueprint)
@@ -235,6 +242,7 @@ class EmulatorService:
                 f"/firmware/{blueprint_name}/full-command-list",
                 method="GET"
             )
+            
             if response.get("success"):
                 return response.get("commands", [])
             else:
@@ -389,4 +397,16 @@ class EmulatorService:
 
         except Exception as e:
             logger.error(f"Error adding/updating peripherals: {e}")
+            raise
+        
+    def get_available_blueprint_id(self):
+        """
+        Generate the next available ID for the blueprints table.
+        """
+        try:
+            # Query the maximum ID in the blueprints table
+            max_id = db.session.query(func.max(Blueprint.id)).scalar()
+            return (max_id or 0) + 1  # Increment from the current max ID
+        except Exception as e:
+            logger.error(f"Error generating blueprint ID: {e}")
             raise

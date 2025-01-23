@@ -276,7 +276,6 @@ class SettingsForm(FlaskForm):
     submit = SubmitField("Save Setting")
     
 class StartEmulationForm(FlaskForm):
-    csrf_token = HiddenField()  # CSRF Token Field
     machine_name = StringField(
         "Machine Name", 
         validators=[DataRequired(message="Machine name is required.")],
@@ -297,8 +296,8 @@ class StartEmulationForm(FlaskForm):
     )
 
 class AddEmulatorForm(FlaskForm):
-    name = StringField("Name", validators=[DataRequired()])
-    description = StringField("Description", validators=[DataRequired()])
+    name = StringField("Name", validators=[Optional()])
+    description = StringField("Description", validators=[Optional()])
     json_file = FileField("Upload JSON File", validators=[Optional()])
     json_text = TextAreaField("Paste JSON Text", validators=[Optional()])
     submit = SubmitField("Add Emulator")
