@@ -299,6 +299,6 @@ class StartEmulationForm(FlaskForm):
 class AddEmulatorForm(FlaskForm):
     name = StringField("Name", validators=[DataRequired()])
     description = StringField("Description", validators=[DataRequired()])
-    file = FileField("Upload JSON File", validators=[Optional()])
+    json_file = FileField("Upload JSON File", validators=[Optional()])
     json_text = TextAreaField("Paste JSON Text", validators=[Optional()])
     submit = SubmitField("Add Emulator")

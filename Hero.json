@@ -1,7 +1,4 @@
 {
-  "name": "Temperature Sensor Emulator",
-  "description": "Simulates a temperature sensor device for testing.",
-  "configuration": {
     "id": "2",
     "name": "Temperature Sensor Emulator",
     "type": "sensor",
@@ -62,7 +59,11 @@
           "name": "Alarm",
           "trigger_condition": "temperature >= 75",
           "activation_command": "ALARM ON",
-          "deactivation_command": "ALARM OFF"
+          "deactivation_command": "ALARM OFF",
+          "connection": {
+            "port": "/dev/ttyS3",
+            "protocol": "ascii"
+          }
         }
       ]
     },
@@ -110,5 +111,4 @@
       "frequency": "1Hz",
       "last_generated_value": null
     }
-  }
 }

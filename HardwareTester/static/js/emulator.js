@@ -207,52 +207,91 @@ $(document).ready(function () {
 
     // Add Emulator Form Submission
     $("#add-emulator-form").on("submit", async function (event) {
-        event.preventDefault();
+
         console.log("Adding emulator...");
 
+        // Get the file input (if any) from the form
         const fileInput = $("#json-file")[0]?.files[0];
+
+        // Get the text input (if any) from the form
         const textInput = $("#json-text").val().trim();
+
+        // Get optional overrides for name and description
         const nameOverride = $("#emulator-name").val().trim();
         const descriptionOverride = $("#emulator-description").val().trim();
+
+        if (!fileInput && !textInput) {
+            event.preventDefault();
+            alert("Please upload a JSON file or provide JSON text.");
+            return;
+        }
+
+        // Debug logs to verify inputs
+        console.log("File Input:", fileInput); // Should log the file object or `undefined`
+        console.log("Text Input:", textInput); // Should log the text string or an empty string
 
         let configuration;
 
         try {
-            // Load the JSON configuration from the file or text input
+            // Step 1: Read the JSON configuration from the file or text input
             if (fileInput) {
-                const fileText = await fileInput.text();
-                configuration = JSON.parse(fileText);
+                // If a file is provided, read its content as text
+                console.log("Reading JSON from file...");
+                const fileText = await fileInput.text(); // Asynchronous file reading
+                console.log("File Content:", fileText); // Log the raw file content
+                configuration = JSON.parse(fileText); // Parse the file content as JSON
             } else if (textInput) {
-                configuration = JSON.parse(textInput);
+                // If text is provided, parse it as JSON
+                console.log("Reading JSON from text input...");
+                console.log("Raw Text Input:", textInput); // Log the raw text content
+                configuration = JSON.parse(textInput); // Parse the text content as JSON
             } else {
-                throw new Error("No file or JSON text provided.");
+                // If neither file nor text is provided, throw an error
+                throw new Error("Please upload a JSON file or provide JSON text.");
             }
 
-            // Ensure the configuration has the necessary fields
+            // Step 2: Log the parsed configuration for debugging
+            console.log("Parsed Configuration:", configuration);
+
+            // Step 3: Validate the JSON structure
             validateConfiguration(configuration);
 
-            // Override fields if provided in the form
-            if (nameOverride) configuration.name = nameOverride;
-            if (descriptionOverride) configuration.description = descriptionOverride;
+            // Step 4: Apply overrides if provided
+            if (nameOverride) {
+                console.log(`Overriding name with: ${nameOverride}`);
+                configuration.name = nameOverride; // Override the name field
+            }
+            if (descriptionOverride) {
+                console.log(`Overriding description with: ${descriptionOverride}`);
+                configuration.description = descriptionOverride; // Override the description field
+            }
 
-            // Send the request to the API
+            // Step 5: Make an API call to send the configuration to the backend
+            console.log("Sending configuration to API...");
             apiCall(
                 "/emulators/add",
                 "POST",
-                { name: configuration.name, description: configuration.description, configuration },
+                {
+                    name: configuration.name,
+                    description: configuration.description,
+                    configuration,
+                },
                 (response) => {
-                    alert(response.message);
+                    // Success callback
+                    alert(response.message); // Notify the user
                     if (response.success) {
-                        $("#add-emulator-modal").modal("hide");
-                        fetchBlueprints();
+                        $("#add-emulator-modal").modal("hide"); // Close the modal
+                        fetchBlueprints(); // Refresh the blueprint list
                     }
                 }
             );
         } catch (error) {
-            console.error(error);
-            alert("Error: " + error.message);
+            // Catch any errors during the process
+            console.error("Error:", error); // Log the error details
+            alert("Error: " + error.message); // Notify the user
         }
     });
+
 
     /**
      * Validate the configuration JSON structure.

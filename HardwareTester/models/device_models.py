@@ -73,9 +73,7 @@ class Blueprint(db.Model):
     updated_at = db.Column(DateTime, onupdate=datetime.utcnow)  # Automatically updated when modified
     version = db.Column(String(50), nullable=True)  # Optional versioning field for the blueprint
     author = db.Column(String(255), nullable=True)  # Field to track the creator of the blueprint
-    blueprint_id = db.Column(Integer, ForeignKey("blueprints.id"), nullable=False)
-    blueprint = db.relationship("Blueprint", backref=db.backref("emulations", lazy="dynamic"))
-
+    
     def __repr__(self):
         return f"<Blueprint {self.name} (ID={self.id}, Version={self.version})>"
 

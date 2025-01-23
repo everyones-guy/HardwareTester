@@ -199,21 +199,29 @@ def add_emulator():
 
     if add_form.validate_on_submit():
         try:
-            file = add_form.file.data
+            json_file = add_form.json_file.data
             json_text = add_form.json_text.data
 
-            # Ensure at least one source is provided
-            if not file and not json_text:
+            # Log inputs for debugging
+            logger.info(f"Form data received: file={json_file}, text={json_text}")
+
+            if not json_file and not json_text:
                 logger.warning("No file or JSON text provided.")
                 return jsonify({"success": False, "message": "Either a file or JSON text must be provided."}), 400
 
-            # Load configuration from file or JSON text
-            if file:
-                configuration = json.loads(file.read().decode("utf-8"))
+            if json_file:
+                try:
+                    configuration = json.loads(json_file.read().decode("utf-8"))
+                except (UnicodeDecodeError, json.JSONDecodeError) as e:
+                    logger.error(f"File error: {e}")
+                    return jsonify({"success": False, "message": "Invalid JSON in file."}), 400
             else:
-                configuration = json.loads(json_text)
+                try:
+                    configuration = json.loads(json_text)
+                except json.JSONDecodeError as e:
+                    logger.error(f"Text error: {e}")
+                    return jsonify({"success": False, "message": "Invalid JSON in text."}), 400
 
-            # Add blueprint using emulator_service
             response = emulator_service.add_blueprint(
                 name=configuration.get("controller", {}).get("name", add_form.name.data),
                 description=add_form.description.data,
@@ -227,15 +235,11 @@ def add_emulator():
                 logger.error(f"Failed to add emulator: {response['message']}")
                 return jsonify({"success": False, "message": response["message"]}), 400
 
-        except json.JSONDecodeError:
-            logger.error("Invalid JSON format in file or text.")
-            return jsonify({"success": False, "message": "Invalid JSON format."}), 400
         except Exception as e:
-            logger.error(f"Error adding emulator: {e}")
+            logger.error(f"Unexpected error: {e}")
             return jsonify({"success": False, "message": "Failed to add emulator."}), 500
 
-    # Render the form if GET request or validation fails
-    return render_template("add_emulator.html", add_form=add_form)
+    return render_template("emulator.html", add_form=add_form)
 
 
 @emulator_bp.route("/upload", methods=["POST"])
