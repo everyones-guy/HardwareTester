@@ -6,8 +6,7 @@ import os
 from datetime import datetime
 from threading import Lock
 from sqlalchemy.sql import func
-
-
+from flask import current_app
 
 from HardwareTester.extensions import db
 from HardwareTester.utils.custom_logger import CustomLogger
@@ -82,12 +81,16 @@ class EmulatorService:
 
         try:
             if self.emulator_state["running"]:
+                logger.warning("An emulation is already running.")
                 return {"success": False, "message": "An emulation is already running."}
 
             controller_id = self.get_available_controller_id()
             if not controller_id:
+                logger.warning("No available controller found.")
                 return {"success": False, "message": "No available controller."}
 
+            logger.info(f"Using controller ID: {controller_id}")
+        
             emulation = Emulation(
                 controller_id=controller_id,
                 machine_name=machine_name,
@@ -110,11 +113,13 @@ class EmulatorService:
                 self.emulator_state["running"] = True
 
             self._log_action(f"Started emulation for {machine_name} using blueprint '{blueprint}'.")
+            logger.info(f"Emulation started successfully for machine: {machine_name}")
             return {"success": True, "message": f"Emulation started for machine '{machine_name}'."}
         except Exception as e:
             logger.error(f"Error starting emulation: {e}")
             db.session.rollback()
             return {"success": False, "error": "Failed to start emulation."}
+
 
 
     def stop_emulation(self, machine_name: str) -> Dict[str, Union[bool, str]]:
@@ -214,21 +219,32 @@ class EmulatorService:
     def handle_file_upload(self, file) -> Dict[str, Union[str, int]]:
         """Handle file upload for blueprints."""
         try:
-            filename = secure_filename(file.filename)
-            save_path = os.path.join("uploads/blueprints", filename)
-            file.save(save_path)
+            # Get the upload folder path from configuration
+            upload_folder = os.path.join(current_app.config.get('UPLOAD_FOLDER_ROOT'), 'blueprints')
+        
+            # Ensure the folder exists
+            if not os.path.exists(upload_folder):
+                os.makedirs(upload_folder)
 
-            new_file = UploadedFile(filename=filename, path=save_path)
+            # Save the file securely
+            filename = secure_filename(file.filename)
+            file_path = os.path.join(upload_folder, filename)
+            file.save(file_path)
+
+            # Add to database (optional, depends on your UploadedFile model)
+            new_file = UploadedFile(filename=filename, path=file_path)
             db.session.add(new_file)
             db.session.commit()
 
-            logger.info(f"File '{filename}' uploaded successfully.")
+            logger.info(f"File '{filename}' uploaded successfully to '{file_path}'.")
             return {"id": new_file.id, "filename": filename}
         except SQLAlchemyError as e:
             logger.error(f"Database error while uploading file: {e}")
             db.session.rollback()
             return {"success": False, "error": "Failed to upload file."}
-        
+        except Exception as e:
+            logger.error(f"Error handling file upload: {e}")
+            return {"success": False, "error": "Unexpected error occurred during file upload."}
 
     def fetch_commands_from_firmware(self, blueprint_name: str) -> list:
         """
@@ -410,3 +426,21 @@ class EmulatorService:
         except Exception as e:
             logger.error(f"Error generating blueprint ID: {e}")
             raise
+
+    def save_uploaded_file(file, subfolder=''):
+        """Save an uploaded file to the specified subfolder."""
+        upload_folder_root = current_app.config.get('UPLOAD_FOLDER_ROOT', 'uploads')
+    
+        # Determine the target subfolder
+        upload_folder = os.path.join(upload_folder_root, subfolder) if subfolder else upload_folder_root
+    
+        # Ensure the subfolder exists
+        if not os.path.exists(upload_folder):
+            os.makedirs(upload_folder)
+
+        # Secure and save the file
+        filename = secure_filename(file.filename)
+        file_path = os.path.join(upload_folder, filename)
+        file.save(file_path)
+
+        return file_path

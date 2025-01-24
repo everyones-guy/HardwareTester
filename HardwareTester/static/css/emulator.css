@@ -1,70 +1,9 @@
 /* General Emulator Styles */
 body {
-    background-color: #f4f5f7;
+    background-color: #f4f5f7; /* Matching dashboard style */
     font-family: 'Roboto', sans-serif;
     margin: 0;
     padding: 0;
-    display: flex; /* Sidebar and content side by side */
-    height: 100vh; /* Full viewport height */
-}
-
-/* Header */
-.header {
-    background-color: #343a40;
-    color: #ffffff;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 20px;
-    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
-    position: sticky;
-    top: 0;
-    z-index: 10;
-}
-
-    .header .logo {
-        font-size: 1.5rem;
-        font-weight: bold;
-    }
-
-    .header .nav {
-        display: flex;
-        gap: 15px;
-    }
-
-        .header .nav a {
-            color: #ffffff;
-            text-decoration: none;
-            font-size: 14px;
-            padding: 8px 12px;
-            border-radius: 4px;
-            transition: background-color 0.3s ease;
-        }
-            .header .nav a:hover {
-                background-color: #495057;
-            }
-
-
-        }
-
-/* Content Area */
-.content {
-    margin-left: 250px; /* Offset by sidebar width */
-    padding: 20px;
-    flex-grow: 1;
-    overflow-y: auto;
-    width: calc(100% - 250px); /* Adjust width */
-    background-color: #ffffff;
-    border-radius: 8px;
-    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-/* Header */
-.content-header {
-    font-size: 2rem;
-    font-weight: bold;
-    color: #343a40;
-    margin-bottom: 20px;
 }
 
 /* Header Styles */
@@ -244,7 +183,6 @@ form {
             border: 1px solid #d6d8db;
         }
 
-
 /* Buttons */
 .btn {
     padding: 10px 20px;
@@ -255,8 +193,6 @@ form {
     border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.3s ease, transform 0.1s ease;
-    width: 100%;
-    margin-bottom: 10px;
 }
 
     .btn:hover {
@@ -266,7 +202,6 @@ form {
     .btn:active {
         transform: scale(0.98);
     }
-
 
 /* Add Emulator Modal */
 #add-emulator-form textarea {
@@ -285,9 +220,6 @@ form {
     border: 1px solid #ccc; /* Optional border */
     overflow: auto; /* Enable scrolling if content exceeds height */
     resize: both; /* Allow resizing */
-    margin-top: 15px;
-    border-radius: 8px;
-
 }
 
 .jsoneditor {
@@ -301,35 +233,4 @@ form {
     background-color: #f8f9fa; /* Light background for menu bar */
     padding: 5px;
     border-bottom: 1px solid #ddd;
-}
-
-/* Card Layout */
-.card {
-    background-color: #ffffff;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-    margin-bottom: 20px;
-}
-
-.card-header {
-    font-weight: bold;
-    font-size: 16px;
-    background-color: #007bff;
-    color: #ffffff;
-    padding: 10px;
-    border-radius: 6px 6px 0 0;
-}
-
-.card-body {
-    padding: 15px;
-}
-
-/* Utility Classes */
-.text-center {
-    text-align: center;
-}
-
-.text-muted {
-    color: #6c757d;
 }

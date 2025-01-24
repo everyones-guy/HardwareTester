@@ -7,6 +7,7 @@ from HardwareTester.utils.custom_logger import CustomLogger
 from HardwareTester.utils.token_utils import get_token
 from datetime import datetime
 from cli import register_commands
+import os
 
 # Initialize logger
 logger = CustomLogger.get_logger("app")
@@ -32,6 +33,10 @@ def create_app(config_name="default"):
     # Register blueprints and error handlers
     register_blueprints(app)
     register_error_handlers(app)
+    
+
+    # Ensure upload folders are created
+    ensure_upload_folders(app)
 
 
     #@app.context_processor
@@ -155,3 +160,16 @@ def load_user(user_id):
         logger.error(f"Error loading user with ID {user_id}: {e}")
         return None
 
+
+def ensure_upload_folders(app):
+    """Ensure all required upload folders exist."""
+    upload_folder_root = app.config.get('UPLOAD_FOLDER_ROOT', 'uploads')
+    
+    # Define subfolders for different purposes
+    subfolders = ['blueprints', 'configs', 'logs', 'data']
+
+    for subfolder in subfolders:
+        folder_path = os.path.join(upload_folder_root, subfolder)
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
+            app.logger.info(f"Created directory: {folder_path}")

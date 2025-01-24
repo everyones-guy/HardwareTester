@@ -48,7 +48,7 @@
     <div class="card mb-4">
         <div class="card-header bg-success text-white">Start Emulation</div>
         <div class="card-body">
-            <form id="start-emulation-form" method="post" action="{{ url_for('emulators.start_emulation_endpoint') }}">
+            <form id="start-emulation-form" method="post" action="{{ url_for('emulators.start_emulation') }}">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                 <div class="mb-3">
                     {{ form.machine_name.label(class="form-label") }}

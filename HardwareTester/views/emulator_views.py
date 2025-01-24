@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request, render_template
+from flask import Blueprint, jsonify, request, render_template, current_app
 from flask_login import login_required, current_user
 from HardwareTester.services.emulator_service import EmulatorService
 from HardwareTester.utils.custom_logger import CustomLogger
@@ -7,6 +7,7 @@ from HardwareTester.forms import StartEmulationForm, AddEmulatorForm
 from werkzeug.utils import secure_filename
 
 import json
+import os
 
 # Initialize logger
 logger = CustomLogger.get_logger("emulator_views")
@@ -88,43 +89,7 @@ def load_blueprint_endpoint():
     except Exception as e:
         logger.error(f"Error loading blueprint: {e}")
         return jsonify({"success": False, "error": "Failed to load blueprint."}), 500
-
-
-@emulator_bp.route("/start", methods=["POST"])
-@login_required
-def start_emulation_endpoint():
-    """Start a machine emulation."""
-    form = StartEmulationForm()
-
-    # Fetch blueprints and check success
-    blueprint_response = emulator_service.fetch_blueprints()
-    if blueprint_response["success"]:
-        blueprints = blueprint_response["blueprints"]
-        form.blueprint.choices = [(bp["name"], bp["name"]) for bp in blueprints]
-    else:
-        blueprints = []
-        logger.warning("Failed to fetch blueprints for start emulation.")
-
-    if form.validate_on_submit():
-        machine_name = form.machine_name.data
-        blueprint = form.blueprint.data
-        stress_test = form.stress_test.data
-
-        try:
-            # Start the emulation process
-            response = emulator_service.start_emulation(machine_name, blueprint, stress_test)
-            if response["success"]:
-                return jsonify({"success": True, "message": "Emulation started successfully!"})
-            else:
-                return jsonify({"success": False, "error": response["message"]}), 400
-        except Exception as e:
-            logger.error(f"Error starting emulation: {e}")
-            return jsonify({"success": False, "error": "Failed to start emulation."}), 500
-
-    # If form validation fails, return an error
-    return jsonify({"success": False, "error": "Invalid form submission."}), 400
-
-
+   
 
 @emulator_bp.route("/stop", methods=["POST"])
 @login_required
@@ -262,11 +227,13 @@ def preview_blueprint(blueprint_name):
     
 @emulator_bp.route("/start", methods=["GET", "POST"])
 @login_required
-def start_emulation_page():
-    """Render the standalone start emulation page."""
+def start_emulation():
+    """
+    Handle both rendering the start emulation page (GET) and starting emulation (POST).
+    """
     form = StartEmulationForm()
 
-    # Fetch blueprints and populate choices
+    # Fetch blueprints and populate choices for the dropdown
     blueprint_response = emulator_service.fetch_blueprints()
     if blueprint_response["success"]:
         blueprints = blueprint_response["blueprints"]
@@ -275,35 +242,68 @@ def start_emulation_page():
         blueprints = []
         logger.warning("Failed to fetch blueprints for the start emulation page.")
 
-    if form.validate_on_submit():
+    if request.method == "POST" and form.validate_on_submit():
+        # Extract data from the form
         machine_name = form.machine_name.data
         blueprint = form.blueprint.data
         stress_test = form.stress_test.data
 
         try:
+            # Attempt to start the emulation
             response = emulator_service.start_emulation(machine_name, blueprint, stress_test)
             if response["success"]:
-                return jsonify({"success": True, "message": response["message"]})
+                # Successful emulation start
+                logger.info(f"Successfully started emulation: {response['message']}")
+                return jsonify({"success": True, "message": response["message"]}), 200
             else:
-                return jsonify({"success": False, "error": response["message"]}), 400
+                # Emulation start failed
+                logger.warning(f"Emulation start failed: {response['message']}")
+                return jsonify({"success": False, "message": response["message"]}), 400
         except Exception as e:
+            # Handle any unexpected errors
             logger.error(f"Error starting emulation: {e}")
-            return jsonify({"success": False, "error": "Failed to start emulation."}), 500
+            return jsonify({"success": False, "error": "Failed to start emulation due to an internal error."}), 500
 
-    return render_template("start_emulation.html", form=form)
+    # If GET request or invalid form submission, render the HTML page
+    if request.method == "GET":
+        return render_template("start_emulation.html", form=form)
+
+    # Handle form validation errors
+    logger.warning("Form validation failed while starting emulation.")
+    return jsonify({"success": False, "error": "Invalid form submission."}), 400
+
 
 @emulator_bp.route('/json/save', methods=['POST'])
 def save_emulator_json():
-    data = request.json
-    filename = data.get('filename', 'default.json')
-    json_data = data.get('data')
-
-    if not json_data:
-        return jsonify({"success": False, "message": "No JSON data provided."}), 400
-
+    """Save JSON data to a file in the configured upload folder."""
     try:
-        with open(os.path.join('saved_configs', filename), 'w') as f:
+        data = request.json
+        if not data:
+            return jsonify({"success": False, "message": "No JSON data provided."}), 400
+
+        filename = data.get('filename', 'default.json')
+        json_data = data.get('data')
+
+        if not json_data:
+            return jsonify({"success": False, "message": "JSON data is missing."}), 400
+
+        # Get the upload folder from the app configuration
+        upload_folder_root = current_app.config.get('UPLOAD_FOLDER_ROOT', 'uploads')
+        saved_configs_folder = os.path.join(upload_folder_root, 'saved_configs')
+
+        # Ensure the folder exists
+        os.makedirs(saved_configs_folder, exist_ok=True)
+
+        # Secure the filename
+        filename = secure_filename(filename)
+        file_path = os.path.join(saved_configs_folder, filename)
+
+        # Save the JSON data to the file
+        with open(file_path, 'w') as f:
             json.dump(json_data, f, indent=4)
+
         return jsonify({"success": True, "message": f"JSON saved as {filename}."})
     except Exception as e:
+        current_app.logger.error(f"Error saving JSON: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
+

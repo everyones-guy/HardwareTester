@@ -13,7 +13,7 @@ class Config:
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     INSTANCE_DIR = os.path.join(BASE_DIR, "instance")
     os.makedirs(INSTANCE_DIR, exist_ok=True)  # Ensure the instance directory exists
-    WTF_CSRF_ENABLED = False  # Disable CSRF for easier testing
+    WTF_CSRF_ENABLED = False  # Disable CSRF for easier testing   
 
     # Flask settings
     SECRET_KEY = os.getenv("SECRET_KEY", "default-secret-key")
@@ -34,7 +34,8 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # File upload settings
-    UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER", os.path.join(BASE_DIR, "uploads"))
+    UPLOAD_FOLDER = os.getenv('UPLOAD_FOLDER', 'uploads')
+    UPLOAD_FOLDER_ROOT = os.path.join(BASE_DIR, UPLOAD_FOLDER)
     MAX_CONTENT_LENGTH = int(os.getenv("MAX_CONTENT_LENGTH", 16 * 1024 * 1024))  # Default 16 MB
     ALLOWED_SPEC_SHEET_EXTENSIONS = set(os.getenv("ALLOWED_SPEC_SHEET_EXTENSIONS", "pdf,docx,xlsx").split(","))
     ALLOWED_TEST_PLAN_EXTENSIONS = set(os.getenv("ALLOWED_TEST_PLAN_EXTENSIONS", "pdf,csv,txt").split(","))

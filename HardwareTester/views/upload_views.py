@@ -5,6 +5,7 @@ from HardwareTester.services.upload_service import UploadService
 from HardwareTester.services.hardware_service import HardwareService
 from HardwareTester.utils.custom_logger import CustomLogger
 import json
+import os
 
 # Initialize logger
 logger = CustomLogger.get_logger("upload_views")
