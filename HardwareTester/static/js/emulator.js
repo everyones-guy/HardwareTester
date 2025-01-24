@@ -331,39 +331,69 @@ $(document).ready(function () {
         console.log("Configuration validation passed.");
     }
 
+    // Initialize JSON Editor with resizable container
     const editorContainer = document.getElementById("json-editor");
-    const editor = new JSONEditor(editorContainer, { mode: 'code' });
+    const jsonEditor = new JSONEditor(editorContainer, {
+        mode: "tree", // Tree view for better handling of objects and arrays
+        modes: ["tree", "code"], // Allow users to switch between tree and code views
+        onError: function (err) {
+            alert(`JSON Editor Error: ${err}`);
+        },
+    });
 
-    document.getElementById("upload-json").addEventListener("change", (event) => {
+    // Handle JSON File Upload
+    $("#upload-json-file").on("change", function (event) {
         const file = event.target.files[0];
         if (file) {
-            const formData = new FormData();
-            formData.append("file", file);
-
-            fetch("/json/preview", { method: "POST", body: formData })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        editor.set(JSON.parse(data.data));
-                    } else {
-                        alert(data.error);
-                    }
-                });
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                try {
+                    const jsonData = JSON.parse(e.target.result);
+                    jsonEditor.set(jsonData); // Set data into editor
+                    console.log("JSON loaded into editor:", jsonData);
+                } catch (err) {
+                    alert("Invalid JSON file. Please upload a valid JSON file.");
+                }
+            };
+            reader.readAsText(file);
         }
     });
 
-    document.getElementById("save-json").addEventListener("click", () => {
-        const modifiedData = JSON.stringify(editor.get());
-        const filename = prompt("Enter filename for the modified JSON:", "modified.json");
-
-        fetch("/json/save", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ data: modifiedData, filename }),
-        })
-            .then(response => response.json())
-            .then(data => alert(data.message || data.error));
+    // Save JSON Changes
+    $("#save-json-button").on("click", function () {
+        try {
+            const modifiedData = jsonEditor.get();
+            const filename = prompt("Enter filename for the modified JSON:", "modified.json");
+            if (filename) {
+                fetch("/emulators/json/save", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ data: modifiedData, filename }),
+                })
+                    .then((response) => response.json())
+                    .then((data) => {
+                        alert(data.message || data.error);
+                        console.log("Save response:", data);
+                    })
+                    .catch((error) => {
+                        console.error("Error saving JSON:", error);
+                        alert("Failed to save the JSON. Check console for details.");
+                    });
+            }
+        } catch (err) {
+            alert("Invalid JSON. Please correct the JSON structure and try again.");
+        }
     });
+
+    // Resize Editor Dynamically
+    const resizeEditor = () => {
+        const editorHeight = window.innerHeight * 0.6; // 60% of the viewport height
+        editorContainer.style.height = `${editorHeight}px`;
+    };
+
+    // Call resizeEditor on page load and window resize
+    resizeEditor();
+    $(window).on("resize", resizeEditor);
 
 
     // Initial data load

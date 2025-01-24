@@ -4,6 +4,7 @@
 
 {% block extra_styles %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/emulator.css') }}">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jsoneditor@9.7.0/dist/jsoneditor.min.css" />
 {% endblock %}
 
 {% block content %}
@@ -183,39 +184,4 @@
 {% block additional_scripts %}
 <script src="{{ url_for('static', filename='js/emulator.js') }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsoneditor@9.7.0/dist/jsoneditor.min.js"></script>
-<script>
-    const jsonEditor = new JSONEditor(document.getElementById("json-editor"), { mode: 'code' });
-
-    document.getElementById("upload-json-file").addEventListener("change", async (event) => {
-        const file = event.target.files[0];
-        if (file) {
-            const formData = new FormData();
-            formData.append("file", file);
-
-            const response = await fetch("/json/preview", {
-                method: "POST",
-                body: formData,
-            });
-            const result = await response.json();
-            if (result.success) {
-                jsonEditor.set(JSON.parse(result.data));
-            } else {
-                alert(result.error);
-            }
-        }
-    });
-
-    document.getElementById("save-json-button").addEventListener("click", async () => {
-        const modifiedData = JSON.stringify(jsonEditor.get());
-        const filename = prompt("Enter a filename for the modified JSON:", "modified.json");
-
-        const response = await fetch("/json/save", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ data: modifiedData, filename }),
-        });
-        const result = await response.json();
-        alert(result.message || result.error);
-    });
-</script>
 {% endblock %}

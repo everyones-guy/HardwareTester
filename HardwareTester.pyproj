@@ -360,6 +360,13 @@
     <Content Include="HardwareTester\templates\contact.html" />
     <Content Include="HardwareTester\templates\index.html" />
     <Content Include="HardwareTester\templates\layout.html" />
+    <Content Include="tests\Back_End\blueprint_test.json" />
+    <Content Include="tests\Back_End\controller_test.json" />
+    <Content Include="tests\Back_End\device_test.json" />
+    <Content Include="tests\Back_End\emulation_test.json" />
+    <Content Include="tests\Back_End\firmware_test.json" />
+    <Content Include="tests\Back_End\Peripheral_test.json" />
+    <Content Include="tests\Back_End\valve_test.json" />
     <Content Include="uploads\emulator_configurations\test_emulator_config.cfg" />
   </ItemGroup>
   <ItemGroup>

@@ -1,0 +1,10 @@
+{
+  "name": "Pressure Valve",
+  "type": "valve",
+  "specifications": {
+    "max_pressure": 150,
+    "min_pressure": 10,
+    "response_time": "50ms"
+  },
+  "state": "closed"
+}

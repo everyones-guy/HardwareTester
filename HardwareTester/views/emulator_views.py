@@ -292,3 +292,18 @@ def start_emulation_page():
 
     return render_template("start_emulation.html", form=form)
 
+@app.route('/json/save', methods=['POST'])
+def save_emulator_json():
+    data = request.json
+    filename = data.get('filename', 'default.json')
+    json_data = data.get('data')
+
+    if not json_data:
+        return jsonify({"success": False, "message": "No JSON data provided."}), 400
+
+    try:
+        with open(os.path.join('saved_configs', filename), 'w') as f:
+            json.dump(json_data, f, indent=4)
+        return jsonify({"success": True, "message": f"JSON saved as {filename}."})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500

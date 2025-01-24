@@ -213,3 +213,24 @@ form {
     font-weight: bold;
     color: #495057;
 }
+
+#json-editor {
+    height: 60vh; /* Ensure the editor takes up 60% of the viewport height */
+    width: 100%; /* Full width */
+    border: 1px solid #ccc; /* Optional border */
+    overflow: auto; /* Enable scrolling if content exceeds height */
+    resize: both; /* Allow resizing */
+}
+
+.jsoneditor {
+    font-family: Arial, sans-serif; /* Ensure consistent fonts */
+}
+
+.jsoneditor-menu {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #f8f9fa; /* Light background for menu bar */
+    padding: 5px;
+    border-bottom: 1px solid #ddd;
+}
