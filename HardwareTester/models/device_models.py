@@ -5,7 +5,7 @@ from datetime import datetime
 
 class Device(db.Model):
     __tablename__ = "devices"
-    id = db.Column(Integer, primary_key=True)
+    id = db.Column(Integer, primary_key=True, autoincrement=True)
     device_id = db.Column(String(255), nullable=False, unique=True, index=True)
     name = db.Column(String(255), nullable=False)
     firmware_version = db.Column(String(50), nullable=True)
@@ -17,7 +17,7 @@ class Device(db.Model):
 
 class Peripheral(db.Model):
     __tablename__ = "peripherals"
-    id = db.Column(Integer, primary_key=True)
+    id = db.Column(Integer, primary_key=True, autoincrement=True)
     name = db.Column(String(255), nullable=False)
     type = db.Column(String(255), nullable=False)
     properties = db.Column(JSON, nullable=True)
@@ -31,7 +31,7 @@ class Peripheral(db.Model):
 
 class Controller(db.Model):
     __tablename__ = "controllers"
-    id = db.Column(Integer, primary_key=True)
+    id = db.Column(Integer, primary_key=True, autoincrement=True)
     name = db.Column(String(255), nullable=False, unique=True)
     firmware_version = db.Column(String(50), nullable=True)
     device_metadata = db.Column(JSON, nullable=True)
@@ -47,7 +47,7 @@ class Controller(db.Model):
 
 class Emulation(db.Model):
     __tablename__ = "emulations"
-    id = db.Column(Integer, primary_key=True)
+    id = db.Column(Integer, primary_key=True, autoincrement=True)
     controller_id = db.Column(Integer, ForeignKey("controllers.id"), nullable=False, index=True)
     status = db.Column(String(50), default="running", nullable=False)
     logs = db.Column(Text, nullable=True)
@@ -65,21 +65,23 @@ class Emulation(db.Model):
 
 class Blueprint(db.Model):
     __tablename__ = "blueprints"
-    id = db.Column(Integer, primary_key=True)
-    name = db.Column(String(255), nullable=False, unique=True, index=True)
-    description = db.Column(Text, nullable=True)
-    configuration = db.Column(JSON, nullable=True)  # JSON configuration details for the blueprint
-    created_at = db.Column(DateTime, default=datetime.utcnow)
-    updated_at = db.Column(DateTime, onupdate=datetime.utcnow)  # Automatically updated when modified
-    version = db.Column(String(50), nullable=True)  # Optional versioning field for the blueprint
-    author = db.Column(String(255), nullable=True)  # Field to track the creator of the blueprint
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(255), nullable=False, unique=True, index=True)
+    description = db.Column(db.Text, nullable=True)
+    configuration = db.Column(db.JSON, nullable=True)  # JSON configuration details for the blueprint
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
+    version = db.Column(db.String(50), nullable=True)
+    author = db.Column(db.String(255), nullable=True)
+
     
     def __repr__(self):
         return f"<Blueprint {self.name} (ID={self.id}, Version={self.version})>"
 
 class Firmware(db.Model):
     __tablename__ = "firmwares"
-    id = db.Column(Integer, primary_key=True)
+    id = db.Column(Integer, primary_key=True, autoincrement=True)
     hash = db.Column(String(64), unique=True, nullable=False)
     content = db.Column(Text, nullable=False)
     mdf = db.Column(JSON, nullable=True)
@@ -87,7 +89,7 @@ class Firmware(db.Model):
 
 class DeviceFirmwareHistory(db.Model):
     __tablename__ = "device_firmware_history"
-    id = db.Column(Integer, primary_key=True)
+    id = db.Column(Integer, primary_key=True, autoincrement=True)
     device_id = db.Column(Integer, ForeignKey("devices.id"), nullable=False)
     firmware_id = db.Column(Integer, ForeignKey("firmwares.id"), nullable=False)
     uploaded_at = db.Column(DateTime, default=datetime.utcnow)
@@ -97,7 +99,7 @@ class DeviceFirmwareHistory(db.Model):
 
 class Valve(db.Model):
     __tablename__ = "valves"
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(255), nullable=False)
     type = db.Column(db.String(255), nullable=False)
     specifications = db.Column(db.JSON, nullable=True)

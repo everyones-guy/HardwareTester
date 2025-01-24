@@ -89,8 +89,6 @@ class EmulatorService:
                 logger.warning("No available controller found.")
                 return {"success": False, "message": "No available controller."}
 
-            logger.info(f"Using controller ID: {controller_id}")
-        
             emulation = Emulation(
                 controller_id=controller_id,
                 machine_name=machine_name,
@@ -113,13 +111,15 @@ class EmulatorService:
                 self.emulator_state["running"] = True
 
             self._log_action(f"Started emulation for {machine_name} using blueprint '{blueprint}'.")
-            logger.info(f"Emulation started successfully for machine: {machine_name}")
             return {"success": True, "message": f"Emulation started for machine '{machine_name}'."}
-        except Exception as e:
-            logger.error(f"Error starting emulation: {e}")
+        except SQLAlchemyError as e:
+            logger.error(f"Database error starting emulation: {e}")
             db.session.rollback()
-            return {"success": False, "error": "Failed to start emulation."}
-
+            return {"success": False, "error": "Database error while starting emulation."}
+        except Exception as e:
+            logger.error(f"Unexpected error starting emulation: {e}")
+            db.session.rollback()
+            return {"success": False, "error": "Unexpected error while starting emulation."}
 
 
     def stop_emulation(self, machine_name: str) -> Dict[str, Union[bool, str]]:
@@ -191,8 +191,6 @@ class EmulatorService:
         Add a blueprint by file or JSON text. One of them must be provided.
         """
         try:
-            # First Generate the ID dynamically
-            id = self.get_available_blueprint_id()
 
             existing_blueprint = Blueprint.query.filter_by(name=name).first()
             if existing_blueprint:
@@ -200,7 +198,6 @@ class EmulatorService:
                 return {"success": False, "message": f"Blueprint with name '{name}' already exists."}
 
             new_blueprint = Blueprint(
-                id=id,
                 name=name,
                 description=description,
                 configuration=json.dumps(configuration),
@@ -307,6 +304,7 @@ class EmulatorService:
             if len(self.emulator_state["logs"]) > 1000:
                 self.emulator_state["logs"] = self.emulator_state["logs"][-1000:]
         logger.info(message)
+
         
     def get_available_controller_id(self) -> Union[int, None]:
         """Get an available controller ID."""
@@ -415,40 +413,28 @@ class EmulatorService:
             logger.error(f"Error adding/updating peripherals: {e}")
             raise
         
-    def get_available_blueprint_id(self) -> int:
+    def save_uploaded_file(self, file, subfolder=''):
         """
-        Generate the next available ID for the blueprints table.
-        :return: The next available ID as an integer.
+        Save an uploaded file to the specified subfolder.
+        :param file: File object from the request.
+        :param subfolder: Subfolder under UPLOAD_FOLDER_ROOT.
+        :return: Full path to the saved file.
         """
         try:
-            # Query the maximum ID in the blueprints table
-            max_id = db.session.query(func.max(Blueprint.id)).scalar()
-            next_id = (max_id or 0) + 1  # Increment from the current max ID
+            # Get the upload folder root from the app configuration
+            upload_folder_root = current_app.config.get('UPLOAD_FOLDER_ROOT', 'uploads')
+            upload_folder = os.path.join(upload_folder_root, subfolder) if subfolder else upload_folder_root
 
-            logger.info(f"Next available blueprint ID: {next_id}")
-            return next_id
-        except SQLAlchemyError as e:
-            logger.error(f"Database error while generating blueprint ID: {e}")
-            raise
+            # Ensure the subfolder exists
+            os.makedirs(upload_folder, exist_ok=True)
+
+            # Secure the filename and save the file
+            filename = secure_filename(file.filename)
+            file_path = os.path.join(upload_folder, filename)
+            file.save(file_path)
+
+            logger.info(f"File '{filename}' saved successfully in '{file_path}'.")
+            return file_path
         except Exception as e:
-            logger.error(f"Unexpected error generating blueprint ID: {e}")
-            raise
-
-
-    def save_uploaded_file(file, subfolder=''):
-        """Save an uploaded file to the specified subfolder."""
-        upload_folder_root = current_app.config.get('UPLOAD_FOLDER_ROOT', 'uploads')
-    
-        # Determine the target subfolder
-        upload_folder = os.path.join(upload_folder_root, subfolder) if subfolder else upload_folder_root
-    
-        # Ensure the subfolder exists
-        if not os.path.exists(upload_folder):
-            os.makedirs(upload_folder)
-
-        # Secure and save the file
-        filename = secure_filename(file.filename)
-        file_path = os.path.join(upload_folder, filename)
-        file.save(file_path)
-
-        return file_path
+            logger.error(f"Error saving file '{file.filename}': {e}")
+            raise ValueError(f"Failed to save file: {e}")

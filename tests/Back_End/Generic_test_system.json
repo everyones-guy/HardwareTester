@@ -1,0 +1,41 @@
+{
+  "controller": {
+    "name": "Test Equipment Controller",
+    "connection": {
+      "type": "HTTP",
+      "endpoint": "http://localhost:5000/api/control"
+    },
+    "peripherals": [
+      {
+        "name": "Oscilloscope",
+        "type": "Instrument",
+        "commands": {
+          "start": "OSC_START",
+          "stop": "OSC_STOP",
+          "measure": "OSC_MEASURE"
+        }
+      },
+      {
+        "name": "Signal Generator",
+        "type": "Instrument",
+        "commands": {
+          "start": "SG_START",
+          "stop": "SG_STOP",
+          "configure": "SG_CONFIGURE"
+        }
+      }
+    ]
+  },
+  "commands": [
+    {
+      "name": "Run Diagnostics",
+      "description": "Run diagnostics on all connected equipment",
+      "command": "RUN_DIAGNOSTICS"
+    },
+    {
+      "name": "Fetch Logs",
+      "description": "Retrieve the logs from the controller",
+      "command": "FETCH_LOGS"
+    }
+  ]
+}

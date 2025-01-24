@@ -1,10 +1,40 @@
 {
-  "name": "Pressure Valve",
-  "type": "valve",
-  "specifications": {
-    "max_pressure": 150,
-    "min_pressure": 10,
-    "response_time": "50ms"
+  "controller": {
+    "name": "Valve Controller",
+    "connection": {
+      "type": "MQTT",
+      "broker": "mqtt.example.com",
+      "port": 1883,
+      "topic": "valve/control"
+    },
+    "peripherals": [
+      {
+        "name": "Main Valve",
+        "type": "Valve",
+        "state": "closed",
+        "commands": {
+          "open": "VALVE_OPEN_MAIN",
+          "close": "VALVE_CLOSE_MAIN",
+          "status": "VALVE_STATUS_MAIN"
+        }
+      },
+      {
+        "name": "Auxiliary Valve",
+        "type": "Valve",
+        "state": "open",
+        "commands": {
+          "open": "VALVE_OPEN_AUX",
+          "close": "VALVE_CLOSE_AUX",
+          "status": "VALVE_STATUS_AUX"
+        }
+      }
+    ]
   },
-  "state": "closed"
+  "commands": [
+    {
+      "name": "Emergency Shutoff",
+      "description": "Shut off all valves",
+      "command": "VALVE_EMERGENCY_SHUTOFF"
+    }
+  ]
 }
