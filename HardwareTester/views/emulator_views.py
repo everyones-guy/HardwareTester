@@ -292,7 +292,7 @@ def start_emulation_page():
 
     return render_template("start_emulation.html", form=form)
 
-@app.route('/json/save', methods=['POST'])
+@emulator_bp.route('/json/save', methods=['POST'])
 def save_emulator_json():
     data = request.json
     filename = data.get('filename', 'default.json')
