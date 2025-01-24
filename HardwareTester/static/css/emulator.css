@@ -1,5 +1,4 @@
 /* General Emulator Styles */
-/* General Emulator Styles */
 body {
     background-color: #f4f5f7;
     font-family: 'Roboto', sans-serif;
@@ -9,48 +8,43 @@ body {
     height: 100vh; /* Full viewport height */
 }
 
-/* Sidebar */
-.sidebar {
-    width: 250px;
+/* Header */
+.header {
     background-color: #343a40;
     color: #ffffff;
     display: flex;
-    flex-direction: column;
-    padding: 20px;
-    height: 100%; /* Full height of the viewport */
-    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
-    position: fixed; /* Fixed position */
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+    position: sticky;
     top: 0;
-    left: 0;
     z-index: 10;
-    overflow-y: auto;
 }
 
-    .sidebar h2 {
+    .header .logo {
         font-size: 1.5rem;
         font-weight: bold;
-        margin-bottom: 20px;
-        text-align: center;
     }
 
-    .sidebar a {
-        color: #ffffff;
-        text-decoration: none;
-        padding: 10px 15px;
-        border-radius: 5px;
-        font-size: 14px;
-        margin-bottom: 10px;
-        display: block;
-        transition: background-color 0.3s ease;
+    .header .nav {
+        display: flex;
+        gap: 15px;
     }
 
-        .sidebar a:hover {
-            background-color: #495057;
+        .header .nav a {
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 14px;
+            padding: 8px 12px;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
         }
+            .header .nav a:hover {
+                background-color: #495057;
+            }
 
-        .sidebar a.active {
-            background-color: #007bff;
-            font-weight: bold;
+
         }
 
 /* Content Area */
@@ -60,6 +54,9 @@ body {
     flex-grow: 1;
     overflow-y: auto;
     width: calc(100% - 250px); /* Adjust width */
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 /* Header */
@@ -247,20 +244,6 @@ form {
             border: 1px solid #d6d8db;
         }
 
-/* Partitioning for Columns */
-.row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-}
-
-.col-50 {
-    flex: 0 0 48%; /* Two columns with space */
-}
-
-.col-100 {
-    flex: 0 0 100%; /* Full-width column */
-}
 
 /* Buttons */
 .btn {

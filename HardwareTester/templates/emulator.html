@@ -7,83 +7,153 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jsoneditor@9.7.0/dist/jsoneditor.min.css" />
 {% endblock %}
 
+
 {% block content %}
-<div class="sidebar">
-    <h2>Emulator Dashboard</h2>
-    <a href="#available-blueprints" class="active">Available Blueprints</a>
-    <a href="#active-emulations">Active Emulations</a>
-    <a href="#start-emulation">Start Emulation</a>
-    <a href="#emulator-logs">Emulator Logs</a>
-    <a href="#add-emulator">Add Emulator</a>
-    <a href="#json-preview">JSON Preview</a>
-</div>
+<div class="container mt-4">
+    <h1 class="text-center">Hardware Emulator</h1>
 
-<div class="content">
-    <div class="content-header">Hardware Emulator</div>
-
-    <div id="available-blueprints" class="card col-100">
-        <div class="card-header">Available Blueprints</div>
+    <!-- Section: Available Blueprints -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">Available Blueprints</div>
         <div class="card-body">
             <ul id="blueprint-list" class="list-group">
                 {% for blueprint in blueprints %}
                 <li class="list-group-item">
                     <strong>{{ blueprint.name }}</strong> - {{ blueprint.description }}
-                    <button class="btn">Preview</button>
                 </li>
                 {% else %}
                 <li class="list-group-item text-muted">No blueprints available.</li>
                 {% endfor %}
             </ul>
-            <button class="btn">Refresh Blueprints</button>
+            <button class="btn btn-primary mt-3 w-100" id="refresh-blueprints" data-action="refresh-blueprints">
+                Refresh Blueprints
+            </button>
         </div>
     </div>
 
-    <div id="active-emulations" class="card col-50">
-        <div class="card-header">Active Emulations</div>
+    <!-- Section: Active Emulations -->
+    <div class="card mb-4">
+        <div class="card-header bg-info text-white">Active Emulations</div>
         <div class="card-body">
             <ul id="active-emulations-list" class="list-group">
-                <li class="list-group-item text-muted">No active emulations.</li>
+                <!-- Active emulation items will be dynamically loaded here -->
             </ul>
-            <button class="btn">Refresh Emulations</button>
+            <button class="btn btn-info mt-3 w-100" id="refresh-emulations" data-action="refresh-emulations">
+                Refresh Emulations
+            </button>
         </div>
     </div>
 
-    <div id="start-emulation" class="card col-50">
-        <div class="card-header">Start Emulation</div>
+    <!-- Section: Start Emulation -->
+    <div class="card mb-4">
+        <div class="card-header bg-success text-white">Start Emulation</div>
         <div class="card-body">
-            <form>
-                <input type="text" placeholder="Machine Name" class="form-control">
-                <select class="form-control">
-                    <option>Select Blueprint</option>
-                </select>
-                <div>
-                    <input type="checkbox"> Stress Test
+            <form id="start-emulation-form" method="post" action="{{ url_for('emulators.start_emulation_endpoint') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <div class="mb-3">
+                    {{ form.machine_name.label(class="form-label") }}
+                    {{ form.machine_name(class="form-control", id="machine-name") }}
+                    {% for error in form.machine_name.errors %}
+                    <small class="text-danger">{{ error }}</small>
+                    {% endfor %}
                 </div>
-                <button class="btn">Start Emulation</button>
+                <div class="mb-3">
+                    {{ form.blueprint.label(class="form-label") }}
+                    {{ form.blueprint(class="form-select", id="blueprint-select") }}
+                    {% for error in form.blueprint.errors %}
+                    <small class="text-danger">{{ error }}</small>
+                    {% endfor %}
+                </div>
+                <div class="form-check mb-3">
+                    {{ form.stress_test(class="form-check-input", id="stress-test") }}
+                    {{ form.stress_test.label(class="form-check-label", for="stress-test") }}
+                </div>
+                <button type="submit" class="btn btn-success w-100">{{ form.submit.label.text }}</button>
             </form>
         </div>
     </div>
 
-    <div id="emulator-logs" class="card col-100">
-        <div class="card-header">Emulator Logs</div>
+    <!-- Section: Emulator Logs -->
+    <div class="card mb-4">
+        <div class="card-header bg-secondary text-white">Emulator Logs</div>
         <div class="card-body">
-            <div id="emulator-logs"></div>
-            <button class="btn">Refresh Logs</button>
+            <div id="emulator-logs" class="border p-3" style="height: 300px; overflow-y: auto; background: #f8f9fa;">
+                <!-- Logs will be dynamically added here -->
+            </div>
+            <button class="btn btn-secondary mt-3 w-100" id="refresh-logs" data-action="refresh-logs">
+                Refresh Logs
+            </button>
         </div>
     </div>
 
-    <div id="add-emulator" class="card col-50">
-        <div class="card-header">Add New Emulator</div>
+    <!-- Section: Add Emulator -->
+    <div class="card mb-4">
+        <div class="card-header bg-dark text-white">Add New Emulator</div>
         <div class="card-body">
-            <button class="btn">Add Emulator</button>
+            <button class="btn btn-primary w-100" id="add-emulator" data-bs-toggle="modal" data-bs-target="#add-emulator-modal">
+                Add Emulator
+            </button>
         </div>
     </div>
 
-    <div id="json-preview" class="card col-50">
-        <div class="card-header">JSON Preview</div>
-        <div class="card-body">
-            <button class="btn">Upload and Preview JSON</button>
+    <!-- Modal: Add Emulator -->
+    <div class="modal fade" id="add-emulator-modal" tabindex="-1" aria-labelledby="addEmulatorModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title" id="addEmulatorModalLabel">Add Emulator</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="add-emulator-form" method="post" action="{{ url_for('emulators.add_emulator') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <div class="mb-3">
+                            <label for="emulator-name" class="form-label">Emulator Name</label>
+                            <input type="text" id="emulator-name" name="name" class="form-control" placeholder="Override JSON Name">
+                        </div>
+                        <div class="mb-3">
+                            <label for="emulator-description" class="form-label">Description</label>
+                            <input type="text" id="emulator-description" name="description" class="form-control" placeholder="Override JSON Description">
+                        </div>
+                        <div class="mb-3">
+                            <label for="json-file" class="form-label">Upload JSON File</label>
+                            <input type="file" id="json-file" name="json_file" class="form-control" accept=".json">
+                        </div>
+                        <div class="mb-3">
+                            <label for="json-text" class="form-label">Paste JSON Text</label>
+                            <textarea id="json-text" name="json_text" class="form-control" rows="5"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Add Emulator</button>
+                    </form>
+                </div>
+            </div>
         </div>
+    </div>
+
+
+    <!-- Modal: Blueprint Preview -->
+    <div class="modal fade" id="preview-modal" tabindex="-1" aria-labelledby="preview-modal-label" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title" id="preview-modal-label">Blueprint Preview</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="preview-modal-body">
+                    <!-- Preview content dynamically added here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add New Button for JSON Preview -->
+<div class="card mb-4">
+    <div class="card-header bg-warning text-dark">JSON Preview</div>
+    <div class="card-body">
+        <button class="btn btn-warning w-100" id="preview-json-button" data-bs-toggle="modal" data-bs-target="#json-preview-modal">
+            Upload and Preview JSON
+        </button>
     </div>
 </div>
 
