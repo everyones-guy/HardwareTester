@@ -209,9 +209,9 @@ class EmulatorService:
             logger.info(f"Blueprint '{name}' added successfully.")
             return {"success": True, "message": f"Blueprint '{name}' added successfully."}
         except Exception as e:
-            logger.error(f"Error adding blueprint '{name}': {e}")
+            logger.error(f"Error adding blueprint '{name}': {str(e)}")
             db.session.rollback()
-            return {"success": False, "error": f"Failed to add blueprint: {e}"}
+            return {"success": False, "error": f"Failed to add blueprint: {str(e)}"}
 
     def handle_file_upload(self, file) -> Dict[str, Union[str, int]]:
         """Handle file upload for blueprints."""
@@ -308,9 +308,22 @@ class EmulatorService:
         
     def get_available_controller_id(self) -> Union[int, None]:
         """Get an available controller ID."""
-        # Replace this with the logic to determine the controller
-        controller = Controller.query.filter_by(available=True).first()  # Example logic
-        return controller.id if controller else None
+        try:
+            controllers = Controller.query.all()
+            for ctrl in controllers:
+                logger.info(f"Controller {ctrl.id}: available={ctrl.available}, name={ctrl.name}")
+        
+            controller = Controller.query.filter_by(available=True).first()
+            if controller:
+                logger.info(f"Available controller found: {controller.id}")
+                return controller.id
+            else:
+                logger.warning("No available controllers found.")
+                return None
+        except Exception as e:
+            logger.error(f"Error fetching available controller: {e}")
+            return None
+
 
     def load_blueprint_from_file(self, file_path: str) -> Dict[str, Union[bool, str]]:
         """
