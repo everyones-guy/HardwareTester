@@ -331,6 +331,41 @@ $(document).ready(function () {
         console.log("Configuration validation passed.");
     }
 
+    const editorContainer = document.getElementById("json-editor");
+    const editor = new JSONEditor(editorContainer, { mode: 'code' });
+
+    document.getElementById("upload-json").addEventListener("change", (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            const formData = new FormData();
+            formData.append("file", file);
+
+            fetch("/json/preview", { method: "POST", body: formData })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        editor.set(JSON.parse(data.data));
+                    } else {
+                        alert(data.error);
+                    }
+                });
+        }
+    });
+
+    document.getElementById("save-json").addEventListener("click", () => {
+        const modifiedData = JSON.stringify(editor.get());
+        const filename = prompt("Enter filename for the modified JSON:", "modified.json");
+
+        fetch("/json/save", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ data: modifiedData, filename }),
+        })
+            .then(response => response.json())
+            .then(data => alert(data.message || data.error));
+    });
+
+
     // Initial data load
     fetchBlueprints();
     fetchActiveEmulations();

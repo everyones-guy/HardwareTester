@@ -4,6 +4,7 @@ from flask import Blueprint, request, jsonify, render_template
 from HardwareTester.services.upload_service import UploadService
 from HardwareTester.services.hardware_service import HardwareService
 from HardwareTester.utils.custom_logger import CustomLogger
+import json
 
 # Initialize logger
 logger = CustomLogger.get_logger("upload_views")
@@ -61,3 +62,37 @@ def upload_firmware():
     return jsonify({"success": True, "message": "Firmware uploaded successfully", "hash": firmware_result["hash"]})
 
 
+@upload_bp.route("/json/preview", methods=["POST"])
+def preview_json():
+    """Upload and preview a JSON file."""
+    file = request.files.get("file")
+    if not file or not file.filename.endswith('.json'):
+        return jsonify({"success": False, "error": "Invalid or missing JSON file."}), 400
+
+    try:
+        json_data = file.read().decode("utf-8")
+        return jsonify({"success": True, "data": json_data}), 200
+    except Exception as e:
+        logger.error(f"Error processing JSON preview: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@upload_bp.route("/json/save", methods=["POST"])
+def save_json():
+    """Save the modified JSON data."""
+    try:
+        modified_data = request.json.get("data")
+        filename = request.json.get("filename", "modified_file.json")
+
+        # Save the JSON data
+        upload_dir = os.path.join("uploads", "json_files")
+        os.makedirs(upload_dir, exist_ok=True)
+        file_path = os.path.join(upload_dir, filename)
+        with open(file_path, "w", encoding="utf-8") as f:
+            f.write(modified_data)
+
+        logger.info(f"Modified JSON saved to {file_path}")
+        return jsonify({"success": True, "message": f"JSON saved successfully to {file_path}"}), 200
+    except Exception as e:
+        logger.error(f"Error saving JSON file: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500

@@ -13,7 +13,7 @@ from HardwareTester.extensions import db
 from HardwareTester.utils.custom_logger import CustomLogger
 from HardwareTester.services.mqtt_client import MQTTClient
 from HardwareTester.models.device_models import Emulation, Blueprint, Controller, Peripheral  # Replace with actual path to your model
-from HardwareTester.models.upload_files import UploadedFile
+from HardwareTester.models.upload_models import UploadedFile
 from HardwareTester.services.peripherals_service import PeripheralsService
 from HardwareTester.services.serial_service import SerialService
 

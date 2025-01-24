@@ -90,7 +90,7 @@
     <Compile Include="HardwareTester\models\test_models.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\models\upload_files.py">
+    <Compile Include="HardwareTester\models\upload_models.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="HardwareTester\models\user_models.py">

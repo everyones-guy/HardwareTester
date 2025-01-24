@@ -144,8 +144,78 @@
         </div>
     </div>
 </div>
+
+<!-- Add New Button for JSON Preview -->
+<div class="card mb-4">
+    <div class="card-header bg-warning text-dark">JSON Preview</div>
+    <div class="card-body">
+        <button class="btn btn-warning w-100" id="preview-json-button" data-bs-toggle="modal" data-bs-target="#json-preview-modal">
+            Upload and Preview JSON
+        </button>
+    </div>
+</div>
+
+<!-- Modal: JSON Preview -->
+<div class="modal fade" id="json-preview-modal" tabindex="-1" aria-labelledby="jsonPreviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title" id="jsonPreviewModalLabel">JSON Preview and Edit</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- File Upload -->
+                <div class="mb-3">
+                    <label for="upload-json-file" class="form-label">Upload JSON File</label>
+                    <input type="file" id="upload-json-file" name="json_file" class="form-control" accept=".json">
+                </div>
+                <!-- JSON Editor -->
+                <div id="json-editor" style="height: 300px; border: 1px solid #ccc; margin-bottom: 15px;"></div>
+                <!-- Action Buttons -->
+                <button class="btn btn-primary w-100" id="save-json-button">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block additional_scripts %}
 <script src="{{ url_for('static', filename='js/emulator.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsoneditor@9.7.0/dist/jsoneditor.min.js"></script>
+<script>
+    const jsonEditor = new JSONEditor(document.getElementById("json-editor"), { mode: 'code' });
+
+    document.getElementById("upload-json-file").addEventListener("change", async (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            const formData = new FormData();
+            formData.append("file", file);
+
+            const response = await fetch("/json/preview", {
+                method: "POST",
+                body: formData,
+            });
+            const result = await response.json();
+            if (result.success) {
+                jsonEditor.set(JSON.parse(result.data));
+            } else {
+                alert(result.error);
+            }
+        }
+    });
+
+    document.getElementById("save-json-button").addEventListener("click", async () => {
+        const modifiedData = JSON.stringify(jsonEditor.get());
+        const filename = prompt("Enter a filename for the modified JSON:", "modified.json");
+
+        const response = await fetch("/json/save", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ data: modifiedData, filename }),
+        });
+        const result = await response.json();
+        alert(result.message || result.error);
+    });
+</script>
 {% endblock %}

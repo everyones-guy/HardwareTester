@@ -57,7 +57,17 @@ class UploadService:
         logger.info(f"Uploading spec sheet by {uploaded_by}...")
         return UploadService.upload_file(file, "spec_sheets", uploaded_by)
 
-
+    @staticmethod
+    def validate_json(file):
+        """Validate the uploaded JSON file."""
+        try:
+            json_data = json.load(file)
+            return {"success": True, "data": json_data}
+        except json.JSONDecodeError as e:
+            logger.error(f"Invalid JSON file: {e}")
+            return {"success": False, "error": str(e)}
+    
+    
 # Usage:
 # from werkzeug.datastructures import FileStorage
 #
