@@ -415,17 +415,25 @@ class EmulatorService:
             logger.error(f"Error adding/updating peripherals: {e}")
             raise
         
-    def get_available_blueprint_id(self):
+    def get_available_blueprint_id(self) -> int:
         """
         Generate the next available ID for the blueprints table.
+        :return: The next available ID as an integer.
         """
         try:
             # Query the maximum ID in the blueprints table
             max_id = db.session.query(func.max(Blueprint.id)).scalar()
-            return (max_id or 0) + 1  # Increment from the current max ID
-        except Exception as e:
-            logger.error(f"Error generating blueprint ID: {e}")
+            next_id = (max_id or 0) + 1  # Increment from the current max ID
+
+            logger.info(f"Next available blueprint ID: {next_id}")
+            return next_id
+        except SQLAlchemyError as e:
+            logger.error(f"Database error while generating blueprint ID: {e}")
             raise
+        except Exception as e:
+            logger.error(f"Unexpected error generating blueprint ID: {e}")
+            raise
+
 
     def save_uploaded_file(file, subfolder=''):
         """Save an uploaded file to the specified subfolder."""
