@@ -1,5 +1,13 @@
 $(document).ready(function () {
     const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+    const editorContainer = document.getElementById("json-editor");
+    const jsonEditor = new JSONEditor(editorContainer, {
+        mode: "tree",
+        modes: ["tree", "code"],
+        onError: function (err) {
+            alert(`JSON Editor Error: ${err}`);
+        },
+    });
 
     // Utility: Show alerts
     function showAlert(message, type = "success") {
@@ -13,14 +21,7 @@ $(document).ready(function () {
         setTimeout(() => $(".alert").alert("close"), 5000); // Auto-dismiss after 5 seconds
     }
 
-    // Utility: Append logs to the real-time log viewer
-    function appendLog(message) {
-        const logContainer = $("#real-time-logs");
-        logContainer.append(`<div>${message}</div>`);
-        logContainer.scrollTop(logContainer.prop("scrollHeight"));
-    }
-
-    // Utility: Centralized API call function
+    // Utility: API call
     function apiCall(endpoint, method = "GET", data = null, onSuccess = null, onError = null) {
         $.ajax({
             url: endpoint,
@@ -39,74 +40,6 @@ $(document).ready(function () {
             },
         });
     }
-
-    // Real-time logging setup using Socket.IO
-    function setupSocketIO() {
-        const socket = io();
-        socket.on("log_message", (data) => appendLog(data.message));
-    }
-
-    // Fetch and display valves
-    function updateValveList() {
-        apiCall("/valves/list", "GET", null, (data) => {
-            const list = $("#valve-list");
-            list.empty();
-
-            if (data.success) {
-                data.valves.forEach((valve) => {
-                    list.append(`
-                        <li class="list-group-item">
-                            <strong>${valve.name}</strong> - ${valve.type}
-                            <button class="btn btn-danger btn-sm float-end delete-valve" data-id="${valve.id}">Delete</button>
-                            <button class="btn btn-secondary btn-sm float-end update-valve me-2" data-id="${valve.id}">Update</button>
-                        </li>
-                    `);
-                });
-            } else {
-                showAlert(data.message, "danger");
-            }
-        });
-    }
-
-    // Add a new valve
-    $("#add-valve-form").on("submit", function (event) {
-        event.preventDefault();
-        const formData = new FormData(this);
-
-        apiCall("/valves/add", "POST", Object.fromEntries(formData), (response) => {
-            showAlert(response.message, "success");
-            updateValveList();
-        });
-    });
-
-    // Delete a valve
-    $("#valve-list").on("click", ".delete-valve", function () {
-        const valveId = $(this).data("id");
-
-        apiCall(`/valves/${valveId}/delete`, "DELETE", null, (response) => {
-            showAlert(response.message, "success");
-            updateValveList();
-        });
-    });
-
-    // Update a valve
-    $("#valve-list").on("click", ".update-valve", function () {
-        const valveId = $(this).data("id");
-        const newName = prompt("Enter new name for the valve:");
-        const newType = prompt("Enter new type for the valve:");
-        const newSpecs = prompt("Enter new specifications for the valve:");
-
-        if (newName && newType && newSpecs) {
-            const data = { name: newName, type: newType, specifications: newSpecs };
-
-            apiCall(`/valves/${valveId}/update`, "PUT", data, (response) => {
-                showAlert(response.message, "success");
-                updateValveList();
-            });
-        } else {
-            showAlert("Update canceled. All fields are required.", "warning");
-        }
-    });
 
     // Fetch uploaded test plans and display them
     function updateTestPlansList() {
@@ -144,6 +77,59 @@ $(document).ready(function () {
             updateTestPlansList();
         });
     });
+
+    // Handle Spec Sheet Upload
+    function handleSpecSheetUpload() {
+        $("#upload-spec-sheet-form").on("submit", async function (event) {
+            event.preventDefault();
+            const formData = new FormData(this);
+
+            try {
+                // Upload spec sheet and generate JSON
+                const response = await fetch("/upload-spec-sheet", {
+                    method: "POST",
+                    headers: { "X-CSRFToken": csrfToken },
+                    body: formData,
+                });
+                const data = await response.json();
+
+                if (data.success && data.generatedJson) {
+                    showAlert("Spec sheet processed successfully. Previewing JSON...");
+                    jsonEditor.set(data.generatedJson); // Populate JSON editor with generated data
+                } else {
+                    showAlert(data.message || "Failed to process spec sheet.", "danger");
+                }
+            } catch (error) {
+                console.error("Error processing spec sheet:", error);
+                showAlert("An error occurred while processing the spec sheet.", "danger");
+            }
+        });
+    }
+
+    // Emulate JSON Configuration
+    function emulateJsonConfiguration() {
+        $("#emulate-json-button").on("click", function () {
+            try {
+                const configuration = jsonEditor.get();
+                validateConfiguration(configuration);
+
+                startEmulation(configuration);
+            } catch (err) {
+                showAlert(err.message, "danger");
+            }
+        });
+    }
+
+    // Real-Time Logging
+    function setupSocketIO() {
+        const socket = io();
+        socket.on("log_message", (data) => {
+            const logContainer = $("#real-time-logs");
+            logContainer.append(`<div>${data.message}</div>`);
+            logContainer.scrollTop(logContainer.prop("scrollHeight"));
+        });
+    }
+
 
     // Initialize
     setupSocketIO();

@@ -4,7 +4,7 @@ $(document).ready(function () {
         alert(isError ? `Error: ${message}` : message);
     }
 
-    // Utility to validate form inputs
+    // Utility: Validate form inputs
     function validateInputs(inputs) {
         for (const [key, value] of Object.entries(inputs)) {
             if (!value) {
@@ -13,6 +13,44 @@ $(document).ready(function () {
             }
         }
         return true;
+    }
+
+    // Fetch configuration from the database
+    async function fetchConfigurationFromDatabase(blueprintName) {
+        try {
+            const response = await fetch(`/api/configurations/${blueprintName}`, {
+                method: "GET",
+                headers: { "X-CSRFToken": csrfToken },
+            });
+
+            if (!response.ok) {
+                console.warn(`Configuration for "${blueprintName}" not found.`);
+                return null;
+            }
+
+            const data = await response.json();
+            return data.success ? data.configuration : null;
+        } catch (error) {
+            console.error("Error fetching configuration:", error);
+            return null;
+        }
+    }
+
+    // Start emulation
+    function startEmulation(configuration) {
+        apiCall(
+            "/emulators/start",
+            "POST",
+            configuration,
+            (response) => {
+                showAlert("Emulation started successfully!", false);
+                fetchActiveEmulations(); // Refresh the active emulations list
+            },
+            (xhr) => {
+                showAlert("Failed to start emulation.", true);
+                console.error("Start emulation error:", xhr);
+            }
+        );
     }
 
     // Fetch and display available blueprints
@@ -128,31 +166,38 @@ $(document).ready(function () {
         );
     }
 
-    // Start a new emulation
-    $("#start-emulation-form").on("submit", function (event) {
+    // Unified handler for starting emulations
+    $("#start-emulation-form").on("submit", async function (event) {
         event.preventDefault();
         console.log("Starting emulation...");
 
         const machineName = $("#machine-name").val();
-        const blueprint = $("#blueprint-select").val();
+        const blueprintName = $("#blueprint-select").val();
         const stressTest = $("#stress-test").is(":checked");
 
-        if (!validateInputs({ "Machine Name": machineName, Blueprint: blueprint })) return;
+        if (!validateInputs({ "Machine Name": machineName, Blueprint: blueprintName })) return;
 
-        apiCall(
-            "/emulators/start",
-            "POST",
-            { machine_name: machineName, blueprint, stress_test: stressTest },
-            () => {
-                showAlert("Emulation started successfully.");
-                fetchActiveEmulations();
-            },
-            (xhr) => {
-                showAlert("Failed to start emulation.", true);
-                console.error("Start emulation error:", xhr);
+        try {
+            // Step 1: Fetch configuration from the database
+            const configuration = await fetchConfigurationFromDatabase(blueprintName);
+
+            if (configuration) {
+                // Step 2: Validate and start emulation if configuration exists
+                validateConfiguration(configuration, { warnOnly: true });
+                startEmulation({ ...configuration, machine_name: machineName, stress_test: stressTest });
+            } else {
+                // Step 3: Prompt user to create a new configuration if none exists
+                showAlert(`No configuration found for "${blueprintName}". Please create one.`, true);
+                jsonEditor.set({ type: "blueprint", name: blueprintName, description: "" });
+                $("#json-editor-container").removeClass("d-none");
+                showAlert("Start creating your configuration in the JSON editor.");
             }
-        );
+        } catch (error) {
+            console.error("Error during emulation setup:", error);
+            showAlert("An error occurred while starting the emulation.", true);
+        }
     });
+
 
     // Stop an active emulation
     $(document).on("click", ".stop-emulation", function () {
@@ -164,7 +209,7 @@ $(document).ready(function () {
             "POST",
             { machine_name: machineName },
             () => {
-                showAlert("Emulation stopped successfully.");
+                showAlert("Emulation stopped successfully.", false);
                 fetchActiveEmulations();
             },
             (xhr) => {
@@ -343,35 +388,94 @@ $(document).ready(function () {
         }
     });
 
-    // JSON Validation Function
-    function validateConfiguration(configuration) {
-        if (!configuration.name) throw new Error("Configuration must include a 'name' field.");
-        if (!configuration.type) throw new Error("Configuration must include a 'type' field.");
-        if (!configuration.description) throw new Error("Configuration must include a 'description' field.");
-        if (!configuration.protocol) throw new Error("Configuration must include a 'protocol' field.");
-        if (!configuration.controller) throw new Error("Configuration must include a 'controller' field.");
-        if (!configuration.controller.name) throw new Error("Controller must include a 'name' field.");
-        if (!configuration.controller.connection) throw new Error("Controller must include a 'connection' field.");
-        if (!configuration.controller.peripherals || !Array.isArray(configuration.controller.peripherals)) {
-            throw new Error("Controller must include a 'peripherals' array.");
+    function validateConfiguration(configuration, options = { warnOnly: true }) {
+        const warnings = [];
+        const errors = [];
+
+        // Validate the top-level fields
+        if (!configuration.type) errors.push("Configuration must include a 'type' field.");
+        if (!configuration.name) warnings.push("Configuration is missing a 'name' field.");
+        if (!configuration.description) warnings.push("Configuration is missing a 'description' field.");
+
+        // Validate components based on type
+        if (configuration.type === "blueprint") {
+            validateBlueprint(configuration, warnings, errors);
+        } else if (configuration.type === "controller") {
+            validateController(configuration, warnings, errors);
+        } else if (configuration.type === "peripheral") {
+            validatePeripheral(configuration, warnings, errors);
+        } else if (configuration.type === "emulator") {
+            validateEmulator(configuration, warnings, errors);
+        } else {
+            errors.push(`Unknown configuration type: ${configuration.type}`);
         }
 
-        configuration.controller.peripherals.forEach((peripheral, index) => {
-            if (!peripheral.name) throw new Error(`Peripheral ${index + 1} must include a 'name' field.`);
-            if (!peripheral.type) throw new Error(`Peripheral ${index + 1} must include a 'type' field.`);
-            if (!peripheral.connection) throw new Error(`Peripheral ${index + 1} must include a 'connection' field.`);
-        });
-
-        if (!configuration.commands || !Array.isArray(configuration.commands)) {
-            throw new Error("Configuration must include a 'commands' array.");
+        // Display warnings and errors
+        if (options.warnOnly && warnings.length > 0) {
+            console.warn("Validation Warnings:", warnings);
         }
 
-        configuration.commands.forEach((command, index) => {
-            if (!command.name) throw new Error(`Command ${index + 1} must include a 'name' field.`);
-            if (!command.description) throw new Error(`Command ${index + 1} must include a 'description' field.`);
-        });
+        if (errors.length > 0) {
+            throw new Error(`Validation Errors: ${errors.join(", ")}`);
+        }
 
-        console.log("Configuration validation passed.");
+        console.log("Validation completed successfully.");
+    }
+
+    // Validate blueprint-specific fields
+    function validateBlueprint(configuration, warnings, errors) {
+        if (!configuration.blueprint) {
+            warnings.push("Blueprint is missing a 'blueprint' field.");
+            return;
+        }
+
+        // Check for nested components
+        if (configuration.blueprint.controllers) {
+            configuration.blueprint.controllers.forEach((controller, index) => {
+                try {
+                    validateController(controller, warnings, errors);
+                } catch (error) {
+                    warnings.push(`Controller ${index + 1} has issues: ${error.message}`);
+                }
+            });
+        }
+
+        if (configuration.blueprint.peripherals) {
+            configuration.blueprint.peripherals.forEach((peripheral, index) => {
+                try {
+                    validatePeripheral(peripheral, warnings, errors);
+                } catch (error) {
+                    warnings.push(`Peripheral ${index + 1} has issues: ${error.message}`);
+                }
+            });
+        }
+    }
+
+    // Validate controller-specific fields
+    function validateController(controller, warnings, errors) {
+        if (!controller.name) warnings.push("Controller is missing a 'name' field.");
+        if (!controller.connection) warnings.push("Controller is missing a 'connection' field.");
+        if (controller.peripherals && !Array.isArray(controller.peripherals)) {
+            errors.push("Controller 'peripherals' field must be an array.");
+        }
+    }
+
+    // Validate peripheral-specific fields
+    function validatePeripheral(peripheral, warnings, errors) {
+        if (!peripheral.name) warnings.push("Peripheral is missing a 'name' field.");
+        if (!peripheral.type) warnings.push("Peripheral is missing a 'type' field.");
+        if (!peripheral.connection) warnings.push("Peripheral is missing a 'connection' field.");
+    }
+
+    // Validate emulator-specific fields
+    function validateEmulator(emulator, warnings, errors) {
+        if (!emulator.firmware) warnings.push("Emulator is missing a 'firmware' field.");
+        if (!emulator.hardwareAbstractionLayer) {
+            warnings.push("Emulator is missing a 'hardwareAbstractionLayer' field.");
+        }
+        if (emulator.supportedPeripherals && !Array.isArray(emulator.supportedPeripherals)) {
+            errors.push("Emulator 'supportedPeripherals' field must be an array.");
+        }
     }
 
     // Adjust JSON Editor size dynamically

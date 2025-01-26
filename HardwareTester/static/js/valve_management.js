@@ -1,85 +1,58 @@
 $(document).ready(function () {
     const valveList = $("#valve-list");
-    const addValveBtn = $("#add-valve-btn");
 
     // Fetch and display valves
     function fetchValves() {
-        $.ajax({
-            url: "/valves/list",
-            method: "GET",
-            success: function (data) {
-                if (data.success) {
-                    valveList.empty();
-                    if (data.valves.length > 0) {
-                        data.valves.forEach(valve => {
-                            const valveItem = `
-                                <li class="list-group-item">
-                                    <strong>${valve.name}</strong> (${valve.type}) - State: <span class="valve-state">${valve.state || "Unknown"}</span>
-                                    <button class="btn btn-secondary btn-sm float-end change-state-btn me-2" data-id="${valve.id}">Change State</button>
-                                    <button class="btn btn-danger btn-sm float-end delete-valve-btn" data-id="${valve.id}">Delete</button>
-                                </li>`;
-                            valveList.append(valveItem);
-                        });
-                    } else {
-                        valveList.append("<li class='list-group-item'>No valves found.</li>");
-                    }
+        apiCall("/valves/list", "GET", null, (data) => {
+            valveList.empty();
+
+            if (data.success) {
+                if (data.valves.length > 0) {
+                    data.valves.forEach((valve) => {
+                        valveList.append(`
+                            <li class="list-group-item">
+                                <strong>${valve.name}</strong> (${valve.type}) - State: <span class="valve-state">${valve.state || "Unknown"}</span>
+                                <button class="btn btn-secondary btn-sm float-end change-state-btn me-2" data-id="${valve.id}">Change State</button>
+                                <button class="btn btn-danger btn-sm float-end delete-valve-btn" data-id="${valve.id}">Delete</button>
+                            </li>
+                        `);
+                    });
                 } else {
-                    alert(`Error fetching valves: ${data.error}`);
+                    valveList.append("<li class='list-group-item'>No valves found.</li>");
                 }
-            },
-            error: function (xhr) {
-                alert("Failed to fetch valves. Please try again later.");
-                console.error(xhr.responseText);
+            } else {
+                showAlert(`Error fetching valves: ${data.error}`, "danger");
             }
+        }, (xhr) => {
+            showAlert("Failed to fetch valves. Please try again later.", "danger");
+            console.error(xhr.responseText);
         });
     }
 
     // Add a new valve
-    addValveBtn.on("click", function () {
-        const name = prompt("Enter valve name:");
-        const type = prompt("Enter valve type:");
-        const specifications = prompt("Enter valve specifications:");
+    $("#add-valve-form").on("submit", function (event) {
+        event.preventDefault();
+        const formData = new FormData(this);
 
-        if (name && type) {
-            $.ajax({
-                url: "/valves/add",
-                method: "POST",
-                contentType: "application/json",
-                data: JSON.stringify({ name, type, specifications }),
-                success: function (data) {
-                    if (data.success) {
-                        alert("Valve added successfully.");
-                        fetchValves();
-                    } else {
-                        alert(`Error adding valve: ${data.error}`);
-                    }
-                },
-                error: function (xhr) {
-                    alert("Failed to add valve. Please try again later.");
-                    console.error(xhr.responseText);
-                }
-            });
-        }
+        apiCall("/valves/add", "POST", Object.fromEntries(formData), (response) => {
+            showAlert(response.message, "success");
+            fetchValves();
+        }, (xhr) => {
+            showAlert("Failed to add valve. Please try again later.", "danger");
+            console.error(xhr.responseText);
+        });
     });
 
     // Delete a valve
     valveList.on("click", ".delete-valve-btn", function () {
         const valveId = $(this).data("id");
-        $.ajax({
-            url: `/valves/${valveId}/delete`,
-            method: "DELETE",
-            success: function (data) {
-                if (data.success) {
-                    alert("Valve deleted successfully.");
-                    fetchValves();
-                } else {
-                    alert(`Error deleting valve: ${data.error}`);
-                }
-            },
-            error: function (xhr) {
-                alert("Failed to delete valve. Please try again later.");
-                console.error(xhr.responseText);
-            }
+
+        apiCall(`/valves/${valveId}/delete`, "DELETE", null, (response) => {
+            showAlert(response.message, "success");
+            fetchValves();
+        }, (xhr) => {
+            showAlert("Failed to delete valve. Please try again later.", "danger");
+            console.error(xhr.responseText);
         });
     });
 
@@ -89,24 +62,37 @@ $(document).ready(function () {
         const newState = prompt("Enter new state (open, closed, faulty, maintenance):");
 
         if (newState) {
-            $.ajax({
-                url: `/valves/${valveId}/change-state`,
-                method: "POST",
-                contentType: "application/json",
-                data: JSON.stringify({ state: newState }),
-                success: function (data) {
-                    if (data.success) {
-                        alert(`Valve state updated to ${newState}.`);
-                        fetchValves();
-                    } else {
-                        alert(`Error changing state: ${data.error}`);
-                    }
-                },
-                error: function (xhr) {
-                    alert("Failed to change valve state. Please try again later.");
-                    console.error(xhr.responseText);
-                }
+            apiCall(`/valves/${valveId}/change-state`, "POST", { state: newState }, (response) => {
+                showAlert(`Valve state updated to ${newState}.`, "success");
+                fetchValves();
+            }, (xhr) => {
+                showAlert("Failed to change valve state. Please try again later.", "danger");
+                console.error(xhr.responseText);
             });
+        } else {
+            showAlert("State update canceled. Please provide a valid state.", "warning");
+        }
+    });
+
+    // Update a valve
+    valveList.on("click", ".update-valve-btn", function () {
+        const valveId = $(this).data("id");
+        const newName = prompt("Enter new name for the valve:");
+        const newType = prompt("Enter new type for the valve:");
+        const newSpecs = prompt("Enter new specifications for the valve:");
+
+        if (newName && newType && newSpecs) {
+            const data = { name: newName, type: newType, specifications: newSpecs };
+
+            apiCall(`/valves/${valveId}/update`, "PUT", data, (response) => {
+                showAlert(response.message, "success");
+                fetchValves();
+            }, (xhr) => {
+                showAlert("Failed to update valve. Please try again later.", "danger");
+                console.error(xhr.responseText);
+            });
+        } else {
+            showAlert("Update canceled. All fields are required.", "warning");
         }
     });
 
