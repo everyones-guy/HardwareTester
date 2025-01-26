@@ -5,18 +5,7 @@ $(document).ready(function () {
     loadAnalyticsTable();
 
     function fetchAnalyticsData(endpoint, onSuccess, onError) {
-        $.ajax({
-            url: endpoint,
-            method: "GET",
-            dataType: "json",
-            success: function (data) {
-                onSuccess(data);
-            },
-            error: function (xhr, status, error) {
-                console.error("Error fetching analytics data:", error);
-                if (onError) onError(error);
-            },
-        });
+        apiCall(endpoint, "GET", {}, onSuccess, onError);
     }
 
     function initializeActivityChart() {

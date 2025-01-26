@@ -13,7 +13,7 @@ class Config:
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     INSTANCE_DIR = os.path.join(BASE_DIR, "instance")
     os.makedirs(INSTANCE_DIR, exist_ok=True)  # Ensure the instance directory exists
-    WTF_CSRF_ENABLED = False  # Disable CSRF for easier testing   
+    WTF_CSRF_ENABLED = True  # Disable CSRF for easier testing   
 
     # Flask settings
     SECRET_KEY = os.getenv("SECRET_KEY", "default-secret-key")

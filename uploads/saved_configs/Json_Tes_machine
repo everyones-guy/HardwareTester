@@ -1,0 +1,50 @@
+{
+    "name": "My Test System Json Modifier",
+    "type": "Test System",
+    "description": "This is a test system for a temperature controller",
+    "protocol": "Modbus RTU",
+    "controller": {
+        "name": "Temperature Controller",
+        "connection": {
+            "type": "Serial",
+            "baudrate": 115200,
+            "port": "COM3"
+        },
+        "peripherals": [
+            {
+                "connection": "MQTT",
+                "name": "Temperature Sensor A",
+                "type": "Sensor",
+                "polling_frequency": "10s",
+                "read_command": "TEMP_READ_A",
+                "threshold": {
+                    "min": -10,
+                    "max": 50
+                }
+            },
+            {
+                "connection": "MQTT",
+                "name": "Temperature Sensor B",
+                "type": "Sensor",
+                "polling_frequency": "15s",
+                "read_command": "TEMP_READ_B",
+                "threshold": {
+                    "min": -20,
+                    "max": 60
+                }
+            }
+        ]
+    },
+    "commands": [
+        {
+            "name": "Read All Sensors",
+            "description": "Command to read all temperature sensors",
+            "command": "TEMP_READ_ALL"
+        },
+        {
+            "name": "Reset Controller",
+            "description": "Reset the temperature controller",
+            "command": "TEMP_RESET"
+        }
+    ]
+}
