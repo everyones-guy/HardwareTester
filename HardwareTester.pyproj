@@ -66,6 +66,9 @@
     <Compile Include="HardwareTester\models\configuration_models.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="HardwareTester\models\ssh_models.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="HardwareTester\models\dashboard_models.py">
       <SubType>Code</SubType>
     </Compile>
@@ -109,6 +112,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="HardwareTester\services\peripheral_service.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="HardwareTester\services\ssh_service.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="HardwareTester\services\test_service.py">
@@ -191,6 +197,9 @@
     <Compile Include="HardwareTester\views\main_views.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="HardwareTester\views\ssh_views.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="HardwareTester\views\test_plan_views.py">
       <SubType>Code</SubType>
     </Compile>
@@ -205,6 +214,9 @@
     </Compile>
     <Compile Include="runserver.py" />
     <Compile Include="HardwareTester\__init__.py" />
+    <Compile Include="tests\Back_End\test_ssh_models.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="tests\Front_End\test_api_views.py">
       <SubType>Code</SubType>
     </Compile>

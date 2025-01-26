@@ -1,150 +1,108 @@
 $(document).ready(function () {
-    const saveForm = $("#save-configuration-form");
     const savedList = $("#saved-configurations-list");
     const previewCard = $("#configuration-preview-card");
     const previewContent = $("#configuration-preview");
     const applyButton = $("#apply-configuration");
     const discardButton = $("#discard-preview");
-    const saveConfigButton = $("#save-configuration");
+    const saveForm = $("#save-configuration-form");
 
-    // Fetch saved configurations
+    // Fetch and display saved configurations
     function fetchConfigurations() {
-        $.ajax({
-            url: "/configurations/list",
-            method: "GET",
-            success: function (data) {
+        apiCall(
+            "/configurations/list",
+            "GET",
+            null,
+            (data) => {
                 savedList.empty();
-                if (data.success) {
-                    data.configurations.forEach(function (config) {
-                        const listItem = `
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <span>${config.name}</span>
-                                <div>
-                                    <button class="btn btn-sm btn-primary preview-config" data-id="${config.id}">Preview</button>
-                                </div>
-                            </li>`;
-                        savedList.append(listItem);
-                    });
-                } else {
-                    savedList.html(`<li class="list-group-item text-danger">${data.error}</li>`);
-                }
-            },
-            error: function (xhr) {
-                console.error("Error fetching configurations:", xhr);
-            },
-        });
-    }
-
-    // Save current configuration
-    saveConfigButton.on("click", function () {
-        $.ajax({
-            url: "/save-configuration",
-            method: "POST",
-            success: function (data) {
-                if (data.success) {
-                    alert("Configuration saved successfully!");
-                    loadConfigurations();
-                } else {
-                    alert("Error saving configuration: " + data.message);
-                }
-            },
-            error: function (xhr) {
-                console.error("Error saving configuration:", xhr);
-            },
-        });
-    });
-
-    // Load configurations into the list
-    function loadConfigurations() {
-        $.ajax({
-            url: "/get-configurations",
-            method: "GET",
-            success: function (data) {
-                savedList.empty();
-                if (data.success) {
-                    data.configurations.forEach(function (config) {
-                        const listItem = `
+                if (data.success && data.configurations.length > 0) {
+                    data.configurations.forEach((config) => {
+                        savedList.append(`
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 <strong>${config.name}</strong>
-                                <button class="btn btn-primary btn-sm load-config" data-id="${config.id}">Load</button>
-                            </li>`;
-                        savedList.append(listItem);
+                                <div>
+                                    <button class="btn btn-primary btn-sm preview-config" data-id="${config.id}">Preview</button>
+                                    <button class="btn btn-success btn-sm apply-config ms-2" data-id="${config.id}">Apply</button>
+                                </div>
+                            </li>
+                        `);
                     });
                 } else {
-                    savedList.html("<li class='list-group-item text-danger'>Error loading configurations.</li>");
+                    savedList.html("<li class='list-group-item text-center'>No configurations available.</li>");
                 }
             },
-            error: function (xhr) {
+            (xhr) => {
+                showAlert("Failed to fetch configurations. Please try again later.", "danger");
                 console.error("Error fetching configurations:", xhr);
-            },
-        });
+            }
+        );
     }
 
-    // Load a specific configuration
-    $(document).on("click", ".load-config", function () {
-        const configId = $(this).data("id");
-        $.ajax({
-            url: `/load-configuration/${configId}`,
-            method: "GET",
-            success: function (data) {
-                if (data.success) {
-                    alert("Configuration loaded successfully!");
-                } else {
-                    alert("Error loading configuration: " + data.message);
-                }
-            },
-            error: function (xhr) {
-                console.error("Error loading configuration:", xhr);
-            },
-        });
-    });
-
-    // Save configuration
+    // Save a configuration
     saveForm.on("submit", function (event) {
         event.preventDefault();
         const name = $("#configuration-name").val();
+        const layout = {}; // Placeholder for the configuration layout
 
-        $.ajax({
-            url: "/configurations/save",
-            method: "POST",
-            contentType: "application/json",
-            headers: {
-                "X-CSRFToken": $("meta[name='csrf-token']").attr("content"),
+        if (!name) {
+            showAlert("Please provide a name for the configuration.", "warning");
+            return;
+        }
+
+        apiCall(
+            "/configurations/save",
+            "POST",
+            { name, layout },
+            (data) => {
+                showAlert(data.message || "Configuration saved successfully.", "success");
+                saveForm[0].reset();
+                fetchConfigurations();
             },
-            data: JSON.stringify({ name, layout: {} }),
-            success: function (data) {
-                if (data.success) {
-                    alert(data.message);
-                    saveForm[0].reset();
-                    fetchConfigurations();
-                } else {
-                    alert(`Error: ${data.error}`);
-                }
-            },
-            error: function (xhr) {
+            (xhr) => {
+                showAlert("Failed to save configuration. Please try again later.", "danger");
                 console.error("Error saving configuration:", xhr);
-            },
-        });
+            }
+        );
     });
 
-    // Preview configuration
+    // Preview a configuration
     $(document).on("click", ".preview-config", function () {
         const configId = $(this).data("id");
-        $.ajax({
-            url: `/configurations/preview/${configId}`,
-            method: "GET",
-            success: function (data) {
+
+        apiCall(
+            `/configurations/preview/${configId}`,
+            "GET",
+            null,
+            (data) => {
                 if (data.success) {
                     previewContent.html(data.preview);
                     previewCard.removeClass("d-none");
                 } else {
-                    alert(`Error: ${data.error}`);
+                    showAlert(`Error: ${data.error}`, "danger");
                 }
             },
-            error: function (xhr) {
+            (xhr) => {
+                showAlert("Failed to load configuration preview.", "danger");
                 console.error("Error fetching preview:", xhr);
+            }
+        );
+    });
+
+    // Apply a configuration
+    $(document).on("click", ".apply-config", function () {
+        const configId = $(this).data("id");
+
+        apiCall(
+            `/configurations/apply/${configId}`,
+            "POST",
+            null,
+            (data) => {
+                showAlert(data.message || "Configuration applied successfully.", "success");
             },
-        });
+            (xhr) => {
+                showAlert("Failed to apply configuration. Please try again later.", "danger");
+                console.error("Error applying configuration:", xhr);
+            }
+        );
     });
 
     // Discard preview
@@ -153,12 +111,6 @@ $(document).ready(function () {
         previewContent.empty();
     });
 
-    // Apply configuration (mock)
-    applyButton.on("click", function () {
-        alert("Configuration applied successfully.");
-        discardButton.click();
-    });
-
-    // Initialize
+    // Initial fetch
     fetchConfigurations();
 });
