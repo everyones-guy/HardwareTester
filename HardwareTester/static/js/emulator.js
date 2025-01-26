@@ -1,21 +1,41 @@
 $(document).ready(function () {
+    // Utility to show alerts for API responses
+    function showAlert(message, isError = false) {
+        alert(isError ? `Error: ${message}` : message);
+    }
+
+    // Utility to validate form inputs
+    function validateInputs(inputs) {
+        for (const [key, value] of Object.entries(inputs)) {
+            if (!value) {
+                showAlert(`Please provide a valid ${key}.`, true);
+                return false;
+            }
+        }
+        return true;
+    }
+
     // Fetch and display available blueprints
     function fetchBlueprints() {
         console.log("Fetching blueprints...");
-        apiCall("/emulators/blueprints", "GET", null, (data) => {
-            const blueprintList = $("#blueprint-list");
-            const blueprintSelect = $("#blueprint-select");
+        apiCall(
+            "/emulators/blueprints",
+            "GET",
+            null,
+            (data) => {
+                const blueprintList = $("#blueprint-list");
+                const blueprintSelect = $("#blueprint-select");
 
-            blueprintList.empty();
-            blueprintSelect.empty().append('<option value="">Select Blueprint</option>');
+                blueprintList.empty();
+                blueprintSelect.empty().append('<option value="">Select Blueprint</option>');
 
-            if (data.success && data.blueprints?.length > 0) {
-                data.blueprints.forEach((blueprint) => {
-                    const controller = blueprint.controller || {};
-                    const peripherals = controller.peripherals || [];
+                if (data.success && data.blueprints?.length > 0) {
+                    data.blueprints.forEach((blueprint) => {
+                        const controller = blueprint.controller || {};
+                        const peripherals = controller.peripherals || [];
 
-                    // Add to the blueprint list
-                    blueprintList.append(`
+                        // Dynamically add to the blueprint list
+                        blueprintList.append(`
                             <li class="list-group-item">
                                 <strong>${blueprint.name}</strong> - ${blueprint.description}
                                 <button class="btn btn-sm btn-info preview-blueprint mt-2" data-blueprint="${blueprint.name}">Preview</button>
@@ -32,76 +52,104 @@ $(document).ready(function () {
                             </li>
                         `);
 
-                    // Add to the blueprint dropdown
-                    blueprintSelect.append(`<option value="${blueprint.name}">${blueprint.name}</option>`);
-                });
-            } else {
-                blueprintList.append('<li class="list-group-item text-center">No blueprints available.</li>');
+                        // Dynamically add to the blueprint select dropdown
+                        blueprintSelect.append(`<option value="${blueprint.name}">${blueprint.name}</option>`);
+                    });
+                } else {
+                    blueprintList.append('<li class="list-group-item text-center">No blueprints available.</li>');
+                }
+            },
+            (xhr) => {
+                // if we get an error in this specific spot it means the server is down or the API is broken
+                // Be sure to also check the console for any database or server errors regarding tokens
+                showAlert("Failed to fetch blueprints.", true);
+                console.error("Blueprint fetch error:", xhr);
             }
-        });
+        );
     }
 
     // Fetch and display active emulations
     function fetchActiveEmulations() {
         console.log("Fetching active emulations...");
-        apiCall("/emulators/list", "GET", null, (data) => {
-            const emulationsList = $("#active-emulations-list");
-            emulationsList.empty();
+        apiCall(
+            "/emulators/list",
+            "GET",
+            null,
+            (data) => {
+                const emulationsList = $("#active-emulations-list");
+                emulationsList.empty();
 
-            if (data.success && data.emulations?.length > 0) {
-                data.emulations.forEach((emulation) => {
-                    emulationsList.append(`
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            ${emulation.machine_name} (${emulation.blueprint})
-                            <button class="btn btn-sm btn-danger stop-emulation" data-machine="${emulation.machine_name}">Stop</button>
-                        </li>
-                    `);
-                });
-            } else {
-                emulationsList.append('<li class="list-group-item text-center">No active emulations.</li>');
+                if (data.success && data.emulations?.length > 0) {
+                    data.emulations.forEach((emulation) => {
+                        emulationsList.append(`
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                ${emulation.machine_name} (${emulation.blueprint})
+                                <button class="btn btn-sm btn-danger stop-emulation" data-machine="${emulation.machine_name}">Stop</button>
+                            </li>
+                        `);
+                    });
+                } else {
+                    emulationsList.append('<li class="list-group-item text-center">No active emulations.</li>');
+                }
+            },
+            (xhr) => {
+                // If we get an error, it means the server is down or the API is broken
+                showAlert("Failed to fetch active emulations.", true);
+                console.error("Emulation fetch error:", xhr);
             }
-        });
+        );
     }
 
     // Fetch and display emulator logs
     function fetchLogs() {
         console.log("Fetching logs...");
-        apiCall("/emulators/logs", "GET", null, (data) => {
-            const logsContainer = $("#emulator-logs");
-            logsContainer.empty();
+        apiCall(
+            "/emulators/logs",
+            "GET",
+            null,
+            (data) => {
+                const logsContainer = $("#emulator-logs");
+                logsContainer.empty();
 
-            if (data.success && data.logs?.length > 0) {
-                data.logs.forEach((log) => {
-                    logsContainer.append(
-                        `<div class="${log.type === "error" ? "text-danger" : "text-secondary"}">${log.message}</div>`
-                    );
-                });
-            } else {
-                logsContainer.append('<div class="text-center">No logs available.</div>');
+                if (data.success && data.logs?.length > 0) {
+                    data.logs.forEach((log) => {
+                        logsContainer.append(
+                            `<div class="${log.type === "error" ? "text-danger" : "text-secondary"}">${log.message}</div>`
+                        );
+                    });
+                } else {
+                    logsContainer.append('<div class="text-center">No logs available.</div>');
+                }
+            },
+            (xhr) => {
+                showAlert("Failed to fetch logs.", true);
+                console.error("Logs fetch error:", xhr);
             }
-        });
+        );
     }
 
     // Start a new emulation
     $("#start-emulation-form").on("submit", function (event) {
         event.preventDefault();
         console.log("Starting emulation...");
+
         const machineName = $("#machine-name").val();
         const blueprint = $("#blueprint-select").val();
         const stressTest = $("#stress-test").is(":checked");
 
-        if (!machineName || !blueprint) {
-            alert("Please provide both a machine name and a blueprint.");
-            return;
-        }
+        if (!validateInputs({ "Machine Name": machineName, Blueprint: blueprint })) return;
 
         apiCall(
             "/emulators/start",
             "POST",
             { machine_name: machineName, blueprint, stress_test: stressTest },
             () => {
-                alert("Emulation started successfully.");
+                showAlert("Emulation started successfully.");
                 fetchActiveEmulations();
+            },
+            (xhr) => {
+                showAlert("Failed to start emulation.", true);
+                console.error("Start emulation error:", xhr);
             }
         );
     });
@@ -116,14 +164,15 @@ $(document).ready(function () {
             "POST",
             { machine_name: machineName },
             () => {
-                alert("Emulation stopped successfully.");
+                showAlert("Emulation stopped successfully.");
                 fetchActiveEmulations();
+            },
+            (xhr) => {
+                showAlert("Failed to stop emulation.", true);
+                console.error("Stop emulation error:", xhr);
             }
         );
     });
-
-    // Before showing the modal
-    const previewModal = new bootstrap.Modal(document.getElementById("preview-modal"));
 
     // Preview a blueprint
     $(document).on("click", ".preview-blueprint", function () {
@@ -134,140 +183,167 @@ $(document).ready(function () {
 
         modalBody.html(`<p>Loading preview for ${blueprintName}...</p>`);
 
-        apiCall(`/emulators/preview/${blueprintName}`, "GET", null, (data) => {
-            if (data.success) {
-                const blueprint = data.blueprint || {};
-                const controller = blueprint.controller || {};
-                const peripherals = controller.peripherals || [];
+        apiCall(
+            `/emulators/preview/${blueprintName}`,
+            "GET",
+            null,
+            (data) => {
+                if (data.success) {
+                    const blueprint = data.blueprint || {};
+                    const controller = blueprint.controller || {};
+                    const peripherals = controller.peripherals || [];
 
-                modalBody.html(`
-                    <h5>${blueprint.name}</h5>
-                    <p>${blueprint.description}</p>
-                    <h6>Controller:</h6>
-                    <ul>
-                        <li><strong>Name:</strong> ${controller.name || "N/A"}</li>
-                        <li><strong>Connection:</strong> ${JSON.stringify(controller.connection || {}, null, 2)}</li>
-                    </ul>
-                    <h6>Peripherals:</h6>
-                    <ul>
-                        ${peripherals.map(peripheral => `
-                            <li>
-                                <strong>${peripheral.name}</strong> (${peripheral.type})
-                                <ul>
-                                    <li><strong>Polling Frequency:</strong> ${peripheral.polling_frequency || "N/A"}</li>
-                                    <li><strong>Read Command:</strong> ${peripheral.read_command || "N/A"}</li>
-                                    <li><strong>Threshold:</strong> ${peripheral.threshold || "N/A"}</li>
-                                </ul>
-                            </li>
-                        `).join("")}
-                    </ul>
-                `);
-            } else {
-                modalBody.html(`<p class="text-danger">Failed to load preview for ${blueprintName}.</p>`);
+                    modalBody.html(`
+                        <h5>${blueprint.name}</h5>
+                        <p>${blueprint.description}</p>
+                        <h6>Controller:</h6>
+                        <ul>
+                            <li><strong>Name:</strong> ${controller.name || "N/A"}</li>
+                            <li><strong>Connection:</strong> ${JSON.stringify(controller.connection || {}, null, 2)}</li>
+                        </ul>
+                        <h6>Peripherals:</h6>
+                        <ul>
+                            ${peripherals.map(peripheral => `
+                                <li>
+                                    <strong>${peripheral.name}</strong> (${peripheral.type})
+                                    <ul>
+                                        <li><strong>Polling Frequency:</strong> ${peripheral.polling_frequency || "N/A"}</li>
+                                        <li><strong>Read Command:</strong> ${peripheral.read_command || "N/A"}</li>
+                                        <li><strong>Threshold:</strong> ${peripheral.threshold || "N/A"}</li>
+                                    </ul>
+                                </li>
+                            `).join("")}
+                        </ul>
+                    `);
+                } else {
+                    modalBody.html(`<p class="text-danger">Failed to load preview for ${blueprintName}.</p>`);
+                }
+            },
+            (xhr) => {
+                modalBody.html(`<p class="text-danger">Error loading blueprint preview.</p>`);
+                console.error("Blueprint preview error:", xhr);
             }
-        });
+        );
 
+        const previewModal = new bootstrap.Modal(document.getElementById("preview-modal"));
         previewModal.show();
     });
 
-    // After the modal is hidden, ensure focus is removed
-    $("#preview-modal").on("hidden.bs.modal", function () {
-        $(this).find("*").blur(); // Remove focus from all elements inside the modal
+    const editorContainer = document.getElementById("json-editor");
+    const jsonEditor = new JSONEditor(editorContainer, {
+        mode: "tree",
+        modes: ["tree", "code"],
+        onError: function (err) {
+            alert(`JSON Editor Error: ${err}`);
+        },
+    });
+
+    // Utility: Show alerts for user feedback
+    function showAlert(message, isError = false) {
+        alert(isError ? `Error: ${message}` : message);
+    }
+
+    // Utility: Resize JSON editor dynamically
+    function resizeEditor() {
+        const editorHeight = window.innerHeight * 0.6; // 60% of the viewport height
+        editorContainer.style.height = `${editorHeight}px`;
+    }
+
+    // Handle JSON file upload
+    $("#upload-json-file").on("change", function (event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                try {
+                    const jsonData = JSON.parse(e.target.result);
+                    jsonEditor.set(jsonData); // Populate editor
+                    console.log("JSON loaded into editor:", jsonData);
+                } catch (err) {
+                    showAlert("Invalid JSON file. Please upload a valid JSON file.", true);
+                }
+            };
+            reader.readAsText(file);
+        }
+    });
+
+    // Save JSON changes and send to server
+    $("#save-json-button").on("click", function () {
+        try {
+            const modifiedData = jsonEditor.get();
+            const filename = prompt("Enter filename for the modified JSON:", "modified.json");
+            if (filename) {
+                apiCall(
+                    "/emulators/json/save",
+                    "POST",
+                    { data: modifiedData, filename },
+                    (response) => {
+                        showAlert(response.message || "JSON saved successfully.");
+                        console.log("Save response:", response);
+                    },
+                    (xhr) => {
+                        showAlert("Failed to save JSON. Check console for details.", true);
+                        console.error("Error saving JSON:", xhr);
+                    }
+                );
+            }
+        } catch (err) {
+            showAlert("Invalid JSON. Please correct the structure and try again.", true);
+        }
     });
 
     // Add Emulator Form Submission
     $("#add-emulator-form").on("submit", async function (event) {
+        event.preventDefault();
 
         console.log("Adding emulator...");
-
-        // Get the file input (if any) from the form
         const fileInput = $("#json-file")[0]?.files[0];
-
-        // Get the text input (if any) from the form
         const textInput = $("#json-text").val().trim();
-
-        // Get optional overrides for name and description
         const nameOverride = $("#emulator-name").val().trim();
         const descriptionOverride = $("#emulator-description").val().trim();
 
         if (!fileInput && !textInput) {
-            event.preventDefault();
-            alert("Please upload a JSON file or provide JSON text.");
+            showAlert("Please upload a JSON file or provide JSON text.", true);
             return;
         }
 
-        // Debug logs to verify inputs
-        console.log("File Input:", fileInput); // Should log the file object or `undefined`
-        console.log("Text Input:", textInput); // Should log the text string or an empty string
-
         let configuration;
-
         try {
-            // Step 1: Read the JSON configuration from the file or text input
             if (fileInput) {
-                // If a file is provided, read its content as text
                 console.log("Reading JSON from file...");
-                const fileText = await fileInput.text(); // Asynchronous file reading
-                console.log("File Content:", fileText); // Log the raw file content
-                configuration = JSON.parse(fileText); // Parse the file content as JSON
+                const fileText = await fileInput.text();
+                configuration = JSON.parse(fileText);
             } else if (textInput) {
-                // If text is provided, parse it as JSON
                 console.log("Reading JSON from text input...");
-                console.log("Raw Text Input:", textInput); // Log the raw text content
-                configuration = JSON.parse(textInput); // Parse the text content as JSON
-            } else {
-                // If neither file nor text is provided, throw an error
-                throw new Error("Please upload a JSON file or provide JSON text.");
+                configuration = JSON.parse(textInput);
             }
 
-            // Step 2: Log the parsed configuration for debugging
-            console.log("Parsed Configuration:", configuration);
+            if (nameOverride) configuration.name = nameOverride;
+            if (descriptionOverride) configuration.description = descriptionOverride;
 
-            // Step 3: Validate the JSON structure
             validateConfiguration(configuration);
 
-            // Step 4: Apply overrides if provided
-            if (nameOverride) {
-                console.log(`Overriding name with: ${nameOverride}`);
-                configuration.name = nameOverride; // Override the name field
-            }
-            if (descriptionOverride) {
-                console.log(`Overriding description with: ${descriptionOverride}`);
-                configuration.description = descriptionOverride; // Override the description field
-            }
-
-            // Step 5: Make an API call to send the configuration to the backend
-            console.log("Sending configuration to API...");
             apiCall(
                 "/emulators/add",
                 "POST",
-                {
-                    name: configuration.name,
-                    description: configuration.description,
-                    configuration,
-                },
+                { name: configuration.name, description: configuration.description, configuration },
                 (response) => {
-                    // Success callback
-                    alert(response.message); // Notify the user
-                    if (response.success) {
-                        $("#add-emulator-modal").modal("hide"); // Close the modal
-                        fetchBlueprints(); // Refresh the blueprint list
-                    }
+                    showAlert(response.message || "Emulator added successfully.");
+                    $("#add-emulator-modal").modal("hide");
+                    fetchBlueprints(); // Refresh list
+                },
+                (xhr) => {
+                    showAlert("Failed to add emulator.", true);
+                    console.error("Add emulator error:", xhr);
                 }
             );
         } catch (error) {
-            // Catch any errors during the process
-            console.error("Error:", error); // Log the error details
-            alert("Error: " + error.message); // Notify the user
+            console.error("Error parsing configuration:", error);
+            showAlert("Error processing the JSON file or input. Check console for details.", true);
         }
     });
 
-
-    /**
-     * Validate the configuration JSON structure.
-     * @param {Object} configuration - Parsed JSON object.
-     * @throws Will throw an error if validation fails.
-     */
+    // JSON Validation Function
     function validateConfiguration(configuration) {
         if (!configuration.name) throw new Error("Configuration must include a 'name' field.");
         if (!configuration.type) throw new Error("Configuration must include a 'type' field.");
@@ -280,7 +356,6 @@ $(document).ready(function () {
             throw new Error("Controller must include a 'peripherals' array.");
         }
 
-        // Validate each peripheral
         configuration.controller.peripherals.forEach((peripheral, index) => {
             if (!peripheral.name) throw new Error(`Peripheral ${index + 1} must include a 'name' field.`);
             if (!peripheral.type) throw new Error(`Peripheral ${index + 1} must include a 'type' field.`);
@@ -291,7 +366,6 @@ $(document).ready(function () {
             throw new Error("Configuration must include a 'commands' array.");
         }
 
-        // Validate each command
         configuration.commands.forEach((command, index) => {
             if (!command.name) throw new Error(`Command ${index + 1} must include a 'name' field.`);
             if (!command.description) throw new Error(`Command ${index + 1} must include a 'description' field.`);
@@ -300,70 +374,9 @@ $(document).ready(function () {
         console.log("Configuration validation passed.");
     }
 
-    // Initialize JSON Editor with resizable container
-    const editorContainer = document.getElementById("json-editor");
-    const jsonEditor = new JSONEditor(editorContainer, {
-        mode: "tree", // Tree view for better handling of objects and arrays
-        modes: ["tree", "code"], // Allow users to switch between tree and code views
-        onError: function (err) {
-            alert(`JSON Editor Error: ${err}`);
-        },
-    });
-
-    // Handle JSON File Upload
-    $("#upload-json-file").on("change", function (event) {
-        const file = event.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                try {
-                    const jsonData = JSON.parse(e.target.result);
-                    jsonEditor.set(jsonData); // Set data into editor
-                    console.log("JSON loaded into editor:", jsonData);
-                } catch (err) {
-                    alert("Invalid JSON file. Please upload a valid JSON file.");
-                }
-            };
-            reader.readAsText(file);
-        }
-    });
-
-    // Save JSON Changes
-    $("#save-json-button").on("click", function () {
-        try {
-            const modifiedData = jsonEditor.get();
-            const filename = prompt("Enter filename for the modified JSON:", "modified.json");
-            if (filename) {
-                fetch("/emulators/json/save", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ data: modifiedData, filename }),
-                })
-                    .then((response) => response.json())
-                    .then((data) => {
-                        alert(data.message || data.error);
-                        console.log("Save response:", data);
-                    })
-                    .catch((error) => {
-                        console.error("Error saving JSON:", error);
-                        alert("Failed to save the JSON. Check console for details.");
-                    });
-            }
-        } catch (err) {
-            alert("Invalid JSON. Please correct the JSON structure and try again.");
-        }
-    });
-
-    // Resize Editor Dynamically
-    const resizeEditor = () => {
-        const editorHeight = window.innerHeight * 0.6; // 60% of the viewport height
-        editorContainer.style.height = `${editorHeight}px`;
-    };
-
-    // Call resizeEditor on page load and window resize
+    // Adjust JSON Editor size dynamically
     resizeEditor();
     $(window).on("resize", resizeEditor);
-
 
     // Initial data load
     fetchBlueprints();
