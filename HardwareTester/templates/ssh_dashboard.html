@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}SSH Management{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="text-center">SSH Management</h1>
+    <div class="row">
+        <div class="col-md-8">
+            <h4>Saved Connections</h4>
+            <ul id="ssh-connection-list" class="list-group">
+                <!-- Connections dynamically populated here -->
+            </ul>
+        </div>
+        <div class="col-md-4">
+            <button id="add-ssh-connection-btn" class="btn btn-primary w-100 mb-3" data-bs-toggle="modal" data-bs-target="#add-ssh-connection-modal">
+                Add New Connection
+            </button>
+            <button id="refresh-ssh-connections" class="btn btn-secondary w-100">Refresh Connections</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modals -->
+{% include "ssh/modals/add_ssh_connection.html" %}
+{% include "ssh/modals/edit_ssh_connection.html" %}
+{% include "ssh/modals/test_ssh_connection.html" %}
+{% endblock %}

@@ -255,6 +255,8 @@
     <Folder Include="HardwareTester\static\blueprints\" />
     <Folder Include="HardwareTester\static\blueprints\delete\" />
     <Folder Include="HardwareTester\static\blueprints\upload\" />
+    <Folder Include="HardwareTester\templates\ssh\" />
+    <Folder Include="HardwareTester\templates\ssh\modals\" />
     <Folder Include="instance\" />
     <Folder Include="tests\" />
     <Folder Include="secrets\" />
@@ -306,6 +308,7 @@
     <Content Include="HardwareTester\static\js\logs.js" />
     <Content Include="HardwareTester\static\js\main_views.js" />
     <Content Include="HardwareTester\static\js\mqtt_management.js" />
+    <Content Include="HardwareTester\static\js\ssh.js" />
     <Content Include="HardwareTester\static\scripts\setup.js" />
     <Content Include="HardwareTester\static\js\valve_management.js" />
     <Content Include="HardwareTester\static\scripts\jquery-3.7.1.min.js" />
@@ -334,6 +337,10 @@
     <Content Include="HardwareTester\templates\privacy.html" />
     <Content Include="HardwareTester\templates\reports.html" />
     <Content Include="HardwareTester\templates\settings.html" />
+    <Content Include="HardwareTester\templates\ssh\modals\add_ssh_connection.html" />
+    <Content Include="HardwareTester\templates\ssh\modals\edit_ssh_connection.html" />
+    <Content Include="HardwareTester\templates\ssh\modals\test_ssh_connection.html" />
+    <Content Include="HardwareTester\templates\ssh_dashboard.html" />
     <Content Include="HardwareTester\templates\start_emulation.html" />
     <Content Include="HardwareTester\templates\system_status.html" />
     <Content Include="HardwareTester\templates\terms.html" />
