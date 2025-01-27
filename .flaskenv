@@ -30,9 +30,9 @@ LOG_LEVEL=DEBUG  # Use INFO or WARNING in production
 LOG_FILE=app.log
 
 # File upload settings
-UPLOAD_FOLDER=uploads
-BLUEPRINT_UPLOAD_FOLDER=blueprints
-UPLOAD_FOLDER_ROOT=C:/Users/Gary/source/repos/HardwareTester/HardwareTester/uploads
+#UPLOAD_FOLDER=uploads
+#BLUEPRINT_UPLOAD_FOLDER=blueprints
+#UPLOAD_FOLDER_ROOT=C:/Users/Gary/source/repos/HardwareTester/HardwareTester/uploads
 MAX_CONTENT_LENGTH=16777216  # 16 MB
 ALLOWED_SPEC_SHEET_EXTENSIONS=pdf,docx,xlsx
 ALLOWED_TEST_PLAN_EXTENSIONS=pdf,csv,txt

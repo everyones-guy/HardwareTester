@@ -13,7 +13,7 @@ class Config:
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     INSTANCE_DIR = os.path.join(BASE_DIR, "instance")
     os.makedirs(INSTANCE_DIR, exist_ok=True)  # Ensure the instance directory exists
-    WTF_CSRF_ENABLED = True  # Disable CSRF for easier testing   
+    WTF_CSRF_ENABLED = False  # Disable CSRF for easier testing   
 
     # Flask settings
     SECRET_KEY = os.getenv("SECRET_KEY", "default-secret-key")
@@ -21,7 +21,7 @@ class Config:
     FLASK_CONFIG = os.getenv("FLASK_CONFIG", "development")
 
     # Network settings
-    HOST = os.getenv("HOST", "127.0.0.1")
+    HOST = os.getenv("HOST", "localhost")
     PORT = int(os.getenv("PORT", 5000))
 
     # Debugging and Logging
@@ -34,21 +34,21 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # File upload settings
-    UPLOAD_FOLDER = os.getenv('UPLOAD_FOLDER', 'uploads')
-    UPLOAD_FOLDER_ROOT = os.path.join(BASE_DIR, UPLOAD_FOLDER)
+    UPLOAD_FOLDER = os.path.join(BASE_DIR, os.getenv('UPLOAD_FOLDER', 'uploads'))
+    UPLOAD_BLUEPRINTS_FOLDER = os.path.join(UPLOAD_FOLDER, 'blueprints')
+    UPLOAD_CONFIGS_FOLDER = os.path.join(UPLOAD_FOLDER, 'configs')
+    
     MAX_CONTENT_LENGTH = int(os.getenv("MAX_CONTENT_LENGTH", 16 * 1024 * 1024))  # Default 16 MB
     ALLOWED_SPEC_SHEET_EXTENSIONS = set(os.getenv("ALLOWED_SPEC_SHEET_EXTENSIONS", "pdf,docx,xlsx").split(","))
     ALLOWED_TEST_PLAN_EXTENSIONS = set(os.getenv("ALLOWED_TEST_PLAN_EXTENSIONS", "pdf,csv,txt").split(","))
-    # In config.py
-    UPLOAD_BLUEPRINTS_FOLDER = 'blueprints'
-    UPLOAD_CONFIGS_FOLDER = 'configs'
+    
 
     # Serial communication settings
     DEFAULT_SERIAL_PORT = os.getenv("DEFAULT_SERIAL_PORT", "COM3")
-    DEFAULT_BAUDRATE = int(os.getenv("DEFAULT_BAUDRATE", 9600))
+    DEFAULT_BAUDRATE = int(os.getenv("DEFAULT_BAUDRATE", 115200))
 
     # Base URL
-    BASE_URL = os.getenv("BASE_URL", "http://127.0.0.1:5000")
+    BASE_URL = os.getenv("BASE_URL", "localhost:5000")
 
     # MQTT settings
     MQTT_BROKER = os.getenv("MQTT_BROKER", "test.mosquitto.org")

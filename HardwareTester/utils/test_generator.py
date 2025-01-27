@@ -54,7 +54,7 @@ class TestGenerator:
             "",
             f"# Test suite for {blueprint['name']}",
             f"class Test{blueprint['name'].replace(' ', '')}(unittest.TestCase):",
-            "    BASE_URL = 'http://127.0.0.1:5000'",  # Example API URL
+            "    BASE_URL = 'http://localhost:5000'",  # Example API URL
             "",
             "    def setUp(self):",
             "        \"\"\"Set up the test environment.\"\"\"",

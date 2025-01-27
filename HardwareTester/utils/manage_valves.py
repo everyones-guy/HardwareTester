@@ -5,7 +5,7 @@ from HardwareTester.utils.custom_logger import CustomLogger
 logger = CustomLogger.get_logger("ValveManager")
 
 # Initialize APIManager
-api_manager = create_api_manager("http://127.0.0.1:5000/api")
+api_manager = create_api_manager("http://localhost:5000/api")
 
 def list_valves():
     """Fetch and display all valves."""
