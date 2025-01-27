@@ -91,3 +91,20 @@ def load_configuration(config_id):
     except Exception as e:
         logger.error(f"Unexpected error while loading configuration ID {config_id}: {e}")
         return jsonify({"success": False, "error": "An unexpected error occurred."}), 500
+
+@configuration_bp.route("/api/<string:configuration_name>", methods=["GET"])
+@login_required
+def get_configuration(configuration_name):
+    """
+    Fetch a specific configuration by its name.
+    """
+    try:
+        result = ConfigurationService.get_configuration_by_name(configuration_name)
+        if result["success"]:
+            return jsonify({"success": True, "configuration": result["configuration"]})
+        else:
+            return jsonify({"success": False, "error": result["error"]}), 404
+    except Exception as e:
+        logger.error(f"Error fetching configuration '{configuration_name}': {e}")
+        return jsonify({"success": False, "error": "An unexpected error occurred."}), 500
+

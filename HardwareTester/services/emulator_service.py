@@ -1,4 +1,6 @@
 import json
+import stat
+from turtle import st
 from typing import Dict, Any, Union
 from werkzeug.utils import secure_filename
 from sqlalchemy.exc import SQLAlchemyError
@@ -15,6 +17,7 @@ from HardwareTester.models.device_models import Emulation, Blueprint, Controller
 from HardwareTester.models.upload_models import UploadedFile
 from HardwareTester.services.peripherals_service import PeripheralsService
 from HardwareTester.services.serial_service import SerialService
+from flask_login import current_user, login_required
 
 
 # Initialize logger
@@ -36,6 +39,13 @@ class EmulatorService:
         self.mqtt_client = MQTTClient(broker=os.getenv("MQTT_BROKER", "localhost"))
         self.serial_service = SerialService()
         self.peripherals_service = PeripheralsService()
+        self.emulator_state = {
+            "running": False,
+            "config": {"default_machine_name": "Machine1", "stress_test_mode": False},
+            "active_emulations": [],
+            "logs": [],
+        }
+        self.emulator_state_lock = Lock()
 
     def initialize_state(self):
         """Load the emulator state from the database."""
@@ -55,7 +65,7 @@ class EmulatorService:
             logger.info("Emulator state initialized.")
         except Exception as e:
             logger.error(f"Error initializing emulator state: {e}")
-
+    
     def fetch_blueprints(self) -> Dict[str, Union[bool, Any]]:
         """Fetch available blueprints."""
         try:
@@ -74,26 +84,27 @@ class EmulatorService:
             logger.error(f"Error fetching blueprints: {e}")
             return {"success": False, "error": "Failed to fetch blueprints due to database issues."}
 
-
-    def start_emulation(self, machine_name: str, blueprint: str, stress_test: bool = False) -> Dict[str, Union[bool, str]]:
+    def start_emulation(self, machine_name: str, blueprint_name: str, stress_test: bool = False) -> Dict[str, Union[bool, str]]:
         """Start a new emulation."""
-        if not machine_name or not blueprint:
+        if not machine_name or not blueprint_name:
             return {"success": False, "message": "Machine name and blueprint are required."}
 
         try:
             if self.emulator_state["running"]:
-                logger.warning("An emulation is already running.")
                 return {"success": False, "message": "An emulation is already running."}
 
             controller_id = self.get_available_controller_id()
             if not controller_id:
-                logger.warning("No available controller found.")
                 return {"success": False, "message": "No available controller."}
+
+            blueprint = Blueprint.query.filter_by(name=blueprint_name).first()
+            if not blueprint:
+                return {"success": False, "message": f"Blueprint '{blueprint_name}' not found."}
 
             emulation = Emulation(
                 controller_id=controller_id,
                 machine_name=machine_name,
-                blueprint=blueprint,
+                blueprint=blueprint_name,
                 stress_test=stress_test,
                 start_time=datetime.utcnow(),
             )
@@ -104,24 +115,19 @@ class EmulatorService:
                 self.emulator_state["active_emulations"].append(
                     {
                         "machine_name": machine_name,
-                        "blueprint": blueprint,
+                        "blueprint": blueprint_name,
                         "stress_test": stress_test,
                         "start_time": emulation.start_time.isoformat(),
                     }
                 )
                 self.emulator_state["running"] = True
 
-            self._log_action(f"Started emulation for {machine_name} using blueprint '{blueprint}'.")
+            self._log_action(f"Started emulation for {machine_name} using blueprint '{blueprint_name}'.")
             return {"success": True, "message": f"Emulation started for machine '{machine_name}'."}
-        except SQLAlchemyError as e:
-            logger.error(f"Database error starting emulation: {e}")
-            db.session.rollback()
-            return {"success": False, "error": "Database error while starting emulation."}
         except Exception as e:
-            logger.error(f"Unexpected error starting emulation: {e}")
+            logger.error(f"Error starting emulation: {e}")
             db.session.rollback()
-            return {"success": False, "error": "Unexpected error while starting emulation."}
-
+            return {"success": False, "error": "Failed to start emulation."}
 
     def stop_emulation(self, machine_name: str) -> Dict[str, Union[bool, str]]:
         """Stop an active emulation."""
@@ -186,7 +192,7 @@ class EmulatorService:
         except Exception as e:
             logger.error(f"Error loading blueprint '{blueprint_name}': {e}")
             return {"success": False, "error": "Failed to load blueprint."}
-
+    
     def add_blueprint(self, name: str, description: str, configuration: Dict) -> Dict[str, Union[bool, str]]:
         """
         Add a blueprint by file or JSON text. One of them must be provided.
@@ -213,7 +219,7 @@ class EmulatorService:
             logger.error(f"Error adding blueprint '{name}': {str(e)}")
             db.session.rollback()
             return {"success": False, "error": f"Failed to add blueprint: {str(e)}"}
-
+    
     def handle_file_upload(self, file) -> Dict[str, Union[str, int]]:
         """Handle file upload for blueprints."""
         try:
@@ -243,7 +249,7 @@ class EmulatorService:
         except Exception as e:
             logger.error(f"Error handling file upload: {e}")
             return {"success": False, "error": "Unexpected error occurred during file upload."}
-
+    
     def fetch_commands_from_firmware(self, blueprint_name: str) -> list:
         """
         Fetch all commands for the given blueprint directly from the firmware.
@@ -296,9 +302,9 @@ class EmulatorService:
             logger.error(f"Error fetching commands via MQTT: {e}")
 
         return commands
- 
+    
     def _log_action(self, message: str):
-        """Log an action with rotation to limit memory growth."""
+        """Log an action with memory rotation."""
         timestamp = datetime.now().isoformat()
         with self.emulator_state_lock:
             self.emulator_state["logs"].append(f"[{timestamp}] {message}")
@@ -306,7 +312,6 @@ class EmulatorService:
                 self.emulator_state["logs"] = self.emulator_state["logs"][-1000:]
         logger.info(message)
 
-        
     def get_available_controller_id(self) -> Union[int, None]:
         """Get an available controller ID."""
         try:
@@ -325,78 +330,33 @@ class EmulatorService:
             logger.error(f"Error fetching available controller: {e}")
             return None
 
-
     def load_blueprint_from_file(self, file_path: str) -> Dict[str, Union[bool, str]]:
-        """
-        Load a blueprint from a JSON file and store it in the database.
-        :param file_path: Path to the JSON file containing the blueprint configuration.
-        :return: A dictionary indicating success or failure with a message.
-        """
+        """Load a blueprint from a JSON file and save it to the database."""
         try:
-            # Read the JSON file
             with open(file_path, "r") as file:
                 blueprint_data = json.load(file)
 
-            # Validate required fields in JSON
-            required_fields = ["controller", "controller.name", "controller.connection", "controller.peripherals"]
-            for field in required_fields:
-                keys = field.split(".")
-                data = blueprint_data
-                for key in keys:
-                    if key not in data:
-                        raise ValueError(f"Missing required field in JSON: {field}")
-                    data = data[key]
-
-            # Extract controller details
-            controller_name = blueprint_data["controller"]["name"]
-            controller_connection = blueprint_data["controller"]["connection"]
-            peripherals = blueprint_data["controller"]["peripherals"]
-
-            # Add or update the controller in the database
-            controller = Controller.query.filter_by(name=controller_name).first()
-            if not controller:
-                controller = Controller(
-                    name=controller_name,
-                    device_metadata=controller_connection,
-                )
-                db.session.add(controller)
-                db.session.flush()  # Ensure `controller.id` is available
-
-            # Handle peripherals
-            self._add_or_update_peripherals(controller.id, peripherals)
-
-            # Add blueprint to the database
-            blueprint_name = blueprint_data["controller"]["name"]
-            blueprint_description = f"Blueprint for {controller_name}"
-            blueprint_configuration = blueprint_data
-
+            blueprint_name = blueprint_data.get("name")
             existing_blueprint = Blueprint.query.filter_by(name=blueprint_name).first()
             if existing_blueprint:
                 return {"success": False, "message": f"Blueprint '{blueprint_name}' already exists."}
 
             new_blueprint = Blueprint(
                 name=blueprint_name,
-                description=blueprint_description,
-                configuration=blueprint_configuration,
+                description=blueprint_data.get("description", ""),
+                configuration=blueprint_data,
+                created_at=datetime.utcnow(),
+                created_by=current_user.id,
             )
             db.session.add(new_blueprint)
-
-            # Commit all changes to the database
             db.session.commit()
 
             logger.info(f"Blueprint '{blueprint_name}' loaded successfully.")
             return {"success": True, "message": f"Blueprint '{blueprint_name}' loaded successfully."}
-
-        except FileNotFoundError:
-            logger.error(f"File not found: {file_path}")
-            return {"success": False, "message": f"File not found: {file_path}"}
-        except json.JSONDecodeError as e:
-            logger.error(f"Invalid JSON format in file: {file_path}")
-            return {"success": False, "message": f"Invalid JSON format: {str(e)}"}
         except Exception as e:
             logger.error(f"Error loading blueprint from file: {e}")
             db.session.rollback()
-            return {"success": False, "message": f"Error loading blueprint: {str(e)}"}
+            return {"success": False, "error": "Failed to load blueprint."}
 
     def _add_or_update_peripherals(self, controller_id: int, peripherals: list):
         """
@@ -427,6 +387,7 @@ class EmulatorService:
             logger.error(f"Error adding/updating peripherals: {e}")
             raise
         
+
     def save_uploaded_file(self, file, subfolder=''):
         """
         Save an uploaded file to the specified subfolder.

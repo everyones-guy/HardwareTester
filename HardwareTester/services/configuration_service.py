@@ -79,3 +79,15 @@ class ConfigurationService:
         except Exception as e:
             logger.error(f"Error loading configuration: {e}")
             return {"success": False, "error": str(e)}
+
+    @staticmethod
+    def get_configuration_by_name(name):
+        try:
+            configuration = Configuration.query.filter(Configuration.name.ilike(name)).first()
+
+            if configuration:
+                return {"success": True, "configuration": configuration.to_dict()}
+            return {"success": False, "error": "Configuration not found."}
+        except Exception as e:
+            logger.error(f"Error fetching configuration by name '{name}': {e}")
+            return {"success": False, "error": str(e)}

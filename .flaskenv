@@ -15,7 +15,7 @@ SQLALCHEMY_DATABASE_URI=sqlite:///C:/Users/Gary/source/repos/HardwareTester/Hard
 SQLALCHEMY_TRACK_MODIFICATIONS=False
 
 # Network settings
-HOST=0.0.0.0
+HOST=localhost
 PORT=5000
 
 # MQTT configuration
@@ -30,17 +30,16 @@ LOG_LEVEL=DEBUG  # Use INFO or WARNING in production
 LOG_FILE=app.log
 
 # File upload settings
-# File upload settings
 UPLOAD_FOLDER=uploads
-BLUEPRINT_UPLOAD_FOLDER=C:/Users/Gary/source/repos/HardwareTester/uploads/blueprints
-UPLOAD_FOLDER_ROOT=C:/Users/Gary/source/repos/HardwareTester/uploads
+BLUEPRINT_UPLOAD_FOLDER=blueprints
+UPLOAD_FOLDER_ROOT=C:/Users/Gary/source/repos/HardwareTester/HardwareTester/uploads
 MAX_CONTENT_LENGTH=16777216  # 16 MB
 ALLOWED_SPEC_SHEET_EXTENSIONS=pdf,docx,xlsx
 ALLOWED_TEST_PLAN_EXTENSIONS=pdf,csv,txt
 
 # Other settings
 DEFAULT_SERIAL_PORT=COM3  # Default serial port for communication
-DEFAULT_BAUDRATE=9600  # Default baud rate for serial communication
+DEFAULT_BAUDRATE=115200  # Default baud rate for serial communication
 
 # Security settings
 SESSION_COOKIE_SECURE=False  # Set to True in production

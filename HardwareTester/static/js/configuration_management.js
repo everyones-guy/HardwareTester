@@ -89,21 +89,27 @@ $(document).ready(function () {
 
     // Apply a configuration
     $(document).on("click", ".apply-config", function () {
-        const configId = $(this).data("id");
+        const configName = $(this).data("id");
 
         apiCall(
-            `/configurations/apply/${configId}`,
-            "POST",
+            `/configurations/api/${configName}`,
+            "GET",
             null,
             (data) => {
-                showAlert(data.message || "Configuration applied successfully.", "success");
+                if (data.success) {
+                    showAlert(data.message || "Configuration fetched successfully.", "success");
+                    console.log("Fetched Configuration:", data.configuration);
+                } else {
+                    showAlert(data.error || "Configuration not found.", "danger");
+                }
             },
             (xhr) => {
-                showAlert("Failed to apply configuration. Please try again later.", "danger");
-                console.error("Error applying configuration:", xhr);
+                showAlert("Failed to fetch configuration. Please try again.", "danger");
+                console.error("Error fetching configuration:", xhr);
             }
         );
     });
+
 
     // Discard preview
     discardButton.on("click", function () {
