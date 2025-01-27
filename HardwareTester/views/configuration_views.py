@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, jsonify
 from flask_login import login_required, current_user
 from HardwareTester.services.configuration_service import ConfigurationService
 from HardwareTester.extensions import logger
+from urllib.parse import unquote
 
 configuration_bp = Blueprint("configurations", __name__, url_prefix="/configurations")
 
@@ -92,19 +93,20 @@ def load_configuration(config_id):
         logger.error(f"Unexpected error while loading configuration ID {config_id}: {e}")
         return jsonify({"success": False, "error": "An unexpected error occurred."}), 500
 
-@configuration_bp.route("/api/<string:configuration_name>", methods=["GET"])
+
+@configuration_bp.route("/<string:configuration>", methods=["GET"])
 @login_required
-def get_configuration(configuration_name):
-    """
-    Fetch a specific configuration by its name.
-    """
+def get_configuration(configuration):
+    # Decode the URL
+    decoded_configuration = unquote(configuration)
+
+    # Proceed with the decoded name
     try:
-        result = ConfigurationService.get_configuration_by_name(configuration_name)
+        result = ConfigurationService.get_configuration_by_name(decoded_configuration)
         if result["success"]:
             return jsonify({"success": True, "configuration": result["configuration"]})
         else:
             return jsonify({"success": False, "error": result["error"]}), 404
     except Exception as e:
-        logger.error(f"Error fetching configuration '{configuration_name}': {e}")
+        logger.error(f"Error fetching configuration '{decoded_configuration}': {e}")
         return jsonify({"success": False, "error": "An unexpected error occurred."}), 500
-

@@ -290,8 +290,7 @@ def save_emulator_json():
             return jsonify({"success": False, "message": "JSON data is missing."}), 400
 
         # Get the upload folder from the app configuration
-        upload_folder_root = current_app.config.get('UPLOAD_FOLDER_ROOT', 'uploads')
-        saved_configs_folder = os.path.join(upload_folder_root, 'saved_configs')
+        saved_configs_folder = os.path.join(os.getenv('UPLOAD_CONFIGS_FOLDER', 'uploads'), 'saved_configs')
 
         # Ensure the folder exists
         os.makedirs(saved_configs_folder, exist_ok=True)

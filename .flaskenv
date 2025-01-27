@@ -30,6 +30,10 @@ LOG_LEVEL=DEBUG  # Use INFO or WARNING in production
 LOG_FILE=app.log
 
 # File upload settings
+UPLOAD_FOLDER = os.path.join(BASE_DIR, os.getenv('UPLOAD_FOLDER', 'uploads'))
+UPLOAD_BLUEPRINTS_FOLDER = os.path.join(UPLOAD_FOLDER, 'blueprints')
+UPLOAD_CONFIGS_FOLDER = os.path.join(UPLOAD_FOLDER, 'configs')
+    
 #UPLOAD_FOLDER=uploads
 #BLUEPRINT_UPLOAD_FOLDER=blueprints
 #UPLOAD_FOLDER_ROOT=C:/Users/Gary/source/repos/HardwareTester/HardwareTester/uploads

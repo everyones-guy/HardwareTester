@@ -20,7 +20,7 @@ $(document).ready(function () {
         try {
             const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
-            const response = await fetch(`/configurations/${blueprintName}`, {
+            const response = await fetch(`/configurations/api/${unquote(blueprintName)}`, {
                 method: "GET",
                 headers: { "X-CSRFToken": csrfToken },
             });
