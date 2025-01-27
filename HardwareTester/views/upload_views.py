@@ -1,18 +1,23 @@
 
 
 from flask import Blueprint, request, jsonify, render_template
+from flask_login import login_required
+from HardwareTester.extensions import logger
 from HardwareTester.services.upload_service import UploadService
 from HardwareTester.services.hardware_service import HardwareService
-from HardwareTester.utils.custom_logger import CustomLogger
+#from HardwareTester.utils.custom_logger import CustomLogger
 import json
 import os
 
 # Initialize logger
-logger = CustomLogger.get_logger("upload_views")
+#logger = CustomLogger.get_logger("upload_views")
+
+logger.info("upload_views")
 
 upload_bp = Blueprint("upload", __name__)
 
 @upload_bp.route("/test-plans/upload", methods=["POST"])
+@login_required
 def upload_test_plan_view():
     """Upload a test plan."""
     file = request.files.get("file")
@@ -27,6 +32,7 @@ def upload_test_plan_view():
         return jsonify({"success": False, "error": result["error"]}), 500
 
 @upload_bp.route("/spec-sheets/upload", methods=["POST"])
+@login_required
 def upload_spec_sheet_view():
     """Upload a spec sheet."""
     file = request.files.get("file")
@@ -41,6 +47,7 @@ def upload_spec_sheet_view():
         return jsonify({"success": False, "error": result["error"]}), 500
     
 @upload_bp.route("/firmware/upload", methods=["POST"])
+@login_required
 def upload_firmware():
     """Upload firmware and assign to machines."""
     firmware_file = request.files.get("firmware")
@@ -64,6 +71,7 @@ def upload_firmware():
 
 
 @upload_bp.route("/json/preview", methods=["POST"])
+@login_required
 def preview_json():
     """Upload and preview a JSON file."""
     file = request.files.get("file")
@@ -79,6 +87,7 @@ def preview_json():
 
 
 @upload_bp.route("/json/save", methods=["POST"])
+@login_required
 def save_json():
     """Save the modified JSON data."""
     try:

@@ -1,15 +1,17 @@
 from flask import Blueprint, jsonify, request, render_template
+from flask_login import login_required
 from HardwareTester.services.ssh_service import SSHService
-from HardwareTester.extensions import db
-from HardwareTester.utils.custom_logger import CustomLogger
+from HardwareTester.extensions import db, logger
+#from HardwareTester.utils.custom_logger import CustomLogger
 
 # Initialize logger
-logger = CustomLogger.get_logger("ssh_views")
+#logger = CustomLogger.get_logger("ssh_views")
 
 ssh_bp = Blueprint("ssh", __name__, url_prefix="/ssh")
 
 
 @ssh_bp.route("/", methods=["GET"])
+@login_required
 def ssh_dashboard():
     """Render the SSH management dashboard."""
     try:
@@ -20,6 +22,7 @@ def ssh_dashboard():
 
 
 @ssh_bp.route("/connections", methods=["GET"])
+@login_required
 def list_connections():
     """List all saved SSH connections."""
     try:
@@ -41,6 +44,7 @@ def list_connections():
 
 
 @ssh_bp.route("/connection/<int:connection_id>", methods=["GET"])
+@login_required
 def get_connection(connection_id):
     """Retrieve a specific SSH connection."""
     try:
@@ -66,6 +70,7 @@ def get_connection(connection_id):
 
 
 @ssh_bp.route("/connection", methods=["POST"])
+@login_required
 def save_connection():
     """Save a new SSH connection."""
     data = request.json
@@ -94,6 +99,7 @@ def save_connection():
 
 
 @ssh_bp.route("/connection/<int:connection_id>", methods=["DELETE"])
+@login_required
 def delete_connection(connection_id):
     """Delete an SSH connection."""
     try:
@@ -112,6 +118,7 @@ def delete_connection(connection_id):
 
 
 @ssh_bp.route("/test", methods=["POST"])
+@login_required
 def test_connection():
     """Test an SSH connection."""
     data = request.json
@@ -138,6 +145,7 @@ def test_connection():
 
 
 @ssh_bp.route("/setup-wizard", methods=["GET", "POST"])
+@login_required
 def ssh_setup_wizard():
     """Setup wizard for creating and testing SSH connections."""
     if request.method == "GET":

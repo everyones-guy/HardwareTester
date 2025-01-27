@@ -16,7 +16,7 @@
         <div class="card-header bg-primary text-white">Test API Endpoints</div>
         <div class="card-body">
             <form id="api-test-form" class="row g-3">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                 <div class="col-md-6">
                     <label for="endpoint" class="form-label">Endpoint</label>
                     <select id="endpoint" class="form-select" required>

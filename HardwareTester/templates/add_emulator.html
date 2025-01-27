@@ -4,7 +4,7 @@
 
 {% block content %}
 <form id="add-emulator-form" method="post" action="{{ url_for('emulators.add_emulator') }}">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    {{ form.hidden_tag() }}
     <div class="mb-3">
         <label for="emulator-name" class="form-label">Emulator Name</label>
         <input type="text"

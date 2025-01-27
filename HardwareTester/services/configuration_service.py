@@ -1,10 +1,11 @@
-from HardwareTester.extensions import db
-from HardwareTester.utils.custom_logger import CustomLogger
+from HardwareTester.extensions import db, logger
+#from HardwareTester.utils.custom_logger import CustomLogger
 from HardwareTester.models.configuration_models import Configuration
 import json
 
 # Initialize logger
-logger = CustomLogger.get_logger("configuration_service")
+#logger = CustomLogger.get_logger("configuration_service")
+logger.info("CONFIGURATION_SERVICE")
 
 class ConfigurationService:
     @staticmethod

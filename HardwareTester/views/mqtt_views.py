@@ -1,5 +1,6 @@
 
 from flask import Blueprint, jsonify, request, render_template
+from flask_login import login_required
 from HardwareTester.extensions import logger
 from HardwareTester.services.mqtt_service import MQTTService
 
@@ -10,6 +11,7 @@ mqtt_service = MQTTService(broker="mqtt.example.com", port=1883)
 
 
 @mqtt_bp.route("/", methods=["GET"])
+@login_required
 def hardware_dashboard():
     """Render the emulator dashboard."""
     try:
@@ -19,6 +21,7 @@ def hardware_dashboard():
         return jsonify({"success": False, "error": "Failed to render the emulator dashboard."}), 500
 
 @mqtt_bp.route("/connect", methods=["POST"])
+@login_required
 def connect_mqtt():
     """
     Connect to the MQTT broker.
@@ -30,6 +33,7 @@ def connect_mqtt():
         return jsonify({"success": False, "error": str(e)}), 500
 
 @mqtt_bp.route("/disconnect", methods=["POST"])
+@login_required
 def disconnect_mqtt():
     """
     Disconnect from the MQTT broker.
@@ -41,6 +45,7 @@ def disconnect_mqtt():
         return jsonify({"success": False, "error": str(e)}), 500
 
 @mqtt_bp.route("/publish", methods=["POST"])
+@login_required
 def publish_message():
     """
     Publish a message to an MQTT topic.
@@ -64,6 +69,7 @@ def publish_message():
         return jsonify({"success": False, "error": str(e)}), 500
 
 @mqtt_bp.route("/subscribe", methods=["POST"])
+@login_required
 def subscribe_topic():
     """
     Subscribe to an MQTT topic.
@@ -85,6 +91,7 @@ def subscribe_topic():
         return jsonify({"success": False, "error": str(e)}), 500
 
 @mqtt_bp.route("/discover-device", methods=["POST"])
+@login_required
 def discover_device():
     """
     Discover a device via MQTT.

@@ -1,13 +1,6 @@
 $(document).ready(function () {
+    // CSRF token
     const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
-    const editorContainer = document.getElementById("json-editor");
-    const jsonEditor = new JSONEditor(editorContainer, {
-        mode: "tree",
-        modes: ["tree", "code"],
-        onError: function (err) {
-            alert(`JSON Editor Error: ${err}`);
-        },
-    });
 
     // Utility: Show alerts
     function showAlert(message, type = "success") {
@@ -19,26 +12,6 @@ $(document).ready(function () {
             </div>`
         );
         setTimeout(() => $(".alert").alert("close"), 5000); // Auto-dismiss after 5 seconds
-    }
-
-    // Utility: API call
-    function apiCall(endpoint, method = "GET", data = null, onSuccess = null, onError = null) {
-        $.ajax({
-            url: endpoint,
-            type: method,
-            contentType: method === "GET" ? undefined : "application/json",
-            headers: { "X-CSRFToken": csrfToken },
-            data: method === "GET" ? null : JSON.stringify(data),
-            processData: false,
-            success: (response) => {
-                if (onSuccess) onSuccess(response);
-            },
-            error: (xhr) => {
-                const errorMessage = xhr.responseJSON?.message || "An error occurred.";
-                showAlert(errorMessage, "danger");
-                if (onError) onError(xhr);
-            },
-        });
     }
 
     // Fetch uploaded test plans and display them

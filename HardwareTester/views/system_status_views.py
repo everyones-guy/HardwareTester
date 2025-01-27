@@ -1,16 +1,19 @@
 # system_status_views
 
 from flask import Blueprint, jsonify, render_template
+from flask_login import login_required
 from HardwareTester.services.system_status_service import SystemStatusService
-from HardwareTester.utils.custom_logger import CustomLogger
+from HardwareTester.extensions import logger
+#from HardwareTester.utils.custom_logger import CustomLogger
 
 # Initialize logger
-logger = CustomLogger.get_logger("system_status_views")
+#logger = CustomLogger.get_logger("system_status_views")
 
 system_status_bp = Blueprint("system_status", __name__, url_prefix="/system-status")
 
 
 @system_status_bp.route("/", methods=["GET"])
+@login_required
 def system_status_page():
     """Render the system status dashboard."""
     logger.info("Rendering system status dashboard page.")
@@ -18,6 +21,7 @@ def system_status_page():
 
 
 @system_status_bp.route("/summary", methods=["GET"])
+@login_required
 def system_status_summary():
     """Get system status summary."""
     logger.info("Fetching system status summary.")
@@ -34,6 +38,7 @@ def system_status_summary():
 
 
 @system_status_bp.route("/metrics", methods=["GET"])
+@login_required
 def system_status_metrics():
     """Get detailed system metrics."""
     logger.info("Fetching detailed system metrics.")

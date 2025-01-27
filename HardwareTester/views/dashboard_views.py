@@ -2,10 +2,13 @@ from flask import Blueprint, render_template, request, jsonify
 from flask_login import login_required, current_user
 from HardwareTester.services.dashboard_service import DashboardService
 from HardwareTester.models.user_models import UserRole
-from HardwareTester.utils.custom_logger import CustomLogger
+from HardwareTester.extensions import logger
+#from HardwareTester.utils.custom_logger import CustomLogger
 
 # Initialize logger
-logger = CustomLogger.get_logger("dashboard_views")
+#logger = CustomLogger.get_logger("dashboard_views")
+
+logger.info("DASHBOARD_VIEWS")
 
 dashboard_bp = Blueprint("dashboard", __name__, url_prefix="/dashboard")
 

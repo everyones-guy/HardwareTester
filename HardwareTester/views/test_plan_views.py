@@ -1,12 +1,14 @@
 from flask import Blueprint, jsonify, request, render_template
+from flask_login import login_required
 from HardwareTester.services.test_plan_service import TestPlanService
 from HardwareTester.models.test_models import TestPlan
-from HardwareTester.extensions import db
+from HardwareTester.extensions import db, logger
 
 # Define the Blueprint for test plan management
 test_plan_bp = Blueprint("test_plans", __name__, url_prefix="/test-plans")
 
 @test_plan_bp.route("/", methods=["GET"])
+@login_required
 def show_test_plans():
     """
     Render the test plan management page.
@@ -15,6 +17,7 @@ def show_test_plans():
     return render_template("test_plan_management.html")
 
 @test_plan_bp.route("/upload", methods=["POST"])
+@login_required
 def upload_plan():
     """
     Upload a test plan.
@@ -29,6 +32,7 @@ def upload_plan():
 
 
 @test_plan_bp.route("/<int:test_plan_id>/run", methods=["POST"])
+@login_required
 def execute_plan(test_plan_id):
     """
     Run a specific test plan.
@@ -40,6 +44,7 @@ def execute_plan(test_plan_id):
     return jsonify({"success": False, "error": result["error"]}), 400
 
 @test_plan_bp.route("/list", methods=["GET"])
+@login_required
 def list_test_plans():
     try:
         # Replace with your actual query logic
@@ -55,6 +60,7 @@ def list_test_plans():
 
 
 @test_plan_bp.route("/run/<int:test_plan_id>", methods=["POST"])
+@login_required
 def run_test_plan_endpoint(test_plan_id):
     """
     Run a specific test plan.
@@ -65,6 +71,7 @@ def run_test_plan_endpoint(test_plan_id):
 
 
 @test_plan_bp.route("/<int:test_plan_id>/preview", methods=["GET"])
+@login_required
 def preview_test_plan(test_plan_id):
     """
     Preview a specific test plan.
@@ -76,6 +83,7 @@ def preview_test_plan(test_plan_id):
     return jsonify({"success": False, "error": response["error"]}), 400
 
 @test_plan_bp.route("/seed-test-plans", methods=["POST"])
+@login_required
 def seed_test_plans():
     try:
         # Replace with your ORM or database logic

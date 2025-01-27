@@ -1,6 +1,6 @@
 from HardwareTester.models.user_models import Token
 from flask_wtf.csrf import generate_csrf
-from HardwareTester.extensions import db
+from HardwareTester.extensions import db, logger
 from datetime import datetime, timedelta
 
 def get_token(user_id=None, expiration_duration=3600):
@@ -22,6 +22,8 @@ def get_token(user_id=None, expiration_duration=3600):
         return token.token
 
     # Generate a new token if none exists or the token is expired
+    logger.info(f"Generating token for user_id={user_id}")
+
     csrf_token = generate_csrf()
     expiration = datetime.utcnow() + timedelta(seconds=expiration_duration)
 

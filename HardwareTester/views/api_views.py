@@ -1,8 +1,8 @@
 from flask import Blueprint, jsonify, request, render_template
+from flask_login import login_required, current_user
 from HardwareTester.services.api_service import APIService
 from HardwareTester.services.serial_service import SerialService
 from HardwareTester.utils.custom_logger import CustomLogger
-from HardwareTester.extensions import csrf
 
 # Initialize logger
 logger = CustomLogger.get_logger("api_views")
@@ -11,18 +11,18 @@ logger = CustomLogger.get_logger("api_views")
 api_bp = Blueprint("api", __name__, url_prefix="/api")
 
 @api_bp.route("/", methods=["GET"])
+@login_required
 def api_overview():
     """Render the API Overview page."""
     try:
-        csrf_token = csrf.generate_csrf()
-        logger.info("CSRF Token generated successfully.")
-        return render_template("api_overview.html", csrf_token=csrf_token)
+        logger.info("Rendering API Overview page.")
+        return render_template("api_overview.html")
     except Exception as e:
         logger.error(f"Error rendering API Overview page: {e}")
         return jsonify({"success": False, "error": "Failed to load API Overview page."}), 500
 
-
 @api_bp.route("/test-connection", methods=["GET"])
+@login_required
 def test_connection():
     """Test API connection."""
     try:
@@ -34,6 +34,7 @@ def test_connection():
 
 
 @api_bp.route("/fetch-data", methods=["POST"])
+@login_required
 def fetch_data():
     """Fetch data from an API endpoint."""
     data = request.json
@@ -52,6 +53,7 @@ def fetch_data():
 
 
 @api_bp.route("/push-data", methods=["POST"])
+@login_required
 def push_data():
     """Push data to an API endpoint."""
     data = request.json
@@ -70,6 +72,7 @@ def push_data():
 
 
 @api_bp.route("/endpoints", methods=["GET"])
+@login_required
 def get_available_endpoints():
     """List available API endpoints."""
     try:
@@ -81,6 +84,7 @@ def get_available_endpoints():
 
 
 @api_bp.route("/get-overview", methods=["GET"])
+@login_required
 def get_overview():
     """Fetch a summarized overview of devices, endpoints, and state."""
     try:
@@ -96,6 +100,7 @@ def get_overview():
 
 
 @api_bp.route("/device-config", methods=["GET"])
+@login_required
 def get_device_config():
     """Fetch the device configuration over serial."""
     try:
@@ -110,6 +115,7 @@ def get_device_config():
 
 
 @api_bp.route("/simulate-device", methods=["POST"])
+@login_required
 def simulate_device():
     """Simulate a device's behavior based on input."""
     data = request.json

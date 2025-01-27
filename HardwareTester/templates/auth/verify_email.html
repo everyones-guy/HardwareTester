@@ -12,6 +12,7 @@
         </p>
 
         <form method="post" action="{{ url_for('auth.resend_verification') }}">
+            {{ form.hidden_tag() }}
             <button type="submit" class="btn btn-primary btn-lg mt-3">Resend Verification Email</button>
         </form>
 

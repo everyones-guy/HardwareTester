@@ -1,13 +1,16 @@
 from flask import Blueprint, jsonify, request, render_template
+from flask_login import login_required
 from HardwareTester.services.log_service import LogService
-from HardwareTester.utils.custom_logger import CustomLogger
+#from HardwareTester.utils.custom_logger import CustomLogger
+from HardwareTester.extensions import logger
 
 # Initialize logger
-logger = CustomLogger.get_logger("log_views")
+#logger = CustomLogger.get_logger("log_views")
 
 logs_bp = Blueprint("logs", __name__, url_prefix="/logs")
 
 @logs_bp.route("/", methods=["GET"])
+@login_required
 def logs():
     """Fetch and filter logs from the log file or database."""
     import os
@@ -47,6 +50,7 @@ def logs():
 
 
 @logs_bp.route("/recent", methods=["GET"])
+@login_required
 def recent_logs():
     # Mock logs for testing
     logs = [
@@ -59,6 +63,7 @@ def recent_logs():
 
 # Activity Logs
 @logs_bp.route("/activity", methods=["GET"])
+@login_required
 def get_activity_logs():
     """Get activity logs with optional filters."""
     user_id = request.args.get("user_id", type=int)
@@ -69,6 +74,7 @@ def get_activity_logs():
 
 
 @logs_bp.route("/activity/log", methods=["POST"])
+@login_required
 def log_activity():
     """Log a new activity."""
     data = request.get_json()
@@ -82,6 +88,7 @@ def log_activity():
 
 # Notifications
 @logs_bp.route("/notifications", methods=["GET"])
+@login_required
 def get_notifications():
     """Get notifications with optional filters."""
     user_id = request.args.get("user_id", type=int)
@@ -91,6 +98,7 @@ def get_notifications():
 
 
 @logs_bp.route("/notifications/send", methods=["POST"])
+@login_required
 def send_notification():
     """Send a notification."""
     data = request.get_json()
@@ -103,6 +111,7 @@ def send_notification():
 
 
 @logs_bp.route("/notifications/read/<int:notification_id>", methods=["POST"])
+@login_required
 def mark_notification_as_read(notification_id):
     """Mark a notification as read."""
     result = LogService.mark_notification_as_read(notification_id)

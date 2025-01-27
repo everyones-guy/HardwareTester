@@ -2,17 +2,15 @@
 # Path: HardwareTester/views/configuration_views.py
 
 from flask import Blueprint, render_template, request, jsonify
+from flask_login import login_required, current_user
 from HardwareTester.services.configuration_service import ConfigurationService
-from HardwareTester.extensions import db
-from HardwareTester.utils.custom_logger import CustomLogger
-
-# Initialize logger
-logger = CustomLogger.get_logger("configuration_views")
+from HardwareTester.extensions import db, logger
 
 configuration_bp = Blueprint("configurations", __name__, url_prefix="/configurations")
 
 
 @configuration_bp.route("/", methods=["GET"])
+@login_required
 def configuration_management():
     """
     Render the Configuration Management page.
@@ -25,6 +23,7 @@ def configuration_management():
         return jsonify({"success": False, "error": "Failed to load configuration page."}), 500
 
 @configuration_bp.route("/save", methods=["POST"])
+@login_required
 def save_configuration():
     """
     Save a new configuration.
@@ -53,6 +52,7 @@ def save_configuration():
         return jsonify({"success": False, "error": "An unexpected error occurred."}), 500
 
 @configuration_bp.route("/list", methods=["GET"])
+@login_required
 def list_configurations():
     """
     Load and return a list of saved configurations with optional search and pagination.
@@ -78,6 +78,7 @@ def list_configurations():
         return jsonify({"success": False, "error": "An unexpected error occurred."}), 500
 
 @configuration_bp.route("/load/<int:config_id>", methods=["GET"])
+@login_required
 def load_configuration(config_id):
     """
     Load a specific configuration by ID.
@@ -96,6 +97,7 @@ def load_configuration(config_id):
         return jsonify({"success": False, "error": "An unexpected error occurred."}), 500
 
 @configuration_bp.route("/preview/<int:config_id>", methods=["GET"])
+@login_required
 def preview_config(config_id):
     """Generate a preview of a specific configuration."""
     try:

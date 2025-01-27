@@ -49,7 +49,7 @@
         <div class="card-header bg-success text-white">Start Emulation</div>
         <div class="card-body">
             <form id="start-emulation-form" method="post" action="{{ url_for('emulators.start_emulation') }}">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                {{ form.hidden_tag() }}
                 <div class="mb-3">
                     {{ form.machine_name.label(class="form-label") }}
                     {{ form.machine_name(class="form-control", id="machine-name") }}
@@ -106,7 +106,7 @@
                 </div>
                 <div class="modal-body">
                     <form id="add-emulator-form" method="post" action="{{ url_for('emulators.add_emulator') }}">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        {{ form.hidden_tag() }}
                         <div class="mb-3">
                             <label for="emulator-name" class="form-label">Emulator Name</label>
                             <input type="text" id="emulator-name" name="name" class="form-control" placeholder="Override JSON Name">

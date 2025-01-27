@@ -1,10 +1,12 @@
 from flask import Blueprint, request, jsonify
+from flask_login import login_required
 from HardwareTester.services.settings_service import SettingsService
 from HardwareTester.utils.custom_logger import CustomLogger
+from HardwareTester.extensions import logger
 
 # Initialize logger
-logger = CustomLogger.get_logger("settings_views")
-
+#logger = CustomLogger.get_logger("settings_views")
+logger.info("settings_views")
 settings_bp = Blueprint("settings", __name__, url_prefix="/settings")
 
 # ----------------------
@@ -12,6 +14,7 @@ settings_bp = Blueprint("settings", __name__, url_prefix="/settings")
 # ----------------------
 
 @settings_bp.route("/global/<key>", methods=["GET"])
+@login_required
 def get_global_setting_view(key):
     """Retrieve a global setting by key."""
     logger.info(f"Fetching global setting for key: {key}")
@@ -28,6 +31,7 @@ def get_global_setting_view(key):
 
 
 @settings_bp.route("/global", methods=["POST"])
+@login_required
 def update_global_setting_view():
     """Update or create a global setting."""
     logger.info("Updating global setting.")
@@ -50,6 +54,7 @@ def update_global_setting_view():
 
 
 @settings_bp.route("/global/list", methods=["GET"])
+@login_required
 def list_global_settings_view():
     """List all global settings."""
     logger.info("Fetching all global settings.")
@@ -67,6 +72,7 @@ def list_global_settings_view():
 # ----------------------
 
 @settings_bp.route("/user/<int:user_id>", methods=["GET"])
+@login_required
 def get_user_settings_view(user_id):
     """Retrieve user-specific settings."""
     logger.info(f"Fetching settings for user ID: {user_id}")
@@ -83,6 +89,7 @@ def get_user_settings_view(user_id):
 
 
 @settings_bp.route("/user/<int:user_id>", methods=["POST"])
+@login_required
 def update_user_settings_view(user_id):
     """Update user-specific settings."""
     logger.info(f"Updating settings for user ID: {user_id}")

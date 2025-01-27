@@ -18,6 +18,8 @@ $(document).ready(function () {
     // Fetch configuration from the database
     async function fetchConfigurationFromDatabase(blueprintName) {
         try {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+
             const response = await fetch(`/api/configurations/${blueprintName}`, {
                 method: "GET",
                 headers: { "X-CSRFToken": csrfToken },

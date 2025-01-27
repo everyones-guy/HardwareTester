@@ -1,17 +1,19 @@
 from flask import Blueprint, render_template, jsonify, request, redirect, url_for, flash
 from flask_login import login_required, current_user
 from HardwareTester.services.dashboard_service import DashboardService
+from HardwareTester.extensions import logger
 from datetime import datetime
-from HardwareTester.utils.custom_logger import CustomLogger
+#from HardwareTester.utils.custom_logger import CustomLogger
 
 # Initialize logger
-logger = CustomLogger.get_logger("main_views")
+#logger = CustomLogger.get_logger("main_views")
 
 # Create the Blueprint
 main_bp = Blueprint("main", __name__)
 
 
 @main_bp.route("/", methods=["GET"])
+@login_required
 def index():
     """
     Render the index/home page.
@@ -44,6 +46,7 @@ def dashboard():
 
 
 @main_bp.route("/about", methods=["GET"])
+@login_required
 def about():
     """
     Render the About Us page.
@@ -56,6 +59,7 @@ def about():
 
 
 @main_bp.route("/contact", methods=["GET", "POST"])
+@login_required
 def contact():
     """
     Handle the contact form.
@@ -84,6 +88,7 @@ def contact():
 
 
 @main_bp.route("/terms", methods=["GET"])
+@login_required
 def terms():
     """
     Render the Terms of Service page.
@@ -96,6 +101,7 @@ def terms():
 
 
 @main_bp.route("/privacy", methods=["GET"])
+@login_required
 def privacy():
     """
     Render the Privacy Policy page.
@@ -108,6 +114,7 @@ def privacy():
 
 
 @main_bp.route("/error", methods=["GET"])
+@login_required
 def error_page():
     """
     Render a generic error page.
@@ -116,6 +123,7 @@ def error_page():
 
 
 @main_bp.route("/search", methods=["GET"])
+@login_required
 def search():
     """
     Search functionality for the application.
@@ -137,6 +145,7 @@ def search():
 # Additional helper routes (optional)
 
 @main_bp.route("/health", methods=["GET"])
+@login_required
 def health_check():
     """
     Health check endpoint to confirm the application is running.

@@ -3,10 +3,14 @@ from flask import current_app
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 from datetime import datetime
-from HardwareTester.utils.custom_logger import CustomLogger
+from HardwareTester.extensions import logger
+#from HardwareTester.utils.custom_logger import CustomLogger
 
 # Initialize logger
-logger = CustomLogger.get_logger("api_service")
+#logger = CustomLogger.get_logger("api_service")
+
+logger.info("API_SERVICE")
+
 
 
 class APIService:

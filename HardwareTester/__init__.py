@@ -1,4 +1,5 @@
-from flask import Flask, jsonify, render_template, request, g
+from flask import Flask, jsonify, render_template, request
+from flask_login import current_user
 from HardwareTester.config import config
 from HardwareTester.extensions import db, socketio, migrate, csrf, login_manager, ma, bcrypt
 from HardwareTester.views import register_blueprints
@@ -48,11 +49,11 @@ def create_app(config_name="default"):
         """
         Inject variables available globally to templates.
         """
-        user_id = getattr(g, "user", None).id if hasattr(g, "user") and g.user else None
-        csrf_token = get_token(user_id) if user_id else None  # Retrieve or create the CSRF token
+       
+        csrf_token = get_token(current_user.id) if current_user.is_authenticated else None
         return {
             "now": datetime.utcnow(),
-            "csrf_token": csrf_token
+            "csrf_token": csrf_token,
         }
 
     logger.info("App initialized successfully.")

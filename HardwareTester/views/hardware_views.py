@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify, request, render_template
+from flask_login import login_required
 from HardwareTester.services.mqtt_service import MQTTService
 from HardwareTester.services.ssh_service import SSHService  # Hypothetical SSH service
 from HardwareTester.extensions import db
@@ -14,6 +15,7 @@ mqtt_service.connect()
 
 
 @hardware_bp.route("/", methods=["GET"])
+@login_required
 def hardware_dashboard():
     """Render the hardware dashboard."""
     try:
@@ -24,6 +26,7 @@ def hardware_dashboard():
 
 
 @hardware_bp.route("/list", methods=["GET"])
+@login_required
 def list_devices():
     """List all registered devices."""
     try:
@@ -44,6 +47,7 @@ def list_devices():
 
 
 @hardware_bp.route("/discover-device", methods=["POST"])
+@login_required
 def discover_device():
     """Discover device metadata and settings."""
     data = request.json
@@ -97,6 +101,7 @@ def discover_device():
 
 
 @hardware_bp.route("/device/<string:device_id>", methods=["GET"])
+@login_required
 def get_device(device_id):
     """Retrieve device information and settings."""
     try:
@@ -121,6 +126,7 @@ def get_device(device_id):
 
 
 @hardware_bp.route("/device/<string:device_id>/test-firmware", methods=["POST"])
+@login_required
 def test_firmware(device_id):
     """Test the firmware on a specified device."""
     try:
@@ -141,6 +147,7 @@ def test_firmware(device_id):
 
 
 @hardware_bp.route("/device/<string:device_id>/ssh-connect", methods=["POST"])
+@login_required
 def ssh_connect(device_id):
     """Establish an SSH connection to a device."""
     data = request.json
@@ -164,6 +171,7 @@ def ssh_connect(device_id):
 
 
 @hardware_bp.route("/device/<string:device_id>/execute-command", methods=["POST"])
+@login_required
 def execute_command(device_id):
     """Execute a command on a device via SSH."""
     data = request.json

@@ -2,12 +2,14 @@
 from HardwareTester.models.user_models import User, Role
 from HardwareTester.models.dashboard_models import DashboardData
 from HardwareTester.models.metric_models import Metric  # Update imports based on your models
-from HardwareTester.extensions import db
-from HardwareTester.utils.custom_logger import CustomLogger
+from HardwareTester.extensions import db, logger
+#from HardwareTester.utils.custom_logger import CustomLogger
 from sqlalchemy.exc import SQLAlchemyError
 
 # Initialize logger
-logger = CustomLogger.get_logger("dashboard_service")
+#logger = CustomLogger.get_logger("dashboard_service")
+
+logger.info("DASHBOARD_SERVICE")
 
 class DashboardService:
     @staticmethod

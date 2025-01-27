@@ -1,7 +1,7 @@
-from flask import Blueprint, render_template, redirect, url_for, request, flash, jsonify
+from flask import Blueprint, render_template, redirect, url_for, request, flash
 from flask_login import login_user, logout_user, login_required, current_user
-from HardwareTester.extensions import db, csrf, login_manager
-from HardwareTester.utils.bcrypt_utils import check_password, hash_password, is_strong_password
+from HardwareTester.extensions import db
+from HardwareTester.utils.bcrypt_utils import check_password, hash_password
 from HardwareTester.models.user_models import User
 from HardwareTester.forms import LoginForm, RegistrationForm, ProfileForm
 from sqlalchemy.exc import IntegrityError
@@ -67,7 +67,7 @@ def register():
 @auth_bp.route("/profile", methods=["GET", "POST"])
 @login_required
 def profile():
-    form = ProfileForm(obj=current_user)  # Pre-fill the form with the current user's data
+    form = ProfileForm(obj=current_user)
     if form.validate_on_submit():
         try:
             current_user.name = form.name.data
@@ -81,5 +81,4 @@ def profile():
             flash("An error occurred while updating your profile. Please try again.", "danger")
         return redirect(url_for("auth.profile"))
 
-    # Pass current_user as "user" to the template
     return render_template("auth/profile.html", form=form, user=current_user)
