@@ -111,3 +111,19 @@ def preview_config(config_id):
     except Exception as e:
         logger.error(f"Unexpected error while generating preview for configuration ID {config_id}: {e}")
         return jsonify({"success": False, "error": "An unexpected error occurred."}), 500
+
+@configuration_bp.route("/add-configuration", methods=["POST"])
+@login_required
+def add_configuration():
+    data = request.json
+    new_config = DynamicConfiguration(
+        type=data["type"],
+        name=data.get("name"),
+        description=data.get("description"),
+        properties=data.get("properties", {}),
+        created_by=current_user.id,
+        modified_by=current_user.id,
+    )
+    db.session.add(new_config)
+    db.session.commit()
+    return jsonify({"success": True, "message": "Configuration added successfully!"})
