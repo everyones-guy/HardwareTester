@@ -10,6 +10,7 @@ FLASK_DEBUG=1  # Set to 0 in production
 # Database Configuration
 # DATABASE_URL=mysql:///instance/app.db  # Default SQLite database location
 # SQLALCHEMY_DATABASE_URI=sqlite:///instance/app.db
+INSTANCE_DIR=C:/Users/Gary/source/repos/HardwareTester/HardwareTester
 DATABASE_URL=sqlite:///C:/Users/Gary/source/repos/HardwareTester/HardwareTester/instance/app.db
 SQLALCHEMY_DATABASE_URI=sqlite:///C:/Users/Gary/source/repos/HardwareTester/HardwareTester/instance/app.db
 SQLALCHEMY_TRACK_MODIFICATIONS=False
@@ -30,6 +31,7 @@ LOG_LEVEL=DEBUG  # Use INFO or WARNING in production
 LOG_FILE=app.log
 
 # File Upload Settings
+UPLOAD_ROOT=c:/Users/Gary/source/repos/HardwareTester/HardwareTester/uploads
 UPLOAD_FOLDER=uploads
 UPLOAD_BLUEPRINTS_FOLDER=blueprints
 UPLOAD_CONFIGS_FOLDER=configs

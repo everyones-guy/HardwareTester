@@ -290,14 +290,16 @@ def save_emulator_json():
             return jsonify({"success": False, "message": "JSON data is missing."}), 400
 
         # Get the upload folder from the app configuration
-        saved_configs_folder = os.path.join(os.getenv('UPLOAD_CONFIGS_FOLDER', 'uploads'), 'saved_configs')
+        saved_json_folder = current_app.config["UPLOAD_MODIFIED_JSON_FILES"]
+        #saved_configs_folder = os.path.join(os.getenv('UPLOAD_CONFIGS_FOLDER', 'uploads'), 'saved_configs')
+        #{"UPLOAD_MODIFIED_JSON_FILES" "os.getenv('UPLOAD_MODIFIED_JSON_FILES', 'uploads/modified_json_files')
 
         # Ensure the folder exists
-        os.makedirs(saved_configs_folder, exist_ok=True)
+        os.makedirs(saved_json_folder, exist_ok=True)
 
         # Secure the filename
         filename = secure_filename(filename)
-        file_path = os.path.join(saved_configs_folder, filename)
+        file_path = os.path.join(saved_json_folder, filename)
 
         # Save the JSON data to the file
         with open(file_path, 'w') as f:

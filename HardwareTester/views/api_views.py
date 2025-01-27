@@ -1,6 +1,8 @@
 from flask import Blueprint, jsonify, request, render_template
 from flask_login import login_required, current_user
+from urllib.parse import unquote
 from HardwareTester.services.api_service import APIService
+from HardwareTester.services.configuration_service import ConfigurationService
 from HardwareTester.services.serial_service import SerialService
 from HardwareTester.utils.custom_logger import CustomLogger
 
@@ -9,6 +11,7 @@ logger = CustomLogger.get_logger("API_Views", per_module=True)
 
 # Blueprint for API operations
 api_bp = Blueprint("api", __name__, url_prefix="/api")
+
 
 @api_bp.route("/", methods=["GET"])
 @login_required
@@ -20,6 +23,31 @@ def api_overview():
     except Exception as e:
         logger.error(f"Error rendering API Overview page: {e}")
         return jsonify({"success": False, "error": "Failed to load API Overview page."}), 500
+
+
+@api_bp.route("/configurations/<string:blueprint>", methods=["GET"])
+@login_required
+def get_configuration_by_blueprint(blueprint):
+    """
+    Fetch configuration details by blueprint name.
+    :param blueprint: Name of the blueprint (URL encoded or plain string).
+    """
+    try:
+        # Decode the blueprint name if URL-encoded
+        decoded_blueprint = unquote(blueprint)
+        logger.info(f"Fetching configuration for blueprint: {decoded_blueprint}")
+
+        # Fetch the configuration using the service
+        result = ConfigurationService.get_configuration_by_name(decoded_blueprint)
+        if result["success"]:
+            return jsonify({"success": True, "configuration": result["configuration"]})
+        else:
+            logger.warning(f"Configuration for blueprint '{decoded_blueprint}' not found.")
+            return jsonify({"success": False, "error": result["error"]}), 404
+    except Exception as e:
+        logger.error(f"Error fetching configuration for blueprint '{blueprint}': {e}")
+        return jsonify({"success": False, "error": "An unexpected error occurred."}), 500
+
 
 @api_bp.route("/test-connection", methods=["GET"])
 @login_required
@@ -91,7 +119,7 @@ def get_overview():
         overview = {
             "devices": APIService.get_devices(),
             "endpoints": APIService.list_available_endpoints().get("endpoints", []),
-            "api_logs": APIService.api_state.get("logs", [])
+            "api_logs": APIService.api_state.get("logs", []),
         }
         return jsonify({"success": True, "overview": overview})
     except Exception as e:
