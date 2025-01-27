@@ -6,7 +6,9 @@ $(document).ready(function () {
     const discardButton = $("#discard-preview");
     const saveForm = $("#save-configuration-form");
 
-    // Fetch and display saved configurations
+    /**
+     * Fetch and display saved configurations.
+     */
     function fetchConfigurations() {
         apiCall(
             "/configurations/list",
@@ -31,20 +33,22 @@ $(document).ready(function () {
                 }
             },
             (xhr) => {
-                showAlert("Failed to fetch configurations. Please try again later.", "danger");
+                showAlert("Failed to fetch configurations. Please try again later.", true);
                 console.error("Error fetching configurations:", xhr);
             }
         );
     }
 
-    // Save a configuration
+    /**
+     * Save a new configuration.
+     */
     saveForm.on("submit", function (event) {
         event.preventDefault();
         const name = $("#configuration-name").val();
         const layout = {}; // Placeholder for the configuration layout
 
         if (!name) {
-            showAlert("Please provide a name for the configuration.", "warning");
+            showAlert("Please provide a name for the configuration.", true);
             return;
         }
 
@@ -53,19 +57,20 @@ $(document).ready(function () {
             "POST",
             { name, layout },
             (data) => {
-                showAlert(data.message || "Configuration saved successfully.", "success");
+                showAlert(data.message || "Configuration saved successfully.", false);
                 saveForm[0].reset();
                 fetchConfigurations();
             },
             (xhr) => {
-                showAlert("Failed to save configuration. Please try again later.", "danger");
+                showAlert("Failed to save configuration. Please try again later.", true);
                 console.error("Error saving configuration:", xhr);
             }
         );
     });
 
-
-    / Preview a configuration
+    /**
+     * Preview a configuration.
+     */
     $(document).on("click", ".preview-config", function () {
         const configId = $(this).data("id");
 
@@ -78,46 +83,56 @@ $(document).ready(function () {
                     previewContent.html(data.preview);
                     previewCard.removeClass("d-none");
                 } else {
-                    showAlert(`Error: ${data.error}`, "danger");
+                    showAlert(`Error: ${data.error}`, true);
                 }
             },
             (xhr) => {
-                showAlert("Failed to load configuration preview.", "danger");
+                showAlert("Failed to load configuration preview.", true);
                 console.error("Error fetching preview:", xhr);
             }
         );
     });
 
-    // Apply a configuration
+    /**
+     * Apply a configuration.
+     */
     $(document).on("click", ".apply-config", function () {
         const configName = $(this).data("id");
 
         apiCall(
-            `/configurations/api/${configName}`,
+            `/configurations/api/${encodeURIComponent(configName)}`,
             "GET",
             null,
             (data) => {
                 if (data.success) {
-                    showAlert(data.message || "Configuration fetched successfully.", "success");
+                    showAlert(data.message || "Configuration fetched successfully.", false);
                     console.log("Fetched Configuration:", data.configuration);
                 } else {
-                    showAlert(data.error || "Configuration not found.", "danger");
+                    showAlert(data.error || "Configuration not found.", true);
                 }
             },
             (xhr) => {
-                showAlert("Failed to fetch configuration. Please try again.", "danger");
+                showAlert("Failed to fetch configuration. Please try again.", true);
                 console.error("Error fetching configuration:", xhr);
             }
         );
     });
 
-
-    // Discard preview
+    /**
+     * Discard configuration preview.
+     */
     discardButton.on("click", function () {
         previewCard.addClass("d-none");
         previewContent.empty();
     });
 
-    // Initial fetch
+    /**
+     * Utility: Show alerts for user feedback.
+     */
+    function showAlert(message, isError = false) {
+        alert(isError ? `Error: ${message}` : message);
+    }
+
+    // Initial fetch of configurations
     fetchConfigurations();
 });
