@@ -10,7 +10,7 @@ FLASK_DEBUG=1  # Set to 0 in production
 # Database Configuration
 # DATABASE_URL=mysql:///instance/app.db  # Default SQLite database location
 # SQLALCHEMY_DATABASE_URI=sqlite:///instance/app.db
-INSTANCE_DIR=C:/Users/Gary/source/repos/HardwareTester/HardwareTester
+INSTANCE_DIR=C:/Users/Gary/source/repos/HardwareTester/HardwareTester/instance
 DATABASE_URL=sqlite:///C:/Users/Gary/source/repos/HardwareTester/HardwareTester/instance/app.db
 SQLALCHEMY_DATABASE_URI=sqlite:///C:/Users/Gary/source/repos/HardwareTester/HardwareTester/instance/app.db
 SQLALCHEMY_TRACK_MODIFICATIONS=False
@@ -32,10 +32,14 @@ LOG_FILE=app.log
 
 # File Upload Settings
 UPLOAD_ROOT=c:/Users/Gary/source/repos/HardwareTester/HardwareTester/uploads
-UPLOAD_FOLDER=uploads
-UPLOAD_BLUEPRINTS_FOLDER=blueprints
-UPLOAD_CONFIGS_FOLDER=configs
-UPLOAD_MODIFIED_JSON_FILES=modified_json_files
+UPLOAD_FOLDER=c:/Users/Gary/source/repos/HardwareTester/HardwareTester/uploads
+UPLOAD_BLUEPRINTS_FOLDER=c:/Users/Gary/source/repos/HardwareTester/HardwareTester/uploads/blueprints
+UPLOAD_CONFIGS_FOLDER=c:/Users/Gary/source/repos/HardwareTester/HardwareTester/uploads/configs
+UPLOAD_MODIFIED_JSON_FILES=c:/Users/Gary/source/repos/HardwareTester/HardwareTester/uploads/modified_json_files
+
+#UPLOAD_BLUEPRINTS_FOLDER=blueprints
+#UPLOAD_CONFIGS_FOLDER=configs
+#UPLOAD_MODIFIED_JSON_FILES=modified_json_files
 MAX_CONTENT_LENGTH=16777216  # 16 MB
     
 #UPLOAD_FOLDER=uploads

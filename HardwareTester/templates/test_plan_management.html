@@ -57,6 +57,82 @@
         </div>
     </div>
 </div>
+
+<!-- Create Test Plan Modal -->
+<div class="modal fade" id="createTestPlanModal" tabindex="-1" aria-labelledby="createTestPlanModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createTestPlanModalLabel">Create New Test Plan</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createTestPlanForm">
+                    <!-- Test Plan Name -->
+                    <div class="mb-3">
+                        <label for="testPlanName" class="form-label">Test Plan Name</label>
+                        <input type="text" class="form-control" id="testPlanName" name="testPlanName" placeholder="Enter the test plan name" required>
+                    </div>
+
+                    <!-- Screen Selection -->
+                    <div class="mb-3">
+                        <label for="testPlanScreen" class="form-label">Screen</label>
+                        <div class="input-group">
+                            <select class="form-select" id="testPlanScreen" name="testPlanScreen" required>
+                                <option value="" disabled selected>Select a screen</option>
+                                <option value="configuration">Configuration</option>
+                                <option value="main_page">Main Page</option>
+                                <option value="administration">Administration</option>
+                                <option value="home">Home</option>
+                                <option value="networking">Networking</option>
+                                <option value="provision">Provision</option>
+                                <option value="test">Test</option>
+                            </select>
+                            <button type="button" class="btn btn-outline-secondary" id="addScreenButton">Add</button>
+                        </div>
+                    </div>
+
+                    <!-- Event Selection -->
+                    <div class="mb-3">
+                        <label for="testPlanEvent" class="form-label">Event (Button/Input)</label>
+                        <div class="input-group">
+                            <select class="form-select" id="testPlanEvent" name="testPlanEvent" required>
+                                <option value="" disabled selected>Select an event</option>
+                                <option value="button_one">Button One</option>
+                                <option value="button_two">Button Two</option>
+                                <option value="button_three">Button Three</option>
+                                <option value="home">Home</option>
+                                <option value="configuration">Configuration</option>
+                                <option value="profile">Profile</option>
+                                <option value="provision">Provision</option>
+                                <option value="administration">Administration</option>
+                            </select>
+                            <button type="button" class="btn btn-outline-secondary" id="addEventButton">Add</button>
+                        </div>
+                    </div>
+
+                    <!-- Test Plan Description -->
+                    <div class="mb-3">
+                        <label for="testPlanDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="testPlanDescription" name="testPlanDescription" rows="3" placeholder="Enter a brief description"></textarea>
+                    </div>
+
+                    <!-- Timing Between Commands -->
+                    <div class="mb-3">
+                        <label for="testPlanTiming" class="form-label">Timing Between Commands (ms)</label>
+                        <input type="number" class="form-control" id="testPlanTiming" name="testPlanTiming" placeholder="Enter delay in milliseconds (e.g., 500)" min="0" step="100" value="500">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveTestPlanButton">Save Test Plan</button>
+                <button type="button" class="btn btn-outline-primary" id="loadExistingTestPlanButton">Load Existing Test Plan</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block additional_scripts %}

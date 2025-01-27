@@ -53,7 +53,7 @@ $(document).ready(function () {
         }
 
         apiCall(
-            "/configurations/save",
+            "/api/configurations/save",
             "POST",
             { name, layout },
             (data) => {
@@ -97,10 +97,12 @@ $(document).ready(function () {
      * Apply a configuration.
      */
     $(document).on("click", ".apply-config", function () {
-        const configName = $(this).data("id");
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+        const configName = $(this).data("name");
+        const decodedConfigName = decodeURIComponent(configName); // Decode the name
 
         apiCall(
-            `/configurations/api/${encodeURIComponent(configName)}`,
+            `/api/configurations/${encodeURIComponent(configName)}`,
             "GET",
             null,
             (data) => {

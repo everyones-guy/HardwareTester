@@ -11,11 +11,11 @@ $(document).ready(function () {
 
     // Fetch and display test plans
     function loadTestPlans() {
-        $.ajax({
-            url: "/test-plans/list",
-            method: "GET",
-            success: function (data) {
-                const testPlansList = $("#test-plans-list");
+        apiCall(
+            "/test-plans/list",
+            "GET",
+            {},
+            function (data) {
                 testPlansList.empty(); // Clear the list first
 
                 if (data.success && data.testPlans.length > 0) {
@@ -35,28 +35,22 @@ $(document).ready(function () {
                     testPlansList.html(`<li class="list-group-item text-muted">No test plans available.</li>`);
                 }
             },
-            error: function (xhr) {
+            function (xhr) {
                 console.error("Error loading test plans:", xhr.responseText);
                 alert("Failed to load test plans.");
-            },
-        });
-    }
-
-
-    // Handle test plan upload
+            }
+        );
+    }// Handle test plan upload
     $("#upload-test-plan-form").on("submit", function (event) {
         event.preventDefault();
         const formData = new FormData(this);
-        $.ajax({
-            url: "/test-plans/upload",
-            method: "POST",
-            data: formData,
-            processData: false,
-            contentType: false,
-            headers: {
-                "X-CSRFToken": $("meta[name='csrf-token']").attr("content"),
-            },
-            success: function (data) {
+
+        // Note: FormData is passed directly to the API call
+        apiCall(
+            "/test-plans/upload",
+            "POST",
+            formData,
+            function (data) {
                 if (data.success) {
                     alert(data.message);
                     loadTestPlans();
@@ -64,19 +58,21 @@ $(document).ready(function () {
                     alert(`Error: ${data.error}`);
                 }
             },
-            error: function (xhr) {
+            function (xhr) {
                 console.error("Error uploading test plan:", xhr.responseText);
-            },
-        });
+            }
+        );
     });
 
     // Preview a test plan
     testPlansList.on("click", ".preview-plan-btn", function () {
         const testPlanId = $(this).data("id");
-        $.ajax({
-            url: `/test-plans/${testPlanId}/preview`,
-            method: "GET",
-            success: function (data) {
+
+        apiCall(
+            `/test-plans/${testPlanId}/preview`,
+            "GET",
+            {},
+            function (data) {
                 if (data.success) {
                     currentPreviewPlanId = testPlanId;
                     previewPlanName.text(data.plan.name);
@@ -94,19 +90,20 @@ $(document).ready(function () {
                     alert(data.error);
                 }
             },
-            error: function (xhr) {
+            function (xhr) {
                 console.error("Error fetching test plan preview:", xhr.responseText);
-            },
-        });
+            }
+        );
     });
 
     // Run the previewed test plan
     runPreviewPlanButton.on("click", function () {
         if (currentPreviewPlanId) {
-            $.ajax({
-                url: `/test-plans/run/${currentPreviewPlanId}`,
-                method: "POST",
-                success: function (data) {
+            apiCall(
+                `/test-plans/run/${currentPreviewPlanId}`,
+                "POST",
+                {},
+                function (data) {
                     testResults.empty();
                     if (data.success) {
                         const resultsHTML = data.results
@@ -117,10 +114,10 @@ $(document).ready(function () {
                         testResults.html(`<p class="text-danger">${data.error}</p>`);
                     }
                 },
-                error: function (xhr) {
+                function (xhr) {
                     console.error("Error running test plan:", xhr.responseText);
-                },
-            });
+                }
+            );
         }
     });
 

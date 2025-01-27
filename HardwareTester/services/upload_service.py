@@ -1,6 +1,7 @@
 import os
 from werkzeug.datastructures import FileStorage
 from HardwareTester.utils.custom_logger import CustomLogger
+import json
 
 # Initialize logger
 logger = CustomLogger.get_logger("upload_service")
@@ -23,7 +24,8 @@ class UploadService:
 
         try:
             # Determine upload directory
-            upload_dir = os.path.join("uploads", file_type)
+            upload_dir = current_app.config["UPLOAD_ROOT"]
+            
             os.makedirs(upload_dir, exist_ok=True)
 
             # Save the file

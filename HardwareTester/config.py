@@ -11,8 +11,10 @@ def str_to_bool(value):
 class Config:
     """Base configuration with default settings."""
     BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-    INSTANCE_DIR = os.path.join("INSTANCE_DIR", "instance")
-    UPLOAD_ROOT = os.getenv("UPLOAD_ROOT", "uploads")  # Base upload folder from .env
+    INSTANCE_DIR = os.getenv("INSTANCE_DIR", "instance")
+    UPLOAD_ROOT = os.getenv("UPLOAD_ROOT", "uploads")  # Base upload folder from .env\
+    
+
     os.makedirs(INSTANCE_DIR, exist_ok=True)  # Ensure the instance directory exists
 
     # Flask settings
@@ -34,10 +36,11 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # File upload settings
-    UPLOAD_FOLDER = os.getenv(UPLOAD_ROOT)
-    UPLOAD_BLUEPRINTS_FOLDER = os.path.join(UPLOAD_ROOT, os.getenv("UPLOAD_BLUEPRINTS_FOLDER", "blueprints"))
-    UPLOAD_CONFIGS_FOLDER = os.path.join(UPLOAD_ROOT, os.getenv("UPLOAD_CONFIGS_FOLDER", "configs"))
-    UPLOAD_MODIFIED_JSON_FILES = os.path.join(UPLOAD_ROOT, os.getenv("UPLOAD_MODIFIED_JSON_FILES", "modified_json_files"))
+   # UPLOAD_ROOT = os.getenv("UPLOAD_ROOT")
+    UPLOAD_BLUEPRINTS_FOLDER = os.getenv("UPLOAD_BLUEPRINTS_FOLDER", "blueprints")
+    UPLOAD_CONFIGS_FOLDER = os.getenv("UPLOAD_CONFIGS_FOLDER", "configs")
+    UPLOAD_MODIFIED_JSON_FILES = os.getenv("UPLOAD_MODIFIED_JSON_FILES", "modified_json_files")
+    
     os.makedirs(UPLOAD_BLUEPRINTS_FOLDER, exist_ok=True)
     os.makedirs(UPLOAD_CONFIGS_FOLDER, exist_ok=True)
     os.makedirs(UPLOAD_MODIFIED_JSON_FILES, exist_ok=True)

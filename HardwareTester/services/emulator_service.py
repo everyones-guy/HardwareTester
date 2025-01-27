@@ -394,9 +394,9 @@ class EmulatorService:
             :return: Full path to the saved file.
         """
         try:
-            # Get the upload folder root from the app configuration
-            upload_folder_root = current_app.config.get('UPLOAD_BLUEPRINTS_FOLDER', 'uploads/blueprints')
+            upload_folder_root = current_app.config["UPLOAD_ROOT"]
             upload_folder = os.path.join(upload_folder_root, subfolder) if subfolder else upload_folder_root
+            # os.path.join(upload_folder_root, subfolder) if subfolder else upload_folder_root
 
             # Ensure the subfolder exists
             os.makedirs(upload_folder, exist_ok=True)

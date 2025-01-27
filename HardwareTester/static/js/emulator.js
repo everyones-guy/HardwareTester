@@ -21,7 +21,7 @@ $(document).ready(function () {
             const decodedBlueprintName = decodeURIComponent(blueprintName); // Decode the name
             const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
-            const response = await fetch(`/configurations/api/${decodedBlueprintName}`, {
+            const response = await fetch(`/api/configurations/${decodedBlueprintName}`, {
                 method: "GET",
                 headers: { "X-CSRFToken": csrfToken },
             });
