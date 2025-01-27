@@ -360,9 +360,9 @@ class EmulatorService:
 
     def _add_or_update_peripherals(self, controller_id: int, peripherals: list):
         """
-        Add or update peripherals for a given controller.
-        :param controller_id: ID of the associated controller.
-        :param peripherals: List of peripheral dictionaries.
+            Add or update peripherals for a given controller.
+            :param controller_id: ID of the associated controller.
+            :param peripherals: List of peripheral dictionaries.
         """
         try:
             for peripheral in peripherals:
@@ -382,22 +382,20 @@ class EmulatorService:
                     )
                     db.session.add(new_peripheral)
             db.session.commit()
-
         except Exception as e:
             logger.error(f"Error adding/updating peripherals: {e}")
             raise
         
-
-    def save_uploaded_file(self, file, subfolder=''):
+    def save_uploaded_file(self, file, subfolder='') -> str:
         """
-        Save an uploaded file to the specified subfolder.
-        :param file: File object from the request.
-        :param subfolder: Subfolder under UPLOAD_FOLDER_ROOT.
-        :return: Full path to the saved file.
+            Save an uploaded file to the specified subfolder.
+            :param file: File object from the request.
+            :param subfolder: Subfolder under UPLOAD_BLUEPRINTS_FOLDER.
+            :return: Full path to the saved file.
         """
         try:
             # Get the upload folder root from the app configuration
-            upload_folder_root = current_app.config.get('UPLOAD_BLUEPRINTS_FOLDER', 'uploads')
+            upload_folder_root = current_app.config.get('UPLOAD_BLUEPRINTS_FOLDER', 'uploads/blueprints')
             upload_folder = os.path.join(upload_folder_root, subfolder) if subfolder else upload_folder_root
 
             # Ensure the subfolder exists
