@@ -1,22 +1,15 @@
 from HardwareTester.extensions import db, logger
-from HardwareTester.utils.custom_logger import CustomLogger
-from HardwareTester.models.configuration_models import Configuration
+from HardwareTester.models.configuration_models import Configuration, DynamicConfiguration
 import json
 
-# Initialize logger
-logger = CustomLogger.get_logger("configuration_service", per_module=True)
 
 class ConfigurationService:
     @staticmethod
     def save_configuration(name, layout):
         """
         Save a configuration layout to the database.
-        :param name: Name of the configuration.
-        :param layout: JSON layout of valves and peripherals.
-        :return: Dictionary with success message or error.
         """
         try:
-            # Validate layout
             if not isinstance(layout, dict):
                 return {"success": False, "error": "Invalid layout format. Must be a JSON object."}
 
@@ -31,48 +24,58 @@ class ConfigurationService:
             return {"success": False, "error": str(e)}
 
     @staticmethod
+    def add_dynamic_configuration(data, user_id):
+        """
+        Add a dynamic configuration to the database.
+        """
+        try:
+            dynamic_config = DynamicConfiguration(
+                type=data["type"],
+                name=data.get("name"),
+                description=data.get("description"),
+                properties=data.get("properties", {}),
+                created_by=user_id,
+                modified_by=user_id,
+            )
+            db.session.add(dynamic_config)
+            db.session.commit()
+            logger.info(f"Dynamic configuration '{dynamic_config.name}' added successfully.")
+            return {"success": True, "message": f"Dynamic configuration '{dynamic_config.name}' added successfully."}
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"Error adding dynamic configuration: {e}")
+            return {"success": False, "error": str(e)}
+
+    @staticmethod
+    def list_configurations(search=None, page=1, per_page=10):
+        """
+        List saved configurations with optional search and pagination.
+        """
+        try:
+            query = Configuration.query
+            if search:
+                query = query.filter(Configuration.name.ilike(f"%{search}%"))
+            paginated = query.paginate(page=page, per_page=per_page, error_out=False)
+
+            configurations = [
+                {"id": config.id, "name": config.name} for config in paginated.items
+            ]
+            return {"success": True, "configurations": configurations, "total": paginated.total}
+        except Exception as e:
+            logger.error(f"Error listing configurations: {e}")
+            return {"success": False, "error": str(e)}
+
+    @staticmethod
     def load_configuration(config_id):
         """
         Load a specific configuration by ID.
-        :param config_id: ID of the configuration to load.
-        :return: Dictionary with configuration data or error.
         """
         try:
             config = Configuration.query.get(config_id)
             if config:
                 logger.info(f"Loaded configuration '{config.name}' successfully.")
                 return {"success": True, "configuration": {"name": config.name, "layout": json.loads(config.layout)}}
-            return {"success": False, "message": "Configuration not found."}
+            return {"success": False, "error": "Configuration not found."}
         except Exception as e:
             logger.error(f"Error loading configuration: {e}")
-            return {"success": False, "error": str(e)}
-
-    @staticmethod
-    def list_configurations():
-        """
-        List all saved configurations.
-        :return: List of configurations or error.
-        """
-        try:
-            configs = Configuration.query.all()
-            logger.info("Fetched all configurations successfully.")
-            return {"success": True, "configurations": [{"id": config.id, "name": config.name} for config in configs]}
-        except Exception as e:
-            logger.error(f"Error listing configurations: {e}")
-            return {"success": False, "error": str(e)}
-
-    @staticmethod
-    def generate_preview(config_id):
-        """
-        Generate a preview for a specific configuration.
-        :param config_id: ID of the configuration to preview.
-        :return: HTML snippet or error message.
-        """
-        try:
-            # Mock preview logic
-            configuration = {"id": config_id, "name": f"Config {config_id}"}
-            preview_html = f"<div>Preview: {configuration['name']}</div>"
-            return {"success": True, "preview": preview_html}
-        except Exception as e:
-            logger.error(f"Error generating preview: {e}")
             return {"success": False, "error": str(e)}
