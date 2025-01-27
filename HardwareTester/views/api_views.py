@@ -5,7 +5,7 @@ from HardwareTester.services.serial_service import SerialService
 from HardwareTester.utils.custom_logger import CustomLogger
 
 # Initialize logger
-logger = CustomLogger.get_logger("api_views")
+logger = CustomLogger.get_logger("API_Views", per_module=True)
 
 # Blueprint for API operations
 api_bp = Blueprint("api", __name__, url_prefix="/api")

@@ -8,8 +8,8 @@ from threading import Lock
 from sqlalchemy.sql import func
 from flask import current_app
 
-from HardwareTester.extensions import db, logger
-#from HardwareTester.utils.custom_logger import CustomLogger
+from HardwareTester.extensions import db
+from HardwareTester.utils.custom_logger import CustomLogger
 from HardwareTester.services.mqtt_client import MQTTClient
 from HardwareTester.models.device_models import Emulation, Blueprint, Controller, Peripheral  # Replace with actual path to your model
 from HardwareTester.models.upload_models import UploadedFile
@@ -18,7 +18,8 @@ from HardwareTester.services.serial_service import SerialService
 
 
 # Initialize logger
-emulator_logger = logger.addHandler() .addHandler("EMULATOR_SERVICE")   .get_logger("emulator_service")
+logger = CustomLogger.get_logger("API_Views", per_module=True)
+
 
 class EmulatorService:
     # Emulator state

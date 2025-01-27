@@ -280,10 +280,23 @@ $(document).ready(function () {
     const jsonEditor = new JSONEditor(editorContainer, {
         mode: "tree",
         modes: ["tree", "code"],
-        onError: function (err) {
-            alert(`JSON Editor Error: ${err}`);
+        onChangeJSON: function (json) {
+            console.log("Updated JSON:", json);
         },
     });
+
+    function openDynamicFieldEditor(fields) {
+        jsonEditor.set(fields);
+        $("#dynamic-field-editor-modal").modal("show");
+    }
+
+    $("#save-dynamic-fields").on("click", function () {
+        const updatedConfiguration = jsonEditor.get();
+        validateConfiguration(updatedConfiguration, { warnOnly: false });
+        console.log("Dynamic fields saved:", updatedConfiguration);
+        $("#dynamic-field-editor-modal").modal("hide");
+    });
+
 
     // Utility: Show alerts for user feedback
     function showAlert(message, isError = false) {
@@ -394,26 +407,38 @@ $(document).ready(function () {
         const warnings = [];
         const errors = [];
 
-        // Validate the top-level fields
-        if (!configuration.type) errors.push("Configuration must include a 'type' field.");
+        // Validate top-level fields and allow dynamic types
+        if (!configuration.type) {
+            errors.push("Configuration must include a 'type' field.");
+        } else {
+            console.log(`Validating configuration type: ${configuration.type}`);
+        }
+
+        // Allow missing name and description but warn the user
         if (!configuration.name) warnings.push("Configuration is missing a 'name' field.");
         if (!configuration.description) warnings.push("Configuration is missing a 'description' field.");
 
-        // Validate components based on type
-        if (configuration.type === "blueprint") {
-            validateBlueprint(configuration, warnings, errors);
-        } else if (configuration.type === "controller") {
-            validateController(configuration, warnings, errors);
-        } else if (configuration.type === "peripheral") {
-            validatePeripheral(configuration, warnings, errors);
-        } else if (configuration.type === "emulator") {
-            validateEmulator(configuration, warnings, errors);
-        } else {
-            errors.push(`Unknown configuration type: ${configuration.type}`);
+        // Validate based on the type
+        switch (configuration.type) {
+            case "blueprint":
+                validateBlueprint(configuration, warnings, errors);
+                break;
+            case "controller":
+                validateController(configuration, warnings, errors);
+                break;
+            case "peripheral":
+                validatePeripheral(configuration, warnings, errors);
+                break;
+            case "emulator":
+                validateEmulator(configuration, warnings, errors);
+                break;
+            default:
+                warnings.push(`Unknown configuration type: ${configuration.type}. You can define it dynamically.`);
+                break;
         }
 
         // Display warnings and errors
-        if (options.warnOnly && warnings.length > 0) {
+        if (warnings.length > 0) {
             console.warn("Validation Warnings:", warnings);
         }
 
@@ -424,61 +449,48 @@ $(document).ready(function () {
         console.log("Validation completed successfully.");
     }
 
-    // Validate blueprint-specific fields
+    // Allow users to define missing fields dynamically
     function validateBlueprint(configuration, warnings, errors) {
         if (!configuration.blueprint) {
             warnings.push("Blueprint is missing a 'blueprint' field.");
             return;
         }
 
-        // Check for nested components
-        if (configuration.blueprint.controllers) {
-            configuration.blueprint.controllers.forEach((controller, index) => {
-                try {
-                    validateController(controller, warnings, errors);
-                } catch (error) {
-                    warnings.push(`Controller ${index + 1} has issues: ${error.message}`);
-                }
-            });
-        }
-
-        if (configuration.blueprint.peripherals) {
-            configuration.blueprint.peripherals.forEach((peripheral, index) => {
-                try {
-                    validatePeripheral(peripheral, warnings, errors);
-                } catch (error) {
-                    warnings.push(`Peripheral ${index + 1} has issues: ${error.message}`);
-                }
-            });
-        }
+        const requiredFields = ["controllers", "peripherals"];
+        handleDynamicFields(configuration.blueprint, requiredFields, warnings);
     }
 
-    // Validate controller-specific fields
     function validateController(controller, warnings, errors) {
-        if (!controller.name) warnings.push("Controller is missing a 'name' field.");
-        if (!controller.connection) warnings.push("Controller is missing a 'connection' field.");
-        if (controller.peripherals && !Array.isArray(controller.peripherals)) {
-            errors.push("Controller 'peripherals' field must be an array.");
-        }
+        const requiredFields = ["name", "connection"];
+        handleDynamicFields(controller, requiredFields, warnings);
     }
 
-    // Validate peripheral-specific fields
     function validatePeripheral(peripheral, warnings, errors) {
-        if (!peripheral.name) warnings.push("Peripheral is missing a 'name' field.");
-        if (!peripheral.type) warnings.push("Peripheral is missing a 'type' field.");
-        if (!peripheral.connection) warnings.push("Peripheral is missing a 'connection' field.");
+        const requiredFields = ["name", "type", "connection"];
+        handleDynamicFields(peripheral, requiredFields, warnings);
     }
 
-    // Validate emulator-specific fields
     function validateEmulator(emulator, warnings, errors) {
-        if (!emulator.firmware) warnings.push("Emulator is missing a 'firmware' field.");
-        if (!emulator.hardwareAbstractionLayer) {
-            warnings.push("Emulator is missing a 'hardwareAbstractionLayer' field.");
-        }
-        if (emulator.supportedPeripherals && !Array.isArray(emulator.supportedPeripherals)) {
-            errors.push("Emulator 'supportedPeripherals' field must be an array.");
-        }
+        const requiredFields = ["firmware", "hardwareAbstractionLayer", "supportedPeripherals"];
+        handleDynamicFields(emulator, requiredFields, warnings);
     }
+
+    // Handle dynamic field validation
+    function handleDynamicFields(object, requiredFields, warnings) {
+        requiredFields.forEach((field) => {
+            if (!object[field]) {
+                warnings.push(`Field '${field}' is missing. It can be added dynamically.`);
+            }
+        });
+
+        // Check for additional fields not defined
+        Object.keys(object).forEach((key) => {
+            if (!requiredFields.includes(key)) {
+                warnings.push(`Field '${key}' is not recognized but will be allowed.`);
+            }
+        });
+    }
+
 
     // Adjust JSON Editor size dynamically
     resizeEditor();

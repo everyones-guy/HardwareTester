@@ -107,8 +107,5 @@ $(document).ready(function () {
     // Initialize
     setupSocketIO();
     updateTestPlansList();
-    updateValveList();
 
-    // Refresh valve statuses
-    $("#refresh-valve-status").on("click", updateValveList);
 });

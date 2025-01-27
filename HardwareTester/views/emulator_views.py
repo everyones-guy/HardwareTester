@@ -1,18 +1,18 @@
 from flask import Blueprint, jsonify, request, render_template, current_app
 from flask_login import login_required, current_user
 from HardwareTester.services.emulator_service import EmulatorService
-#from HardwareTester.utils.custom_logger import CustomLogger
+from HardwareTester.utils.custom_logger import CustomLogger
 from HardwareTester.utils.token_utils import get_token
 from HardwareTester.forms import StartEmulationForm, AddEmulatorForm
 from werkzeug.utils import secure_filename
-from HardwareTester.extensions import logger
 import json
 import os
 
 # Initialize logger
 #logger = CustomLogger.get_logger("emulator_views")
 
-logger.info("EMULATOR_VIEWS")
+logger = CustomLogger.get_logger("Emulator_Views", per_module=True)
+
 
 # Define the Blueprint
 emulator_bp = Blueprint("emulators", __name__, url_prefix="/emulators")

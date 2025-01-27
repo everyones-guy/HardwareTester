@@ -66,6 +66,9 @@
     <Compile Include="HardwareTester\models\configuration_models.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="HardwareTester\models\dynamic_configurations.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="HardwareTester\models\ssh_models.py">
       <SubType>Code</SubType>
     </Compile>

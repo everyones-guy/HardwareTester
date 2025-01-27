@@ -1,6 +1,6 @@
 {
     "name": "Test3 Hero Blueprint - Controller Test3",
-    "type": "sensor",
+    "type": "blueprint",
     "description": "TEST3 Simulates a temperature sensor device for testing. This is for Controller Test",
     "protocol": "MQTT",
     "connection": {
@@ -66,14 +66,7 @@
             }
         ]
     },
-    "settings": {
-        "frequency": "1Hz",
-        "data_range": {
-            "max": 50,
-            "min": -20
-        },
-        "units": "Celsius"
-    },
+     
     "commands": [
         {
             "name": "START",
