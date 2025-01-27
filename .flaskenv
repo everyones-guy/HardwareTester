@@ -29,15 +29,16 @@ MQTT_TLS=False  # Use True for secure MQTT connections
 LOG_LEVEL=DEBUG  # Use INFO or WARNING in production
 LOG_FILE=app.log
 
-# File upload settings
-UPLOAD_FOLDER = os.path.join(BASE_DIR, os.getenv('UPLOAD_FOLDER', 'uploads'))
-UPLOAD_BLUEPRINTS_FOLDER = os.path.join(UPLOAD_FOLDER, 'blueprints')
-UPLOAD_CONFIGS_FOLDER = os.path.join(UPLOAD_FOLDER, 'configs')
+# File Upload Settings
+UPLOAD_FOLDER=uploads
+UPLOAD_BLUEPRINTS_FOLDER=blueprints
+UPLOAD_CONFIGS_FOLDER=configs
+UPLOAD_MODIFIED_JSON_FILES=modified_json_files
+MAX_CONTENT_LENGTH=16777216  # 16 MB
     
 #UPLOAD_FOLDER=uploads
 #BLUEPRINT_UPLOAD_FOLDER=blueprints
 #UPLOAD_FOLDER_ROOT=C:/Users/Gary/source/repos/HardwareTester/HardwareTester/uploads
-MAX_CONTENT_LENGTH=16777216  # 16 MB
 ALLOWED_SPEC_SHEET_EXTENSIONS=pdf,docx,xlsx
 ALLOWED_TEST_PLAN_EXTENSIONS=pdf,csv,txt
 

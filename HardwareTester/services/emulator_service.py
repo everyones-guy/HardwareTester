@@ -397,7 +397,7 @@ class EmulatorService:
         """
         try:
             # Get the upload folder root from the app configuration
-            upload_folder_root = current_app.config.get('UPLOAD_FOLDER_ROOT', 'uploads')
+            upload_folder_root = current_app.config.get('UPLOAD_BLUEPRINTS_FOLDER', 'uploads')
             upload_folder = os.path.join(upload_folder_root, subfolder) if subfolder else upload_folder_root
 
             # Ensure the subfolder exists

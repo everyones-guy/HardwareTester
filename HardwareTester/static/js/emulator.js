@@ -18,9 +18,10 @@ $(document).ready(function () {
     // Fetch configuration from the database
     async function fetchConfigurationFromDatabase(blueprintName) {
         try {
+            const decodedBlueprintName = decodeURIComponent(blueprintName); // Decode the name
             const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
-            const response = await fetch(`/configurations/api/${unquote(blueprintName)}`, {
+            const response = await fetch(`/configurations/api/${decodedBlueprintName}`, {
                 method: "GET",
                 headers: { "X-CSRFToken": csrfToken },
             });
@@ -37,6 +38,7 @@ $(document).ready(function () {
             return null;
         }
     }
+
 
     // Start emulation
     function startEmulation(configuration) {

@@ -10,10 +10,10 @@ def str_to_bool(value):
 
 class Config:
     """Base configuration with default settings."""
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    BASE_DIR = os.path.abspath(os.path.dirname(__file__))
     INSTANCE_DIR = os.path.join(BASE_DIR, "instance")
+    UPLOAD_ROOT = os.getenv("UPLOAD_FOLDER", "uploads")  # Base upload folder from .env
     os.makedirs(INSTANCE_DIR, exist_ok=True)  # Ensure the instance directory exists
-    WTF_CSRF_ENABLED = False  # Disable CSRF for easier testing   
 
     # Flask settings
     SECRET_KEY = os.getenv("SECRET_KEY", "default-secret-key")
@@ -27,21 +27,24 @@ class Config:
     # Debugging and Logging
     DEBUG = str_to_bool(os.getenv("DEBUG", "True"))
     LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
-    LOG_FILE = os.getenv("LOG_FILE", "app.log")
+    LOG_FILE = os.getenv("LOG_FILE", os.path.join(BASE_DIR, "app.log"))
 
     # Database settings
-    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", f"sqlite:///C:/Users/Gary/source/repos/HardwareTester/HardwareTester/instance/app.db")
+    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", f"sqlite:///{os.path.join(INSTANCE_DIR, 'app.db')}")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # File upload settings
-    UPLOAD_FOLDER = os.path.join(BASE_DIR, os.getenv('UPLOAD_FOLDER', 'uploads'))
-    UPLOAD_BLUEPRINTS_FOLDER = os.path.join(UPLOAD_FOLDER, 'blueprints')
-    UPLOAD_CONFIGS_FOLDER = os.path.join(UPLOAD_FOLDER, 'configs')
-    
+    UPLOAD_FOLDER = os.path.join(BASE_DIR, UPLOAD_ROOT)
+    UPLOAD_BLUEPRINTS_FOLDER = os.path.join(UPLOAD_FOLDER, os.getenv("UPLOAD_BLUEPRINTS_FOLDER", "blueprints"))
+    UPLOAD_CONFIGS_FOLDER = os.path.join(UPLOAD_FOLDER, os.getenv("UPLOAD_CONFIGS_FOLDER", "configs"))
+    UPLOAD_MODIFIED_JSON_FILES = os.path.join(UPLOAD_FOLDER, os.getenv("UPLOAD_MODIFIED_JSON_FILES", "modified_json_files"))
+    os.makedirs(UPLOAD_BLUEPRINTS_FOLDER, exist_ok=True)
+    os.makedirs(UPLOAD_CONFIGS_FOLDER, exist_ok=True)
+    os.makedirs(UPLOAD_MODIFIED_JSON_FILES, exist_ok=True)
+
     MAX_CONTENT_LENGTH = int(os.getenv("MAX_CONTENT_LENGTH", 16 * 1024 * 1024))  # Default 16 MB
     ALLOWED_SPEC_SHEET_EXTENSIONS = set(os.getenv("ALLOWED_SPEC_SHEET_EXTENSIONS", "pdf,docx,xlsx").split(","))
     ALLOWED_TEST_PLAN_EXTENSIONS = set(os.getenv("ALLOWED_TEST_PLAN_EXTENSIONS", "pdf,csv,txt").split(","))
-    
 
     # Serial communication settings
     DEFAULT_SERIAL_PORT = os.getenv("DEFAULT_SERIAL_PORT", "COM3")
@@ -49,6 +52,7 @@ class Config:
 
     # Base URL
     BASE_URL = os.getenv("BASE_URL", "localhost:5000")
+    SECURE_BASE_URL = os.getenv("SECURE_BASE_URL", "https://localhost:5000")
 
     # MQTT settings
     MQTT_BROKER = os.getenv("MQTT_BROKER", "test.mosquitto.org")
@@ -67,11 +71,10 @@ class DevelopmentConfig(Config):
     ENV = "development"
     LOGIN_DISABLED = True
 
-
 class TestingConfig(Config):
     """Testing configuration with a separate test database."""
     TESTING = True
-    SQLALCHEMY_DATABASE_URI = "sqlite:///C:/Users/Gary/source/repos/HardwareTester/HardwareTester/instance/app.db"
+    SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
     WTF_CSRF_ENABLED = False  # Disable CSRF for easier testing
     LOG_LEVEL = "WARNING"
     ENV = "testing"
@@ -81,14 +84,12 @@ class ProductionConfig(Config):
     """Production configuration."""
     DEBUG = False
     LOG_LEVEL = "ERROR"
-    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", f"sqlite:///C:/Users/Gary/source/repos/HardwareTester/HardwareTester/instance/app.db")
+    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", Config.SQLALCHEMY_DATABASE_URI)
     SESSION_COOKIE_SECURE = True
     REMEMBER_COOKIE_SECURE = True
     ENV = "production"
 
     # Ensure secure configurations
-    if not SQLALCHEMY_DATABASE_URI:
-        raise ValueError("DATABASE_URL must be set for production.")
     if Config.SECRET_KEY == "default-secret-key":
         raise ValueError("A secure SECRET_KEY must be set for production.")
 

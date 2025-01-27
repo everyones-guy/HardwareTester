@@ -1,9 +1,9 @@
 {
     "configuration": [
         {
-            "name": "Dynamic Controller Test 8",
+            "name": "Dynamic Controller Test 9",
             "type": "Controller",
-            "description": "Test 8 Dynamic Controller Creation via Blueprint4",
+            "description": "Test 9 Dynamic Controller",
             "connection": {
                 "host": "0.0.0.1",
                 "port": 1883,

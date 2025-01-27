@@ -64,7 +64,8 @@ $(document).ready(function () {
         );
     });
 
-    // Preview a configuration
+
+    / Preview a configuration
     $(document).on("click", ".preview-config", function () {
         const configId = $(this).data("id");
 

@@ -58,6 +58,7 @@ canvas {
         padding: 10px 15px;
         text-align: left;
         border: 1px solid #e0e0e0;
+        text-align: match-parent;
     }
 
     .table th {
