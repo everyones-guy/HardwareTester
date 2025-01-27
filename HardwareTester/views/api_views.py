@@ -233,7 +233,7 @@ def emulator_save_json():
             json.dump(json_data, f, indent=4)
 
         # Save the JSON data to the database
-        commit_response = EmulatorService.save_json_to_database(filename, json_data)
+        commit_response = EmulatorService.handle_file_upload(filename, json_data)
         if not commit_response["success"]:
             logger.error(f"Failed to save JSON to database: {commit_response['message']}")
             return jsonify({"success": False, "message": commit_response["message"]}), 400
