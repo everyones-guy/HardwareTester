@@ -1,25 +1,45 @@
-# utils/__init__.py
+# __init__.py
 
-from HardwareTester.utils.testing import run_pytest
-from HardwareTester.utils.hardware_manager import get_system_info, print_system_info
-from HardwareTester.utils.auto_deploy import build_project, deploy_project, clean_build_directory, package_project
-from HardwareTester.utils.db_utils import DatabaseManager, initialize_database  # Import database utilities
-from HardwareTester.utils.custom_logger import CustomLogger  # Import Logger utility if you have a custom logger
-from HardwareTester.utils.bcrypt_utils import hash_password, check_password, is_strong_password  # Import bcrypt utility functions
+# Importing essential utilities
+from .test_runner import *
+from .test_utils import *
+from .testing import *
+from .token_utils import *
+from .validators import *
+from .api_manager import *
+from .auto_deploy import *
+from .bcrypt_utils import *
+from .custom_logger import *
+from .db_utils import *
+from .firmware_utils import *
+from .hardware_manager import *
+from .manage_test_plans import *
+from .manage_valves import *
+from .parsers import *
+from .run_test_plans import *
+from .secrets import *
+from .serial_comm import *
+from .test_generator import *
 
-# Expose all utility functions/classes directly under `utils` package
+# Optionally, define a __all__ list to control what gets imported with `from utils import *`
 __all__ = [
-    "run_pytest",
-    "get_system_info",
-    "print_system_info",
-    "build_project",
-    "deploy_project",
-    "clean_build_directory",
-    "package_project",
-    "DatabaseManager",
-    "initialize_database", 
-    "CustomLogger",
-    "hash_password",
-    "verify_password",
-    "is_strong_password",
+    "test_runner",
+    "test_utils",
+    "testing",
+    "token_utils",
+    "validators",
+    "api_manager",
+    "auto_deploy",
+    "bcrypt_utils",
+    "custom_logger",
+    "db_utils",
+    "firmware_utils",
+    "hardware_manager",
+    "manage_test_plans",
+    "manage_valves",
+    "parsers",
+    "run_test_plans",
+    "secrets",
+    "serial_comm",
+    "test_generator",
 ]

@@ -1,6 +1,6 @@
 import pytest
 from io import BytesIO
-from HardwareTester.utils.parsers import parse_test_plan, parse_spec_sheet
+from HardwareTester.utils.parsers import parse_text, parse_csv, parse_pdf, parse_file
 from HardwareTester.utils.validators import (
     allowed_file,
     validate_file_upload,
@@ -99,24 +99,24 @@ def test_parse_test_plan(mock_test_plan):
     test_plan_file = BytesIO(test_plan_content.encode("utf-8"))
 
     # Parse test plan
-    parsed_steps = parse_test_plan(test_plan_file)
+    parsed_steps = test_parse_test_plan(test_plan_file)
     assert parsed_steps == mock_test_plan
 
     # Invalid content
     invalid_content = BytesIO(b"Invalid content")
     with pytest.raises(ValueError):
-        parse_test_plan(invalid_content)
+        test_parse_test_plan(invalid_content)
 
 # Test: parse_spec_sheet
 def test_parse_spec_sheet(mock_spec_sheet):
     # Mock spec sheet file
     spec_sheet_file = BytesIO(mock_spec_sheet.encode("utf-8"))
-    parsed_data = parse_spec_sheet(spec_sheet_file)
+    parsed_data = test_parse_spec_sheet(spec_sheet_file)
     assert "Valve Specifications" in parsed_data
     assert "Pressure: 150 PSI" in parsed_data
 
     # Invalid content
     invalid_spec_sheet = BytesIO(b"")
     with pytest.raises(ValueError):
-        parse_spec_sheet(invalid_spec_sheet)
+        test_parse_spec_sheet(invalid_spec_sheet)
 

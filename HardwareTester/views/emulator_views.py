@@ -65,7 +65,7 @@ def get_blueprints():
 @emulator_bp.route("/load-blueprint", methods=["POST"])
 @login_required
 def load_blueprint_endpoint():
-    """Load a new blueprint."""
+    """Load a new blueprint and commit all fields to the database."""
     blueprint_file = request.files.get("blueprint_file")
     if not blueprint_file:
         logger.warning("No blueprint file provided.")
@@ -78,9 +78,15 @@ def load_blueprint_endpoint():
 
         response = emulator_service.load_blueprint_from_file(temp_path)
 
+        # Commit the loaded blueprint to the database
+        if response["success"]:
+            commit_response = emulator_service.commit_blueprint_to_database(response["blueprint"])
+            if not commit_response["success"]:
+                logger.warning(f"Failed to commit blueprint: {commit_response['message']}")
+                return jsonify({"success": False, "message": commit_response["message"]}), 400
+
         # Remove the temporary file after processing
         os.remove(temp_path)
-
         return jsonify(response)
     except json.JSONDecodeError:
         logger.error("Invalid JSON format in blueprint file.")
@@ -91,6 +97,7 @@ def load_blueprint_endpoint():
     except Exception as e:
         logger.error(f"Error loading blueprint: {e}")
         return jsonify({"success": False, "error": "Failed to load blueprint."}), 500
+
    
 
 @emulator_bp.route("/stop", methods=["POST"])
@@ -162,38 +169,40 @@ def compare_machines():
 @emulator_bp.route("/add", methods=["POST"])
 @login_required
 def add_emulator():
-    """Add a new emulator by creating a blueprint."""
+    """Add a new emulator by creating a blueprint and committing all fields to the database."""
     try:
         if request.content_type != "application/json":
-            return jsonify({"success": False, "message": "content-type must be application/json."}), 415
+            return jsonify({"success": False, "message": "Content-type must be application/json."}), 415
         
         data = request.get_json()
         if not data:
             logger.warning("No data provided for adding emulator.")
             return jsonify({"success": False, "message": "No data provided."}), 400
 
+        # Ensure all required fields are present
         required_fields = ["name", "description", "configuration"]
         for field in required_fields:
             if field not in data:
                 logger.warning(f"Missing field: {field}")
                 return jsonify({"success": False, "message": f"Missing field: {field}"}), 400
 
-        #response = emulator_service.add_blueprint(data)
+        # Save the emulator blueprint to the database
         response = emulator_service.add_blueprint(
             name=data["name"],
             description=data["description"],
-            configuration=data
+            configuration=data["configuration"]
         )
         
+        # Log success or error based on the response
         if response["success"]:
+            logger.info(f"Emulator added successfully: {data['name']}")
             return jsonify({"success": True, "message": response["message"]}), 201
         else:
             logger.error(f"Failed to add emulator: {response['message']}")
             return jsonify({"success": False, "message": response["message"]}), 400
     except Exception as e:
         logger.error(f"Error adding emulator: {e}")
-        return jsonify({"success": False, "message": "Failed to add emulator."}), 500
-
+        return jsonify({"success": False, "message": "Failed to add emulator due to an internal error."}), 500
 
 
 @emulator_bp.route("/upload", methods=["POST"])
@@ -275,9 +284,10 @@ def start_emulation():
     return jsonify({"success": False, "error": "Invalid form submission."}), 400
 
 
-@emulator_bp.route('/json/save', methods=['POST'])
+@emulator_bp.route("/save-emulator-json", methods=["POST"])
+@login_required
 def save_emulator_json():
-    """Save JSON data to a file in the configured upload folder."""
+    """Save JSON data to the database and a file."""
     try:
         data = request.json
         if not data:
@@ -291,8 +301,6 @@ def save_emulator_json():
 
         # Get the upload folder from the app configuration
         saved_json_folder = current_app.config["UPLOAD_MODIFIED_JSON_FILES"]
-        #saved_configs_folder = os.path.join(os.getenv('UPLOAD_CONFIGS_FOLDER', 'uploads'), 'saved_configs')
-        #{"UPLOAD_MODIFIED_JSON_FILES" "os.getenv('UPLOAD_MODIFIED_JSON_FILES', 'uploads/modified_json_files')
 
         # Ensure the folder exists
         os.makedirs(saved_json_folder, exist_ok=True)
@@ -305,8 +313,13 @@ def save_emulator_json():
         with open(file_path, 'w') as f:
             json.dump(json_data, f, indent=4)
 
-        return jsonify({"success": True, "message": f"JSON saved as {filename}."})
-    except Exception as e:
-        current_app.logger.error(f"Error saving JSON: {e}")
-        return jsonify({"success": False, "message": str(e)}), 500
+        # Commit the JSON data to the database
+        commit_response = emulator_service.save_json_to_database(filename, json_data)
+        if not commit_response["success"]:
+            logger.error(f"Failed to save JSON to database: {commit_response['message']}")
+            return jsonify({"success": False, "message": commit_response["message"]}), 400
 
+        return jsonify({"success": True, "message": f"JSON saved as {filename} and committed to the database."})
+    except Exception as e:
+        logger.error(f"Error saving JSON: {e}")
+        return jsonify({"success": False, "message": str(e)}), 500

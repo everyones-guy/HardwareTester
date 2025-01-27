@@ -21,7 +21,7 @@ $(document).ready(function () {
             const decodedBlueprintName = decodeURIComponent(blueprintName); // Decode the name
             const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
-            const response = await fetch(`/api/configurations/${decodedBlueprintName}`, {
+            const response = await fetch(`/emulators/load-blueprint/${decodedBlueprintName}`, {
                 method: "GET",
                 headers: { "X-CSRFToken": csrfToken },
             });
@@ -282,7 +282,7 @@ $(document).ready(function () {
     const jsonEditor = new JSONEditor(editorContainer, {
         mode: "tree",
         modes: ["tree", "code"],
-        onChangeJSON: function (json) {
+        onChange: function (json) {
             console.log("Updated JSON:", json);
         },
     });
@@ -336,7 +336,7 @@ $(document).ready(function () {
             const filename = prompt("Enter filename for the modified JSON:", "modified.json");
             if (filename) {
                 apiCall(
-                    "/emulators/json/save",
+                    "/api/emulators/json/save",
                     "POST",
                     { data: modifiedData, filename },
                     (response) => {

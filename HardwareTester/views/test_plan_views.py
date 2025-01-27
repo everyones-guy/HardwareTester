@@ -108,3 +108,19 @@ def add_test_step(plan_id):
     except Exception as e:
         logger.error(f"Error adding test step to plan ID {plan_id}: {e}")
         return jsonify({"success": False, "error": "An unexpected error occurred."}), 500
+
+@test_plan_bp.route("/test-plans/<int:plan_id>/load", methods=["GET"])
+def load_test_plan(plan_id):
+    # Example plan data
+    test_plan = {"id": plan_id, "name": f"Test Plan {plan_id}"}
+    return jsonify({"success": True, "plan": test_plan})
+
+@test_plan_bp.route("/<int:test_plan_id>", methods=["DELETE"])
+@login_required
+def delete_test_plan(test_plan_id):
+    try:
+        result = TestPlanService.delete_test_plan(test_plan_id)
+        return jsonify(result) if result["success"] else jsonify(result), 400
+    except Exception as e:
+        logger.error(f"Error deleting test plan ID {test_plan_id}: {e}")
+        return jsonify({"success": False, "error": "An unexpected error occurred."}), 500

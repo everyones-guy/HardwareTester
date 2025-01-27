@@ -28,20 +28,27 @@ class TestPlanService:
     @staticmethod
     def upload_test_plan(file, uploaded_by):
         """
-        Upload a test plan file.
+        Upload a test plan file and log it in the database.
         """
         try:
             if not file:
                 return {"success": False, "error": "No file provided."}
 
+            # Save the file to the uploads directory
             upload_dir = "uploads/test_plans"
             os.makedirs(upload_dir, exist_ok=True)
             file_path = os.path.join(upload_dir, file.filename)
             file.save(file_path)
 
-            logger.info(f"Test plan uploaded successfully: {file_path}")
-            return {"success": True, "message": "Test plan uploaded successfully."}
+            # Create a test plan entry in the database
+            test_plan = TestPlan(name=file.filename, description="Uploaded file", created_by=uploaded_by)
+            db.session.add(test_plan)
+            db.session.commit()
+
+            logger.info(f"Test plan uploaded and saved: {file_path}")
+            return {"success": True, "message": "Test plan uploaded successfully.", "test_plan": test_plan.to_dict()}
         except Exception as e:
+            db.session.rollback()
             logger.error(f"Error uploading test plan: {e}")
             return {"success": False, "error": str(e)}
 
@@ -62,6 +69,7 @@ class TestPlanService:
             logger.error(f"Error running test plan ID {test_plan_id}: {e}")
             return {"success": False, "error": "An error occurred while running the test plan."}
 
+
     @staticmethod
     def preview_test_plan(test_plan_id):
         """
@@ -81,7 +89,7 @@ class TestPlanService:
     @staticmethod
     def create_test_plan(data, created_by):
         """
-        Create a new test plan.
+        Create a new test plan and ensure it's committed to the database.
         """
         try:
             test_plan = TestPlan(name=data["name"], description=data.get("description", ""), created_by=created_by)
@@ -94,10 +102,11 @@ class TestPlanService:
             logger.error(f"Error creating test plan: {e}")
             return {"success": False, "error": str(e)}
 
+
     @staticmethod
     def add_test_step(plan_id, data, created_by):
         """
-        Add a test step to a specific test plan.
+        Add a test step to a specific test plan and ensure it's committed.
         """
         try:
             test_plan = TestPlan.query.get(plan_id)

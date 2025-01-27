@@ -1,4 +1,12 @@
-/* Test Plan Management Styles */
+/* General Styles */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f6f9;
+    margin: 0;
+    padding: 0;
+}
+
+/* Test Plan Upload Form */
 .test-plan-upload-form {
     margin-top: 1rem;
     padding: 1rem;
@@ -27,6 +35,7 @@
         background-color: #003f7f;
     }
 
+/* Test Results */
 .test-results {
     margin-top: 1rem;
     background-color: #f8f9fa;
@@ -50,6 +59,7 @@
             border-bottom: none;
         }
 
+/* Test Plan Preview Section */
 #test-plan-preview-section {
     margin-top: 2rem;
     padding: 1rem;
@@ -57,4 +67,115 @@
     border: 1px solid #ced4da;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Buttons */
+.btn-secondary {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+    .btn-secondary:hover {
+        background-color: #5a6268;
+    }
+
+    .btn-secondary:active {
+        background-color: #343a40;
+    }
+
+/* Modal Styles */
+.modal-content {
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.modal-header {
+    background-color: #007bff;
+    color: white;
+    border-bottom: 1px solid #0056b3;
+}
+
+.modal-title {
+    font-size: 1.25rem;
+    font-weight: bold;
+}
+
+.modal-footer {
+    border-top: 1px solid #dee2e6;
+}
+
+/* Dropdown Styles */
+.form-select {
+    padding: 0.5rem;
+    font-size: 1rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    transition: border-color 0.3s ease;
+}
+
+    .form-select:focus {
+        border-color: #007bff;
+        outline: none;
+        box-shadow: 0 0 4px rgba(0, 123, 255, 0.25);
+    }
+
+/* Input and Textarea */
+input[type="text"], input[type="number"], textarea {
+    width: 100%;
+    padding: 0.5rem;
+    margin-top: 0.5rem;
+    margin-bottom: 1rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 1rem;
+    box-sizing: border-box;
+}
+
+    input[type="text"]:focus, input[type="number"]:focus, textarea:focus {
+        border-color: #007bff;
+        outline: none;
+        box-shadow: 0 0 4px rgba(0, 123, 255, 0.25);
+    }
+
+/* List Items */
+.list-group-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background-color: #ffffff;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+    transition: box-shadow 0.3s ease;
+}
+
+    .list-group-item:hover {
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .list-group-item .btn {
+        margin-left: 0.5rem;
+    }
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .test-plan-upload-form, .test-results, #test-plan-preview-section {
+        padding: 0.75rem;
+    }
+
+    .upload-btn, .btn-secondary {
+        font-size: 0.875rem;
+        padding: 0.4rem 0.8rem;
+    }
+
+    .modal-title {
+        font-size: 1.125rem;
+    }
 }

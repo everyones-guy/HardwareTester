@@ -40,7 +40,7 @@ $(document).ready(function () {
     }
 
     /**
-     * Save a new configuration.
+     * Save a new configuration and commit it to the database.
      */
     saveForm.on("submit", function (event) {
         event.preventDefault();
@@ -57,9 +57,13 @@ $(document).ready(function () {
             "POST",
             { name, layout },
             (data) => {
-                showAlert(data.message || "Configuration saved successfully.", false);
-                saveForm[0].reset();
-                fetchConfigurations();
+                if (data.success) {
+                    showAlert(data.message || "Configuration saved successfully.", false);
+                    saveForm[0].reset();
+                    fetchConfigurations();
+                } else {
+                    showAlert(data.error || "Failed to save configuration.", true);
+                }
             },
             (xhr) => {
                 showAlert("Failed to save configuration. Please try again later.", true);
@@ -83,7 +87,7 @@ $(document).ready(function () {
                     previewContent.html(data.preview);
                     previewCard.removeClass("d-none");
                 } else {
-                    showAlert(`Error: ${data.error}`, true);
+                    showAlert(data.error || "Failed to load preview.", true);
                 }
             },
             (xhr) => {
@@ -94,28 +98,39 @@ $(document).ready(function () {
     });
 
     /**
-     * Apply a configuration.
+     * Apply a configuration and commit it to the database.
      */
     $(document).on("click", ".apply-config", function () {
-        const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
-        const configName = $(this).data("name");
-        const decodedConfigName = decodeURIComponent(configName); // Decode the name
+        const configId = $(this).data("id");
 
         apiCall(
-            `/api/configurations/${encodeURIComponent(configName)}`,
-            "GET",
+            `/api/configurations/apply/${configId}`,
+            "POST",
             null,
             (data) => {
                 if (data.success) {
-                    showAlert(data.message || "Configuration fetched successfully.", false);
-                    console.log("Fetched Configuration:", data.configuration);
+                    showAlert(data.message || "Configuration applied successfully.", false);
+
+                    // Commit the applied configuration to the database
+                    apiCall(
+                        "/api/configurations/commit",
+                        "POST",
+                        { configuration: data.configuration },
+                        (commitResponse) => {
+                            showAlert(commitResponse.message || "Configuration committed successfully.", false);
+                        },
+                        (commitError) => {
+                            showAlert("Failed to commit configuration to the database.", true);
+                            console.error("Error committing configuration:", commitError);
+                        }
+                    );
                 } else {
-                    showAlert(data.error || "Configuration not found.", true);
+                    showAlert(data.error || "Failed to apply configuration.", true);
                 }
             },
             (xhr) => {
-                showAlert("Failed to fetch configuration. Please try again.", true);
-                console.error("Error fetching configuration:", xhr);
+                showAlert("Failed to apply configuration.", true);
+                console.error("Error applying configuration:", xhr);
             }
         );
     });

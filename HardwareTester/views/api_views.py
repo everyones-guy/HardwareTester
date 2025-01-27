@@ -1,10 +1,16 @@
-from flask import Blueprint, jsonify, request, render_template
+from flask import Blueprint, jsonify, request, render_template, current_app
 from flask_login import login_required, current_user
+from werkzeug.utils import secure_filename
 from urllib.parse import unquote
 from HardwareTester.services.api_service import APIService
+from HardwareTester.extensions import db
 from HardwareTester.services.configuration_service import ConfigurationService
+from HardwareTester.services.emulator_service import EmulatorService
 from HardwareTester.services.serial_service import SerialService
 from HardwareTester.utils.custom_logger import CustomLogger
+import json
+import os
+
 
 # Initialize logger
 logger = CustomLogger.get_logger("API_Views", per_module=True)
@@ -161,7 +167,7 @@ def simulate_device():
         logger.error(f"Simulation failed: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
 
-@api_bp.route("/api/test-plans", methods=["POST"])
+@api_bp.route("/test-plans", methods=["POST"])
 def create_test_plan():
     test_plan_name = request.form.get("testPlanName")
     test_plan_description = request.form.get("testPlanDescription")
@@ -190,7 +196,52 @@ def create_test_plan():
     }
 
     # Example: Save to database
-    # db.session.add(new_test_plan)
-    # db.session.commit()
+    db.session.add(new_test_plan)
+    db.session.commit()
 
     return jsonify({"message": "Test plan created successfully!"}), 201
+
+
+@api_bp.route("/emulators/json/save", methods=["POST"])
+@login_required
+def emulator_save_json():
+    """
+    Save JSON data to the database and a file via the API.
+    """
+
+    try:
+        # Ensure the request contains JSON data
+        data = request.json
+        if not data:
+            return jsonify({"success": False, "message": "No JSON data provided."}), 400
+
+        # Extract necessary fields
+        filename = data.get('filename', 'default.json')
+        json_data = data.get('data')
+
+        if not json_data:
+            return jsonify({"success": False, "message": "JSON data is missing."}), 400
+
+        # Save the JSON file to the configured upload folder
+        upload_folder = current_app.config.get("UPLOAD_MODIFIED_JSON_FILES", "uploads/modified_json_files")
+        os.makedirs(upload_folder, exist_ok=True)  # Ensure folder exists
+
+        # Secure the filename and write the file
+        filename = secure_filename(filename)
+        file_path = os.path.join(upload_folder, filename)
+        with open(file_path, 'w') as f:
+            json.dump(json_data, f, indent=4)
+
+        # Save the JSON data to the database
+        commit_response = EmulatorService.save_json_to_database(filename, json_data)
+        if not commit_response["success"]:
+            logger.error(f"Failed to save JSON to database: {commit_response['message']}")
+            return jsonify({"success": False, "message": commit_response["message"]}), 400
+
+        # Log and return success
+        logger.info(f"JSON saved and committed successfully: {filename}")
+        return jsonify({"success": True, "message": f"JSON saved as {filename} and committed to the database."})
+    except Exception as e:
+        # Handle and log unexpected errors
+        logger.error(f"Error saving JSON via API: {e}")
+        return jsonify({"success": False, "message": str(e)}), 500
