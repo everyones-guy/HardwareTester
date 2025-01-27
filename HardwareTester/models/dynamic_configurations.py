@@ -6,15 +6,15 @@ from HardwareTester.extensions import db
 class DynamicConfiguration(db.Model):
     __tablename__ = "dynamic_configurations"
     
-    id = Column(Integer, primary_key=True)
-    type = Column(String(50), nullable=False)
-    name = Column(String(255), nullable=True)
-    description = Column(Text, nullable=True)
-    properties = Column(JSON, nullable=True)  # Store additional dynamic fields
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
-    created_by = Column(Integer, ForeignKey("users.id"), nullable=True)  # Link to User table
-    modified_by = Column(Integer, ForeignKey("users.id"), nullable=True)  # Link to User table
+    id = db.Column(db.Integer, primary_key=True)
+    type = db.Column(db.String(50), nullable=False)
+    name = db.Column(db.String(255), nullable=True)
+    description = db.Column(db.Text, nullable=True)
+    properties = db.Column(db.JSON, nullable=True)  # Store additional dynamic fields
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    created_by = db.Column(db.Integer, ForeignKey("users.id"), nullable=True)  # Link to User table
+    modified_by = db.Column(db.Integer, ForeignKey("users.id"), nullable=True)  # Link to User table
 
     def to_dict(self):
         return {

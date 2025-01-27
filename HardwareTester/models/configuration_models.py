@@ -7,13 +7,13 @@ from HardwareTester.extensions import db
 class Configuration(db.Model):
     __tablename__ = "configurations"
 
-    id = Column(Integer, primary_key=True)
-    name = Column(String(255), nullable=False, unique=True)
-    layout = Column(JSON, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
-    created_by = Column(Integer, ForeignKey("users.id"), nullable=True)
-    modified_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(255), nullable=False, unique=True)
+    layout = db.Column(db.JSON, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    created_by = db.Column(db.Integer, ForeignKey("users.id"), nullable=True)
+    modified_by = db.Column(db.Integer, ForeignKey("users.id"), nullable=True)
 
     def to_dict(self):
         return {
@@ -33,13 +33,13 @@ class Configuration(db.Model):
 class Settings(db.Model):
     __tablename__ = "settings"
 
-    id = Column(Integer, primary_key=True)
-    key = Column(String(100), unique=True, nullable=False)
-    value = Column(Text, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
-    created_by = Column(Integer, ForeignKey("users.id"), nullable=True)
-    modified_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    id = db.Column(db.Integer, primary_key=True)
+    key = db.Column(db.String(100), unique=True, nullable=False)
+    value = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    created_by = db.Column(db.Integer, ForeignKey("users.id"), nullable=True)
+    modified_by = db.Column(db.Integer, ForeignKey("users.id"), nullable=True)
 
     def to_dict(self):
         return {
@@ -59,14 +59,14 @@ class Settings(db.Model):
 class GlobalSettings(db.Model):
     __tablename__ = "global_settings"
 
-    id = Column(Integer, primary_key=True)
-    setting_key = Column(String(255), unique=True, nullable=False)
-    setting_value = Column(Text, nullable=False)
-    description = Column(String(255), nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
-    created_by = Column(Integer, ForeignKey("users.id"), nullable=True)
-    modified_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    id = db.Column(db.Integer, primary_key=True)
+    setting_key = db.Column(db.String(255), unique=True, nullable=False)
+    setting_value = db.Column(db.Text, nullable=False)
+    description = db.Column(db.String(255), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    created_by = db.Column(db.Integer, ForeignKey("users.id"), nullable=True)
+    modified_by = db.Column(db.Integer, ForeignKey("users.id"), nullable=True)
 
     def to_dict(self):
         return {
@@ -87,15 +87,15 @@ class GlobalSettings(db.Model):
 class DynamicConfiguration(db.Model):
     __tablename__ = "dynamic_configurations"
     
-    id = Column(Integer, primary_key=True)
-    type = Column(String(50), nullable=False)
-    name = Column(String(255), nullable=True)
-    description = Column(Text, nullable=True)
-    properties = Column(JSON, nullable=True)  # Store additional dynamic fields
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
-    created_by = Column(Integer, ForeignKey("users.id"), nullable=True)  # Link to User table
-    modified_by = Column(Integer, ForeignKey("users.id"), nullable=True)  # Link to User table
+    id = db.Column(db.Integer, primary_key=True)
+    type = db.Column(db.String(50), nullable=False)
+    name = db.Column(db.String(255), nullable=True)
+    description = db.Column(db.Text, nullable=True)
+    properties = db.Column(db.JSON, nullable=True)  # Store additional dynamic fields
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    created_by = db.Column(db.Integer, ForeignKey("users.id"), nullable=True)  # Link to User table
+    modified_by = db.Column(db.Integer, ForeignKey("users.id"), nullable=True)  # Link to User table
 
     def to_dict(self):
         return {
