@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request, render_template
-from flask_login import login_required
+from flask_login import login_required, current_user
 from HardwareTester.services.test_plan_service import TestPlanService
 from HardwareTester.models.test_models import TestPlan
 from HardwareTester.extensions import db, logger
@@ -94,3 +94,39 @@ def seed_test_plans():
     except Exception as e:
         app.logger.error(f"Error seeding test plans: {e}")
         return jsonify({"success": False, "error": "Failed to seed test plans."}), 500
+
+@test_plan_bp.route("/test-plans", methods=["POST"])
+def create_test_plan():
+    data = request.json
+    test_plan = TestPlan(
+        name=data["name"],
+        description=data.get("description", ""),
+        created_by=current_user.id,
+        modified_by=current_user.id,
+    )
+    db.session.add(test_plan)
+    db.session.commit()
+    return jsonify({"success": True, "test_plan": test_plan.to_dict()})
+
+@test_plan_bp.route("/test-plans/<int:plan_id>/steps", methods=["POST"])
+def add_test_step(plan_id):
+    data = request.json
+    test_plan = TestPlan.query.get(plan_id)
+    if not test_plan:
+        return jsonify({"success": False, "error": "Test plan not found"}), 404
+
+    test_step = TestStep(
+        action=data["action"],
+        parameter=data.get("parameter", ""),
+        created_by=current_user.id,
+        modified_by=current_user.id,
+        test_plan_id=plan_id,
+    )
+    db.session.add(test_step)
+    db.session.commit()
+    return jsonify({"success": True, "test_step": test_step.to_dict()})
+
+@test_plan_bp.route("/get", methods=["GET"])
+def get_test_plans():
+    test_plans = TestPlan.query.all()
+    return jsonify({"success": True, "test_plans": [plan.to_dict() for plan in test_plans]})

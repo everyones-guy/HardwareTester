@@ -89,8 +89,8 @@ class Blueprint(db.Model):
     name = db.Column(db.String(255), nullable=False, unique=True, index=True)
     description = db.Column(db.Text, nullable=True)
     configuration = db.Column(db.JSON, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=True)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=True)
     version = db.Column(db.String(50), nullable=True)
     author = db.Column(db.String(255), nullable=True)
 
