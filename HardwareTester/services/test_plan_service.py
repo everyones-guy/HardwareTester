@@ -1,110 +1,115 @@
-# test_plan_service.py
-# Handles operations around test plans, including listing, uploading, and running test plans.
-
+from HardwareTester.extensions import db, logger
+from HardwareTester.models.test_models import TestPlan, TestStep
 import os
-from HardwareTester.utils.api_manager import create_api_manager
-from HardwareTester.utils.custom_logger import CustomLogger
 
-# Initialize Logger
-logger = CustomLogger.get_logger("test_plan_service")
-
-# Initialize logger and API manager
-api_manager = create_api_manager("http://127.0.0.1:5000/")
 
 class TestPlanService:
-    """Service for managing test plans."""
-
     @staticmethod
-    def list_test_plans() -> dict:
+    def list_test_plans(search=None, page=1, per_page=10):
         """
-        Fetch and return all test plans.
-        :return: Dictionary containing test plans or an error message.
+        List all test plans with optional search and pagination.
         """
-        logger.info("Fetching list of test plans...")
         try:
-            response = api_manager.get("test-plans/list")
-            if "error" in response:
-                logger.error(f"Failed to fetch test plans: {response['error']}")
-                return {"success": False, "error": response["error"]}
-            test_plans = response.get("testPlans", [])
-            logger.info(f"Retrieved {len(test_plans)} test plans.")
-            return {"success": True, "testPlans": test_plans}
+            query = TestPlan.query
+            if search:
+                query = query.filter(TestPlan.name.ilike(f"%{search}%"))
+
+            paginated = query.paginate(page=page, per_page=per_page, error_out=False)
+
+            test_plans = [
+                {"id": plan.id, "name": plan.name, "description": plan.description}
+                for plan in paginated.items
+            ]
+            return {"success": True, "testPlans": test_plans, "total": paginated.total}
         except Exception as e:
-            logger.error(f"Unexpected error fetching test plans: {e}")
-            return {"success": False, "error": "An unexpected error occurred while fetching test plans."}
+            logger.error(f"Error listing test plans: {e}")
+            return {"success": False, "error": "An error occurred while listing test plans."}
 
     @staticmethod
-    def upload_test_plan(file, uploaded_by: str) -> dict:
+    def upload_test_plan(file, uploaded_by):
         """
         Upload a test plan file.
-        :param file: File object to upload.
-        :param uploaded_by: User who uploaded the file.
-        :return: Success or error message.
         """
-        logger.info(f"Uploading test plan by {uploaded_by}...")
-        if not file:
-            logger.error("No file provided for upload.")
-            return {"success": False, "error": "No file provided."}
-
         try:
-            # Save the file locally
+            if not file:
+                return {"success": False, "error": "No file provided."}
+
             upload_dir = "uploads/test_plans"
             os.makedirs(upload_dir, exist_ok=True)
             file_path = os.path.join(upload_dir, file.filename)
             file.save(file_path)
-            logger.info(f"Saved test plan locally: {file_path}")
 
-            # Prepare and send the API request
-            payload = {"uploaded_by": uploaded_by}
-            with open(file_path, "rb") as f:
-                files = {"file": f}
-                response = api_manager.post("test-plans/upload", payload=payload, files=files)
-                if "error" in response:
-                    logger.error(f"Failed to upload test plan to API: {response['error']}")
-                    return {"success": False, "error": response["error"]}
-            logger.info(f"Test plan uploaded successfully: {response}")
+            logger.info(f"Test plan uploaded successfully: {file_path}")
             return {"success": True, "message": "Test plan uploaded successfully."}
         except Exception as e:
             logger.error(f"Error uploading test plan: {e}")
             return {"success": False, "error": str(e)}
 
     @staticmethod
-    def run_test_plan(test_plan_id: int) -> dict:
+    def run_test_plan(test_plan_id):
         """
-        Run a specific test plan by ID.
-        :param test_plan_id: ID of the test plan to run.
-        :return: Results of the test plan or an error message.
+        Execute a test plan by ID.
         """
-        logger.info(f"Running test plan ID {test_plan_id}...")
         try:
-            response = api_manager.post(f"test-plans/{test_plan_id}/run")
-            if "error" in response:
-                logger.error(f"Failed to run test plan {test_plan_id}: {response['error']}")
-                return {"success": False, "error": response["error"]}
-            logger.info(f"Test plan executed successfully: {response}")
-            return {"success": True, "results": response.get("results", [])}
+            test_plan = TestPlan.query.get(test_plan_id)
+            if not test_plan:
+                return {"success": False, "error": "Test plan not found."}
+
+            # Placeholder for actual test execution logic
+            logger.info(f"Running test plan: {test_plan.name}")
+            return {"success": True, "results": [{"step": "Step 1", "result": "Passed"}]}
         except Exception as e:
-            logger.error(f"Unexpected error running test plan {test_plan_id}: {e}")
-            return {"success": False, "error": "An unexpected error occurred while running the test plan."}
+            logger.error(f"Error running test plan ID {test_plan_id}: {e}")
+            return {"success": False, "error": "An error occurred while running the test plan."}
 
     @staticmethod
-    def preview_test_plan(test_plan_id: int) -> dict:
+    def preview_test_plan(test_plan_id):
         """
-        Preview the details of a specific test plan.
-        :param test_plan_id: ID of the test plan to preview.
-        :return: Dictionary containing the test plan details or an error message.
+        Preview the details of a test plan.
         """
-        logger.info(f"Fetching preview for test plan ID {test_plan_id}...")
         try:
-            # Make API call to fetch test plan details
-            response = api_manager.get(f"test-plans/{test_plan_id}/preview")
-            if "error" in response:
-                logger.error(f"Failed to preview test plan {test_plan_id}: {response['error']}")
-                return {"success": False, "error": response["error"]}
+            test_plan = TestPlan.query.get(test_plan_id)
+            if not test_plan:
+                return {"success": False, "error": "Test plan not found."}
 
-            test_plan_details = response.get("plan", {})
-            logger.info(f"Preview fetched successfully for test plan ID {test_plan_id}.")
-            return {"success": True, "plan": test_plan_details}
+            steps = [{"action": step.action, "parameter": step.parameter} for step in test_plan.steps]
+            return {"success": True, "plan": {"name": test_plan.name, "description": test_plan.description, "steps": steps}}
         except Exception as e:
-            logger.error(f"Unexpected error fetching preview for test plan {test_plan_id}: {e}")
-            return {"success": False, "error": "An unexpected error occurred while fetching the test plan preview."}
+            logger.error(f"Error previewing test plan ID {test_plan_id}: {e}")
+            return {"success": False, "error": "An error occurred while previewing the test plan."}
+
+    @staticmethod
+    def create_test_plan(data, created_by):
+        """
+        Create a new test plan.
+        """
+        try:
+            test_plan = TestPlan(name=data["name"], description=data.get("description", ""), created_by=created_by)
+            db.session.add(test_plan)
+            db.session.commit()
+            logger.info(f"Test plan '{test_plan.name}' created successfully.")
+            return {"success": True, "test_plan": test_plan.to_dict()}
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"Error creating test plan: {e}")
+            return {"success": False, "error": str(e)}
+
+    @staticmethod
+    def add_test_step(plan_id, data, created_by):
+        """
+        Add a test step to a specific test plan.
+        """
+        try:
+            test_plan = TestPlan.query.get(plan_id)
+            if not test_plan:
+                return {"success": False, "error": "Test plan not found."}
+
+            test_step = TestStep(action=data["action"], parameter=data.get("parameter", ""), created_by=created_by, test_plan_id=plan_id)
+            db.session.add(test_step)
+            db.session.commit()
+            logger.info(f"Test step added to test plan ID {plan_id}.")
+            return {"success": True, "test_step": test_step.to_dict()}
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"Error adding test step to test plan ID {plan_id}: {e}")
+            return {"success": False, "error": str(e)}

@@ -1,34 +1,32 @@
 from flask import Blueprint, jsonify, request, render_template
 from flask_login import login_required, current_user
 from HardwareTester.services.test_plan_service import TestPlanService
-from HardwareTester.models.test_models import TestPlan
-from HardwareTester.extensions import db, logger
+from HardwareTester.extensions import logger
 
 # Define the Blueprint for test plan management
 test_plan_bp = Blueprint("test_plans", __name__, url_prefix="/test-plans")
+
 
 @test_plan_bp.route("/", methods=["GET"])
 @login_required
 def show_test_plans():
     """
     Render the test plan management page.
-    Provides the main interface for managing test plans.
     """
     return render_template("test_plan_management.html")
+
 
 @test_plan_bp.route("/upload", methods=["POST"])
 @login_required
 def upload_plan():
     """
-    Upload a test plan.
-    Receives a file and the name of the uploader, then processes the test plan.
+    Upload a test plan file.
     """
     file = request.files.get("file")
-    uploaded_by = request.form.get("uploaded_by", "Unknown")
+    uploaded_by = current_user.username if current_user.is_authenticated else "Unknown"
+
     result = TestPlanService.upload_test_plan(file, uploaded_by)
-    if result["success"]:
-        return jsonify({"success": True, "message": result["message"]})
-    return jsonify({"success": False, "error": result["error"]}), 400
+    return jsonify(result) if result["success"] else jsonify(result), 400
 
 
 @test_plan_bp.route("/<int:test_plan_id>/run", methods=["POST"])
@@ -36,38 +34,36 @@ def upload_plan():
 def execute_plan(test_plan_id):
     """
     Run a specific test plan.
-    Executes the test plan identified by the provided test_plan_id.
     """
     result = TestPlanService.run_test_plan(test_plan_id)
-    if result["success"]:
-        return jsonify({"success": True, "results": result["results"]})
-    return jsonify({"success": False, "error": result["error"]}), 400
+    return jsonify(result) if result["success"] else jsonify(result), 400
+
 
 @test_plan_bp.route("/list", methods=["GET"])
 @login_required
 def list_test_plans():
+    """
+    List all test plans with optional search and pagination.
+    """
     try:
-        # Replace with your actual query logic
-        plans = TestPlan.query.all()
-        if not plans:  # If no test plans exist
-            return jsonify({"success": True, "testPlans": []})  # Return an empty list
+        search = request.args.get("search", "").strip()
+        page = int(request.args.get("page", 1))
+        per_page = int(request.args.get("per_page", 10))
 
-        # Serialize the test plans
-        return jsonify({"success": True, "testPlans": [plan.serialize() for plan in plans]})
+        result = TestPlanService.list_test_plans(search=search, page=page, per_page=per_page)
+        if result["success"]:
+            if not result["testPlans"]:  # Check if the testPlans list is empty
+                return jsonify({
+                    "success": True,
+                    "message": "No test plans to display. Please upload a test plan to populate this list.",
+                    "testPlans": []
+                })
+            return jsonify(result)
+        return jsonify({"success": False, "error": result["error"]}), 500
     except Exception as e:
-        app.logger.error(f"Error retrieving test plans: {e}")
-        return jsonify({"success": False, "error": "Failed to retrieve test plans."}), 500
+        logger.error(f"Error listing test plans: {e}")
+        return jsonify({"success": False, "error": "An unexpected error occurred."}), 500
 
-
-@test_plan_bp.route("/run/<int:test_plan_id>", methods=["POST"])
-@login_required
-def run_test_plan_endpoint(test_plan_id):
-    """
-    Run a specific test plan.
-    Executes the test plan identified by test_plan_id and returns the results.
-    """
-    response = TestPlanService.run_test_plan(test_plan_id)
-    return jsonify(response)
 
 
 @test_plan_bp.route("/<int:test_plan_id>/preview", methods=["GET"])
@@ -75,58 +71,40 @@ def run_test_plan_endpoint(test_plan_id):
 def preview_test_plan(test_plan_id):
     """
     Preview a specific test plan.
-    Provides a detailed view of the test plan's steps and metadata.
     """
-    response = TestPlanService.preview_test_plan(test_plan_id)
-    if response["success"]:
-        return jsonify({"success": True, "plan": response["plan"]})
-    return jsonify({"success": False, "error": response["error"]}), 400
+    result = TestPlanService.preview_test_plan(test_plan_id)
+    return jsonify(result) if result["success"] else jsonify(result), 400
 
-@test_plan_bp.route("/seed-test-plans", methods=["POST"])
+
+@test_plan_bp.route("/create", methods=["POST"])
 @login_required
-def seed_test_plans():
-    try:
-        # Replace with your ORM or database logic
-        test_plan = TestPlan(name="Sample Test Plan", uploaded_by="Admin")
-        db.session.add(test_plan)
-        db.session.commit()
-        return jsonify({"success": True, "message": "Test plans seeded successfully."})
-    except Exception as e:
-        app.logger.error(f"Error seeding test plans: {e}")
-        return jsonify({"success": False, "error": "Failed to seed test plans."}), 500
-
-@test_plan_bp.route("/test-plans", methods=["POST"])
 def create_test_plan():
-    data = request.json
-    test_plan = TestPlan(
-        name=data["name"],
-        description=data.get("description", ""),
-        created_by=current_user.id,
-        modified_by=current_user.id,
-    )
-    db.session.add(test_plan)
-    db.session.commit()
-    return jsonify({"success": True, "test_plan": test_plan.to_dict()})
+    """
+    Create a new test plan.
+    """
+    try:
+        data = request.json
+        created_by = current_user.id
 
-@test_plan_bp.route("/test-plans/<int:plan_id>/steps", methods=["POST"])
+        result = TestPlanService.create_test_plan(data, created_by)
+        return jsonify(result) if result["success"] else jsonify(result), 400
+    except Exception as e:
+        logger.error(f"Error creating test plan: {e}")
+        return jsonify({"success": False, "error": "An unexpected error occurred."}), 500
+
+
+@test_plan_bp.route("/<int:plan_id>/steps", methods=["POST"])
+@login_required
 def add_test_step(plan_id):
-    data = request.json
-    test_plan = TestPlan.query.get(plan_id)
-    if not test_plan:
-        return jsonify({"success": False, "error": "Test plan not found"}), 404
+    """
+    Add a test step to an existing test plan.
+    """
+    try:
+        data = request.json
+        created_by = current_user.id
 
-    test_step = TestStep(
-        action=data["action"],
-        parameter=data.get("parameter", ""),
-        created_by=current_user.id,
-        modified_by=current_user.id,
-        test_plan_id=plan_id,
-    )
-    db.session.add(test_step)
-    db.session.commit()
-    return jsonify({"success": True, "test_step": test_step.to_dict()})
-
-@test_plan_bp.route("/get", methods=["GET"])
-def get_test_plans():
-    test_plans = TestPlan.query.all()
-    return jsonify({"success": True, "test_plans": [plan.to_dict() for plan in test_plans]})
+        result = TestPlanService.add_test_step(plan_id, data, created_by)
+        return jsonify(result) if result["success"] else jsonify(result), 400
+    except Exception as e:
+        logger.error(f"Error adding test step to plan ID {plan_id}: {e}")
+        return jsonify({"success": False, "error": "An unexpected error occurred."}), 500
