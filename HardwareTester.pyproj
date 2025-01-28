@@ -126,6 +126,9 @@
     <Compile Include="HardwareTester\utils\bcrypt_utils.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="HardwareTester\utils\csharp_runner.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="HardwareTester\utils\db_utils.py">
       <SubType>Code</SubType>
     </Compile>
@@ -293,6 +296,7 @@
     <Folder Include="tests\Front_End\" />
     <Folder Include="tests\Back_End\" />
     <Folder Include="tests\End_to_end\" />
+    <Folder Include="tests\configurations\" />
     <Folder Include="tests\unit\" />
     <Folder Include="uploads\" />
     <Folder Include="uploads\emulator_configurations\" />
@@ -363,6 +367,9 @@
     <Content Include="HardwareTester\templates\upload_test_plan.html" />
     <Content Include="HardwareTester\templates\user_management.html" />
     <Content Include="HardwareTester\templates\valve_management.html" />
+    <Content Include="HardwareTester\utils\DeviceRunner.cs">
+      <SubType>Code</SubType>
+    </Content>
     <Content Include="instance\app.db" />
     <Content Include="logs\app.log" />
     <Content Include="logs\flask_app.log" />
@@ -401,6 +408,7 @@
     <Content Include="tests\Back_End\light_control_test.json" />
     <Content Include="tests\Back_End\Generic_test_system.json" />
     <Content Include="tests\Back_End\valve_test.json" />
+    <Content Include="tests\configurations\peripheral.json" />
     <Content Include="uploads\emulator_configurations\test_emulator_config.cfg" />
   </ItemGroup>
   <ItemGroup>

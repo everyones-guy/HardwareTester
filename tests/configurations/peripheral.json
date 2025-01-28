@@ -1,0 +1,13 @@
+{
+  "name": "Test Peripheral",
+  "type": "sensor",
+  "capabilities": {
+    "read_data": true,
+    "write_data": false
+  },
+  "metadata": {
+    "dll_path": "C:/Path/To/DeviceLibrary.dll",
+    "entry_point": "DeviceNamespace.DeviceClass",
+    "method": "InitializeDevice"
+  }
+}

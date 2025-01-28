@@ -213,7 +213,7 @@ def add_device():
 
 
 
-@emulator_bp.route("/add-device", methods=["POST"])
+@emulator_bp.route("/add-emulator", methods=["POST"])
 @login_required
 def add_emulator():
     """
