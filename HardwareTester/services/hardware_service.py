@@ -241,7 +241,8 @@ class HardwareService:
         except Exception as e:
             logger.error(f"Error fetching device status: {e}")
             return {"success": False, "error": str(e)}
-
+        
+    @staticmethod
     def save_link(source_id: int, target_id: int, metadata: dict = None) -> dict:
         """
         Save a link between two devices in the database.
@@ -268,3 +269,16 @@ class HardwareService:
         except Exception as e:
             logger.error(f"Unexpected error while saving link: {e}")
             return {"success": False, "error": "An unexpected error occurred while saving the link."}
+
+    @staticmethod
+    def get_links() -> list:
+        """
+        Fetch all saved links from the database.
+        :return: List of links.
+        """
+        try:
+            links = Link.query.all()
+            return [{"id": link.id, "source_id": link.source_id, "target_id": link.target_id, "metadata": link.metadata} for link in links]
+        except Exception as e:
+            logger.error(f"Error fetching links: {e}")
+            return []
