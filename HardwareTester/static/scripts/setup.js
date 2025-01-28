@@ -1,6 +1,8 @@
 // setup.js for the browser
 globalThis.$ = globalThis.jQuery = jQuery;
 
+import axios from 'axios';
+
 // Utility function for API calls
 globalThis.apiCall = function (endpoint, method, data = {}, onSuccess, onError) {
     const csrfToken = document.querySelector('meta[name="csrf-token"]').content; // Dynamically fetch token

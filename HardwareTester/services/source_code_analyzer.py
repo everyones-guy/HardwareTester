@@ -1,12 +1,13 @@
 import os
-from tree_sitter import Language, Parser
+from tree_sitter import  Parser
 from HardwareTester.utils.custom_logger import CustomLogger
+from tree_sitter_languages import get_language
+
+CSHARP_LANGUAGE = get_language("c_sharp")
+CPP_LANGUAGE = get_language("cpp")
+JAVASCRIPT_LANGUAGE = get_language("javascript")
 
 logger = CustomLogger.get_logger("SourceCodeAnalyzer")
-
-CSHARP_LANGUAGE = Language('build/my-languages.so', 'c_sharp')
-CPP_LANGUAGE = Language('build/my-languages.so', 'cpp')
-JAVASCRIPT_LANGUAGE = Language('build/my-languages.so', 'javascript')
 
 
 class SourceCodeAnalyzer:    
