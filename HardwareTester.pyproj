@@ -267,6 +267,10 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="emulator-dashboard\" />
+    <Folder Include="emulator-dashboard\src\" />
+    <Folder Include="emulator-dashboard\src\components\" />
+    <Folder Include="emulator-dashboard\src\components\shared\" />
     <Folder Include="HardwareTester\" />
     <Folder Include="HardwareTester\hal\" />
     <Folder Include="HardwareTester\models\" />
@@ -306,6 +310,12 @@
   <ItemGroup>
     <Content Include=".env" />
     <Content Include=".flaskenv" />
+    <Content Include="emulator-dashboard\src\components\ActiveEmulations.js" />
+    <Content Include="emulator-dashboard\src\components\Dashboard.js" />
+    <Content Include="emulator-dashboard\src\components\EmulatorPanel.js" />
+    <Content Include="emulator-dashboard\src\components\LiveMetrics.js" />
+    <Content Include="emulator-dashboard\src\components\MQTTPanel.js" />
+    <Content Include="emulator-dashboard\src\components\SerialPanel.js" />
     <Content Include="HardwareTester\static\css\api_overview.css" />
     <Content Include="HardwareTester\static\css\configuration_management.css" />
     <Content Include="HardwareTester\static\css\device_blueprints.css" />
