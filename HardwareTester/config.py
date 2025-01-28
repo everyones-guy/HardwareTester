@@ -12,7 +12,7 @@ class Config:
     """Base configuration with default settings."""
     BASE_DIR = os.path.abspath(os.path.dirname(__file__))
     INSTANCE_DIR = os.getenv("INSTANCE_DIR", "instance")
-    UPLOAD_ROOT = os.getenv("UPLOAD_ROOT", "uploads")  # Base upload folder from .env\
+    UPLOAD_ROOT = os.getenv("UPLOAD_FOLDER", "uploads")  # Base upload folder from .env\
     
 
     os.makedirs(INSTANCE_DIR, exist_ok=True)  # Ensure the instance directory exists

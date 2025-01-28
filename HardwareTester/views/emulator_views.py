@@ -164,45 +164,154 @@ def compare_machines():
     except Exception as e:
         logger.error(f"Error comparing machines: {e}")
         return jsonify({"success": False, "error": "Failed to compare machines."}), 500
-
+    
 
 @emulator_bp.route("/add", methods=["POST"])
 @login_required
+def add_device():
+    """
+    Add a new device (emulator, peripheral, etc.) with minimal JSON input.
+    Each device is treated as a record that defines its capabilities and behavior.
+    """
+    try:
+        # Ensure the content type is JSON
+        if request.content_type != "application/json":
+            return jsonify({"success": False, "message": "Content-type must be application/json."}), 415
+
+        # Get the JSON payload
+        data = request.get_json()
+        if not data:
+            logger.warning("No data provided for adding device.")
+            return jsonify({"success": False, "message": "No data provided."}), 400
+
+        # Treat the JSON as a flat, quick record for defining a device
+        device_record = {
+            "name": data.get("name", f"Device-{datetime.now().strftime('%Y%m%d%H%M%S')}"),
+            "type": data.get("type", "generic"),
+            "capabilities": data.get("capabilities", {}),
+            "metadata": {k: v for k, v in data.items() if k not in ["name", "type", "capabilities"]},
+        }
+
+        # Save the record to the database
+        response = emulator_service.add_device(device_record)
+
+        # Log and return the result
+        if response["success"]:
+            logger.info(f"Device '{device_record['name']}' added successfully.")
+            return jsonify({
+                "success": True,
+                "message": f"Device '{device_record['name']}' added successfully.",
+                "device": device_record
+            }), 201
+        else:
+            logger.error(f"Failed to add device: {response['message']}")
+            return jsonify({"success": False, "message": response["message"]}), 400
+
+    except Exception as e:
+        logger.error(f"Error adding device: {e}")
+        return jsonify({"success": False, "message": "Failed to add device due to an internal error."}), 500
+
+
+
+@emulator_bp.route("/add-device", methods=["POST"])
+@login_required
 def add_emulator():
-    """Add a new emulator by creating a blueprint and committing all fields to the database."""
+    """
+    Add a new emulator by creating a blueprint and committing all fields to the database.
+    Handles unstructured JSON data gracefully, attempts to organize it, 
+    and provides a preview for user confirmation or modification.
+    """
     try:
         if request.content_type != "application/json":
             return jsonify({"success": False, "message": "Content-type must be application/json."}), 415
-        
+
         data = request.get_json()
         if not data:
             logger.warning("No data provided for adding emulator.")
             return jsonify({"success": False, "message": "No data provided."}), 400
 
-        # Ensure all required fields are present
+        # Base fields to look for
         required_fields = ["name", "description", "configuration"]
-        for field in required_fields:
-            if field not in data:
-                logger.warning(f"Missing field: {field}")
-                return jsonify({"success": False, "message": f"Missing field: {field}"}), 400
+        missing_fields = [field for field in required_fields if field not in data]
 
-        # Save the emulator blueprint to the database
+        # Try to identify missing or additional fields dynamically
+        organized_data = {
+            "name": data.get("name", "Unnamed Emulator"),
+            "description": data.get("description", "No description provided."),
+            "configuration": data.get("configuration", {}),
+            "additional_fields": {k: v for k, v in data.items() if k not in required_fields}
+        }
+
+        if missing_fields:
+            logger.warning(f"Missing fields detected: {missing_fields}")
+
+        # Attempt to auto-map disorganized or nested data into structured configuration
+        if not isinstance(organized_data["configuration"], dict):
+            try:
+                organized_data["configuration"] = json.loads(organized_data["configuration"])
+                logger.info("Configuration field auto-parsed from JSON string.")
+            except (json.JSONDecodeError, TypeError):
+                logger.warning("Failed to parse configuration field into a JSON object.")
+                organized_data["configuration"] = {"raw_data": data.get("configuration", "Unstructured input")}
+
+        # Flatten nested or complex data into editable chunks
+        flattened_layout = flatten_json(organized_data["configuration"])
+
+        # Display organized data in a JSON editor-friendly format
+        proposed_layout = {
+            "base": {
+                "name": organized_data["name"],
+                "description": organized_data["description"]
+            },
+            "configuration": flattened_layout,
+            "additional": organized_data["additional_fields"]
+        }
+
+        # Save to database after confirmation
         response = emulator_service.add_blueprint(
-            name=data["name"],
-            description=data["description"],
-            configuration=data["configuration"]
+            name=organized_data["name"],
+            description=organized_data["description"],
+            configuration=organized_data["configuration"]
         )
-        
-        # Log success or error based on the response
+
         if response["success"]:
-            logger.info(f"Emulator added successfully: {data['name']}")
-            return jsonify({"success": True, "message": response["message"]}), 201
+            logger.info(f"Emulator added successfully: {organized_data['name']}")
+            return jsonify({
+                "success": True,
+                "message": response["message"],
+                "proposed_layout": proposed_layout
+            }), 201
         else:
             logger.error(f"Failed to add emulator: {response['message']}")
-            return jsonify({"success": False, "message": response["message"]}), 400
+            return jsonify({"success": False, "message": response["message"], "proposed_layout": proposed_layout}), 400
+
     except Exception as e:
         logger.error(f"Error adding emulator: {e}")
         return jsonify({"success": False, "message": "Failed to add emulator due to an internal error."}), 500
+
+
+def flatten_json(data, parent_key='', sep='.'):
+    """
+    Flatten nested JSON data into a single level with dot notation keys.
+    """
+    items = []
+    if isinstance(data, dict):
+        for k, v in data.items():
+            new_key = f"{parent_key}{sep}{k}" if parent_key else k
+            if isinstance(v, dict):
+                items.extend(flatten_json(v, new_key, sep=sep).items())
+            elif isinstance(v, list):
+                for idx, item in enumerate(v):
+                    items.extend(flatten_json(item, f"{new_key}[{idx}]", sep=sep).items())
+            else:
+                items.append((new_key, v))
+    elif isinstance(data, list):
+        for idx, item in enumerate(data):
+            items.extend(flatten_json(item, f"{parent_key}[{idx}]", sep=sep).items())
+    else:
+        items.append((parent_key, data))
+    return dict(items)
+
 
 
 @emulator_bp.route("/upload", methods=["POST"])

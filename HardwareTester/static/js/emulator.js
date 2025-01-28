@@ -386,7 +386,7 @@ $(document).ready(function () {
             validateConfiguration(configuration);
 
             apiCall(
-                "/emulators/add",
+                "/emulators/add-device",
                 "POST",
                 { name: configuration.name, description: configuration.description, configuration },
                 (response) => {

@@ -27,23 +27,25 @@ function handleAddNotification() {
         const formData = $(this).serializeArray();
         const payload = {};
         formData.forEach((item) => (payload[item.name] = item.value));
-        $.ajax({
-            url: "/notifications/add",
-            type: "POST",
-            contentType: "application/json",
-            headers: {
-                "X-CSRFToken": $('meta[name="csrf-token"]').attr('content')  // Ensure CSRF token is sent
-            },
-            data: JSON.stringify(payload),
-            success: function (response) {
-                if (response.success) {
-                    alert(response.message);
+
+        //  APICall function from setup.js
+        apiCall(
+            "/notifications/add",
+            "POST",
+            payload,
+            (data) => {
+                if (data.success) {
+                    alert(data.message);
                     loadNotifications();
                 } else {
-                    alert(`Error: ${response.error}`);
+                    alert(data.error);
                 }
             },
-        });
+            (xhr) => {
+                alert("Failed to add notification. Please try again later.");
+                console.error("Error adding notification:", xhr);
+            }
+        );
     });
 }
 

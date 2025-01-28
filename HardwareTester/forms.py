@@ -31,11 +31,11 @@ class UploadSpecSheetForm(FlaskForm):
             FileAllowed({"pdf", "docx", "xlsx"}, "Allowed file types: PDF, DOCX, XLSX."),
         ]
     )
-    valve_id = IntegerField(
-        "Valve ID (Optional)",
+    device_id = IntegerField(
+        "Device ID (Optional)",
         validators=[
             Optional(),
-            NumberRange(min=1, message="Valve ID must be a positive integer."),
+            NumberRange(min=1, message="Device ID must be a positive integer...it may work with negative, but it's spotty. Lets leave that for testing"),
         ]
     )
     submit = SubmitField("Upload Spec Sheet")
@@ -50,9 +50,9 @@ class UploadTestPlanForm(FlaskForm):
     )
     submit = SubmitField("Upload Test Plan")
 
-class AddValveForm(FlaskForm):
+class AddVDeviceForm(FlaskForm):
     name = StringField(
-        "Valve Name",
+        "Device Name",
         validators=[
             DataRequired(message="Valve name is required."),
             Length(max=255, message="Valve name must not exceed 255 characters."),
