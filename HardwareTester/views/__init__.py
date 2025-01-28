@@ -17,6 +17,7 @@ from HardwareTester.views.notifications_views import notifications_bp
 from HardwareTester.views.upload_views import upload_bp
 from HardwareTester.views.api_views import api_bp
 from HardwareTester.views.valve_views import valve_bp
+from HardwareTester.views.source_routes import source_bp
 
 def register_blueprints(app):
     """Register all blueprints with the Flask app."""

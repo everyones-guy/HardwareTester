@@ -4,6 +4,7 @@ from HardwareTester.utils.custom_logger import CustomLogger
 
 logger = CustomLogger.get_logger("SourceCodeAnalyzer")
 
+
 # Build Tree-sitter for C#, C++, and JavaScript
 Language.build_library(
     'build/my-languages.so',
@@ -91,32 +92,6 @@ class SourceCodeAnalyzer:
     def _extract_ui_elements(self, node):
         # Extract JavaScript UI components (e.g., menus, buttons)
         pass
-
-    def _extract_methods(self, node, parent_class=None):
-        """
-        Recursively extract methods and their parameters from the AST.
-        """
-        methods = []
-        for child in node.children:
-            if child.type == "class_declaration":
-                class_name = child.child_by_field_name("name").text.decode()
-                methods.extend(self._extract_methods(child, parent_class=class_name))
-            elif child.type == "method_declaration":
-                method_name = child.child_by_field_name("name").text.decode()
-                parameters = []
-                parameter_node = child.child_by_field_name("parameter_list")
-                if parameter_node:
-                    for param in parameter_node.children:
-                        if param.type == "parameter":
-                            param_type = param.child_by_field_name("type").text.decode()
-                            param_name = param.child_by_field_name("name").text.decode()
-                            parameters.append({"type": param_type, "name": param_name})
-                methods.append({
-                    "class": parent_class,
-                    "method": method_name,
-                    "parameters": parameters
-                })
-        return methods
 
     def analyze_repo(self, repo_path):
         """

@@ -245,3 +245,14 @@ def emulator_save_json():
         # Handle and log unexpected errors
         logger.error(f"Error saving JSON via API: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
+
+    @api_bp.route("/link", methods=["POST"])
+    def create_link():
+        data = request.json
+        source = data["source"]
+        target = data["target"]
+        settings = data["settings"]
+
+        # Save link to database or configuration file
+        save_link(source, target, settings)
+        return jsonify({"success": True, "message": "Link created successfully."})

@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 from paho.mqtt.client import Client
 from HardwareTester.utils.custom_logger import CustomLogger
+from HardwareTester.extensions import socketio
 
 # Initialize logger
 logger = CustomLogger.get_logger("mqtt_client")
@@ -177,3 +178,14 @@ class MQTTClient:
         except Exception as e:
             logger.error(f"Failed to validate firmware file: {e}")
             return None
+
+    @socketio.on("start_mirror")
+    def start_mirror(data):
+        device_topic = data.get("topic")
+
+        def on_message(client, userdata, message):
+            command = message.payload.decode()
+            socketio.emit("mirror_update", {"command": command, "topic": message.topic})
+
+        mqtt.subscribe(device_topic)
+        mqtt.on_message = on_message

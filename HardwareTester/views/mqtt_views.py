@@ -3,6 +3,7 @@ from flask import Blueprint, jsonify, request, render_template
 from flask_login import login_required
 from HardwareTester.extensions import logger
 from HardwareTester.services.mqtt_service import MQTTService
+from HardwareTester.services.hardware_service import save_link
 
 mqtt_bp = Blueprint("mqtt", __name__, url_prefix="/mqtt")
 
@@ -112,3 +113,14 @@ def discover_device():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
+@mqtt_bp.route("/link", methods=["POST"])
+@login_required
+def create_link():
+    data = request.json
+    source = data["source"]
+    target = data["target"]
+    settings = data["settings"]
+
+    # Save link to database or configuration file
+    save_link(source, target, settings)
+    return jsonify({"success": True, "message": "Link created successfully."})

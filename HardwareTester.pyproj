@@ -409,6 +409,7 @@
     <Content Include="tests\Back_End\Generic_test_system.json" />
     <Content Include="tests\Back_End\valve_test.json" />
     <Content Include="tests\configurations\peripheral.json" />
+    <Content Include="tests\touchscreen_menu_structure.json" />
     <Content Include="uploads\emulator_configurations\test_emulator_config.cfg" />
   </ItemGroup>
   <ItemGroup>

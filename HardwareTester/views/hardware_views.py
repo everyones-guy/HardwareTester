@@ -47,7 +47,7 @@ def list_devices():
 
 
 @hardware_bp.route("/discover-device", methods=["POST"])
-@login_required
+@login_required  
 def discover_device():
     """Discover device metadata and settings."""
     data = request.json

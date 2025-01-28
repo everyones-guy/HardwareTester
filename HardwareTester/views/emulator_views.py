@@ -345,6 +345,29 @@ def preview_blueprint(blueprint_name):
         logger.error(f"Error generating preview for blueprint '{blueprint_name}': {e}")
         return jsonify({"success": False, "error": "Failed to generate blueprint preview."}), 500
     
+@emulator_bp.route("/emulate", methods=["POST"])
+@login_required
+def start_emulator():
+    try:
+        device_id = request.json.get("device_id")
+        device_data = get_device_from_db(device_id)
+
+        # Parse source code
+        analyzer = SourceCodeAnalyzer()
+        metadata = analyzer.parse_file(device_data["source_path"], device_data["language"])
+
+        # Start MQTT communication
+        start_mqtt_communication(device_id)
+
+        return jsonify({
+            "success": True,
+            "message": f"Emulation started for {device_data['name']}",
+            "metadata": metadata
+        }), 200
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+
+
 @emulator_bp.route("/start", methods=["GET", "POST"])
 @login_required
 def start_emulation():
