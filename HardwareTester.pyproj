@@ -139,6 +139,9 @@
     <Compile Include="HardwareTester\utils\serial_comm.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="HardwareTester\utils\source_code_analyzer.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="HardwareTester\utils\test_generator.py">
       <SubType>Code</SubType>
     </Compile>
