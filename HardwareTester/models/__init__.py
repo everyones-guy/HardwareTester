@@ -10,3 +10,4 @@ from .ssh_models import SSHConnection
 from .test_models import TestPlan, TestStep
 from .upload_models import UploadedFile
 from .user_models import User, Role, UserSettings, Token
+from .link_models import Link

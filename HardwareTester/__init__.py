@@ -1,14 +1,17 @@
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, render_template, request, send_from_directory
 from flask_login import current_user
+from flask_cors import CORS
+from datetime import datetime
+from cli import register_commands
+import os
+
 from HardwareTester.config import config
 from HardwareTester.extensions import db, socketio, migrate, csrf, login_manager, ma, bcrypt
 from HardwareTester.views import register_blueprints
 from HardwareTester.models.user_models import User
 from HardwareTester.utils.custom_logger import CustomLogger
 from HardwareTester.utils.token_utils import get_token
-from datetime import datetime
-from cli import register_commands
-import os
+
 
 # Initialize logger
 logger = CustomLogger.get_logger("app")
@@ -22,6 +25,7 @@ def create_app(config_name="default"):
 
     # Initialize Flask app
     app = Flask(__name__)
+    CORS(app, resources={r"/api/*": {"origins": "http://localhost:3000"}})
     app.config['LOGIN_DISABLED'] = False
     app.config.from_object(config[config_name])
 
@@ -35,15 +39,17 @@ def create_app(config_name="default"):
     register_blueprints(app)
     register_error_handlers(app)
     
+    # Serve React Frontend
+    @app.route("/", defaults={"path": ""})
+    @app.route("/<path:path>")
+    def serve_react(path):
+        return send_from_directory(app.static_folder, path or "index.html")
+
+    
 
     # Ensure upload folders are created
     ensure_upload_folders(app)
-
-
-    #@app.context_processor
-    #def inject_now():
-    #    return {"now": datetime.utcnow()}
-    
+   
     @app.context_processor
     def inject_context():
         """

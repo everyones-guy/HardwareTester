@@ -188,3 +188,4 @@ def execute_command(device_id):
     except Exception as e:
         logger.error(f"Error executing command on device {device_id}: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
+

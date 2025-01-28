@@ -69,6 +69,7 @@
     <Compile Include="HardwareTester\models\dynamic_configurations.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="HardwareTester\models\link_models.py" />
     <Compile Include="HardwareTester\models\ssh_models.py">
       <SubType>Code</SubType>
     </Compile>
@@ -271,6 +272,7 @@
     <Folder Include="emulator-dashboard\src\" />
     <Folder Include="emulator-dashboard\src\components\" />
     <Folder Include="emulator-dashboard\src\components\shared\" />
+    <Folder Include="emulator-dashboard\src\services\" />
     <Folder Include="HardwareTester\" />
     <Folder Include="HardwareTester\hal\" />
     <Folder Include="HardwareTester\models\" />
@@ -313,9 +315,14 @@
     <Content Include="emulator-dashboard\src\components\ActiveEmulations.js" />
     <Content Include="emulator-dashboard\src\components\Dashboard.js" />
     <Content Include="emulator-dashboard\src\components\EmulatorPanel.js" />
+    <Content Include="emulator-dashboard\src\components\HardwarePanel.js" />
     <Content Include="emulator-dashboard\src\components\LiveMetrics.js" />
     <Content Include="emulator-dashboard\src\components\MQTTPanel.js" />
     <Content Include="emulator-dashboard\src\components\SerialPanel.js" />
+    <Content Include="emulator-dashboard\src\services\emulatorService.js" />
+    <Content Include="emulator-dashboard\src\services\hardwareService.js" />
+    <Content Include="emulator-dashboard\src\services\mqttService.js" />
+    <Content Include="emulator-dashboard\src\services\serialService.js" />
     <Content Include="HardwareTester\static\css\api_overview.css" />
     <Content Include="HardwareTester\static\css\configuration_management.css" />
     <Content Include="HardwareTester\static\css\device_blueprints.css" />

@@ -1,20 +1,16 @@
 
-#                                                              #
-#
-#                   Hardware Service                           #
-#                      
-#                                                              #
-
-
 import json
 from flask import current_app
 from HardwareTester.extensions import db
+from HardwareTester.models.link_models import Link
+from sqlalchemy.exc import SQLAlchemyError
+
 from HardwareTester.utils.custom_logger import CustomLogger
 from HardwareTester.models.device_models import Device, DeviceFirmwareHistory
 import hashlib
 
 # Initialize logger
-logger = CustomLogger.get_logger("hardware_service")
+logger = CustomLogger.get_logger("hardware_service", per_module=True)
 
 class HardwareService:
     """Service for managing hardware-related operations."""
@@ -245,3 +241,30 @@ class HardwareService:
         except Exception as e:
             logger.error(f"Error fetching device status: {e}")
             return {"success": False, "error": str(e)}
+
+    def save_link(source_id: int, target_id: int, metadata: dict = None) -> dict:
+        """
+        Save a link between two devices in the database.
+
+        :param source_id: ID of the source device.
+        :param target_id: ID of the target device.
+        :param device_metadata: Optional metadata for the link (e.g., connection details).
+        :return: A dictionary indicating success or failure.
+        """
+        try:
+            # Create the link object
+            new_link = Link(source_id=source_id, target_id=target_id, device_metadata=metadata or {})
+        
+            # Add and commit to the database
+            db.session.add(new_link)
+            db.session.commit()
+
+            logger.info(f"Link created between source {source_id} and target {target_id} with metadata {metadata}.")
+            return {"success": True, "message": "Link saved successfully.", "link_id": new_link.id}
+        except SQLAlchemyError as e:
+            logger.error(f"Database error while saving link: {e}")
+            db.session.rollback()
+            return {"success": False, "error": "Database error occurred while saving the link."}
+        except Exception as e:
+            logger.error(f"Unexpected error while saving link: {e}")
+            return {"success": False, "error": "An unexpected error occurred while saving the link."}

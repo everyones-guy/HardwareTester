@@ -124,3 +124,4 @@ def create_link():
     # Save link to database or configuration file
     save_link(source, target, settings)
     return jsonify({"success": True, "message": "Link created successfully."})
+
