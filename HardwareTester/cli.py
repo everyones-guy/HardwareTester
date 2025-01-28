@@ -11,6 +11,8 @@ from HardwareTester.services.test_plan_service import TestPlanService
 from HardwareTester.models.user_models import User, UserRole
 from HardwareTester.models.dashboard_models import DashboardData
 from HardwareTester.utils.test_generator import TestGenerator
+from HardwareTester.services.source_code_analyzer import SourceCodeAnalyzer
+
 from faker import Faker
 import os
 from dotenv import load_dotenv
@@ -365,7 +367,17 @@ def generate_tests(output_dir, method, mqtt_topic):
     for file in all_test_files:
         click.echo(f" - {file}")
 
+@click.command("analyze-source")
+@click.argument("repo_path")
+def analyze_source(repo_path):
+    """
+    CLI command to analyze a repository and print class/method metadata.
+    """
+    analyzer = SourceCodeAnalyzer()
+    results = analyzer.analyze_repo(repo_path)
 
+    for method in results:
+        print(f"Class: {method['class']}, Method: {method['method']}, Parameters: {method['parameters']}")
 
 # ----------------------
 # CLI Registration
