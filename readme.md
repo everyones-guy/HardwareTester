@@ -218,3 +218,22 @@ This project is licensed under the MIT License.
 ```
 
 This format ensures clarity, proper markdown structure, and detailed instructions for using the application.
+```
+
+---
+
+## FAQ
+
+If you're having setup issues try thse steps:
+
+Dependencies:
+```bash
+pip install tree-sitter==0.19.0
+```
+
+Environment Variables:
+```bash
+set NODE_OPTIONS=--openssl-legacy-provider
+```
+
+
