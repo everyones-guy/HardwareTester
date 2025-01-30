@@ -11,6 +11,7 @@ from HardwareTester.services.test_plan_service import TestPlanService
 from HardwareTester.models.user_models import User, UserRole
 from HardwareTester.models.dashboard_models import DashboardData
 from HardwareTester.utils.test_generator import TestGenerator
+from HardwareTester.utils.source_code_analyzer import SourceCodeAnalyzer
 from faker import Faker
 import os
 from dotenv import load_dotenv

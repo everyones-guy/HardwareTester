@@ -63,7 +63,7 @@ Hardware Tester is a Flask-based application for testing and managing hardware d
 2. **Set Up a Virtual Environment**
    ```bash
    python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   source henv/bin/activate  # On Windows: henv\Scripts\activate
    ```
 
 3. **Install Dependencies**

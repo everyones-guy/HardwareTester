@@ -1,85 +1,111 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
 const SerialPanel = () => {
     const [ports, setPorts] = useState([]);
     const [selectedPort, setSelectedPort] = useState("");
+    const [baudRate, setBaudRate] = useState(115200);
     const [isConnected, setIsConnected] = useState(false);
-    const [serialData, setSerialData] = useState("");
+    const [serialData, setSerialData] = useState([]);
     const [message, setMessage] = useState("");
+    const [hexMode, setHexMode] = useState(false);
+    const [autoReconnect, setAutoReconnect] = useState(true);
+    const [commandHistory, setCommandHistory] = useState([]);
+    const serialRef = useRef(null);
 
+    // Fetch available serial ports on load
     useEffect(() => {
-        // Fetch available serial ports from the backend
         fetch("/api/serial/ports")
-            .then((response) => response.json())
+            .then((res) => res.json())
             .then((data) => setPorts(data))
             .catch((error) => console.error("Error fetching ports:", error));
     }, []);
 
+    // Connect to serial port
     const handleConnect = async () => {
-        if (!selectedPort) {
-            alert("Please select a serial port.");
-            return;
-        }
+        if (!selectedPort) return alert("Select a port first!");
 
         try {
             const response = await fetch("/api/serial/connect", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ port: selectedPort }),
+                body: JSON.stringify({ port: selectedPort, baudRate }),
             });
 
             if (response.ok) {
                 setIsConnected(true);
+                listenToSerial();
             } else {
                 alert("Failed to connect.");
             }
         } catch (error) {
-            console.error("Error connecting:", error);
+            console.error("Connection error:", error);
         }
     };
 
+    // Listen to serial data
+    const listenToSerial = () => {
+        if (!isConnected) return;
+
+        serialRef.current = new EventSource("/api/serial/listen");
+
+        serialRef.current.onmessage = (event) => {
+            const incomingData = event.data;
+            setSerialData((prev) => [...prev, incomingData]);
+        };
+
+        serialRef.current.onerror = () => {
+            console.error("Serial stream error.");
+            if (autoReconnect) {
+                console.log("Reconnecting...");
+                setTimeout(handleConnect, 2000);
+            }
+        };
+    };
+
+    // Disconnect from serial port
     const handleDisconnect = async () => {
         try {
-            const response = await fetch("/api/serial/disconnect", { method: "POST" });
-
-            if (response.ok) {
-                setIsConnected(false);
-            } else {
-                alert("Failed to disconnect.");
-            }
+            await fetch("/api/serial/disconnect", { method: "POST" });
+            setIsConnected(false);
+            if (serialRef.current) serialRef.current.close();
         } catch (error) {
-            console.error("Error disconnecting:", error);
+            console.error("Disconnection error:", error);
         }
     };
 
+    // Send data over serial
     const handleSendData = async () => {
         if (!message.trim()) return;
 
         try {
-            const response = await fetch("/api/serial/send", {
+            const formattedMessage = hexMode ? messageToHex(message) : message;
+            await fetch("/api/serial/send", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ message }),
+                body: JSON.stringify({ message: formattedMessage }),
             });
 
-            if (response.ok) {
-                setMessage("");
-            } else {
-                alert("Failed to send data.");
-            }
+            setCommandHistory((prev) => [...prev, formattedMessage]);
+            setMessage("");
         } catch (error) {
             console.error("Error sending data:", error);
         }
     };
 
+    // Convert text to hex
+    const messageToHex = (text) => {
+        return text.split("").map((char) => char.charCodeAt(0).toString(16)).join(" ");
+    };
+
     return (
         <div className="serial-panel">
-            <h2>Serial Panel</h2>
+            <h2>Serial Communication Panel</h2>
 
+            {/* Port Selection */}
             <div>
-                <label>Select Port:</label>
+                <label>Serial Port:</label>
                 <select value={selectedPort} onChange={(e) => setSelectedPort(e.target.value)} disabled={isConnected}>
-                    <option value="">-- Choose a port --</option>
+                    <option value="">-- Select a port --</option>
                     {ports.map((port, index) => (
                         <option key={index} value={port}>
                             {port}
@@ -88,6 +114,13 @@ const SerialPanel = () => {
                 </select>
             </div>
 
+            {/* Baud Rate */}
+            <div>
+                <label>Baud Rate:</label>
+                <input type="number" value={baudRate} onChange={(e) => setBaudRate(parseInt(e.target.value))} disabled={isConnected} />
+            </div>
+
+            {/* Connect/Disconnect */}
             <div>
                 {!isConnected ? (
                     <button onClick={handleConnect} disabled={!selectedPort}>
@@ -98,17 +131,42 @@ const SerialPanel = () => {
                 )}
             </div>
 
+            {/* Hex Mode & Auto Reconnect */}
             <div>
-                <h3>Send Data</h3>
-                <input type="text" value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Enter message" />
-                <button onClick={handleSendData} disabled={!isConnected}>
+                <label>
+                    <input type="checkbox" checked={hexMode} onChange={() => setHexMode(!hexMode)} />
+                    Hex Mode
+                </label>
+                <br />
+                <label>
+                    <input type="checkbox" checked={autoReconnect} onChange={() => setAutoReconnect(!autoReconnect)} />
+                    Auto Reconnect
+                </label>
+            </div>
+
+            {/* Send Data */}
+            <div>
+                <label>Send Message:</label>
+                <input type="text" value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Enter message" disabled={!isConnected} />
+                <button onClick={handleSendData} disabled={!isConnected || !message}>
                     Send
                 </button>
             </div>
 
+            {/* Received Data */}
             <div>
                 <h3>Received Data</h3>
-                <textarea value={serialData} readOnly rows="5" cols="40" />
+                <textarea value={serialData.join("\n")} readOnly rows="5" cols="50" />
+            </div>
+
+            {/* Command History */}
+            <div>
+                <h3>Command History</h3>
+                <ul>
+                    {commandHistory.map((cmd, index) => (
+                        <li key={index}>{cmd}</li>
+                    ))}
+                </ul>
             </div>
         </div>
     );

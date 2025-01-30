@@ -18,6 +18,7 @@ from HardwareTester.views.upload_views import upload_bp
 from HardwareTester.views.api_views import api_bp
 from HardwareTester.views.valve_views import valve_bp
 from HardwareTester.views.source_routes import source_bp
+from HardwareTester.views.source_code_routes import source_code_bp
 
 def register_blueprints(app):
     """Register all blueprints with the Flask app."""
@@ -39,3 +40,4 @@ def register_blueprints(app):
     app.register_blueprint(upload_bp, url_prefix="/upload")
     app.register_blueprint(api_bp, url_prefix="/api")
     app.register_blueprint(valve_bp, url_prefix="/valves")
+    app.register_blueprint(source_code_bp, url_prefix="/api/source-code")

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { listenToMQTT, sendMQTTCommand } from "../services/mqttService";
+import { listenToMQTT, sendMQTTCommand, subscribeToTopic, unsubscribeFromTopic } from "../services/mqttService";
+import "../styles.css";
 
 const MirrorModal = ({ topic, onClose }) => {
     const [messages, setMessages] = useState([]);
@@ -7,11 +8,17 @@ const MirrorModal = ({ topic, onClose }) => {
     const [commandStatus, setCommandStatus] = useState(null);
 
     useEffect(() => {
-        const unsubscribe = listenToMQTT(topic, (message) => {
+        // Subscribe to MQTT topic
+        const handleMessage = (message) => {
             setMessages((prev) => [...prev, message]);
-        });
+        };
 
-        return () => unsubscribe();
+        subscribeToTopic(topic, handleMessage);
+        listenToMQTT(topic, handleMessage);  // Real time updates
+
+        return () => {
+            unsubscribeFromTopic(topic); // Properly unsubscribe when closing
+        };
     }, [topic]);
 
     const handleSendCommand = async () => {
@@ -19,37 +26,46 @@ const MirrorModal = ({ topic, onClose }) => {
 
         setCommandStatus("Sending...");
         try {
-            await sendMQTTCommand(topic, command);
-            setCommandStatus("Success: Command sent!");
+            await sendMQTTCommand(topic, { command });
+            setCommandStatus("Command sent successfully!");
             setMessages((prev) => [...prev, `> Sent: ${command}`]);
         } catch (error) {
             setCommandStatus("Error: Failed to send command.");
         } finally {
             setCommand(""); // Clear input
-            setTimeout(() => setCommandStatus(null), 3000); // Clear status after 3 seconds
+            setTimeout(() => setCommandStatus(null), 3000); // Auto-clear status after 3 seconds
         }
     };
 
     return (
-        <div className="modal" style={{ padding: "10px", background: "#fff", border: "1px solid #ccc" }}>
+        <div className="modal">
             <h3>Mirror Mode: {topic}</h3>
-            <div style={{ height: "200px", overflowY: "scroll", background: "#f0f0f0", padding: "5px" }}>
-                {messages.map((msg, idx) => (
-                    <div key={idx}>{msg}</div>
-                ))}
+
+            {/* Message Display */}
+            <div className="message-box">
+                {messages.length > 0 ? (
+                    messages.map((msg, idx) => <div key={idx} className="message">{msg}</div>)
+                ) : (
+                    <p className="empty-state">No messages yet...</p>
+                )}
             </div>
-            <div>
+
+            {/* Command Input */}
+            <div className="command-box">
                 <input
                     type="text"
                     value={command}
                     onChange={(e) => setCommand(e.target.value)}
                     placeholder="Enter command"
-                    style={{ width: "calc(100% - 50px)", marginRight: "10px" }}
                 />
                 <button onClick={handleSendCommand}>Send</button>
             </div>
-            {commandStatus && <p>{commandStatus}</p>}
-            <button onClick={onClose}>Close</button>
+
+            {/* Command Status */}
+            {commandStatus && <p className="status">{commandStatus}</p>}
+
+            <button className="close-btn" onClick={onClose}>Close</button>
+
         </div>
     );
 };

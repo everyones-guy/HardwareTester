@@ -1,13 +1,19 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import mqtt from "mqtt";
 
 const MQTTPanel = () => {
+    // State management
+    const [brokerUrl, setBrokerUrl] = useState("wss://test.mosquitto.org:8081");
     const [client, setClient] = useState(null);
     const [isConnected, setIsConnected] = useState(false);
     const [topic, setTopic] = useState("");
     const [message, setMessage] = useState("");
     const [receivedMessages, setReceivedMessages] = useState([]);
+    const [subscribedTopics, setSubscribedTopics] = useState([]);
+    const [scheduledMessages, setScheduledMessages] = useState([]);
+    const eventTimeouts = useRef([]);
 
+    // Initialize MQTT client
     useEffect(() => {
         return () => {
             if (client) {
@@ -17,15 +23,22 @@ const MQTTPanel = () => {
     }, [client]);
 
     const handleConnect = () => {
-        const mqttClient = mqtt.connect("wss://test.mosquitto.org:8081"); // Replace with your MQTT broker
+        const mqttClient = mqtt.connect(brokerUrl, {
+            clientId: `mqtt_client_${Math.random().toString(16).substr(2, 8)}`,
+        });
 
         mqttClient.on("connect", () => {
             setIsConnected(true);
-            console.log("Connected to MQTT Broker");
+            console.log("Connected to MQTT Broker:", brokerUrl);
         });
 
         mqttClient.on("message", (receivedTopic, payload) => {
-            setReceivedMessages((prev) => [...prev, `Topic: ${receivedTopic} | Message: ${payload.toString()}`]);
+            const messageObj = {
+                topic: receivedTopic,
+                message: payload.toString(),
+                timestamp: new Date().toLocaleTimeString(),
+            };
+            setReceivedMessages((prev) => [...prev, messageObj]);
         });
 
         mqttClient.on("error", (err) => {
@@ -47,11 +60,19 @@ const MQTTPanel = () => {
     const handleSubscribe = () => {
         if (client && topic) {
             client.subscribe(topic, (err) => {
-                if (err) {
-                    console.error("Subscription error:", err);
-                } else {
+                if (!err) {
+                    setSubscribedTopics((prev) => [...prev, topic]);
                     console.log(`Subscribed to topic: ${topic}`);
                 }
+            });
+        }
+    };
+
+    const handleUnsubscribe = (unsubscribeTopic) => {
+        if (client) {
+            client.unsubscribe(unsubscribeTopic, () => {
+                setSubscribedTopics((prev) => prev.filter((t) => t !== unsubscribeTopic));
+                console.log(`Unsubscribed from topic: ${unsubscribeTopic}`);
             });
         }
     };
@@ -63,18 +84,47 @@ const MQTTPanel = () => {
         }
     };
 
+    const scheduleMessage = (delay) => {
+        if (!topic || !message) {
+            alert("Enter topic and message before scheduling.");
+            return;
+        }
+        const eventId = setTimeout(() => {
+            handlePublish();
+        }, delay);
+        eventTimeouts.current.push(eventId);
+        setScheduledMessages((prev) => [
+            ...prev,
+            { topic, message, delay, id: eventId, time: new Date().toLocaleTimeString() },
+        ]);
+    };
+
+    const cancelScheduledMessages = () => {
+        eventTimeouts.current.forEach((timeoutId) => clearTimeout(timeoutId));
+        setScheduledMessages([]);
+    };
+
     return (
         <div className="mqtt-panel">
-            <h2>MQTT Panel</h2>
+            <h1>MQTT Communication Panel</h1>
 
+            {/* Broker Connection */}
             <div>
+                <label>Broker URL:</label>
+                <input
+                    type="text"
+                    value={brokerUrl}
+                    onChange={(e) => setBrokerUrl(e.target.value)}
+                    placeholder="Enter broker URL"
+                />
                 {!isConnected ? (
-                    <button onClick={handleConnect}>Connect to MQTT</button>
+                    <button onClick={handleConnect}>Connect</button>
                 ) : (
                     <button onClick={handleDisconnect}>Disconnect</button>
                 )}
             </div>
 
+            {/* Topic Subscription */}
             <div>
                 <label>Topic:</label>
                 <input
@@ -89,6 +139,20 @@ const MQTTPanel = () => {
                 </button>
             </div>
 
+            {/* Subscribed Topics */}
+            <div>
+                <h3>Subscribed Topics</h3>
+                <ul>
+                    {subscribedTopics.map((sub, index) => (
+                        <li key={index}>
+                            {sub}{" "}
+                            <button onClick={() => handleUnsubscribe(sub)}>Unsubscribe</button>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+
+            {/* Publish Message */}
             <div>
                 <label>Message:</label>
                 <input
@@ -103,9 +167,30 @@ const MQTTPanel = () => {
                 </button>
             </div>
 
+            {/* Scheduled Messages */}
+            <div>
+                <h3>Scheduled Messages</h3>
+                {scheduledMessages.map((msg, index) => (
+                    <div key={index}>
+                        <p>
+                            <strong>Topic:</strong> {msg.topic}
+                        </p>
+                        <p>
+                            <strong>Message:</strong> {msg.message}
+                        </p>
+                        <p>
+                            <strong>Scheduled for:</strong> {msg.delay}ms at {msg.time}
+                        </p>
+                    </div>
+                ))}
+                <button onClick={() => scheduleMessage(5000)}>Schedule Message (5s)</button>
+                <button onClick={cancelScheduledMessages}>Cancel Scheduled Messages</button>
+            </div>
+
+            {/* Received Messages */}
             <div>
                 <h3>Received Messages</h3>
-                <textarea value={receivedMessages.join("\n")} readOnly rows="5" cols="40" />
+                <textarea value={receivedMessages.map(msg => `[${msg.timestamp}] ${msg.topic}: ${msg.message}`).join("\n")} readOnly rows="8" cols="50" />
             </div>
         </div>
     );

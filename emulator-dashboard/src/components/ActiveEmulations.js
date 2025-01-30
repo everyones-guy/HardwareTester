@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { fetchActiveEmulations } from "../services/dashboardService";
+import { getActiveEmulations } from "../services/dashboardService";
 
 const ActiveEmulations = () => {
     const [emulations, setEmulations] = useState([]);
     const [filter, setFilter] = useState("");
 
     useEffect(() => {
-        fetchActiveEmulations().then(setEmulations);
+        getActiveEmulations().then(setEmulations);
+        getActiveEmulations().then((setEmulations) => setEmulations(setEmulations));
+
     }, []);
 
     const handleFilterChange = (e) => setFilter(e.target.value);

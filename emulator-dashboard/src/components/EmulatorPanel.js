@@ -1,168 +1,106 @@
 import React, { useState, useEffect } from "react";
-import { useRef } from "react";
-import axios from "axios";
+import {
+    startEmulation,
+    stopEmulation,
+    getActiveEmulations,
+    uploadFirmware,
+    setTimedEvent,
+    enableUIMirror,
+    getEmulationLogs,
+    exportLogs,
+} from "../services/emulatorService";
 
 const EmulatorPanel = () => {
-    // State hooks
-    const [osType, setOsType] = useState("linux"); // Default OS
-    const [firmware, setFirmware] = useState(null);
-    const [firmwareError, setFirmwareError] = useState(null);
-    const [isTouchscreenEmulated, setIsTouchscreenEmulated] = useState(false);
-    const [isMirrorEnabled, setIsMirrorEnabled] = useState(false);
-    const [scheduledEvents, setScheduledEvents] = useState([]);
-    const [isEmulationRunning, setIsEmulationRunning] = useState(false);
-    const [uiScanResults, setUiScanResults] = useState(null);
+    const [emulations, setEmulations] = useState([]);
+    const [firmwareFile, setFirmwareFile] = useState(null);
+    const [selectedEmulation, setSelectedEmulation] = useState(null);
+    const [logs, setLogs] = useState([]);
 
-    // Refs for live events or updates
-    const eventTimeouts = useRef([]);
+    useEffect(() => {
+        loadEmulations();
+    }, []);
 
-    // Sample configurations
-    const osOptions = ["linux", "windows", "raspberryPi", "unknown"];
-
-    // Firmware Integrity Check - Simulated function
-    const checkFirmwareIntegrity = async (firmwareFile) => {
-        try {
-            const response = await axios.post("/api/firmware/validate", {
-                firmwareFile,
-            });
-            setFirmwareError(null);
-            setUiScanResults(response.data.uiScanResults);
-        } catch (error) {
-            setFirmwareError("Firmware integrity check failed.");
-        }
+    const loadEmulations = async () => {
+        const data = await getActiveEmulations();
+        setEmulations(data);
     };
 
-    // Handle OS Change
-    const handleOsChange = (e) => {
-        setOsType(e.target.value);
+    const handleStartEmulation = async () => {
+        const emulationData = {
+            deviceType: "CustomDevice",
+            firmwareVersion: "1.0.0",
+        };
+        await startEmulation(emulationData);
+        loadEmulations();
     };
 
-    // Start/Stop Emulation
-    const toggleEmulation = () => {
-        setIsEmulationRunning((prev) => !prev);
+    const handleStopEmulation = async (emulationId) => {
+        await stopEmulation(emulationId);
+        loadEmulations();
     };
 
-    // Handle touch screen emulation
-    const handleTouchscreenEmulation = () => {
-        setIsTouchscreenEmulated(!isTouchscreenEmulated);
+    const handleFirmwareUpload = async () => {
+        if (!firmwareFile) return;
+        await uploadFirmware(firmwareFile);
     };
 
-    // Handle mirror toggle for bidirectional communication
-    const handleMirrorToggle = () => {
-        setIsMirrorEnabled(!isMirrorEnabled);
+    const handleSetTimedEvent = async () => {
+        if (!selectedEmulation) return;
+        const eventConfig = {
+            eventType: "trigger-action",
+            triggerTime: Date.now() + 60000,
+        };
+        await setTimedEvent(selectedEmulation.id, eventConfig);
     };
 
-    // Schedule Events
-    const scheduleEvent = (event) => {
-        const eventId = setTimeout(() => {
-            event();
-        }, event.delay);
-        eventTimeouts.current.push(eventId);
-        setScheduledEvents((prevEvents) => [...prevEvents, event]);
+    const handleEnableMirror = async () => {
+        if (!selectedEmulation) return;
+        await enableUIMirror(selectedEmulation.id);
     };
 
-    const cancelScheduledEvents = () => {
-        eventTimeouts.current.forEach((timeoutId) => clearTimeout(timeoutId));
-        setScheduledEvents([]);
+    const handleViewLogs = async (emulationId) => {
+        const data = await getEmulationLogs(emulationId);
+        setLogs(data);
     };
 
-    // Render Scheduled Events
-    const renderScheduledEvents = () => {
-        return scheduledEvents.map((event, index) => (
-            <div key={index}>
-                <p>Event: {event.name}</p>
-                <p>Scheduled for: {event.delay}ms</p>
-            </div>
-        ));
+    const handleExportLogs = async (emulationId) => {
+        const data = await exportLogs(emulationId);
+        const url = window.URL.createObjectURL(new Blob([data]));
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", `emulation_logs_${emulationId}.txt`);
+        document.body.appendChild(link);
+        link.click();
     };
 
     return (
         <div className="emulator-panel">
-            <h1>Advanced Emulator Panel</h1>
-            <div>
-                <label>Select OS Type: </label>
-                <select value={osType} onChange={handleOsChange}>
-                    {osOptions.map((os, index) => (
-                        <option key={index} value={os}>
-                            {os.charAt(0).toUpperCase() + os.slice(1)}
-                        </option>
-                    ))}
-                </select>
-            </div>
+            <h1>Emulator Dashboard</h1>
 
-            <div>
-                <label>Upload Firmware:</label>
-                <input
-                    type="file"
-                    accept=".bin,.hex,.img"
-                    onChange={(e) => {
-                        const file = e.target.files[0];
-                        if (file) {
-                            setFirmware(file);
-                            checkFirmwareIntegrity(file);
-                        }
-                    }}
-                />
-            </div>
+            <button onClick={handleStartEmulation}>Start New Emulation</button>
 
-            {firmwareError && <p className="error">{firmwareError}</p>}
+            <h2>Active Emulations</h2>
+            <ul>
+                {emulations.map((emu) => (
+                    <li key={emu.id}>
+                        {emu.name} - {emu.status}
+                        <button onClick={() => handleStopEmulation(emu.id)}>Stop</button>
+                        <button onClick={() => handleViewLogs(emu.id)}>View Logs</button>
+                        <button onClick={() => handleExportLogs(emu.id)}>Export Logs</button>
+                    </li>
+                ))}
+            </ul>
 
-            <div>
-                <button onClick={toggleEmulation}>
-                    {isEmulationRunning ? "Stop Emulation" : "Start Emulation"}
-                </button>
-            </div>
+            <h2>Firmware Upload</h2>
+            <input type="file" onChange={(e) => setFirmwareFile(e.target.files[0])} />
+            <button onClick={handleFirmwareUpload}>Upload</button>
 
-            <div>
-                <label>
-                    <input
-                        type="checkbox"
-                        checked={isTouchscreenEmulated}
-                        onChange={handleTouchscreenEmulation}
-                    />
-                    Emulate Touchscreen Controller
-                </label>
-                <br />
-                <label>
-                    <input
-                        type="checkbox"
-                        checked={isMirrorEnabled}
-                        onChange={handleMirrorToggle}
-                    />
-                    Enable Mirror (Bidirectional Communication)
-                </label>
-            </div>
+            <h2>Other Actions</h2>
+            <button onClick={handleSetTimedEvent}>Set Timed Event</button>
+            <button onClick={handleEnableMirror}>Enable UI Mirror</button>
 
-            <div>
-                <h3>Scheduled Events</h3>
-                {renderScheduledEvents()}
-            </div>
-
-            <div>
-                <h3>UI Scan Results</h3>
-                {uiScanResults && (
-                    <div>
-                        <p>User Interfaces Found:</p>
-                        <pre>{JSON.stringify(uiScanResults, null, 2)}</pre>
-                    </div>
-                )}
-            </div>
-
-            <div>
-                <button
-                    onClick={() =>
-                        scheduleEvent({
-                            name: "Power Cycle",
-                            delay: 5000,
-                            event: () => alert("Emulating power cycle..."),
-                        })
-                    }
-                >
-                    Schedule Power Cycle Event (5s)
-                </button>
-
-                <button onClick={cancelScheduledEvents}>Cancel Scheduled Events</button>
-            </div>
+            <h2>Logs</h2>
+            <pre>{logs.join("\n")}</pre>
         </div>
     );
 };

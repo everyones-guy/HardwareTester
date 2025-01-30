@@ -180,12 +180,13 @@ class MQTTClient:
             return None
 
     @socketio.on("start_mirror")
-    def start_mirror(data):
+    def start_mirror(self,data):
         device_topic = data.get("topic")
 
         def on_message(client, userdata, message):
             command = message.payload.decode()
             socketio.emit("mirror_update", {"command": command, "topic": message.topic})
 
-        mqtt.subscribe(device_topic)
-        mqtt.on_message = on_message
+        self.client.subscribe(device_topic)
+        self.client.on_message = on_message
+        

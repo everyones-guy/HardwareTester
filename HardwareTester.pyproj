@@ -18,8 +18,10 @@
     <Name>HardwareTester</Name>
     <RootNamespace>HardwareTester</RootNamespace>
     <TestFramework>Pytest</TestFramework>
-    <InterpreterId>MSBuild|venv|$(MSBuildProjectFullPath)</InterpreterId>
+    <InterpreterId>MSBuild|henv|$(MSBuildProjectFullPath)</InterpreterId>
     <WebBrowserPort>5000</WebBrowserPort>
+    <PythonRunWebServerCommand>npm</PythonRunWebServerCommand>
+    <PythonRunWebServerCommandArguments>start</PythonRunWebServerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -40,6 +42,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="HardwareTester\config.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="HardwareTester\create_extra_libraries.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="HardwareTester\db_setup.py">
@@ -121,6 +126,9 @@
     <Compile Include="HardwareTester\services\ssh_service.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="HardwareTester\services\test_execution_service.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="HardwareTester\services\test_service.py">
       <SubType>Code</SubType>
     </Compile>
@@ -146,7 +154,7 @@
     <Compile Include="HardwareTester\utils\serial_comm.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\services\source_code_analyzer.py">
+    <Compile Include="HardwareTester\utils\source_code_analyzer.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="HardwareTester\utils\test_generator.py">
@@ -210,6 +218,9 @@
     <Compile Include="HardwareTester\views\main_views.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="HardwareTester\views\source_code_routes.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="HardwareTester\views\source_routes.py">
       <SubType>Code</SubType>
     </Compile>
@@ -269,6 +280,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="emulator-dashboard\" />
+    <Folder Include="emulator-dashboard\public\" />
     <Folder Include="emulator-dashboard\src\" />
     <Folder Include="emulator-dashboard\src\components\" />
     <Folder Include="emulator-dashboard\src\components\shared\" />
@@ -313,16 +325,22 @@
     <Content Include=".env" />
     <Content Include=".flaskenv" />
     <Content Include="emulator-dashboard\src\components\ActiveEmulations.js" />
+    <Content Include="emulator-dashboard\src\components\CodeScanner.js" />
     <Content Include="emulator-dashboard\src\components\Dashboard.js" />
     <Content Include="emulator-dashboard\src\components\EmulatorPanel.js" />
+    <Content Include="emulator-dashboard\src\components\HardwareLogsMetrics.js" />
     <Content Include="emulator-dashboard\src\components\HardwarePanel.js" />
     <Content Include="emulator-dashboard\src\components\LiveMetrics.js" />
     <Content Include="emulator-dashboard\src\components\MQTTPanel.js" />
     <Content Include="emulator-dashboard\src\components\SerialPanel.js" />
+    <Content Include="emulator-dashboard\src\components\TestPlanManager.js" />
+    <Content Include="emulator-dashboard\src\services\dashboardService.js" />
     <Content Include="emulator-dashboard\src\services\emulatorService.js" />
     <Content Include="emulator-dashboard\src\services\hardwareService.js" />
     <Content Include="emulator-dashboard\src\services\mqttService.js" />
     <Content Include="emulator-dashboard\src\services\serialService.js" />
+    <Content Include="emulator-dashboard\public\styles.css" />
+    <Content Include="emulator-dashboard\src\styles.css" />
     <Content Include="HardwareTester\static\css\api_overview.css" />
     <Content Include="HardwareTester\static\css\configuration_management.css" />
     <Content Include="HardwareTester\static\css\device_blueprints.css" />
@@ -430,19 +448,10 @@
     <Content Include="uploads\emulator_configurations\test_emulator_config.cfg" />
   </ItemGroup>
   <ItemGroup>
-    <Interpreter Include="env\">
-      <Id>env</Id>
+    <Interpreter Include="henv\">
+      <Id>henv</Id>
       <Version>0.0</Version>
-      <Description>env (Python 3.12 (64-bit))</Description>
-      <InterpreterPath>Scripts\python.exe</InterpreterPath>
-      <WindowsInterpreterPath>Scripts\pythonw.exe</WindowsInterpreterPath>
-      <PathEnvironmentVariable>PYTHONPATH</PathEnvironmentVariable>
-      <Architecture>X64</Architecture>
-    </Interpreter>
-    <Interpreter Include="venv\">
-      <Id>venv</Id>
-      <Version>0.0</Version>
-      <Description>venv (Python 3.12 (64-bit))</Description>
+      <Description>henv (Python 3.13 (64-bit))</Description>
       <InterpreterPath>Scripts\python.exe</InterpreterPath>
       <WindowsInterpreterPath>Scripts\pythonw.exe</WindowsInterpreterPath>
       <PathEnvironmentVariable>PYTHONPATH</PathEnvironmentVariable>

@@ -1,7 +1,7 @@
 
 from flask import Blueprint, jsonify, request
 from flask_login import login_required
-from HardwareTester.services.source_code_analyzer import SourceCodeAnalyzer
+from HardwareTester.utils.source_code_analyzer import SourceCodeAnalyzer
 
 source_bp = Blueprint("source", __name__, url_prefix="/source")
 

@@ -1,8 +1,13 @@
 import React from "react";
-import HardwarePanel from "./components/HardwarePanel";
-import EmulatorPanel from "./components/EmulatorPanel";
-import MQTTPanel from "./components/MQTTPanel";
-import SerialPanel from "./components/SerialPanel";
+import HardwarePanel from "./HardwarePanel";
+import EmulatorPanel from "./EmulatorPanel";
+import MQTTPanel from "./MQTTPanel";
+import SerialPanel from "./SerialPanel";
+import LiveMetrics from "./LiveMetrics";
+import MirrorModal from "./MirrorModal";
+import ActiveEmulations from "./ActiveEmulations";
+
+
 const Dashboard = () => {
     return (
         <div style={{ display: "flex", flexDirection: "row", height: "100vh" }}>
@@ -21,10 +26,14 @@ const Dashboard = () => {
             <div style={{ flex: 1, padding: "10px", background: "#c5c5c5" }}>
                 <h1>Hardware Emulator Dashboard</h1>
                 <SerialPanel />
+            </div> 
+            <div style={{ flex: 1, padding: "10px", background: "#c5c5c5" }}>
+                <h1>Hardware Emulator Dashboard</h1>
+                <LiveMetrics />
             </div>
-            <div>
-                
-                <SerialPanel />
+            <div style={{ flex: 1, padding: "10px", background: "#c5c5c5" }}>
+                <h1>Hardware Emulator Dashboard</h1>
+                <MirrorModal />
             </div>
         </div>
     );
