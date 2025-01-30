@@ -13,10 +13,11 @@ class SourceCodeAnalyzer:
         """
         Loads Tree-Sitter language grammars from individual DLLs.
         """
-        LANGUAGES_PATH = os.path.join(os.getcwd(), "tree-sitter-languages")
+        #LANGUAGES_PATH = os.path.join(os.getcwd(), "tree-sitter-languages")
+        LANGUAGES_PATH = "C:/Users/Gary/source/repos/HardwareTester/tree-sitter-languages"
 
         language_files = {
-            "csharp": os.path.join(LANGUAGES_PATH, "tree-sitter-c-sharp.dll"),
+            "c_sharp": os.path.join(LANGUAGES_PATH, "tree-sitter-c-sharp.dll"),
             "cpp": os.path.join(LANGUAGES_PATH, "tree-sitter-cpp.dll"),
             "javascript": os.path.join(LANGUAGES_PATH, "tree-sitter-javascript.dll")
         }
