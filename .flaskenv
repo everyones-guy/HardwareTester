@@ -1,7 +1,7 @@
 # .flaskenv
 
 # Flask environment settings
-FLASK_APP=HardwareTester:create_app  # Entry point for the Flask app
+FLASK_APP=runserver.py  # Entry point for the Flask app
 FLASK_ENV=development
 FLASK_CONFIG=development
 FLASK_DEBUG=1  # Set to 0 in production

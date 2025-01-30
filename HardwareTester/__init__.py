@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, render_template, request, send_from_directory
 from flask_login import current_user
+from flask_socketio import SocketIO
 from flask_cors import CORS
 from datetime import datetime
 from cli import register_commands
@@ -16,7 +17,7 @@ from HardwareTester.utils.token_utils import get_token
 # Initialize logger
 logger = CustomLogger.get_logger("app")
 
-def create_app(config_name="default"):
+def create_app(config_name="default", *args, **kwargs):
     """
     Create and configure the Flask application.
     :param config_name: The configuration name ('development', 'testing', or 'production').
@@ -26,8 +27,12 @@ def create_app(config_name="default"):
     # Initialize Flask app
     app = Flask(__name__)
     CORS(app, resources={r"/api/*": {"origins": "http://localhost:3000"}})
+    config_class = config.get(config_name, DevelopmentConfig)
+    app.config.from_object(config_class)
+
+
     app.config['LOGIN_DISABLED'] = False
-    app.config.from_object(config[config_name])
+    app.config.from_object(config.get(config_name, "default"))
 
     # Initialize extensions
     initialize_extensions(app)
