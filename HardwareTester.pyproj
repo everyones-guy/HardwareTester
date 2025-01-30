@@ -18,7 +18,7 @@
     <Name>HardwareTester</Name>
     <RootNamespace>HardwareTester</RootNamespace>
     <TestFramework>Pytest</TestFramework>
-    <InterpreterId>MSBuild|henv|$(MSBuildProjectFullPath)</InterpreterId>
+    <InterpreterId>MSBuild|venv|$(MSBuildProjectFullPath)</InterpreterId>
     <WebBrowserPort>5000</WebBrowserPort>
     <PythonRunWebServerCommand>npm</PythonRunWebServerCommand>
     <PythonRunWebServerCommandArguments>start</PythonRunWebServerCommandArguments>
@@ -448,10 +448,10 @@
     <Content Include="uploads\emulator_configurations\test_emulator_config.cfg" />
   </ItemGroup>
   <ItemGroup>
-    <Interpreter Include="henv\">
-      <Id>henv</Id>
+    <Interpreter Include="venv\">
+      <Id>venv</Id>
       <Version>0.0</Version>
-      <Description>henv (Python 3.13 (64-bit))</Description>
+      <Description>venv (Python 3.13 (64-bit))</Description>
       <InterpreterPath>Scripts\python.exe</InterpreterPath>
       <WindowsInterpreterPath>Scripts\pythonw.exe</WindowsInterpreterPath>
       <PathEnvironmentVariable>PYTHONPATH</PathEnvironmentVariable>

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { connectMQTT, listenToMQTT } from "../services/mqttService";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { connectMQTT, listenToMQTT, unsubscribeFromTopic } from "../services/mqttService";
 import { getSystemStatus, getActiveEmulations } from "../services/dashboardService";
 import Chart from "chart.js/auto";
 
@@ -12,34 +12,76 @@ const LiveMetrics = () => {
     const [deviceMetrics, setDeviceMetrics] = useState({});
     const [alerts, setAlerts] = useState([]);
 
-    let cpuChart, memoryChart, networkChart;
+    // Chart references
+    const cpuChartRef = useRef(null);
+    const memoryChartRef = useRef(null);
+    const networkChartRef = useRef(null);
 
-    useEffect(() => {
-        connectMQTT();
-
-        // Fetch Initial Data
-        fetchSystemMetrics();
-        fetchActiveEmulations();
-
-        // Listen for Live Hardware Metrics from MQTT
-        listenToMQTT("system/cpu", (message) => handleMetricUpdate("cpu", message));
-        listenToMQTT("system/memory", (message) => handleMetricUpdate("memory", message));
-        listenToMQTT("system/network", (message) => handleMetricUpdate("network", message));
-        listenToMQTT("devices/metrics", (message) => handleDeviceMetrics(message));
-        listenToMQTT("device/metrics", (message) => {
-            console.log("Live Metrics:", message);
-        });
-
-        return () => {
-            if (cpuChart) cpuChart.destroy();
-            if (memoryChart) memoryChart.destroy();
-            if (networkChart) networkChart.destroy();
-        };
+    /**
+     * Handles incoming system metrics (CPU, Memory, Network).
+     */
+    const handleMetricUpdate = useCallback((type, message) => {
+        const value = parseFloat(message);
+        switch (type) {
+            case "cpu":
+                setCpuData((prev) => [...prev.slice(-49), value]);
+                checkThreshold("CPU", value, 85);
+                break;
+            case "memory":
+                setMemoryData((prev) => [...prev.slice(-49), value]);
+                checkThreshold("Memory", value, 90);
+                break;
+            case "network":
+                setNetworkData((prev) => [...prev.slice(-49), value]);
+                break;
+            case "devices":
+                const data = JSON.parse(message);
+                setDeviceMetrics((prevMetrics) => ({ ...prevMetrics, ...data }));
+                break;
+            default:
+                console.warn("Unknown metric type:", type);
+        }
     }, []);
 
     /**
-     * Fetch system health metrics from backend API.
+     * Initializes charts when the component mounts.
      */
+    const initializeCharts = useCallback(() => {
+        const ctxCPU = document.getElementById("cpuChart").getContext("2d");
+        const ctxMemory = document.getElementById("memoryChart").getContext("2d");
+        const ctxNetwork = document.getElementById("networkChart").getContext("2d");
+
+        cpuChartRef.current = createChart(ctxCPU, "CPU Usage");
+        memoryChartRef.current = createChart(ctxMemory, "Memory Usage");
+        networkChartRef.current = createChart(ctxNetwork, "Network Traffic");
+    }, []);
+
+    useEffect(() => {
+        connectMQTT();
+        fetchSystemMetrics();
+        fetchActiveEmulations();
+        initializeCharts();
+
+        const topics = {
+            cpu: "system/cpu",
+            memory: "system/memory",
+            network: "system/network",
+            devices: "devices/metrics",
+        };
+
+        Object.entries(topics).forEach(([type, topic]) => {
+            listenToMQTT(topic, (message) => handleMetricUpdate(type, message));
+        });
+
+        return () => {
+            Object.values(topics).forEach((topic) => unsubscribeFromTopic(topic));
+
+            if (cpuChartRef.current) cpuChartRef.current.destroy();
+            if (memoryChartRef.current) memoryChartRef.current.destroy();
+            if (networkChartRef.current) networkChartRef.current.destroy();
+        };
+    }, [handleMetricUpdate, initializeCharts]);
+
     const fetchSystemMetrics = async () => {
         try {
             const status = await getSystemStatus();
@@ -49,9 +91,6 @@ const LiveMetrics = () => {
         }
     };
 
-    /**
-     * Fetch active emulations from backend API.
-     */
     const fetchActiveEmulations = async () => {
         try {
             const emulations = await getActiveEmulations();
@@ -61,62 +100,43 @@ const LiveMetrics = () => {
         }
     };
 
-    /**
-     * Handles incoming system metrics (CPU, Memory, Network).
-     */
-    const handleMetricUpdate = (type, message) => {
-        const value = parseFloat(message);
-        switch (type) {
-            case "cpu":
-                updateChart(cpuData, setCpuData, value);
-                checkThreshold("CPU", value, 85);
-                break;
-            case "memory":
-                updateChart(memoryData, setMemoryData, value);
-                checkThreshold("Memory", value, 90);
-                break;
-            case "network":
-                updateChart(networkData, setNetworkData, value);
-                break;
-            default:
-                console.warn("Unknown metric type:", type);
-        }
-    };
-
-    /**
-     * Handles incoming device telemetry data.
-     */
-    const handleDeviceMetrics = (message) => {
-        const data = JSON.parse(message);
-        setDeviceMetrics((prevMetrics) => ({ ...prevMetrics, ...data }));
-    };
-
-    /**
-     * Updates chart data dynamically.
-     */
-    const updateChart = (dataArray, setDataArray, newValue) => {
-        const updatedData = [...dataArray, newValue];
-        if (updatedData.length > 50) updatedData.shift(); // Keep only latest 50 values
-        setDataArray(updatedData);
-    };
-
-    /**
-     * Checks if a metric has exceeded a threshold and triggers an alert.
-     */
     const checkThreshold = (metric, value, threshold) => {
         if (value > threshold) {
             setAlerts((prevAlerts) => [
-                ...prevAlerts,
+                ...prevAlerts.slice(-4),
                 `${metric} Usage HIGH: ${value}% (Threshold: ${threshold}%)`,
             ]);
         }
+    };
+
+    const createChart = (ctx, label) => {
+        return new Chart(ctx, {
+            type: "line",
+            data: {
+                labels: Array(50).fill(""),
+                datasets: [
+                    {
+                        label: label,
+                        data: [],
+                        borderColor: "rgba(75,192,192,1)",
+                        fill: false,
+                    },
+                ],
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: { display: false },
+                    y: { beginAtZero: true },
+                },
+            },
+        });
     };
 
     return (
         <div className="live-metrics">
             <h1>Live System Metrics</h1>
 
-            {/* System Status */}
             <div className="metrics-container">
                 <div className="metric-box">
                     <h2>CPU Usage</h2>
@@ -135,7 +155,6 @@ const LiveMetrics = () => {
                 </div>
             </div>
 
-            {/* Active Emulations */}
             <h2>Active Emulations</h2>
             <ul>
                 {activeEmulations.map((emu) => (
@@ -145,7 +164,6 @@ const LiveMetrics = () => {
                 ))}
             </ul>
 
-            {/* Live Device Metrics */}
             <h2>Device Telemetry</h2>
             <ul>
                 {Object.entries(deviceMetrics).map(([key, value]) => (
@@ -155,7 +173,6 @@ const LiveMetrics = () => {
                 ))}
             </ul>
 
-            {/* Alerts Section */}
             {alerts.length > 0 && (
                 <div className="alerts">
                     <h2>Alerts</h2>

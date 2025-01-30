@@ -35,6 +35,10 @@ const Dashboard = () => {
                 <h1>Hardware Emulator Dashboard</h1>
                 <MirrorModal />
             </div>
+            <div style={{ flex: 1, padding: "10px", background: "#c5c5c5" }}>
+                <h1>Hardware Emulator Dashboard</h1>
+                <ActiveEmulations />
+            </div>
         </div>
     );
 };

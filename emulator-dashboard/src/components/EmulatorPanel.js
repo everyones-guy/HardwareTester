@@ -13,7 +13,7 @@ import {
 const EmulatorPanel = () => {
     const [emulations, setEmulations] = useState([]);
     const [firmwareFile, setFirmwareFile] = useState(null);
-    const [selectedEmulation, setSelectedEmulation] = useState(null);
+    const [selectedEmulation] = useState(null);
     const [logs, setLogs] = useState([]);
 
     useEffect(() => {
