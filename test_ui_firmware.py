@@ -2,7 +2,7 @@ import os
 import json
 import tkinter as tk
 from tkinter import filedialog, messagebox
-from HardwareTester.utils.firmware_utils import validate_firmware_file, process_uploaded_firmware
+from HardwareTester.utils.firmware_utils import validate_firmware_file, process_uploaded_firmware, process_firmware_package
 from HardwareTester.utils.test_generator import TestGenerator
 from HardwareTester.services.emulator_service import EmulatorService
 from HardwareTester.services.hardware_service import HardwareService
