@@ -223,6 +223,31 @@ $(document).ready(function () {
         );
     });
 
+    document.getElementById("generate-blueprint-button").addEventListener("click", async () => {
+        const machineAddress = document.getElementById("machine-address").value;
+
+        if (!machineAddress) {
+            alert("Please enter a machine address.");
+            return;
+        }
+
+        const response = await fetch("/generate_blueprint", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ machine_address: machineAddress })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            document.getElementById("blueprint-content").textContent = JSON.stringify(result.blueprint, null, 4);
+            new bootstrap.Modal(document.getElementById("blueprint-preview-modal")).show();
+        } else {
+            alert("Error: " + result.error);
+        }
+    });
+
+
     // Preview a blueprint
     $(document).on("click", ".preview-blueprint", function () {
         const blueprintName = $(this).data("blueprint");
