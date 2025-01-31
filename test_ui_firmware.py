@@ -2,7 +2,7 @@ import os
 import json
 import tkinter as tk
 from tkinter import filedialog, messagebox
-from HardwareTester.utils.firmware_utils import validate_firmware_file, process_uploaded_firmware, process_firmware_package
+from HardwareTester.utils.firmware_utils import process_firmware_package
 from HardwareTester.utils.test_generator import TestGenerator
 from HardwareTester.services.emulator_service import EmulatorService
 from HardwareTester.services.hardware_service import HardwareService
@@ -52,28 +52,28 @@ class FirmwareTestUI:
             self.selected_folder = folder_path
             self.output_label.config(text=f"Selected folder: {folder_path}")
 
-   def generate_tests(self):
-    if not self.selected_file:
+    def generate_tests(self):
+       if not self.selected_file:
         messagebox.showerror("Error", "Please select a firmware file first.")
         return
 
-    extracted_files = process_firmware_package(self.selected_file)
-    if not extracted_files:
-        messagebox.showerror("Error", "Failed to extract firmware files.")
-        return
+        extracted_files = process_firmware_package(self.selected_file)
+        if not extracted_files:
+            messagebox.showerror("Error", "Failed to extract firmware files.")
+            return
 
-    # Assuming extracted firmware files are valid, we fetch commands
-    emulator = EmulatorService()
-    blueprints = emulator.fetch_blueprints().get("blueprints", [])
-    commands = emulator.fetch_commands_from_firmware(self.selected_file)
+        # Assuming extracted firmware files are valid, we fetch commands
+        emulator = EmulatorService()
+        blueprints = emulator.fetch_blueprints().get("blueprints", [])
+        commands = emulator.fetch_commands_from_firmware(self.selected_file)
 
-    if not commands:
-        messagebox.showerror("Error", "No commands found in firmware.")
-        return
+        if not commands:
+            messagebox.showerror("Error", "No commands found in firmware.")
+            return
 
-    test_generator = TestGenerator(blueprints, commands)
-    self.generated_tests = test_generator.generate_test_suite()
-    messagebox.showinfo("Success", f"Tests generated successfully!\nSaved to: {test_generator.output_dir}")
+        test_generator = TestGenerator(blueprints, commands)
+        self.generated_tests = test_generator.generate_test_suite()
+        messagebox.showinfo("Success", f"Tests generated successfully!\nSaved to: {test_generator.output_dir}")
 
 
     def read_commands(self):
