@@ -10,7 +10,7 @@ def main():
 
     app = create_app(args.config)
     register_commands(app)  # Register custom commands
-    socketio.run(app, host="0.0.0.0", port=5000)
+    socketio.run(app, debug=True, host="0.0.0.0", port=5000)
 
 if __name__ == "__main__":
     main()

@@ -1,6 +1,7 @@
 import mqtt from "mqtt";
 
-const MQTT_BROKER = "ws://localhost:1883"; // Update this with your broker URL
+
+const MQTT_BROKER = "ws://localhost:9001"; // WebSockets for React
 const RECONNECT_INTERVAL = 5000; // Auto-reconnect delay (5 seconds)
 const MAX_RECONNECT_ATTEMPTS = 10; // Limit reconnect attempts
 

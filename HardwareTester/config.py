@@ -58,7 +58,7 @@ class Config:
     SECURE_BASE_URL = os.getenv("SECURE_BASE_URL", "https://localhost:5000")
 
     # MQTT settings
-    MQTT_BROKER = os.getenv("MQTT_BROKER", "test.mosquitto.org")
+    MQTT_BROKER = os.getenv("MQTT_BROKER", "localhost")
     MQTT_PORT = int(os.getenv("MQTT_PORT", 1883))
     MQTT_USERNAME = os.getenv("MQTT_USERNAME", None)
     MQTT_PASSWORD = os.getenv("MQTT_PASSWORD", None)
