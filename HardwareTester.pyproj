@@ -284,6 +284,9 @@
     <Compile Include="tests\test_test_plan_service_and_views.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="test_ui_firmware.py">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="emulator-dashboard\" />
