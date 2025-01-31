@@ -40,10 +40,11 @@ class FirmwareTestUI:
         self.output_label.pack(pady=5)
 
     def select_file(self):
-        file_path = filedialog.askopenfilename(filetypes=[("Firmware Files", "*.txt *.bin *.hex")])
+        file_path = filedialog.askopenfilename(filetypes=[("Firmware Packages", "*.rpm *.img *.zip")])
         if file_path:
             self.selected_file = file_path
             self.output_label.config(text=f"Selected file: {file_path}")
+
 
     def select_folder(self):
         folder_path = filedialog.askdirectory()
@@ -51,32 +52,29 @@ class FirmwareTestUI:
             self.selected_folder = folder_path
             self.output_label.config(text=f"Selected folder: {folder_path}")
 
-    def generate_tests(self):
-        if not self.selected_file:
-            messagebox.showerror("Error", "Please select a firmware file first.")
-            return
+   def generate_tests(self):
+    if not self.selected_file:
+        messagebox.showerror("Error", "Please select a firmware file first.")
+        return
 
-        firmware_hash = validate_firmware_file(self.selected_file)
-        if firmware_hash is None:
-            messagebox.showerror("Error", "Invalid firmware file format.")
-            return
+    extracted_files = process_firmware_package(self.selected_file)
+    if not extracted_files:
+        messagebox.showerror("Error", "Failed to extract firmware files.")
+        return
 
-        firmware_data = process_uploaded_firmware(open(self.selected_file, "rb"))
+    # Assuming extracted firmware files are valid, we fetch commands
+    emulator = EmulatorService()
+    blueprints = emulator.fetch_blueprints().get("blueprints", [])
+    commands = emulator.fetch_commands_from_firmware(self.selected_file)
 
-        # Fetch available blueprints and commands from EmulatorService
-        emulator = EmulatorService()
-        blueprints = emulator.fetch_blueprints().get("blueprints", [])
-        commands = emulator.fetch_commands_from_firmware(self.selected_file)
+    if not commands:
+        messagebox.showerror("Error", "No commands found in firmware.")
+        return
 
-        if not commands:
-            messagebox.showerror("Error", "No commands found in firmware.")
-            return
+    test_generator = TestGenerator(blueprints, commands)
+    self.generated_tests = test_generator.generate_test_suite()
+    messagebox.showinfo("Success", f"Tests generated successfully!\nSaved to: {test_generator.output_dir}")
 
-        # Generate Tests
-        test_generator = TestGenerator(blueprints, commands)
-        self.generated_tests = test_generator.generate_test_suite()
-        
-        messagebox.showinfo("Success", f"Tests generated successfully!\nSaved to: {test_generator.output_dir}")
 
     def read_commands(self):
         if not self.selected_file:
