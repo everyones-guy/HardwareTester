@@ -38,7 +38,7 @@ def initialize_db():
 
 def setup_database():
     """Setup database based on environment."""
-    database_url = os.getenv("DATABASE_URL", "sqlite:///C:/Users/Gary/source/repos/HardwareTester/HardwareTester/instance/app.db")
+    database_url = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost/hardware_tester")
     os.environ["DATABASE_URL"] = database_url
     logger.info(f"Using database: {database_url}")
     initialize_db()

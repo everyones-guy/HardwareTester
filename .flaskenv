@@ -8,11 +8,11 @@ FLASK_DEBUG=1  # Set to 0 in production
 # TEMPLATES_FOLDER=C:/Users/Gary/source/repos/HardwareTester/HardwareTester/templates
 
 # Database Configuration
-# DATABASE_URL=mysql:///instance/app.db  # Default SQLite database location
-# SQLALCHEMY_DATABASE_URI=sqlite:///instance/app.db
+# DATABASE_URL=mysql:///instance/app.db  # mysql database example
+# SQLALCHEMY_DATABASE_URI=sqlite:///instance/app.db # SQLite database example
 INSTANCE_DIR=C:/Users/Gary/source/repos/HardwareTester/HardwareTester/instance
-DATABASE_URL=sqlite:///C:/Users/Gary/source/repos/HardwareTester/HardwareTester/instance/app.db
-SQLALCHEMY_DATABASE_URI=sqlite:///C:/Users/Gary/source/repos/HardwareTester/HardwareTester/instance/app.db
+DATABASE_URL=postgresql://postgres:postgres@localhost/hardware_tester
+SQLALCHEMY_DATABASE_URI=postgresql://postgres:postgres@localhost/hardware_tester
 SQLALCHEMY_TRACK_MODIFICATIONS=False
 
 # Network settings

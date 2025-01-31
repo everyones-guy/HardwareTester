@@ -12,7 +12,6 @@ from HardwareTester.models.user_models import User, UserRole
 from HardwareTester.models.dashboard_models import DashboardData
 from HardwareTester.utils.test_generator import TestGenerator
 from HardwareTester.utils.source_code_analyzer import SourceCodeAnalyzer
-
 from faker import Faker
 import os
 from dotenv import load_dotenv
@@ -197,6 +196,60 @@ def list_tests():
     else:
         click.echo(f"Error: {result['error']}")
 
+@test.command("generate-tests")
+@click.option(
+    "--output-dir",
+    default="generated_tests",
+    help="Directory to save the generated test files."
+)
+@click.option(
+    "--method",
+    type=click.Choice(["firmware", "mqtt"], case_sensitive=False),
+    default="firmware",
+    help="Method to fetch commands: 'firmware' or 'mqtt'."
+)
+@click.option(
+    "--mqtt-topic",
+    default="hardware/commands",
+    help="MQTT topic for fetching commands (only used for MQTT method)."
+)
+def generate_tests(output_dir, method, mqtt_topic):
+    """
+    Generate test files dynamically based on available commands.
+    """
+    click.echo("Fetching blueprints from the system...")
+    blueprints = EmulatorService.fetch_blueprints().get("blueprints", [])
+    
+    if not blueprints:
+        click.echo("No blueprints available. Cannot generate tests.")
+        return
+
+    all_test_files = []
+
+    for blueprint in blueprints:
+        blueprint_name = blueprint["name"]
+        click.echo(f"Processing blueprint: {blueprint_name}")
+
+        # Fetch commands dynamically based on the method
+        if method == "firmware":
+            commands = EmulatorService.fetch_commands_from_firmware(blueprint_name)
+        elif method == "mqtt":
+            commands = EmulatorService.fetch_commands_via_mqtt(mqtt_topic)
+        else:
+            commands = []
+
+        if not commands:
+            click.echo(f"No commands available for blueprint: {blueprint_name}. Skipping...")
+            continue
+
+        # Initialize the TestGenerator for this blueprint
+        generator = TestGenerator([blueprint], commands, output_dir=output_dir)
+        test_files = generator.generate_test_suite()
+        all_test_files.extend(test_files)
+    
+    click.echo("Generated test files:")
+    for file in all_test_files:
+        click.echo(f" - {file}")
 
 # ----------------------
 # Firmware Commands
@@ -296,7 +349,6 @@ def add_mock_dashboard_data():
         logger.error(f"Error adding mock dashboard data: {e}")
         click.echo(f"Error adding mock dashboard data: {e}")
 
-
 @mock.command("clear", help="Clear all mock data.")
 @with_appcontext
 def clear_mock_data():
@@ -311,73 +363,6 @@ def clear_mock_data():
         db.session.rollback()
         logger.error(f"Error clearing mock data: {e}")
         click.echo(f"Error clearing mock data: {e}")
-
-@test.command("generate-tests")
-@click.option(
-    "--output-dir",
-    default="generated_tests",
-    help="Directory to save the generated test files."
-)
-@click.option(
-    "--method",
-    type=click.Choice(["firmware", "mqtt"], case_sensitive=False),
-    default="firmware",
-    help="Method to fetch commands: 'firmware' or 'mqtt'."
-)
-@click.option(
-    "--mqtt-topic",
-    default="hardware/commands",
-    help="MQTT topic for fetching commands (only used for MQTT method)."
-)
-def generate_tests(output_dir, method, mqtt_topic):
-    """
-    Generate test files dynamically based on available commands.
-    """
-    click.echo("Fetching blueprints from the system...")
-    blueprints = EmulatorService.fetch_blueprints().get("blueprints", [])
-    
-    if not blueprints:
-        click.echo("No blueprints available. Cannot generate tests.")
-        return
-
-    all_test_files = []
-
-    for blueprint in blueprints:
-        blueprint_name = blueprint["name"]
-        click.echo(f"Processing blueprint: {blueprint_name}")
-
-        # Fetch commands dynamically based on the method
-        if method == "firmware":
-            commands = EmulatorService.fetch_commands_from_firmware(blueprint_name)
-        elif method == "mqtt":
-            commands = EmulatorService.fetch_commands_via_mqtt(mqtt_topic)
-        else:
-            commands = []
-
-        if not commands:
-            click.echo(f"No commands available for blueprint: {blueprint_name}. Skipping...")
-            continue
-
-        # Initialize the TestGenerator for this blueprint
-        generator = TestGenerator([blueprint], commands, output_dir=output_dir)
-        test_files = generator.generate_test_suite()
-        all_test_files.extend(test_files)
-    
-    click.echo("Generated test files:")
-    for file in all_test_files:
-        click.echo(f" - {file}")
-
-@click.command("analyze-source")
-@click.argument("repo_path")
-def analyze_source(repo_path):
-    """
-    CLI command to analyze a repository and print class/method metadata.
-    """
-    analyzer = SourceCodeAnalyzer()
-    results = analyzer.analyze_repo(repo_path)
-
-    for method in results:
-        print(f"Class: {method['class']}, Method: {method['method']}, Parameters: {method['parameters']}")
 
 # ----------------------
 # CLI Registration

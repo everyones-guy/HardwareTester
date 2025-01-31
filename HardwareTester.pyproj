@@ -32,7 +32,8 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="cli.py">
+    <Compile Include="cli.py" />
+    <Compile Include="HardwareTester\cli.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="decode.py">

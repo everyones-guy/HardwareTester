@@ -32,7 +32,8 @@ class Config:
     LOG_FILE = os.getenv("LOG_FILE", os.path.join(BASE_DIR, "app.log"))
 
     # Database settings
-    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", f"sqlite:///{os.path.join(INSTANCE_DIR, 'app.db')}")
+    #SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", f"sqlite:///{os.path.join(INSTANCE_DIR, 'app.db')}")
+    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost/hardware_tester")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # File upload settings
@@ -77,7 +78,7 @@ class DevelopmentConfig(Config):
 class TestingConfig(Config):
     """Testing configuration with a separate test database."""
     TESTING = True
-    SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
+    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost/tst_hardware_tester")
     WTF_CSRF_ENABLED = False  # Disable CSRF for easier testing
     LOG_LEVEL = "WARNING"
     ENV = "testing"
