@@ -8,69 +8,86 @@ from HardwareTester.services.emulator_service import EmulatorService
 from HardwareTester.services.hardware_service import HardwareService
 from HardwareTester.services.mqtt_service import MQTTService
 from flask import Flask
-
-# Initialize Flask app
 from HardwareTester import create_app  # Ensure this exists in your project
+
 app = create_app()
 
 
 class FirmwareTestUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("Firmware Testing UI")
+        self.root.title("Firmware & C# Testing UI")
 
         self.selected_file = None
+        self.selected_csharp_file = None
         self.generated_tests = []
 
         # UI Components
-        self.file_label = tk.Label(root, text="Select Firmware File:")
+        self.create_widgets()
+
+    def create_widgets(self):
+        """Set up UI components."""
+        self.file_label = tk.Label(self.root, text="Select Firmware File or C# File:")
         self.file_label.pack(pady=5)
 
-        self.file_button = tk.Button(root, text="Browse Firmware", command=self.select_file)  
+        self.file_button = tk.Button(self.root, text="Browse Firmware", command=self.select_file)
         self.file_button.pack(pady=5)
 
-        self.generate_tests_button = tk.Button(root, text="Generate Tests", command=self.generate_tests)
+        self.cs_file_button = tk.Button(self.root, text="Browse C# File", command=self.select_csharp_file)
+        self.cs_file_button.pack(pady=5)
+
+        self.generate_tests_button = tk.Button(self.root, text="Generate Tests", command=self.generate_tests)
         self.generate_tests_button.pack(pady=5)
 
-        self.read_commands_button = tk.Button(root, text="Read Commands from Firmware", command=self.read_commands)
+        self.read_commands_button = tk.Button(self.root, text="Read Commands from Firmware", command=self.read_commands)
         self.read_commands_button.pack(pady=5)
 
-        self.run_tests_button = tk.Button(root, text="Run Tests", command=self.run_tests)
+        self.run_tests_button = tk.Button(self.root, text="Run Tests", command=self.run_tests)
         self.run_tests_button.pack(pady=5)
 
-        self.output_label = tk.Label(root, text="", fg="blue")
+        self.output_label = tk.Label(self.root, text="", fg="blue")
         self.output_label.pack(pady=5)
 
     def select_file(self):
+        """Select a firmware package (.rpm, .img, .zip)."""
         file_path = filedialog.askopenfilename(filetypes=[("Firmware Packages", "*.rpm *.img *.zip")])
         if file_path:
             self.selected_file = file_path
-            self.output_label.config(text=f"Selected file: {file_path}")
+            self.output_label.config(text=f"Selected Firmware: {file_path}")
+
+    def select_csharp_file(self):
+        """Select a C# source file (.cs) for test generation."""
+        file_path = filedialog.askopenfilename(filetypes=[("C# Source Files", "*.cs")])
+        if file_path:
+            self.selected_csharp_file = file_path
+            self.output_label.config(text=f"Selected C# File: {file_path}")
 
     def generate_tests(self):
-        if not self.selected_file:
-            messagebox.showerror("Error", "Please select a firmware file first.")
+        """Generate tests for the selected firmware or C# source file."""
+        if not self.selected_file and not self.selected_csharp_file:
+            messagebox.showerror("Error", "Please select a firmware or C# file first.")
             return
 
         with app.app_context():
-            extracted_files = process_firmware_package(self.selected_file)
-            if not extracted_files:
-                messagebox.showerror("Error", "Failed to extract firmware files.")
-                return
-
+            # Process firmware files
+            extracted_files = process_firmware_package(self.selected_file) if self.selected_file else []
+            
+            # Extract test data for firmware
             emulator = EmulatorService()
-            blueprints = emulator.fetch_blueprints().get("blueprints", [])
-            commands = emulator.fetch_commands_from_firmware(self.selected_file)
+            blueprints = emulator.fetch_blueprints().get("blueprints", []) if extracted_files else []
+            commands = emulator.fetch_commands_from_firmware(self.selected_file) if extracted_files else []
 
-            if not commands:
-                messagebox.showerror("Error", "No commands found in firmware.")
-                return
-
-            test_generator = TestGenerator(blueprints, commands)
+            # Generate tests
+            test_generator = TestGenerator(blueprints=blueprints, commands=commands, csharp_files=[self.selected_csharp_file] if self.selected_csharp_file else [])
             self.generated_tests = test_generator.generate_test_suite()
-            messagebox.showinfo("Success", f"Tests generated successfully!\nSaved to: {test_generator.output_dir}")
+
+            if self.generated_tests:
+                messagebox.showinfo("Success", f"Tests generated successfully!\nSaved to: {test_generator.output_dir}")
+            else:
+                messagebox.showerror("Error", "No tests were generated.")
 
     def read_commands(self):
+        """Read commands from firmware devices."""
         if not self.selected_file:
             messagebox.showerror("Error", "Please select a firmware file first.")
             return
@@ -94,6 +111,7 @@ class FirmwareTestUI:
                 messagebox.showerror("Error", "No commands found in detected devices.")
 
     def run_tests(self):
+        """Run generated tests by publishing them to MQTT."""
         if not self.generated_tests:
             messagebox.showerror("Error", "Please generate tests first.")
             return
@@ -117,4 +135,3 @@ if __name__ == "__main__":
         root = tk.Tk()
         app_ui = FirmwareTestUI(root)
         root.mainloop()
- 

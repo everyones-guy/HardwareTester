@@ -7,6 +7,7 @@ from HardwareTester.utils.test_generator import TestGenerator
 from HardwareTester.services.emulator_service import EmulatorService
 from HardwareTester.services.hardware_service import HardwareService
 from HardwareTester.services.mqtt_service import MQTTService
+from HardwareTester.utils.source_code_analyzer import SourceCodeAnalyzer
 from flask import Flask
 
 # Initialize Flask app
@@ -17,17 +18,21 @@ app = create_app()
 class FirmwareTestUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("Firmware Testing UI")
+        self.root.title("Firmware & C# Test Generator")
 
         self.selected_file = None
+        self.selected_csharp_files = []
         self.generated_tests = []
 
         # UI Components
-        self.file_label = tk.Label(root, text="Select Firmware File:")
+        self.file_label = tk.Label(root, text="Select Firmware or C# Files:")
         self.file_label.pack(pady=5)
 
         self.file_button = tk.Button(root, text="Browse Firmware", command=self.select_file)  
         self.file_button.pack(pady=5)
+
+        self.csharp_button = tk.Button(root, text="Browse C# Files", command=self.select_csharp_files)  
+        self.csharp_button.pack(pady=5)
 
         self.generate_tests_button = tk.Button(root, text="Generate Tests", command=self.generate_tests)
         self.generate_tests_button.pack(pady=5)
@@ -47,26 +52,35 @@ class FirmwareTestUI:
             self.selected_file = file_path
             self.output_label.config(text=f"Selected file: {file_path}")
 
+    def select_csharp_files(self):
+        files = filedialog.askopenfilenames(filetypes=[("C# Source Files", "*.cs")])
+        if files:
+            self.selected_csharp_files = list(files)
+            self.output_label.config(text=f"Selected C# Files: {len(self.selected_csharp_files)} files")
+
     def generate_tests(self):
-        if not self.selected_file:
-            messagebox.showerror("Error", "Please select a firmware file first.")
+        if not self.selected_file and not self.selected_csharp_files:
+            messagebox.showerror("Error", "Please select a firmware file or C# source files first.")
             return
 
         with app.app_context():
-            extracted_files = process_firmware_package(self.selected_file)
-            if not extracted_files:
-                messagebox.showerror("Error", "Failed to extract firmware files.")
-                return
+            blueprints, commands = [], []
 
-            emulator = EmulatorService()
-            blueprints = emulator.fetch_blueprints().get("blueprints", [])
-            commands = emulator.fetch_commands_from_firmware(self.selected_file)
+            if self.selected_file:
+                extracted_files = process_firmware_package(self.selected_file)
+                if not extracted_files:
+                    messagebox.showerror("Error", "Failed to extract firmware files.")
+                    return
 
-            if not commands:
-                messagebox.showerror("Error", "No commands found in firmware.")
-                return
+                emulator = EmulatorService()
+                blueprints = emulator.fetch_blueprints().get("blueprints", [])
+                commands = emulator.fetch_commands_from_firmware(self.selected_file)
 
-            test_generator = TestGenerator(blueprints, commands)
+                if not commands:
+                    messagebox.showerror("Error", "No commands found in firmware.")
+                    return
+
+            test_generator = TestGenerator(blueprints=blueprints, commands=commands, csharp_files=self.selected_csharp_files)
             self.generated_tests = test_generator.generate_test_suite()
             messagebox.showinfo("Success", f"Tests generated successfully!\nSaved to: {test_generator.output_dir}")
 
@@ -117,4 +131,3 @@ if __name__ == "__main__":
         root = tk.Tk()
         app_ui = FirmwareTestUI(root)
         root.mainloop()
- 
