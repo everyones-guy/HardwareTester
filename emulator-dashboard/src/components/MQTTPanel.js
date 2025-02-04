@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import mqtt from "mqtt";
+import { Client } from "paho-mqtt";
 
 const MQTTPanel = () => {
     // State management
@@ -13,45 +13,54 @@ const MQTTPanel = () => {
     const [scheduledMessages, setScheduledMessages] = useState([]);
     const eventTimeouts = useRef([]);
 
-    // Initialize MQTT client
+    // Handle MQTT Connection & Cleanup
     useEffect(() => {
         return () => {
             if (client) {
-                client.end();
+                client.disconnect();
+                console.log("Disconnected from MQTT broker");
             }
         };
     }, [client]);
 
     const handleConnect = () => {
-        const mqttClient = mqtt.connect(brokerUrl, {
-            clientId: `mqtt_client_${Math.random().toString(16).substr(2, 8)}`,
-        });
+        if (client && isConnected) {
+            console.log("Already connected");
+            return;
+        }
 
-        mqttClient.on("connect", () => {
-            setIsConnected(true);
-            console.log("Connected to MQTT Broker:", brokerUrl);
-        });
+        const mqttClient = new Client(brokerUrl, `mqtt_client_${Math.random().toString(16).substr(2, 8)}`);
 
-        mqttClient.on("message", (receivedTopic, payload) => {
+        mqttClient.onConnectionLost = () => {
+            setIsConnected(false);
+            console.warn("MQTT Disconnected");
+        };
+
+        mqttClient.onMessageArrived = (message) => {
             const messageObj = {
-                topic: receivedTopic,
-                message: payload.toString(),
+                topic: message.destinationName,
+                message: message.payloadString,
                 timestamp: new Date().toLocaleTimeString(),
             };
-            setReceivedMessages((prev) => [...prev, messageObj]);
-        });
+            setReceivedMessages((prev) => [...prev.slice(-49), messageObj]); // Keep only last 50 messages
+        };
 
-        mqttClient.on("error", (err) => {
-            console.error("MQTT Error:", err);
-            setIsConnected(false);
+        mqttClient.connect({
+            onSuccess: () => {
+                setIsConnected(true);
+                setClient(mqttClient);
+                console.log("Connected to MQTT Broker:", brokerUrl);
+            },
+            onFailure: (err) => {
+                console.error("MQTT Connection Failed:", err);
+                setIsConnected(false);
+            },
         });
-
-        setClient(mqttClient);
     };
 
     const handleDisconnect = () => {
         if (client) {
-            client.end();
+            client.disconnect();
             setIsConnected(false);
             setClient(null);
         }
@@ -59,27 +68,25 @@ const MQTTPanel = () => {
 
     const handleSubscribe = () => {
         if (client && topic) {
-            client.subscribe(topic, (err) => {
-                if (!err) {
-                    setSubscribedTopics((prev) => [...prev, topic]);
-                    console.log(`Subscribed to topic: ${topic}`);
-                }
-            });
+            client.subscribe(topic);
+            setSubscribedTopics((prev) => [...prev, topic]);
+            console.log(`Subscribed to topic: ${topic}`);
         }
     };
 
     const handleUnsubscribe = (unsubscribeTopic) => {
         if (client) {
-            client.unsubscribe(unsubscribeTopic, () => {
-                setSubscribedTopics((prev) => prev.filter((t) => t !== unsubscribeTopic));
-                console.log(`Unsubscribed from topic: ${unsubscribeTopic}`);
-            });
+            client.unsubscribe(unsubscribeTopic);
+            setSubscribedTopics((prev) => prev.filter((t) => t !== unsubscribeTopic));
+            console.log(`Unsubscribed from topic: ${unsubscribeTopic}`);
         }
     };
 
     const handlePublish = () => {
         if (client && topic && message) {
-            client.publish(topic, message);
+            const mqttMessage = new Paho.MQTT.Message(message);
+            mqttMessage.destinationName = topic;
+            client.send(mqttMessage);
             setMessage("");
         }
     };

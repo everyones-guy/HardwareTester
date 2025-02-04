@@ -416,6 +416,7 @@
   <ItemGroup>
     <Content Include=".env" />
     <Content Include=".flaskenv" />
+    <Content Include="alembic.ini" />
     <Content Include="emulator-dashboard\src\components\ActiveEmulations.js" />
     <Content Include="emulator-dashboard\src\components\CodeScanner.js" />
     <Content Include="emulator-dashboard\src\components\Dashboard.js" />
@@ -425,11 +426,16 @@
     <Content Include="emulator-dashboard\src\components\LiveMetrics.js" />
     <Content Include="emulator-dashboard\src\components\MQTTPanel.js" />
     <Content Include="emulator-dashboard\src\components\SerialPanel.js" />
+    <Content Include="emulator-dashboard\src\components\SystemHealthPanel.js" />
     <Content Include="emulator-dashboard\src\components\TestPlanManager.js" />
+    <Content Include="emulator-dashboard\src\components\TestResultsPanel.js" />
+    <Content Include="emulator-dashboard\src\components\UserManagementPanel.js" />
+    <Content Include="emulator-dashboard\src\services\authService.js" />
     <Content Include="emulator-dashboard\src\services\dashboardService.js" />
     <Content Include="emulator-dashboard\src\services\emulatorService.js" />
     <Content Include="emulator-dashboard\src\services\hardwareService.js" />
     <Content Include="emulator-dashboard\src\services\mqttService.js" />
+    <Content Include="emulator-dashboard\src\services\notificationService.js" />
     <Content Include="emulator-dashboard\src\services\serialService.js" />
     <Content Include="emulator-dashboard\public\styles.css" />
     <Content Include="emulator-dashboard\src\styles.css" />

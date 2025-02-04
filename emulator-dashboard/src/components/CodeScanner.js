@@ -20,7 +20,7 @@ const CodeScanner = () => {
             <h2>Code Scanner</h2>
             <input type="text" placeholder="Enter File Path" onChange={(e) => setFilePath(e.target.value)} />
             <select onChange={(e) => setLanguage(e.target.value)}>
-                <option value="csharp">C#</option>
+                <option value="c_sharp">C#</option>
                 <option value="cpp">C++</option>
                 <option value="javascript">JavaScript</option>
             </select>

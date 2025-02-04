@@ -13,23 +13,29 @@ const TestPlanManager = () => {
         fetchHardwareInfo();
     }, []);
 
-    // Fetch available test plans
-    const fetchTestPlans = async () => {
+    // Fetch available test plans (with retry logic)
+    const fetchTestPlans = async (attempts = 3) => {
         try {
             const response = await axios.get("/api/test-plans");
             setTestPlans(response.data);
         } catch (error) {
             console.error("Error fetching test plans:", error);
+            if (attempts > 1) {
+                setTimeout(() => fetchTestPlans(attempts - 1), 2000);
+            }
         }
     };
 
-    // Fetch connected hardware info
-    const fetchHardwareInfo = async () => {
+    // Fetch connected hardware info (with retry logic)
+    const fetchHardwareInfo = async (attempts = 3) => {
         try {
             const response = await axios.get("/api/hardware/info");
             setHardwareInfo(response.data);
         } catch (error) {
             console.error("Error fetching hardware info:", error);
+            if (attempts > 1) {
+                setTimeout(() => fetchHardwareInfo(attempts - 1), 2000);
+            }
         }
     };
 
@@ -38,16 +44,16 @@ const TestPlanManager = () => {
         if (!selectedTestPlan) return alert("Select a test plan first!");
 
         setIsRunning(true);
-        setExecutionLog([...executionLog, `Starting test plan: ${selectedTestPlan.name}`]);
+        setExecutionLog((prevLogs) => [...prevLogs, `Starting test plan: ${selectedTestPlan.name}`]);
 
         try {
             const response = await axios.post("/api/test-plans/execute", { testPlanId: selectedTestPlan.id });
 
-            setExecutionLog([...executionLog, ...response.data.logs]);
+            setExecutionLog((prevLogs) => [...prevLogs, ...response.data.logs]);
             alert(`Test plan "${selectedTestPlan.name}" completed.`);
         } catch (error) {
             console.error("Error executing test plan:", error);
-            setExecutionLog([...executionLog, "Error executing test plan."]);
+            setExecutionLog((prevLogs) => [...prevLogs, "Error executing test plan."]);
         }
 
         setIsRunning(false);
@@ -57,7 +63,7 @@ const TestPlanManager = () => {
     const abortTestPlan = async () => {
         try {
             await axios.post("/api/test-plans/abort");
-            setExecutionLog([...executionLog, "Test plan aborted."]);
+            setExecutionLog((prevLogs) => [...prevLogs, "Test plan aborted."]);
             setIsRunning(false);
         } catch (error) {
             console.error("Error aborting test plan:", error);
@@ -84,7 +90,7 @@ const TestPlanManager = () => {
                 <select
                     value={selectedTestPlan ? selectedTestPlan.id : ""}
                     onChange={(e) => {
-                        const plan = testPlans.find((p) => p.id === e.target.value);
+                        const plan = testPlans.find((p) => String(p.id) === e.target.value);
                         setSelectedTestPlan(plan);
                     }}
                 >

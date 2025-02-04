@@ -1,7 +1,10 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import { connectMQTT, listenToMQTT, unsubscribeFromTopic } from "../services/mqttService";
+import React, { useState, useEffect, useCallback } from "react";
+import { Client } from "paho-mqtt";
 import { getSystemStatus, getActiveEmulations } from "../services/dashboardService";
-import Chart from "chart.js/auto";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+
+const MQTT_BROKER = "wss://broker.hivemq.com/mqtt"; // Change this if using a private broker.
+const CLIENT_ID = `mqtt_client_${Math.random().toString(16).substr(2, 8)}`;
 
 const LiveMetrics = () => {
     const [systemStatus, setSystemStatus] = useState({});
@@ -11,28 +14,22 @@ const LiveMetrics = () => {
     const [networkData, setNetworkData] = useState([]);
     const [deviceMetrics, setDeviceMetrics] = useState({});
     const [alerts, setAlerts] = useState([]);
+    const [mqttClient, setMqttClient] = useState(null);
 
-    // Chart references
-    const cpuChartRef = useRef(null);
-    const memoryChartRef = useRef(null);
-    const networkChartRef = useRef(null);
-
-    /**
-     * Handles incoming system metrics (CPU, Memory, Network).
-     */
+    // Handle MQTT Messages
     const handleMetricUpdate = useCallback((type, message) => {
         const value = parseFloat(message);
         switch (type) {
             case "cpu":
-                setCpuData((prev) => [...prev.slice(-49), value]);
+                setCpuData((prev) => [...prev.slice(-49), { timestamp: new Date().toLocaleTimeString(), value }]);
                 checkThreshold("CPU", value, 85);
                 break;
             case "memory":
-                setMemoryData((prev) => [...prev.slice(-49), value]);
+                setMemoryData((prev) => [...prev.slice(-49), { timestamp: new Date().toLocaleTimeString(), value }]);
                 checkThreshold("Memory", value, 90);
                 break;
             case "network":
-                setNetworkData((prev) => [...prev.slice(-49), value]);
+                setNetworkData((prev) => [...prev.slice(-49), { timestamp: new Date().toLocaleTimeString(), value }]);
                 break;
             case "devices":
                 const data = JSON.parse(message);
@@ -43,44 +40,44 @@ const LiveMetrics = () => {
         }
     }, []);
 
-    /**
-     * Initializes charts when the component mounts.
-     */
-    const initializeCharts = useCallback(() => {
-        const ctxCPU = document.getElementById("cpuChart").getContext("2d");
-        const ctxMemory = document.getElementById("memoryChart").getContext("2d");
-        const ctxNetwork = document.getElementById("networkChart").getContext("2d");
-
-        cpuChartRef.current = createChart(ctxCPU, "CPU Usage");
-        memoryChartRef.current = createChart(ctxMemory, "Memory Usage");
-        networkChartRef.current = createChart(ctxNetwork, "Network Traffic");
-    }, []);
-
+    // Initialize MQTT Connection
     useEffect(() => {
-        connectMQTT();
-        fetchSystemMetrics();
-        fetchActiveEmulations();
-        initializeCharts();
+        const client = new Client(MQTT_BROKER, CLIENT_ID);
+        setMqttClient(client);
 
-        const topics = {
-            cpu: "system/cpu",
-            memory: "system/memory",
-            network: "system/network",
-            devices: "devices/metrics",
-        };
+        client.connect({
+            onSuccess: () => {
+                console.log("Connected to MQTT broker");
+                client.subscribe("system/cpu");
+                client.subscribe("system/memory");
+                client.subscribe("system/network");
+                client.subscribe("devices/metrics");
 
-        Object.entries(topics).forEach(([type, topic]) => {
-            listenToMQTT(topic, (message) => handleMetricUpdate(type, message));
+                client.onMessageArrived = (message) => {
+                    const topic = message.destinationName;
+                    const payload = message.payloadString;
+                    if (topic.includes("cpu")) handleMetricUpdate("cpu", payload);
+                    if (topic.includes("memory")) handleMetricUpdate("memory", payload);
+                    if (topic.includes("network")) handleMetricUpdate("network", payload);
+                    if (topic.includes("devices")) handleMetricUpdate("devices", payload);
+                };
+            },
+            onFailure: (error) => {
+                console.error("MQTT Connection Failed:", error);
+            }
         });
 
         return () => {
-            Object.values(topics).forEach((topic) => unsubscribeFromTopic(topic));
-
-            if (cpuChartRef.current) cpuChartRef.current.destroy();
-            if (memoryChartRef.current) memoryChartRef.current.destroy();
-            if (networkChartRef.current) networkChartRef.current.destroy();
+            client.disconnect();
+            console.log("Disconnected from MQTT broker");
         };
-    }, [handleMetricUpdate, initializeCharts]);
+    }, [handleMetricUpdate]);
+
+    // Fetch initial system metrics
+    useEffect(() => {
+        fetchSystemMetrics();
+        fetchActiveEmulations();
+    }, []);
 
     const fetchSystemMetrics = async () => {
         try {
@@ -109,52 +106,61 @@ const LiveMetrics = () => {
         }
     };
 
-    const createChart = (ctx, label) => {
-        return new Chart(ctx, {
-            type: "line",
-            data: {
-                labels: Array(50).fill(""),
-                datasets: [
-                    {
-                        label: label,
-                        data: [],
-                        borderColor: "rgba(75,192,192,1)",
-                        fill: false,
-                    },
-                ],
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    x: { display: false },
-                    y: { beginAtZero: true },
-                },
-            },
-        });
-    };
-
     return (
         <div className="live-metrics">
             <h1>Live System Metrics</h1>
 
             <div className="metrics-container">
+                {/* CPU Chart */}
                 <div className="metric-box">
                     <h2>CPU Usage</h2>
                     <p>{systemStatus.cpu}%</p>
-                    <canvas id="cpuChart"></canvas>
+                    <ResponsiveContainer width="100%" height={300}>
+                        <LineChart data={cpuData}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="timestamp" />
+                            <YAxis />
+                            <Tooltip />
+                            <Legend />
+                            <Line type="monotone" dataKey="value" stroke="red" />
+                        </LineChart>
+                    </ResponsiveContainer>
                 </div>
+
+                {/* Memory Chart */}
                 <div className="metric-box">
                     <h2>Memory Usage</h2>
                     <p>{systemStatus.memory}%</p>
-                    <canvas id="memoryChart"></canvas>
+                    <ResponsiveContainer width="100%" height={300}>
+                        <LineChart data={memoryData}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="timestamp" />
+                            <YAxis />
+                            <Tooltip />
+                            <Legend />
+                            <Line type="monotone" dataKey="value" stroke="blue" />
+                        </LineChart>
+                    </ResponsiveContainer>
                 </div>
+
+                {/* Network Chart */}
                 <div className="metric-box">
                     <h2>Network Traffic</h2>
                     <p>{systemStatus.network} Mbps</p>
-                    <canvas id="networkChart"></canvas>
+                    <ResponsiveContainer width="100%" height={300}>
+                        <LineChart data={networkData}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="timestamp" />
+                            <YAxis />
+                            <Tooltip />
+                            <Legend />
+                            <Line type="monotone" dataKey="value" stroke="green" />
+                        </LineChart>
+                    </ResponsiveContainer>
                 </div>
             </div>
 
+            {/* Active Emulations */}
             <h2>Active Emulations</h2>
             <ul>
                 {activeEmulations.map((emu) => (
@@ -164,6 +170,7 @@ const LiveMetrics = () => {
                 ))}
             </ul>
 
+            {/* Device Telemetry */}
             <h2>Device Telemetry</h2>
             <ul>
                 {Object.entries(deviceMetrics).map(([key, value]) => (
@@ -173,6 +180,7 @@ const LiveMetrics = () => {
                 ))}
             </ul>
 
+            {/* Alerts */}
             {alerts.length > 0 && (
                 <div className="alerts">
                     <h2>Alerts</h2>

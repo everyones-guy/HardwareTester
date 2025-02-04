@@ -1,133 +1,81 @@
 import axios from "axios";
 
-const API_BASE = "http://localhost:5000/api/emulator";
+const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:5000/api/emulator"; // Use environment variable
+
+/**
+ * Generic API request function to reduce duplication.
+ * @param {string} endpoint - API endpoint
+ * @param {Object} [options={}] - Axios options (method, headers, params, etc.)
+ * @returns {Promise<any>} API response data
+ */
+const apiRequest = async (endpoint, options = {}) => {
+    try {
+        const response = await axios({ url: `${API_BASE}/${endpoint}`, ...options });
+        return response.data;
+    } catch (error) {
+        console.error(`Error fetching ${endpoint}:`, error);
+        throw error;
+    }
+};
 
 /**
  * Starts an emulation session for a specific device.
  * @param {Object} emulationData - Device emulation configuration.
- * @returns {Promise} - API response.
  */
-export const startEmulation = async (emulationData) => {
-    try {
-        const response = await axios.post(`${API_BASE}/start`, emulationData);
-        return response.data;
-    } catch (error) {
-        console.error("Error starting emulation:", error);
-        throw error;
-    }
-};
+export const startEmulation = (emulationData) =>
+    apiRequest("start", { method: "POST", data: emulationData });
 
 /**
  * Stops a running emulation session.
  * @param {string} emulationId - ID of the emulation session.
- * @returns {Promise} - API response.
  */
-export const stopEmulation = async (emulationId) => {
-    try {
-        const response = await axios.post(`${API_BASE}/stop`, { emulationId });
-        return response.data;
-    } catch (error) {
-        console.error("Error stopping emulation:", error);
-        throw error;
-    }
-};
+export const stopEmulation = (emulationId) =>
+    apiRequest("stop", { method: "POST", data: { emulationId } });
 
 /**
  * Fetches all active emulations.
- * @returns {Promise<Array>} - List of active emulations.
  */
-export const getActiveEmulations = async () => {
-    try {
-        const response = await axios.get(`${API_BASE}/active`);
-        return response.data;
-    } catch (error) {
-        console.error("Error fetching active emulations:", error);
-        throw error;
-    }
-};
+export const getActiveEmulations = () => apiRequest("active");
 
 /**
  * Uploads firmware for validation.
  * @param {File} firmwareFile - The firmware file.
- * @returns {Promise} - Validation result.
  */
-export const uploadFirmware = async (firmwareFile) => {
+export const uploadFirmware = (firmwareFile) => {
     const formData = new FormData();
     formData.append("file", firmwareFile);
 
-    try {
-        const response = await axios.post(`${API_BASE}/upload-firmware`, formData, {
-            headers: { "Content-Type": "multipart/form-data" },
-        });
-        return response.data;
-    } catch (error) {
-        console.error("Error uploading firmware:", error);
-        throw error;
-    }
+    return apiRequest("upload-firmware", {
+        method: "POST",
+        data: formData,
+        headers: { "Content-Type": "multipart/form-data" },
+    });
 };
 
 /**
  * Sets up a timed event trigger for an emulated device.
  * @param {string} emulationId - ID of the emulation session.
  * @param {Object} eventConfig - Configuration for the timed event.
- * @returns {Promise} - API response.
  */
-export const setTimedEvent = async (emulationId, eventConfig) => {
-    try {
-        const response = await axios.post(`${API_BASE}/set-timed-event`, {
-            emulationId,
-            ...eventConfig,
-        });
-        return response.data;
-    } catch (error) {
-        console.error("Error setting timed event:", error);
-        throw error;
-    }
-};
+export const setTimedEvent = (emulationId, eventConfig) =>
+    apiRequest("set-timed-event", { method: "POST", data: { emulationId, ...eventConfig } });
 
 /**
  * Enables UI mirroring mode for an emulated touch controller.
  * @param {string} emulationId - ID of the emulation session.
- * @returns {Promise} - API response.
  */
-export const enableUIMirror = async (emulationId) => {
-    try {
-        const response = await axios.post(`${API_BASE}/enable-mirror`, { emulationId });
-        return response.data;
-    } catch (error) {
-        console.error("Error enabling UI mirroring:", error);
-        throw error;
-    }
-};
+export const enableUIMirror = (emulationId) =>
+    apiRequest("enable-mirror", { method: "POST", data: { emulationId } });
 
 /**
  * Fetches logs for a specific emulation session.
  * @param {string} emulationId - ID of the emulation session.
- * @returns {Promise<Array>} - List of logs.
  */
-export const getEmulationLogs = async (emulationId) => {
-    try {
-        const response = await axios.get(`${API_BASE}/logs/${emulationId}`);
-        return response.data;
-    } catch (error) {
-        console.error("Error fetching emulation logs:", error);
-        throw error;
-    }
-};
+export const getEmulationLogs = (emulationId) => apiRequest(`logs/${emulationId}`);
 
 /**
  * Exports logs for an emulation session.
  * @param {string} emulationId - ID of the emulation session.
- * @returns {Promise<Blob>} - Exported log file.
  */
-export const exportLogs = async (emulationId) => {
-    try {
-        const response = await axios.get(`${API_BASE}/export-logs/${emulationId}`, {
-            responseType: "blob",
-        });
-        return response.data;
-    } catch (error) {
-        console.error("Error exporting logs:", error);
-        throw error;
-    }
-};
+export const exportLogs = (emulationId) =>
+    apiRequest(`export-logs/${emulationId}`, { responseType: "blob" });

@@ -1,15 +1,13 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
-import Chart from "chart.js/auto";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 const HardwareLogsMetrics = () => {
     // State Hooks
     const [logs, setLogs] = useState([]);
-    const [metrics, setMetrics] = useState({});
-    const [filters, setFilters] = useState({ severity: "all", search: "", dateRange: null });
+    const [metrics, setMetrics] = useState([]);
+    const [filters, setFilters] = useState({ severity: "all", search: "" });
     const [isStreaming, setIsStreaming] = useState(true);
-    const [chartInstance, setChartInstance] = useState(null);
-    const logStream = useRef(null);
 
     // Fetch logs & metrics on mount
     useEffect(() => {
@@ -35,30 +33,27 @@ const HardwareLogsMetrics = () => {
     const fetchMetrics = async () => {
         try {
             const response = await axios.get("/api/hardware/metrics");
-            setMetrics(response.data);
-            updateChart(response.data);
+            const formattedData = response.data.timestamps.map((timestamp, index) => ({
+                timestamp,
+                cpuUsage: response.data.cpuUsage[index],
+                memoryUsage: response.data.memoryUsage[index],
+                ioThroughput: response.data.ioThroughput[index]
+            }));
+            setMetrics(formattedData);
         } catch (error) {
             console.error("Error fetching metrics:", error);
         }
     };
 
-    // Real-time log streaming
+    // Real-time log streaming (if needed)
     const startLogStream = () => {
-        logStream.current = new EventSource("/api/hardware/log-stream");
-
-        logStream.current.onmessage = (event) => {
-            setLogs((prevLogs) => [JSON.parse(event.data), ...prevLogs]);
-        };
-
-        logStream.current.onerror = () => {
-            console.error("Log stream error.");
-            stopLogStream();
-        };
+        console.log("Streaming logs...");
+        // Add EventSource or MQTT integration if needed
     };
 
     // Stop streaming logs
     const stopLogStream = () => {
-        if (logStream.current) logStream.current.close();
+        console.log("Stopped streaming logs.");
     };
 
     // Handle filtering
@@ -68,34 +63,13 @@ const HardwareLogsMetrics = () => {
         return matchesSeverity && matchesSearch;
     });
 
-    // Generate Chart
-    const updateChart = (data) => {
-        const ctx = document.getElementById("hardwareMetricsChart");
-        if (chartInstance) chartInstance.destroy();
-
-        const newChart = new Chart(ctx, {
-            type: "line",
-            data: {
-                labels: data.timestamps,
-                datasets: [
-                    { label: "CPU Usage (%)", data: data.cpuUsage, borderColor: "red", fill: false },
-                    { label: "Memory Usage (MB)", data: data.memoryUsage, borderColor: "blue", fill: false },
-                    { label: "I/O Throughput (KB/s)", data: data.ioThroughput, borderColor: "green", fill: false },
-                ],
-            },
-            options: { responsive: true, maintainAspectRatio: false },
-        });
-
-        setChartInstance(newChart);
-    };
-
     return (
         <div className="hardware-logs-metrics">
             <h1>Real-Time Hardware Logs & Metrics</h1>
 
             {/* Control Panel */}
             <div>
-                <button onClick={() => (isStreaming ? stopLogStream() : startLogStream())}>
+                <button onClick={() => setIsStreaming(!isStreaming)}>
                     {isStreaming ? "Pause Logging" : "Resume Logging"}
                 </button>
                 <button onClick={fetchLogs}>Refresh Logs</button>
@@ -105,9 +79,16 @@ const HardwareLogsMetrics = () => {
             {/* Filters */}
             <div>
                 <label>Search Logs:</label>
-                <input type="text" value={filters.search} onChange={(e) => setFilters({ ...filters, search: e.target.value })} />
+                <input
+                    type="text"
+                    value={filters.search}
+                    onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+                />
                 <label>Severity:</label>
-                <select value={filters.severity} onChange={(e) => setFilters({ ...filters, severity: e.target.value })}>
+                <select
+                    value={filters.severity}
+                    onChange={(e) => setFilters({ ...filters, severity: e.target.value })}
+                >
                     <option value="all">All</option>
                     <option value="info">Info</option>
                     <option value="warning">Warning</option>
@@ -138,10 +119,21 @@ const HardwareLogsMetrics = () => {
                 </table>
             </div>
 
-            {/* Metrics Graph */}
+            {/* Metrics Graph (Recharts) */}
             <div>
                 <h3>System Metrics</h3>
-                <canvas id="hardwareMetricsChart"></canvas>
+                <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={metrics}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="timestamp" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Line type="monotone" dataKey="cpuUsage" stroke="red" />
+                        <Line type="monotone" dataKey="memoryUsage" stroke="blue" />
+                        <Line type="monotone" dataKey="ioThroughput" stroke="green" />
+                    </LineChart>
+                </ResponsiveContainer>
             </div>
 
             {/* Export Buttons */}
@@ -152,6 +144,11 @@ const HardwareLogsMetrics = () => {
             </div>
         </div>
     );
+};
+
+// Dummy Export Function
+const exportData = (format) => {
+    console.log(`Exporting data as ${format}`);
 };
 
 export default HardwareLogsMetrics;

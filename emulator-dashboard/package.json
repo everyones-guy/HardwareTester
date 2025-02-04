@@ -6,10 +6,13 @@
     "axios": "^1.7.9",
     "chart.js": "^4.4.7",
     "cra-template": "1.2.0",
-    "mqtt": "^5.10.3",
+    "dotenv": "^16.4.7",
+    "mqtt": "^4.3.2",
+    "paho-mqtt": "^1.1.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-scripts": "4.0.3"
+    "react-scripts": "4.0.3",
+    "recharts": "^2.15.1"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -34,11 +37,5 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "devDependencies": {
-    "@babel/plugin-proposal-nullish-coalescing-operator": "^7.18.6",
-    "@babel/plugin-proposal-optional-chaining": "^7.21.0",
-    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
-    "@babel/plugin-transform-runtime": "^7.25.9"
   }
 }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { listenToMQTT, sendMQTTCommand, subscribeToTopic, unsubscribeFromTopic } from "../services/mqttService";
+import { subscribeToTopic, sendMQTTCommand, unsubscribeFromTopic } from "../services/mqttService";
 import "../styles.css";
 
 const MirrorModal = ({ topic, onClose }) => {
@@ -8,16 +8,16 @@ const MirrorModal = ({ topic, onClose }) => {
     const [commandStatus, setCommandStatus] = useState(null);
 
     useEffect(() => {
-        // Subscribe to MQTT topic
+        // Handle incoming MQTT messages
         const handleMessage = (message) => {
-            setMessages((prev) => [...prev, message]);
+            setMessages((prev) => [...prev.slice(-49), message]); // Keep only last 50 messages
         };
 
+        // Subscribe to the topic
         subscribeToTopic(topic, handleMessage);
-        listenToMQTT(topic, handleMessage);  // Real time updates
 
         return () => {
-            unsubscribeFromTopic(topic); // Properly unsubscribe when closing
+            unsubscribeFromTopic(topic); // Cleanup on unmount
         };
     }, [topic]);
 
@@ -28,7 +28,7 @@ const MirrorModal = ({ topic, onClose }) => {
         try {
             await sendMQTTCommand(topic, { command });
             setCommandStatus("Command sent successfully!");
-            setMessages((prev) => [...prev, `> Sent: ${command}`]);
+            setMessages((prev) => [...prev.slice(-49), `> Sent: ${command}`]);
         } catch (error) {
             setCommandStatus("Error: Failed to send command.");
         } finally {
@@ -65,7 +65,6 @@ const MirrorModal = ({ topic, onClose }) => {
             {commandStatus && <p className="status">{commandStatus}</p>}
 
             <button className="close-btn" onClick={onClose}>Close</button>
-
         </div>
     );
 };

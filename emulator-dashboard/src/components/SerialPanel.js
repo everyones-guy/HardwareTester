@@ -12,7 +12,9 @@ const SerialPanel = () => {
     const [commandHistory, setCommandHistory] = useState([]);
     const serialRef = useRef(null);
 
-    // Fetch available serial ports on load
+    let reconnectAttempts = 0;
+
+    // Fetch available serial ports on mount
     useEffect(() => {
         fetch("/api/serial/ports")
             .then((res) => res.json())
@@ -34,6 +36,7 @@ const SerialPanel = () => {
             if (response.ok) {
                 setIsConnected(true);
                 listenToSerial();
+                reconnectAttempts = 0; // Reset attempts on successful connection
             } else {
                 alert("Failed to connect.");
             }
@@ -50,14 +53,17 @@ const SerialPanel = () => {
 
         serialRef.current.onmessage = (event) => {
             const incomingData = event.data;
-            setSerialData((prev) => [...prev, incomingData]);
+            setSerialData((prev) => [...prev.slice(-49), incomingData]); // Keep only last 50 messages
         };
 
         serialRef.current.onerror = () => {
             console.error("Serial stream error.");
-            if (autoReconnect) {
-                console.log("Reconnecting...");
-                setTimeout(handleConnect, 2000);
+            if (autoReconnect && reconnectAttempts < 5) {
+                console.log(`Reconnecting attempt #${reconnectAttempts + 1}...`);
+                setTimeout(handleConnect, 2000 * (reconnectAttempts + 1));
+                reconnectAttempts++;
+            } else {
+                console.warn("Max reconnect attempts reached.");
             }
         };
     };
@@ -85,7 +91,7 @@ const SerialPanel = () => {
                 body: JSON.stringify({ message: formattedMessage }),
             });
 
-            setCommandHistory((prev) => [...prev, formattedMessage]);
+            setCommandHistory((prev) => [...prev.slice(-9), formattedMessage]); // Keep only last 10 commands
             setMessage("");
         } catch (error) {
             console.error("Error sending data:", error);

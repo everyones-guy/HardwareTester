@@ -1,8 +1,7 @@
 import mqtt from "mqtt";
 
-
-const MQTT_BROKER = "ws://localhost:9001"; // WebSockets for React
-const RECONNECT_INTERVAL = 5000; // Auto-reconnect delay (5 seconds)
+const MQTT_BROKER = process.env.REACT_APP_MQTT_BROKER || "ws://localhost:9001"; // Use environment variable
+const RECONNECT_INTERVAL = 5000; // Initial reconnect delay (5 seconds)
 const MAX_RECONNECT_ATTEMPTS = 10; // Limit reconnect attempts
 
 let client = null;
@@ -24,7 +23,7 @@ export const connectMQTT = () => {
     client = mqtt.connect(MQTT_BROKER, {
         reconnectPeriod: RECONNECT_INTERVAL,
         clientId: `emulator-${Math.random().toString(16).substr(2, 8)}`,
-        clean: false, // Ensures persistent sessions
+        clean: false, // Ensure persistent sessions
     });
 
     client.on("connect", () => {
@@ -54,16 +53,17 @@ export const connectMQTT = () => {
 };
 
 /**
- * Handles auto-reconnection logic.
+ * Handles auto-reconnection with exponential backoff.
  */
 const handleReconnect = () => {
     if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
         console.error("Max MQTT reconnect attempts reached. Manual restart required.");
         return;
     }
+    const delay = RECONNECT_INTERVAL * Math.pow(2, reconnectAttempts);
     reconnectAttempts++;
-    console.log(`Reconnecting to MQTT broker (Attempt ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})...`);
-    setTimeout(connectMQTT, RECONNECT_INTERVAL);
+    console.log(`Reconnecting in ${delay / 1000}s...`);
+    setTimeout(connectMQTT, delay);
 };
 
 /**
@@ -114,15 +114,16 @@ export const unsubscribeFromTopic = (topic) => {
  * Publishes a message to an MQTT topic.
  * @param {string} topic - The topic to publish to.
  * @param {string} message - The message payload.
+ * @param {number} [qos=1] - Quality of Service level (0, 1, or 2).
  */
-export const publishMessage = (topic, message) => {
+export const publishMessage = (topic, message, qos = 1) => {
     if (!client || !client.connected) {
         console.warn("Cannot publish. MQTT not connected.");
         return;
     }
-    client.publish(topic, message, { qos: 1 }, (err) => {
+    client.publish(topic, message, { qos }, (err) => {
         if (!err) {
-            console.log(`Published message to ${topic}: ${message}`);
+            console.log(`Published to ${topic}: ${message} (QoS ${qos})`);
         } else {
             console.error(`Error publishing to ${topic}:`, err);
         }
@@ -148,16 +149,9 @@ export const sendMQTTCommand = (deviceTopic, command) => {
 export const disconnectMQTT = () => {
     if (!client) return;
     console.log("Disconnecting from MQTT broker...");
-    client.end();
-};
-
-/**
- * Listens for messages on a given topic.
- * @param {string} topic - The topic to listen to.
- * @param {function} callback - Function to execute when a message is received.
- */
-export const listenToMQTT = (topic, callback) => {
-    subscribeToTopic(topic, callback);
+    subscriptions.clear();
+    eventListeners = {};
+    client.end(true, () => console.log("MQTT Disconnected."));
 };
 
 /**

@@ -6,41 +6,95 @@ import SerialPanel from "./SerialPanel";
 import LiveMetrics from "./LiveMetrics";
 import MirrorModal from "./MirrorModal";
 import ActiveEmulations from "./ActiveEmulations";
-
+import SystemHealthPanel from "./SystemHealthPanel";
+import TestResultsPanel from "./TestResultsPanel";
+import UserManagementPanel from "./UserManagementPanel";
 
 const Dashboard = () => {
     return (
-        <div style={{ display: "flex", flexDirection: "row", height: "100vh" }}>
-            <div style={{ flex: 1, padding: "10px", background: "#f5f5f5" }}>
-                <h1>Hardware Emulator Dashboard</h1>
+        <div style={styles.dashboardContainer}>
+            {/* Hardware Panel */}
+            <div style={styles.panel}>
+                <h2>Hardware Panel</h2>
                 <HardwarePanel />
             </div>
-            <div style={{ flex: 1, padding: "10px", background: "#e5e5e5" }}>
-                <h1>Hardware Emulator Dashboard</h1>
+
+            {/* Emulator Panel */}
+            <div style={styles.panel}>
+                <h2>Emulation Control</h2>
                 <EmulatorPanel />
             </div>
-            <div style={{ flex: 1, padding: "10px", background: "#d5d5d5" }}>
-                <h1>Hardware Emulator Dashboard</h1>
+
+            {/* MQTT Panel */}
+            <div style={styles.panel}>
+                <h2>MQTT Communication</h2>
                 <MQTTPanel />
             </div>
-            <div style={{ flex: 1, padding: "10px", background: "#c5c5c5" }}>
-                <h1>Hardware Emulator Dashboard</h1>
+
+            {/* Serial Panel */}
+            <div style={styles.panel}>
+                <h2>Serial Communication</h2>
                 <SerialPanel />
-            </div> 
-            <div style={{ flex: 1, padding: "10px", background: "#c5c5c5" }}>
-                <h1>Hardware Emulator Dashboard</h1>
+            </div>
+
+            {/* Live Metrics */}
+            <div style={styles.panel}>
+                <h2>Live System Metrics</h2>
                 <LiveMetrics />
             </div>
-            <div style={{ flex: 1, padding: "10px", background: "#c5c5c5" }}>
-                <h1>Hardware Emulator Dashboard</h1>
-                <MirrorModal />
+
+            {/* Mirror Modal (Requires a topic) */}
+            <div style={styles.panel}>
+                <h2>Mirror Mode</h2>
+                <MirrorModal topic="default/topic" onClose={() => console.log("Closing modal")} />
             </div>
-            <div style={{ flex: 1, padding: "10px", background: "#c5c5c5" }}>
-                <h1>Hardware Emulator Dashboard</h1>
+
+            {/* Active Emulations */}
+            <div style={styles.panel}>
+                <h2>Active Emulations</h2>
                 <ActiveEmulations />
+            </div>
+
+            {/* System Health Panel */}
+            <div style={styles.panel}>
+                <h2>System Health</h2>
+                <SystemHealthPanel /> {/* System Health Panel */}
+            </div>
+
+            {/* Test Results Panel */}
+            <div style={styles.panel}>
+                <h2>Test Results</h2>
+                <TestResultsPanel /> {/* Test Results Panel */}
+            </div>
+
+            {/* User Management Panel */}
+            <div style={styles.panel}>
+                <h2>User Management</h2>
+                <UserManagementPanel /> {/* User Management Panel */}
             </div>
         </div>
     );
+};
+
+// Move styles to an object for better readability
+const styles = {
+    dashboardContainer: {
+        display: "flex",
+        flexWrap: "wrap", // Ensures panels stack on smaller screens
+        justifyContent: "space-around",
+        height: "100vh",
+        padding: "10px",
+        background: "#f0f0f0"
+    },
+    panel: {
+        flex: "1 1 300px", // Ensures panels resize properly
+        minWidth: "300px", // Prevents panels from shrinking too much
+        padding: "15px",
+        background: "#fff",
+        boxShadow: "0 2px 5px rgba(0,0,0,0.2)",
+        margin: "10px",
+        borderRadius: "8px"
+    }
 };
 
 export default Dashboard;
