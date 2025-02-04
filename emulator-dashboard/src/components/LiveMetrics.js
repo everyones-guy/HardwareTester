@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Client } from "paho-mqtt";
+import { Client as PahoMQTT } from "paho-mqtt";
 import { getSystemStatus, getActiveEmulations } from "../services/dashboardService";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
-const MQTT_BROKER = "wss://broker.hivemq.com/mqtt"; // Change this if using a private broker.
+const MQTT_BROKER = "wss://broker.hivemq.com/mqtt"; // Change if using a private broker.
 const CLIENT_ID = `mqtt_client_${Math.random().toString(16).substr(2, 8)}`;
 
 const LiveMetrics = () => {
@@ -42,7 +42,7 @@ const LiveMetrics = () => {
 
     // Initialize MQTT Connection
     useEffect(() => {
-        const client = new Client(MQTT_BROKER, CLIENT_ID);
+        const client = new PahoMQTT(MQTT_BROKER, CLIENT_ID);
         setMqttClient(client);
 
         client.connect({
@@ -68,10 +68,12 @@ const LiveMetrics = () => {
         });
 
         return () => {
-            client.disconnect();
-            console.log("Disconnected from MQTT broker");
+            if (mqttClient) {
+                mqttClient.disconnect();
+                console.log("Disconnected from MQTT broker");
+            }
         };
-    }, [handleMetricUpdate]);
+    }, [handleMetricUpdate, mqttClient]); // Depend on handleMetricUpdate to avoid unnecessary reconnections.
 
     // Fetch initial system metrics
     useEffect(() => {
