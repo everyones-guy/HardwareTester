@@ -22,10 +22,7 @@ from HardwareTester.models.test_models import TestPlan, TestStep
 target_metadata = db.Model.metadata  # If issues arise, try `db.metadata`
 
 config = context.config
-config.set_main_option("sqlalchemy.url", "postgresql+psycopg2://postgres:postgres@localhost:5432/hardware_tester")
-print("🔹 Alembic is now using database URL:", config.get_main_option("sqlalchemy.url"))
-
- 
+config.set_main_option("sqlalchemy.url", config.get_main_option("sqlalchemy.url")) 
 
 def run_migrations_offline():
     """Run migrations in 'offline' mode."""

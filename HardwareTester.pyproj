@@ -20,8 +20,9 @@
     <TestFramework>Pytest</TestFramework>
     <InterpreterId>MSBuild|venv|$(MSBuildProjectFullPath)</InterpreterId>
     <WebBrowserPort>5000</WebBrowserPort>
-    <PythonRunWebServerCommand>npm</PythonRunWebServerCommand>
-    <PythonRunWebServerCommandArguments>start</PythonRunWebServerCommandArguments>
+    <PythonRunWebServerCommand>flask</PythonRunWebServerCommand>
+    <PythonRunWebServerCommandArguments>run</PythonRunWebServerCommandArguments>
+    <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -353,6 +354,9 @@
     <Compile Include="tests\Front_End\test_test_plan_views.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="tests\test_database_connection.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="tests\test_firmware_loading.py">
       <SubType>Code</SubType>
     </Compile>
@@ -362,7 +366,7 @@
     <Compile Include="tests\test_ui.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="test_ui_firmware.py">
+    <Compile Include="firmware_test_ui.py">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
@@ -536,6 +540,15 @@
     <Content Include="uploads\emulator_configurations\test_emulator_config.cfg" />
   </ItemGroup>
   <ItemGroup>
+    <Interpreter Include="henv\">
+      <Id>henv</Id>
+      <Version>0.0</Version>
+      <Description>henv (Python 3.13 (64-bit))</Description>
+      <InterpreterPath>Scripts\python.exe</InterpreterPath>
+      <WindowsInterpreterPath>Scripts\pythonw.exe</WindowsInterpreterPath>
+      <PathEnvironmentVariable>PYTHONPATH</PathEnvironmentVariable>
+      <Architecture>X64</Architecture>
+    </Interpreter>
     <Interpreter Include="venv\">
       <Id>venv</Id>
       <Version>0.0</Version>

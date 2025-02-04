@@ -13,21 +13,22 @@ class SourceCodeAnalyzer:
 
     def load_tree_sitter_languages(self):
         """
-        Loads Tree-Sitter language grammars dynamically.
+        Loads Tree-Sitter language grammars from individual DLLs.
         """
-        LANGUAGES_PATH = os.path.join(os.getcwd(), "tree-sitter-languages")
+        #LANGUAGES_PATH = os.path.join(os.getcwd(), "tree-sitter-languages")
+        LANGUAGES_PATH = "C:/Users/Gary/source/repos/HardwareTester/tree-sitter-languages"
 
         language_files = {
-            "c_sharp": os.path.join(LANGUAGES_PATH, "tree-sitter-c-sharp.so"),
-            "cpp": os.path.join(LANGUAGES_PATH, "tree-sitter-cpp.so"),
-            "javascript": os.path.join(LANGUAGES_PATH, "tree-sitter-javascript.so")
+            "c_sharp": os.path.join(LANGUAGES_PATH, "tree-sitter-c-sharp.dll"),
+            "cpp": os.path.join(LANGUAGES_PATH, "tree-sitter-cpp.dll"),
+            "javascript": os.path.join(LANGUAGES_PATH, "tree-sitter-javascript.dll")
         }
 
         languages = {}
         for lang, dll_path in language_files.items():
             if os.path.exists(dll_path):
                 try:
-                    languages[lang] = Language(dll_path, lang)
+                    languages[lang] = Language(dll_path, lang)  # FIX: Added `name` argument
                     print(f"Successfully loaded Tree-Sitter DLL for {lang}: {dll_path}")
                 except Exception as e:
                     print(f"Error loading Tree-Sitter DLL for {lang}: {e}")
@@ -35,6 +36,7 @@ class SourceCodeAnalyzer:
                 print(f"Warning: {dll_path} not found, skipping {lang}")
 
         return languages
+
 
     def parse_file(self, file_path, language):
         """
