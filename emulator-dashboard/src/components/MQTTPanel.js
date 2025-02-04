@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Client } from "paho-mqtt";
+import { Client as PahoMQTT } from "paho-mqtt"; 
 
 const MQTTPanel = () => {
-    // State management
     const [brokerUrl, setBrokerUrl] = useState("wss://test.mosquitto.org:8081");
     const [client, setClient] = useState(null);
     const [isConnected, setIsConnected] = useState(false);
@@ -10,40 +9,20 @@ const MQTTPanel = () => {
     const [message, setMessage] = useState("");
     const [receivedMessages, setReceivedMessages] = useState([]);
     const [subscribedTopics, setSubscribedTopics] = useState([]);
-    const [scheduledMessages, setScheduledMessages] = useState([]);
+    const [scheduledMessages, setScheduledMessages] = useState([]); // Schedule messages
     const eventTimeouts = useRef([]);
 
-    // Handle MQTT Connection & Cleanup
+    // Initialize MQTT client
     useEffect(() => {
         return () => {
             if (client) {
                 client.disconnect();
-                console.log("Disconnected from MQTT broker");
             }
         };
     }, [client]);
 
     const handleConnect = () => {
-        if (client && isConnected) {
-            console.log("Already connected");
-            return;
-        }
-
-        const mqttClient = new Client(brokerUrl, `mqtt_client_${Math.random().toString(16).substr(2, 8)}`);
-
-        mqttClient.onConnectionLost = () => {
-            setIsConnected(false);
-            console.warn("MQTT Disconnected");
-        };
-
-        mqttClient.onMessageArrived = (message) => {
-            const messageObj = {
-                topic: message.destinationName,
-                message: message.payloadString,
-                timestamp: new Date().toLocaleTimeString(),
-            };
-            setReceivedMessages((prev) => [...prev.slice(-49), messageObj]); // Keep only last 50 messages
-        };
+        const mqttClient = new PahoMQTT(brokerUrl, `mqtt_client_${Math.random().toString(16).substr(2, 8)}`);
 
         mqttClient.connect({
             onSuccess: () => {
@@ -51,11 +30,20 @@ const MQTTPanel = () => {
                 setClient(mqttClient);
                 console.log("Connected to MQTT Broker:", brokerUrl);
             },
-            onFailure: (err) => {
-                console.error("MQTT Connection Failed:", err);
+            onFailure: (error) => {
+                console.error("MQTT Connection Failed:", error);
                 setIsConnected(false);
             },
         });
+
+        mqttClient.onMessageArrived = (message) => {
+            const messageObj = {
+                topic: message.destinationName,
+                message: message.payloadString,
+                timestamp: new Date().toLocaleTimeString(),
+            };
+            setReceivedMessages((prev) => [...prev.slice(-49), messageObj]); // Only Keep last 50 messages
+        };
     };
 
     const handleDisconnect = () => {
@@ -84,13 +72,17 @@ const MQTTPanel = () => {
 
     const handlePublish = () => {
         if (client && topic && message) {
-            const mqttMessage = new Paho.MQTT.Message(message);
+            const mqttMessage = new PahoMQTT.Message(message);
             mqttMessage.destinationName = topic;
             client.send(mqttMessage);
             setMessage("");
         }
     };
 
+    /**
+     * Schedules a message to be sent after a delay.
+     * @param {number} delay - Delay in milliseconds.
+     */
     const scheduleMessage = (delay) => {
         if (!topic || !message) {
             alert("Enter topic and message before scheduling.");
@@ -106,6 +98,9 @@ const MQTTPanel = () => {
         ]);
     };
 
+    /**
+     * Cancels all scheduled messages.
+     */
     const cancelScheduledMessages = () => {
         eventTimeouts.current.forEach((timeoutId) => clearTimeout(timeoutId));
         setScheduledMessages([]);
@@ -177,19 +172,23 @@ const MQTTPanel = () => {
             {/* Scheduled Messages */}
             <div>
                 <h3>Scheduled Messages</h3>
-                {scheduledMessages.map((msg, index) => (
-                    <div key={index}>
-                        <p>
-                            <strong>Topic:</strong> {msg.topic}
-                        </p>
-                        <p>
-                            <strong>Message:</strong> {msg.message}
-                        </p>
-                        <p>
-                            <strong>Scheduled for:</strong> {msg.delay}ms at {msg.time}
-                        </p>
-                    </div>
-                ))}
+                {scheduledMessages.length > 0 ? (
+                    scheduledMessages.map((msg, index) => (
+                        <div key={index}>
+                            <p>
+                                <strong>Topic:</strong> {msg.topic}
+                            </p>
+                            <p>
+                                <strong>Message:</strong> {msg.message}
+                            </p>
+                            <p>
+                                <strong>Scheduled for:</strong> {msg.delay}ms at {msg.time}
+                            </p>
+                        </div>
+                    ))
+                ) : (
+                    <p>No scheduled messages.</p>
+                )}
                 <button onClick={() => scheduleMessage(5000)}>Schedule Message (5s)</button>
                 <button onClick={cancelScheduledMessages}>Cancel Scheduled Messages</button>
             </div>
