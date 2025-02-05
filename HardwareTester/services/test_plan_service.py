@@ -1,6 +1,7 @@
 from HardwareTester.extensions import db, logger
 from HardwareTester.models.test_models import TestPlan, TestStep
 import os
+import psutil
 
 
 class TestPlanService:
@@ -122,3 +123,31 @@ class TestPlanService:
             db.session.rollback()
             logger.error(f"Error adding test step to test plan ID {plan_id}: {e}")
             return {"success": False, "error": str(e)}
+
+    
+
+        @staticmethod
+        def get_test_metrics():
+            """
+            Fetch test execution metrics such as total test plans, passed tests, failed tests, and average execution time.
+            :return: JSON response with test metrics
+            """
+            try:
+                total_test_plans = db.session.query(TestPlan).count()
+                total_test_steps = db.session.query(TestStep).count()
+                passed_tests = db.session.query(TestStep).filter_by(result="Passed").count()
+                failed_tests = db.session.query(TestStep).filter_by(result="Failed").count()
+
+                test_metrics = {
+                    "total_test_plans": total_test_plans,
+                    "total_test_steps": total_test_steps,
+                    "passed_tests": passed_tests,
+                    "failed_tests": failed_tests,
+                    "pass_rate": f"{(passed_tests / total_test_steps) * 100:.2f}%" if total_test_steps > 0 else "0%",
+                    "status": "OK"
+                }
+                logger.info("Fetched test metrics successfully")
+                return {"success": True, "data": test_metrics}
+            except Exception as e:
+                logger.error(f"Error fetching test metrics: {e}")
+                return {"success": False, "error": str(e)}

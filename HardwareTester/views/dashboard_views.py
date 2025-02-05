@@ -1,6 +1,8 @@
 from flask import Blueprint, render_template, request, jsonify
 from flask_login import login_required, current_user
 from HardwareTester.services.dashboard_service import DashboardService
+from HardwareTester.services.test_plan_service import TestPlanService
+from HardwareTester.services.system_status_service import SystemStatusService
 from HardwareTester.models.user_models import UserRole
 from HardwareTester.extensions import logger
 #from HardwareTester.utils.custom_logger import CustomLogger
@@ -118,3 +120,27 @@ def overview():
     except Exception as e:
         logger.error(f"Error retrieving overview data: {e}")
         return jsonify({"success": False, "error": "Failed to load overview data."}), 500
+
+@dashboard_bp.route("/dashboard/system-health", methods=["GET"])
+@login_required
+def dashboard_system_health():
+    """
+    View for fetching system health metrics from SystemStatusService.
+    """
+    if current_user.role not in [UserRole.ADMIN.value, UserRole.USER.value]:
+        return jsonify({"success": False, "error": "Access denied"}), 403
+
+    result = SystemStatusService.get_full_system_status()
+    return jsonify(result)
+
+@dashboard_bp.route("/dashboard/test-metrics", methods=["GET"])
+@login_required
+def dashboard_test_metrics():
+    """
+    View for fetching test execution metrics to display on the dashboard.
+    """
+    if current_user.role not in [UserRole.ADMIN.value, UserRole.USER.value]:
+        return jsonify({"success": False, "error": "Access denied"}), 403
+
+    result = TestPlanService.get_test_metrics()
+    return jsonify(result)

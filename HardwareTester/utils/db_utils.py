@@ -14,7 +14,7 @@ def get_database_url() -> str:
     Fetch the database URL from environment variables.
     Fallback to SQLite for local development if not set.
     """
-    db_url = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost/hardware_tester")
+    db_url = os.getenv("DATABASE_URL", "postgresql+psycopg2://postgres:postgres@localhost:5432/hardware_tester")
     if db_url.startswith("sqlite:///") and not os.path.exists(db_url.replace("sqlite:///", "")):
         logger.warning("SQLite database file does not exist; it will be created if needed.")
     return db_url

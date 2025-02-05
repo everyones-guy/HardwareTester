@@ -9,10 +9,10 @@ from HardwareTester.extensions import logger
 # Initialize logger
 #logger = CustomLogger.get_logger("system_status_views")
 
-system_status_bp = Blueprint("system_status", __name__, url_prefix="/system-status")
+system_status_bp = Blueprint("system_status", __name__)
 
 
-@system_status_bp.route("/", methods=["GET"])
+@system_status_bp.route("/system-status", methods=["GET"])
 @login_required
 def system_status_page():
     """Render the system status dashboard."""
@@ -20,7 +20,7 @@ def system_status_page():
     return render_template("system_status.html")
 
 
-@system_status_bp.route("/summary", methods=["GET"])
+@system_status_bp.route("/system-status/summary", methods=["GET"])
 @login_required
 def system_status_summary():
     """Get system status summary."""
@@ -37,7 +37,7 @@ def system_status_summary():
         return jsonify({"success": False, "error": "Failed to fetch system status summary."}), 500
 
 
-@system_status_bp.route("/metrics", methods=["GET"])
+@system_status_bp.route("/system-status/metrics", methods=["GET"])
 @login_required
 def system_status_metrics():
     """Get detailed system metrics."""

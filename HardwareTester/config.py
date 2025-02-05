@@ -33,7 +33,7 @@ class Config:
 
     # Database settings
     #SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", f"sqlite:///{os.path.join(INSTANCE_DIR, 'app.db')}")
-    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost/hardware_tester")
+    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", "postgresql+psycopg2://postgres:postgres@localhost:5432/hardware_tester")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # File upload settings

@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, request, render_template
 from flask_login import login_required, current_user
 from HardwareTester.services.test_plan_service import TestPlanService
 from HardwareTester.extensions import logger
+from HardwareTester.models.user_models import UserRole
 
 # Define the Blueprint for test plan management
 test_plan_bp = Blueprint("test_plans", __name__, url_prefix="/test-plans")
@@ -124,3 +125,16 @@ def delete_test_plan(test_plan_id):
     except Exception as e:
         logger.error(f"Error deleting test plan ID {test_plan_id}: {e}")
         return jsonify({"success": False, "error": "An unexpected error occurred."}), 500
+
+
+@test_plan_bp.route("/test-metrics", methods=["GET"])
+@login_required
+def test_metrics():
+    """
+    API route to fetch test execution metrics.
+    """
+    if current_user.role not in [UserRole.ADMIN.value, UserRole.USER.value]:
+        return jsonify({"success": False, "error": "Access denied"}), 403
+
+    result = TestPlanService.get_test_metrics()
+    return jsonify(result)

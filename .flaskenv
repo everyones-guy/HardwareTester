@@ -11,8 +11,8 @@ FLASK_DEBUG=1  # Set to 0 in production
 # DATABASE_URL=mysql:///instance/app.db  # mysql database example
 # SQLALCHEMY_DATABASE_URI=sqlite:///instance/app.db # SQLite database example
 INSTANCE_DIR=C:/Users/Gary/source/repos/HardwareTester/HardwareTester/instance
-DATABASE_URL=postgresql://postgres:postgres@localhost/hardware_tester
-SQLALCHEMY_DATABASE_URI=postgresql://postgres:postgres@localhost/hardware_tester
+DATABASE_URL=postgresql+psycopg2://postgres:postgres@localhost:5432/hardware_tester
+SQLALCHEMY_DATABASE_URI=postgresql+psycopg2://postgres:postgres@localhost:5432/hardware_tester
 SQLALCHEMY_TRACK_MODIFICATIONS=False
 
 # Network settings

@@ -25,7 +25,7 @@ const apiRequest = async (endpoint, options = {}) => {
 /**
  * Fetches full dashboard metrics including active emulations, system health, and logs.
  */
-export const getDashboardData = () => apiRequest("metrics");
+export const getDashboardData = () => apiRequest("aggregate");
 
 /**
  * Fetches system status including CPU, memory, and network information.

@@ -5,6 +5,7 @@ from HardwareTester.models.metric_models import Metric  # Update imports based o
 from HardwareTester.extensions import db, logger
 #from HardwareTester.utils.custom_logger import CustomLogger
 from sqlalchemy.exc import SQLAlchemyError
+import psutil
 
 # Initialize logger
 #logger = CustomLogger.get_logger("dashboard_service")
@@ -164,3 +165,22 @@ class DashboardService:
             return [{"title": item.title, "description": item.description} for item in data]
         except Exception as e:
             raise RuntimeError(f"Error fetching overview data: {e}")
+
+    @staticmethod
+    def get_system_health():
+        """
+        Fetch system health metrics such as CPU usage, memory usage, and disk space.
+        :return: JSON response with system health data
+        """
+        try:
+            system_health = {
+                "cpu_usage": psutil.cpu_percent(interval=1),
+                "memory_usage": psutil.virtual_memory().percent,
+                "disk_usage": psutil.disk_usage("/").percent,
+                "status": "OK"
+            }
+            logger.info("Fetched system health successfully")
+            return {"success": True, "data": system_health}
+        except Exception as e:
+            logger.error(f"Error fetching system health: {e}")
+            return {"success": False, "error": str(e)}
