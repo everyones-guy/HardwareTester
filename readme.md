@@ -236,4 +236,8 @@ Environment Variables:
 set NODE_OPTIONS=--openssl-legacy-provider
 ```
 
+View Routes: 
+```bash
+python -c "from HardwareTester import create_app; app = create_app(); print('\n'.join([str(rule) for rule in app.url_map.iter_rules()]))"
+```
 
