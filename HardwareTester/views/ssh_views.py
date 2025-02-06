@@ -7,10 +7,10 @@ from HardwareTester.extensions import db, logger
 # Initialize logger
 #logger = CustomLogger.get_logger("ssh_views")
 
-ssh_bp = Blueprint("ssh", __name__, url_prefix="/ssh")
+ssh_bp = Blueprint("ssh", __name__)
 
 
-@ssh_bp.route("/", methods=["GET"])
+@ssh_bp.route("/api/ssh", methods=["GET"])
 @login_required
 def ssh_dashboard():
     """Render the SSH management dashboard."""
@@ -21,7 +21,7 @@ def ssh_dashboard():
         return jsonify({"success": False, "error": "Failed to render the SSH dashboard."}), 500
 
 
-@ssh_bp.route("/connections", methods=["GET"])
+@ssh_bp.route("/api/ssh/connections", methods=["GET"])
 @login_required
 def list_connections():
     """List all saved SSH connections."""
@@ -43,7 +43,7 @@ def list_connections():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
-@ssh_bp.route("/connection/<int:connection_id>", methods=["GET"])
+@ssh_bp.route("/api/ssh/connection/<int:connection_id>", methods=["GET"])
 @login_required
 def get_connection(connection_id):
     """Retrieve a specific SSH connection."""
@@ -69,7 +69,7 @@ def get_connection(connection_id):
         return jsonify({"success": False, "error": str(e)}), 500
 
 
-@ssh_bp.route("/connection", methods=["POST"])
+@ssh_bp.route("/api/ssh/connection", methods=["POST"])
 @login_required
 def save_connection():
     """Save a new SSH connection."""
@@ -98,7 +98,7 @@ def save_connection():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
-@ssh_bp.route("/connection/<int:connection_id>", methods=["DELETE"])
+@ssh_bp.route("/api/ssh/connection/<int:connection_id>", methods=["DELETE"])
 @login_required
 def delete_connection(connection_id):
     """Delete an SSH connection."""
@@ -117,7 +117,7 @@ def delete_connection(connection_id):
         return jsonify({"success": False, "error": str(e)}), 500
 
 
-@ssh_bp.route("/test", methods=["POST"])
+@ssh_bp.route("/api/ssh/test", methods=["POST"])
 @login_required
 def test_connection():
     """Test an SSH connection."""
@@ -144,7 +144,7 @@ def test_connection():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
-@ssh_bp.route("/setup-wizard", methods=["GET", "POST"])
+@ssh_bp.route("/api/ssh/setup-wizard", methods=["GET", "POST"])
 @login_required
 def ssh_setup_wizard():
     """Setup wizard for creating and testing SSH connections."""

@@ -11,7 +11,7 @@ $(document).ready(function () {
      */
     function fetchConfigurations() {
         apiCall(
-            "/configurations/list",
+            "/api/configurations/list",
             "GET",
             null,
             (data) => {
@@ -79,7 +79,7 @@ $(document).ready(function () {
         const configId = $(this).data("id");
 
         apiCall(
-            `/configurations/preview/${configId}`,
+            `/api/configurations/preview/${configId}`,
             "GET",
             null,
             (data) => {

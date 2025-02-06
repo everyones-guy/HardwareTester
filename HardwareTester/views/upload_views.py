@@ -16,7 +16,7 @@ logger.info("upload_views")
 
 upload_bp = Blueprint("upload", __name__)
 
-@upload_bp.route("/test-plans/upload", methods=["POST"])
+@upload_bp.route("/api/test-plans/upload", methods=["POST"])
 @login_required
 def upload_test_plan_view():
     """Upload a test plan."""
@@ -31,7 +31,7 @@ def upload_test_plan_view():
     else:
         return jsonify({"success": False, "error": result["error"]}), 500
 
-@upload_bp.route("/spec-sheets/upload", methods=["POST"])
+@upload_bp.route("/api/spec-sheets/upload", methods=["POST"])
 @login_required
 def upload_spec_sheet_view():
     """Upload a spec sheet."""
@@ -46,7 +46,7 @@ def upload_spec_sheet_view():
     else:
         return jsonify({"success": False, "error": result["error"]}), 500
     
-@upload_bp.route("/firmware/upload", methods=["POST"])
+@upload_bp.route("/api/firmware/upload", methods=["POST"])
 @login_required
 def upload_firmware():
     """Upload firmware and assign to machines."""
@@ -70,7 +70,7 @@ def upload_firmware():
     return jsonify({"success": True, "message": "Firmware uploaded successfully", "hash": firmware_result["hash"]})
 
 
-@upload_bp.route("/json/preview", methods=["POST"])
+@upload_bp.route("/api/json/preview", methods=["POST"])
 @login_required
 def preview_json():
     """Upload and preview a JSON file."""
@@ -86,7 +86,7 @@ def preview_json():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
-@upload_bp.route("/json/save", methods=["POST"])
+@upload_bp.route("/api/json/save", methods=["POST"])
 @login_required
 def save_json():
     """Save the modified JSON data."""

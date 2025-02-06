@@ -3,9 +3,9 @@ from flask_login import login_required, current_user
 from HardwareTester.services.user_management_service import UserManagementService
 from HardwareTester.extensions import logger
 
-user_management_bp = Blueprint("user_management", __name__, url_prefix="/users")
+user_management_bp = Blueprint("user_management", __name__)
 
-@user_management_bp.route("/", methods=["GET"])
+@user_management_bp.route("/users", methods=["GET"])
 @login_required
 def manage_users():
     """Render the user management page."""
@@ -15,7 +15,7 @@ def manage_users():
     return render_template("user_management.html")
 
 
-@user_management_bp.route("/list", methods=["GET"])
+@user_management_bp.route("/api/users/list", methods=["GET"])
 @login_required
 def list_users_endpoint():
     """List all users."""
@@ -26,7 +26,7 @@ def list_users_endpoint():
     return jsonify(response)
 
 
-@user_management_bp.route("/add", methods=["POST"])
+@user_management_bp.route("/api/users/add", methods=["POST"])
 @login_required
 def add_user_endpoint():
     """Add a new user."""
@@ -38,7 +38,7 @@ def add_user_endpoint():
     return jsonify(response)
 
 
-@user_management_bp.route("/update/<int:user_id>", methods=["POST"])
+@user_management_bp.route("/api/users/update/<int:user_id>", methods=["POST"])
 @login_required
 def update_user_endpoint(user_id):
     """Update user details."""
@@ -55,7 +55,7 @@ def update_user_endpoint(user_id):
     return jsonify(response)
 
 
-@user_management_bp.route("/delete/<int:user_id>", methods=["DELETE"])
+@user_management_bp.route("/api/users/delete/<int:user_id>", methods=["DELETE"])
 @login_required
 def delete_user_endpoint(user_id):
     """Delete a user."""

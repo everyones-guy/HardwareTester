@@ -6,7 +6,7 @@ from HardwareTester.models.link_models import Link
 from sqlalchemy.exc import SQLAlchemyError
 
 from HardwareTester.utils.custom_logger import CustomLogger
-from HardwareTester.models.device_models import Device, DeviceFirmwareHistory
+from HardwareTester.models.device_models import Device, DeviceFirmwareHistory, Firmware, Peripheral, Controller
 import hashlib
 
 # Initialize logger
@@ -282,3 +282,73 @@ class HardwareService:
         except Exception as e:
             logger.error(f"Error fetching links: {e}")
             return []
+
+    @staticmethod
+    def get_device_from_db(device_id):
+        """
+        Fetch a hardware device from the database by its device_id, including firmware history, controllers, and peripherals.
+        :param device_id: The unique identifier of the hardware device.
+        :return: JSON response with device details.
+        """
+        try:
+            # Fetch the device from the database
+            device = db.session.query(Device).filter_by(device_id=device_id).first()
+
+            if not device:
+                logger.warning(f"Device with ID {device_id} not found.")
+                return {"success": False, "error": "Device not found."}, 404
+
+            # Fetch firmware history
+            firmware_history = db.session.query(DeviceFirmwareHistory).filter_by(device_id=device.id).all()
+            firmware_data = [
+                {
+                    "firmware_id": fh.firmware.id,
+                    "hash": fh.firmware.hash,
+                    "version": fh.firmware.mdf.get("version") if fh.firmware.mdf else "Unknown",
+                    "uploaded_at": fh.uploaded_at.strftime("%Y-%m-%d %H:%M:%S"),
+                    "uploaded_by": fh.uploaded_by
+                } for fh in firmware_history
+            ]
+
+            # Fetch associated controllers
+            controllers = [
+                {
+                    "id": ctrl.id,
+                    "name": ctrl.name,
+                    "firmware_version": ctrl.firmware_version,
+                    "available": ctrl.available
+                } for ctrl in device.controllers
+            ]
+
+            # Fetch associated peripherals
+            peripherals = [
+                {
+                    "id": p.id,
+                    "name": p.name,
+                    "type": p.type,
+                    "properties": p.properties
+                } for p in device.peripherals
+            ]
+
+            # Construct the device response
+            device_data = {
+                "id": device.id,
+                "device_id": device.device_id,
+                "name": device.name,
+                "firmware_version": device.firmware_version,
+                "device_metadata": device.device_metadata,
+                "created_at": device.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+                "updated_at": device.updated_at.strftime("%Y-%m-%d %H:%M:%S"),
+                "created_by": device.created_by,
+                "modified_by": device.modified_by,
+                "firmware_history": firmware_data,
+                "controllers": controllers,
+                "peripherals": peripherals
+            }
+
+            logger.info(f"Fetched device {device_id} from database with full history.")
+            return {"success": True, "data": device_data}, 200
+
+        except Exception as e:
+            logger.error(f"Error fetching device {device_id}: {e}")
+            return {"success": False, "error": str(e)}, 500

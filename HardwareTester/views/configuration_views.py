@@ -4,10 +4,10 @@ from HardwareTester.services.configuration_service import ConfigurationService
 from HardwareTester.extensions import logger
 from urllib.parse import unquote
 
-configuration_bp = Blueprint("configurations", __name__, url_prefix="/configurations")
+configuration_bp = Blueprint("configurations", __name__)
 
 
-@configuration_bp.route("/", methods=["GET"])
+@configuration_bp.route("/configurations", methods=["GET"])
 @login_required
 def configuration_management():
     """
@@ -20,7 +20,7 @@ def configuration_management():
         return jsonify({"success": False, "error": "Failed to load configuration page."}), 500
 
 
-@configuration_bp.route("/save", methods=["POST"])
+@configuration_bp.route("/api/configurations/save", methods=["POST"])
 @login_required
 def save_configuration():
     """
@@ -44,7 +44,7 @@ def save_configuration():
         return jsonify({"success": False, "error": "An unexpected error occurred."}), 500
 
 
-@configuration_bp.route("/add-configuration", methods=["POST"])
+@configuration_bp.route("/api/configurations/add-configuration", methods=["POST"])
 @login_required
 def add_configuration():
     """
@@ -62,7 +62,7 @@ def add_configuration():
         return jsonify({"success": False, "error": "An unexpected error occurred."}), 500
 
 
-@configuration_bp.route("/list", methods=["GET"])
+@configuration_bp.route("/api/configurations/list", methods=["GET"])
 @login_required
 def list_configurations():
     """
@@ -80,7 +80,7 @@ def list_configurations():
         return jsonify({"success": False, "error": "An unexpected error occurred."}), 500
 
 
-@configuration_bp.route("/load/<int:config_id>", methods=["GET"])
+@configuration_bp.route("/api/configurations/load/<int:config_id>", methods=["GET"])
 @login_required
 def load_configuration(config_id):
     """
@@ -94,7 +94,7 @@ def load_configuration(config_id):
         return jsonify({"success": False, "error": "An unexpected error occurred."}), 500
 
 
-@configuration_bp.route("/<string:configuration>", methods=["GET"])
+@configuration_bp.route("/api/configurations/<string:configuration>", methods=["GET"])
 @login_required
 def get_configuration(configuration):
     # Decode the URL

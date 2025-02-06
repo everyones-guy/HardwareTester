@@ -3,9 +3,9 @@ from flask_login import current_user, login_required
 from HardwareTester.services.peripherals_service import PeripheralsService
 from HardwareTester.models.user_models import UserRole
 
-peripherals_bp = Blueprint("peripherals", __name__, url_prefix="/peripherals")
+peripherals_bp = Blueprint("peripherals", __name__)
 
-@peripherals_bp.route("/", methods=["GET"])
+@peripherals_bp.route("/peripherals", methods=["GET"])
 @login_required
 def dashboard():
     """Render the peripherals dashboard."""
@@ -13,7 +13,7 @@ def dashboard():
         return render_template("error.html", message="Access denied")
     return render_template("peripherals.html")
 
-@peripherals_bp.route("/list", methods=["GET"])
+@peripherals_bp.route("/api/peripherals/list", methods=["GET"])
 @login_required
 def list_peripherals():
     """List all peripherals."""
@@ -22,7 +22,7 @@ def list_peripherals():
         return jsonify(result), 200
     return jsonify({"error": result["error"]}), 500
 
-@peripherals_bp.route("/add", methods=["POST"])
+@peripherals_bp.route("/api/peripherals/add", methods=["POST"])
 @login_required
 def add_peripheral():
     """Add a new peripheral."""
@@ -37,7 +37,7 @@ def add_peripheral():
         return jsonify(result), 201
     return jsonify({"error": result["error"]}), 500
 
-@peripherals_bp.route("/delete/<int:peripheral_id>", methods=["DELETE"])
+@peripherals_bp.route("/api/peripherals/delete/<int:peripheral_id>", methods=["DELETE"])
 @login_required
 def delete_peripheral(peripheral_id):
     """Delete a peripheral by ID."""
@@ -46,7 +46,7 @@ def delete_peripheral(peripheral_id):
         return jsonify(result), 200
     return jsonify({"error": result["error"]}), 404
 
-@peripherals_bp.route("/update/<int:peripheral_id>", methods=["PUT"])
+@peripherals_bp.route("/api/peripherals/update/<int:peripheral_id>", methods=["PUT"])
 @login_required
 def update_peripheral(peripheral_id):
     """Update a peripheral."""

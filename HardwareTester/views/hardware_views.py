@@ -9,12 +9,12 @@ from HardwareTester.utils.custom_logger import CustomLogger
 # Initialize logger
 logger = CustomLogger.get_logger("hardware_views")
 
-hardware_bp = Blueprint("hardware", __name__, url_prefix="/hardware")
+hardware_bp = Blueprint("hardware", __name__)
 mqtt_service = MQTTService(broker="test.mosquitto.org", port=1883)
 mqtt_service.connect()
 
 
-@hardware_bp.route("/", methods=["GET"])
+@hardware_bp.route("/hardware", methods=["GET"])
 @login_required
 def hardware_dashboard():
     """Render the hardware dashboard."""
@@ -25,7 +25,7 @@ def hardware_dashboard():
         return jsonify({"success": False, "error": "Failed to render the hardware dashboard."}), 500
 
 
-@hardware_bp.route("/list", methods=["GET"])
+@hardware_bp.route("/api/hardware/list", methods=["GET"])
 @login_required
 def list_devices():
     """List all registered devices."""
@@ -46,7 +46,7 @@ def list_devices():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
-@hardware_bp.route("/discover-device", methods=["POST"])
+@hardware_bp.route("/api/hardware/discover-device", methods=["POST"])
 @login_required  
 def discover_device():
     """Discover device metadata and settings."""
@@ -100,7 +100,7 @@ def discover_device():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
-@hardware_bp.route("/device/<string:device_id>", methods=["GET"])
+@hardware_bp.route("/api/hardware/device/<string:device_id>", methods=["GET"])
 @login_required
 def get_device(device_id):
     """Retrieve device information and settings."""
@@ -125,7 +125,7 @@ def get_device(device_id):
         return jsonify({"success": False, "error": str(e)}), 500
 
 
-@hardware_bp.route("/device/<string:device_id>/test-firmware", methods=["POST"])
+@hardware_bp.route("/api/hardware/device/<string:device_id>/test-firmware", methods=["POST"])
 @login_required
 def test_firmware(device_id):
     """Test the firmware on a specified device."""
@@ -146,7 +146,7 @@ def test_firmware(device_id):
         return jsonify({"success": False, "error": str(e)}), 500
 
 
-@hardware_bp.route("/device/<string:device_id>/ssh-connect", methods=["POST"])
+@hardware_bp.route("/api/hardware/device/<string:device_id>/ssh-connect", methods=["POST"])
 @login_required
 def ssh_connect(device_id):
     """Establish an SSH connection to a device."""
@@ -170,7 +170,7 @@ def ssh_connect(device_id):
         return jsonify({"success": False, "error": str(e)}), 500
 
 
-@hardware_bp.route("/device/<string:device_id>/execute-command", methods=["POST"])
+@hardware_bp.route("/api/hardware/device/<string:device_id>/execute-command", methods=["POST"])
 @login_required
 def execute_command(device_id):
     """Execute a command on a device via SSH."""

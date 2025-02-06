@@ -3,16 +3,16 @@ from flask import Blueprint, jsonify, request, render_template
 from flask_login import login_required
 from HardwareTester.services.notifications_service import NotificationService
 
-notifications_bp = Blueprint("notifications", __name__, url_prefix="/notifications")
+notifications_bp = Blueprint("notifications", __name__)
 
-@notifications_bp.route("/", methods=["GET"])
+@notifications_bp.route("/notifications", methods=["GET"])
 @login_required
 def notifications_page():
     """Render the notifications page."""
     return render_template("notifications.html")
 
 
-@notifications_bp.route("/list", methods=["GET"])
+@notifications_bp.route("/api/notifications/list", methods=["GET"])
 @login_required
 def list_notifications_endpoint():
     """Retrieve all notifications."""
@@ -20,7 +20,7 @@ def list_notifications_endpoint():
     return jsonify(response)
 
 
-@notifications_bp.route("/add", methods=["POST"])
+@notifications_bp.route("/api/notifications/add", methods=["POST"])
 @login_required
 def add_notification_endpoint():
     """Add a new notification."""
@@ -29,7 +29,7 @@ def add_notification_endpoint():
     return jsonify(response)
 
 
-@notifications_bp.route("/delete/<int:notification_id>", methods=["DELETE"])
+@notifications_bp.route("/api/notifications/delete/<int:notification_id>", methods=["DELETE"])
 @login_required
 def delete_notification_endpoint(notification_id):
     """Delete a notification."""

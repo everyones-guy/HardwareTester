@@ -5,10 +5,10 @@ from HardwareTester.extensions import logger
 from HardwareTester.models.user_models import UserRole
 
 # Define the Blueprint for test plan management
-test_plan_bp = Blueprint("test_plans", __name__, url_prefix="/test-plans")
+test_plan_bp = Blueprint("test_plans", __name__)
 
 
-@test_plan_bp.route("/", methods=["GET"])
+@test_plan_bp.route("/test-plans", methods=["GET"])
 @login_required
 def show_test_plans():
     """
@@ -17,7 +17,7 @@ def show_test_plans():
     return render_template("test_plan_management.html")
 
 
-@test_plan_bp.route("/upload", methods=["POST"])
+@test_plan_bp.route("/api/test-plans/upload", methods=["POST"])
 @login_required
 def upload_plan():
     """
@@ -30,7 +30,7 @@ def upload_plan():
     return jsonify(result) if result["success"] else jsonify(result), 400
 
 
-@test_plan_bp.route("/<int:test_plan_id>/run", methods=["POST"])
+@test_plan_bp.route("/api/test-plans/<int:test_plan_id>/run", methods=["POST"])
 @login_required
 def execute_plan(test_plan_id):
     """
@@ -40,7 +40,7 @@ def execute_plan(test_plan_id):
     return jsonify(result) if result["success"] else jsonify(result), 400
 
 
-@test_plan_bp.route("/list", methods=["GET"])
+@test_plan_bp.route("/api/test-plans/list", methods=["GET"])
 @login_required
 def list_test_plans():
     """
@@ -67,7 +67,7 @@ def list_test_plans():
 
 
 
-@test_plan_bp.route("/<int:test_plan_id>/preview", methods=["GET"])
+@test_plan_bp.route("/api/test-plans/<int:test_plan_id>/preview", methods=["GET"])
 @login_required
 def preview_test_plan(test_plan_id):
     """
@@ -77,7 +77,7 @@ def preview_test_plan(test_plan_id):
     return jsonify(result) if result["success"] else jsonify(result), 400
 
 
-@test_plan_bp.route("/create", methods=["POST"])
+@test_plan_bp.route("/api/test-plans/create", methods=["POST"])
 @login_required
 def create_test_plan():
     """
@@ -94,7 +94,7 @@ def create_test_plan():
         return jsonify({"success": False, "error": "An unexpected error occurred."}), 500
 
 
-@test_plan_bp.route("/<int:plan_id>/steps", methods=["POST"])
+@test_plan_bp.route("/api/test-plans/<int:plan_id>/steps", methods=["POST"])
 @login_required
 def add_test_step(plan_id):
     """
@@ -110,13 +110,13 @@ def add_test_step(plan_id):
         logger.error(f"Error adding test step to plan ID {plan_id}: {e}")
         return jsonify({"success": False, "error": "An unexpected error occurred."}), 500
 
-@test_plan_bp.route("/test-plans/<int:plan_id>/load", methods=["GET"])
+@test_plan_bp.route("/api/test-plans/<int:plan_id>/load", methods=["GET"])
 def load_test_plan(plan_id):
     # Example plan data
     test_plan = {"id": plan_id, "name": f"Test Plan {plan_id}"}
     return jsonify({"success": True, "plan": test_plan})
 
-@test_plan_bp.route("/<int:test_plan_id>", methods=["DELETE"])
+@test_plan_bp.route("/api/test-plans/<int:test_plan_id>", methods=["DELETE"])
 @login_required
 def delete_test_plan(test_plan_id):
     try:
@@ -127,7 +127,7 @@ def delete_test_plan(test_plan_id):
         return jsonify({"success": False, "error": "An unexpected error occurred."}), 500
 
 
-@test_plan_bp.route("/test-metrics", methods=["GET"])
+@test_plan_bp.route("/api/test-plans/test-metrics", methods=["GET"])
 @login_required
 def test_metrics():
     """

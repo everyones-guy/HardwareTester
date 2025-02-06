@@ -21,7 +21,7 @@ $(document).ready(function () {
     // Fetch dashboard data
     function fetchDashboardData() {
         $.ajax({
-            url: "/dashboard/data",
+            url: "/api/dashboard/data",
             method: "GET",
             headers: {
                 "Content-Type": "application/json",

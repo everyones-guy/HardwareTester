@@ -5,13 +5,13 @@ from HardwareTester.extensions import logger
 from HardwareTester.services.mqtt_service import MQTTService
 from HardwareTester.services.hardware_service import HardwareService
 
-mqtt_bp = Blueprint("mqtt", __name__, url_prefix="/mqtt")
+mqtt_bp = Blueprint("mqtt", __name__)
 
 # Initialize MQTT service (update with your broker details)
 mqtt_service = MQTTService(broker="mqtt.example.com", port=1883)
 
 
-@mqtt_bp.route("/", methods=["GET"])
+@mqtt_bp.route("/mqtt", methods=["GET"])
 @login_required
 def hardware_dashboard():
     """Render the emulator dashboard."""
@@ -21,7 +21,7 @@ def hardware_dashboard():
         logger.error(f"Error rendering emulator dashboard: {e}")
         return jsonify({"success": False, "error": "Failed to render the emulator dashboard."}), 500
 
-@mqtt_bp.route("/connect", methods=["POST"])
+@mqtt_bp.route("/api/mqtt/connect", methods=["POST"])
 @login_required
 def connect_mqtt():
     """
@@ -33,7 +33,7 @@ def connect_mqtt():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
-@mqtt_bp.route("/disconnect", methods=["POST"])
+@mqtt_bp.route("/api/mqtt/disconnect", methods=["POST"])
 @login_required
 def disconnect_mqtt():
     """
@@ -45,7 +45,7 @@ def disconnect_mqtt():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
-@mqtt_bp.route("/publish", methods=["POST"])
+@mqtt_bp.route("/api/mqtt/publish", methods=["POST"])
 @login_required
 def publish_message():
     """
@@ -69,7 +69,7 @@ def publish_message():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
-@mqtt_bp.route("/subscribe", methods=["POST"])
+@mqtt_bp.route("/api/mqtt/subscribe", methods=["POST"])
 @login_required
 def subscribe_topic():
     """
@@ -91,7 +91,7 @@ def subscribe_topic():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
-@mqtt_bp.route("/discover-device", methods=["POST"])
+@mqtt_bp.route("/api/mqtt/discover-device", methods=["POST"])
 @login_required
 def discover_device():
     """
@@ -113,7 +113,7 @@ def discover_device():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
-@mqtt_bp.route("/link", methods=["POST"])
+@mqtt_bp.route("/api/mqtt/link", methods=["POST"])
 @login_required
 def create_link():
     data = request.json

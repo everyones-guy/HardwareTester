@@ -4,14 +4,14 @@ from HardwareTester.extensions import logger
 from HardwareTester.services.serial_service import SerialService
 from HardwareTester.views.auth_views import login
 
-serial_bp = Blueprint("serial", __name__, url_prefix="/serial")
+serial_bp = Blueprint("serial", __name__)
 
 # Global instance of the SerialService
 serial_service = None
 
 logger.info("Serial views loaded.")
 
-@serial_bp.route("/connect", methods=["POST"])
+@serial_bp.route("/api/serial/connect", methods=["POST"])
 @login_required
 def connect():
     """Connect to a serial device."""
@@ -35,7 +35,7 @@ def connect():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
-@serial_bp.route("/disconnect", methods=["POST"])
+@serial_bp.route("/api/serial/disconnect", methods=["POST"])
 @login_required
 def disconnect():
     """Disconnect from the serial device."""
@@ -47,7 +47,7 @@ def disconnect():
     return jsonify({"success": False, "error": "No active connection to disconnect."}), 400
 
 
-@serial_bp.route("/send", methods=["POST"])
+@serial_bp.route("/api/serial/send", methods=["POST"])
 @login_required
 def send_data():
     """Send data to the serial device."""
@@ -68,7 +68,7 @@ def send_data():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
-@serial_bp.route("/read", methods=["GET"])
+@serial_bp.route("/api/serial/read", methods=["GET"])
 @login_required
 def read_data():
     """Read data from the serial device."""
@@ -86,7 +86,7 @@ def read_data():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
-@serial_bp.route("/discover", methods=["GET"])
+@serial_bp.route("/api/serial/discover", methods=["GET"])
 @login_required
 def discover_device():
     """Discover available serial devices."""
@@ -102,7 +102,7 @@ def discover_device():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
-@serial_bp.route("/configure", methods=["POST"])
+@serial_bp.route("/api/serial/configure", methods=["POST"])
 @login_required
 def configure_device():
     """Set device configurations."""

@@ -3,7 +3,7 @@
 {% block title %}Hardware Emulator{% endblock %}
 
 {% block content %}
-<form id="add-emulator-form" method="post" action="{{ url_for('emulators.add_emulator') }}">
+<form id="add-emulator-form" method="post" action="{{ url_for('api.emulators.add_emulator') }}">
     {{ form.hidden_tag() }}
     <div class="mb-3">
         <label for="emulator-name" class="form-label">Emulator Name</label>

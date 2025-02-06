@@ -4,7 +4,7 @@ from HardwareTester.services.blueprint_service import BlueprintService
 
 blueprint_bp = Blueprint("blueprint", __name__)
 
-@blueprint_bp.route("/generate_blueprint", methods=["POST"])
+@blueprint_bp.route("/api/blueprint/generate_blueprint", methods=["POST"])
 def generate_blueprint():
     """Generate a hardware blueprint for a given machine."""
     machine_address = request.json.get("machine_address")

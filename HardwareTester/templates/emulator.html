@@ -48,7 +48,7 @@
     <div class="card mb-4">
         <div class="card-header bg-success text-white">Start Emulation</div>
         <div class="card-body">
-            <form id="start-emulation-form" method="post" action="{{ url_for('emulators.start_emulation') }}">
+            <form id="start-emulation-form" method="post" action="{{ url_for('api.emulators.start_emulation') }}">
                 {{ form.hidden_tag() }}
                 <div class="mb-3">
                     {{ form.machine_name.label(class="form-label") }}
@@ -115,7 +115,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="add-emulator-form" method="post" action="{{ url_for('emulators.add_emulator') }}">
+                    <form id="add-emulator-form" method="post" action="{{ url_for('api.emulators.add_emulator') }}">
                         {{ form.hidden_tag() }}
                         <div class="mb-3">
                             <label for="emulator-name" class="form-label">Emulator Name</label>

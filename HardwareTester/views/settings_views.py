@@ -7,13 +7,13 @@ from HardwareTester.extensions import logger
 # Initialize logger
 #logger = CustomLogger.get_logger("settings_views")
 logger.info("settings_views")
-settings_bp = Blueprint("settings", __name__, url_prefix="/settings")
+settings_bp = Blueprint("settings", __name__)
 
 # ----------------------
 # Global Settings Endpoints
 # ----------------------
 
-@settings_bp.route("/global/<key>", methods=["GET"])
+@settings_bp.route("/api/settings/global/<key>", methods=["GET"])
 @login_required
 def get_global_setting_view(key):
     """Retrieve a global setting by key."""
@@ -30,7 +30,7 @@ def get_global_setting_view(key):
         return jsonify({"success": False, "message": "Error retrieving global setting."}), 500
 
 
-@settings_bp.route("/global", methods=["POST"])
+@settings_bp.route("/api/settings/global", methods=["POST"])
 @login_required
 def update_global_setting_view():
     """Update or create a global setting."""
@@ -53,7 +53,7 @@ def update_global_setting_view():
         return jsonify({"success": False, "message": "Error updating global setting."}), 500
 
 
-@settings_bp.route("/global/list", methods=["GET"])
+@settings_bp.route("/api/settings/global/list", methods=["GET"])
 @login_required
 def list_global_settings_view():
     """List all global settings."""
@@ -71,7 +71,7 @@ def list_global_settings_view():
 # User Settings Endpoints
 # ----------------------
 
-@settings_bp.route("/user/<int:user_id>", methods=["GET"])
+@settings_bp.route("/api/settings/user/<int:user_id>", methods=["GET"])
 @login_required
 def get_user_settings_view(user_id):
     """Retrieve user-specific settings."""
@@ -88,7 +88,7 @@ def get_user_settings_view(user_id):
         return jsonify({"success": False, "message": "Error retrieving settings."}), 500
 
 
-@settings_bp.route("/user/<int:user_id>", methods=["POST"])
+@settings_bp.route("/api/settings/user/<int:user_id>", methods=["POST"])
 @login_required
 def update_user_settings_view(user_id):
     """Update user-specific settings."""

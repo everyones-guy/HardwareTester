@@ -8,15 +8,12 @@ $(document).ready(function () {
             e.preventDefault();
             const targetId = $(this).attr("href").substring(1);
 
-            // Update active tab class
             $(".list-group-item").removeClass("active");
             $(this).addClass("active");
 
-            // Update tab-pane visibility
             $(".tab-pane").removeClass("show active");
             $(`#${targetId}`).addClass("show active");
 
-            // Initialize emulator form when the emulator tab is selected
             if (targetId === "add-emulator-tab") {
                 if (typeof initializeEmulatorForm === "function") {
                     initializeEmulatorForm();
@@ -132,40 +129,62 @@ $(document).ready(function () {
         });
     }
 
-    // API request helper
-    function apiRequest(url, method, data = {}) {
-        return $.ajax({
-            url: url,
-            method: method,
-            data: method === "GET" ? undefined : JSON.stringify(data),
-            contentType: "application/json",
-        });
+    // Function to load overview data
+    async function loadOverview() {
+        try {
+            const data = await apiCall("/api/dashboard/overview", "GET");
+            const list = $("#dashboard-data ul");
+            list.empty();
+
+            if (data && Array.isArray(data.data)) {
+                data.data.forEach((item) => {
+                    list.append(`<li>${item.title}: ${item.description}</li>`);
+                });
+            } else {
+                list.append("<li>No data available.</li>");
+            }
+        } catch (error) {
+            console.error("Failed to load overview data:", error);
+        }
     }
 
-    // Dashboard functionality
-    function loadOverview() {
-        $.ajax({
-            url: "/dashboard/overview",
-            method: "GET",
-            success: function (data) {
-                const list = $("#dashboard-data ul");
-                list.empty();
+    // Function to load system health metrics
+    async function loadSystemHealth() {
+        try {
+            const data = await apiCall("/api/dashboard/system-health", "GET");
+            if (data.success) {
+                $("#cpu-usage").text(`CPU Usage: ${data.data.cpu_usage}%`);
+                $("#memory-usage").text(`Memory Usage: ${data.data.memory_usage}%`);
+                $("#disk-usage").text(`Disk Usage: ${data.data.disk_usage}%`);
+            } else {
+                console.error("Failed to fetch system health:", data.error);
+            }
+        } catch (error) {
+            console.error("Error fetching system health:", error);
+        }
+    }
 
-                if (data && Array.isArray(data)) {
-                    data.forEach((item) => {
-                        list.append(`<li>${item.title}: ${item.description}</li>`);
-                    });
-                } else {
-                    list.append("<li>No data available.</li>");
-                }
-            },
-            error: function () {
-                console.error("Failed to load overview data.");
-            },
-        });
+    // Function to load test execution metrics
+    async function loadTestMetrics() {
+        try {
+            const data = await apiCall("/api/dashboard/test-metrics", "GET");
+            if (data.success) {
+                $("#total-tests").text(`Total Tests: ${data.data.total_test_plans}`);
+                $("#passed-tests").text(`Passed: ${data.data.passed_tests}`);
+                $("#failed-tests").text(`Failed: ${data.data.failed_tests}`);
+                $("#pass-rate").text(`Pass Rate: ${data.data.pass_rate}`);
+            } else {
+                console.error("Failed to fetch test metrics:", data.error);
+            }
+        } catch (error) {
+            console.error("Error fetching test metrics:", error);
+        }
     }
 
     // Initialize dashboard
     handleTabs();
     loadOverview();
+    loadSystemHealth();
+    loadTestMetrics();
+
 });

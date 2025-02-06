@@ -3,7 +3,10 @@ from flask_login import login_required, current_user
 from HardwareTester.services.emulator_service import EmulatorService
 from HardwareTester.utils.custom_logger import CustomLogger
 from HardwareTester.utils.token_utils import get_token
+from HardwareTester.utils.source_code_analyzer import SourceCodeAnalyzer
 from HardwareTester.forms import StartEmulationForm, AddEmulatorForm
+from datetime import datetime
+from HardwareTester.utils.api_manager import get_device_from_db, start_mqtt_communication
 from werkzeug.utils import secure_filename
 import json
 import os
@@ -15,12 +18,12 @@ logger = CustomLogger.get_logger("Emulator_Views", per_module=True)
 
 
 # Define the Blueprint
-emulator_bp = Blueprint("emulators", __name__, url_prefix="/emulators")
+emulator_bp = Blueprint("emulators", __name__)
 
 # Instantiate EmulatorService
 emulator_service = EmulatorService()
 
-@emulator_bp.route("/", methods=["GET", "POST"])
+@emulator_bp.route("/emulators", methods=["GET", "POST"])
 @login_required
 def emulator_dashboard():
     """Render the emulator dashboard."""
@@ -50,7 +53,7 @@ def emulator_dashboard():
         return jsonify({"success": False, "error": "Failed to render the emulator dashboard."}), 500
 
 
-@emulator_bp.route("/blueprints", methods=["GET"])
+@emulator_bp.route("/api/emulators/blueprints", methods=["GET"])
 @login_required
 def get_blueprints():
     """Fetch available blueprints."""
@@ -62,7 +65,7 @@ def get_blueprints():
         return jsonify({"success": False, "error": "Failed to fetch blueprints."}), 500
 
 
-@emulator_bp.route("/load-blueprint", methods=["POST"])
+@emulator_bp.route("/api/emulators/load-blueprint", methods=["POST"])
 @login_required
 def load_blueprint_endpoint():
     """Load a new blueprint and commit all fields to the database."""
@@ -100,7 +103,7 @@ def load_blueprint_endpoint():
 
    
 
-@emulator_bp.route("/stop", methods=["POST"])
+@emulator_bp.route("/api/emulators/stop", methods=["POST"])
 @login_required
 def stop_emulation_endpoint():
     """Stop a machine emulation."""
@@ -119,7 +122,7 @@ def stop_emulation_endpoint():
         return jsonify({"success": False, "error": "Failed to stop emulation."}), 500
 
 
-@emulator_bp.route("/list", methods=["GET"])
+@emulator_bp.route("/api/emulators/list", methods=["GET"])
 @login_required
 def list_emulations():
     """List all active emulations."""
@@ -131,7 +134,7 @@ def list_emulations():
         return jsonify({"success": False, "error": "Failed to fetch active emulations."}), 500
 
 
-@emulator_bp.route("/logs", methods=["GET"])
+@emulator_bp.route("/api/emulators/logs", methods=["GET"])
 @login_required
 def get_logs():
     """Fetch emulator logs."""
@@ -143,7 +146,7 @@ def get_logs():
         return jsonify({"success": False, "error": "Failed to fetch emulator logs."}), 500
 
 
-@emulator_bp.route("/compare", methods=["POST"])
+@emulator_bp.route("/api/emulators/compare", methods=["POST"])
 @login_required
 def compare_machines():
     """Compare the operation of machines running different firmware."""
@@ -166,7 +169,7 @@ def compare_machines():
         return jsonify({"success": False, "error": "Failed to compare machines."}), 500
     
 
-@emulator_bp.route("/add", methods=["POST"])
+@emulator_bp.route("/api/emulators/add", methods=["POST"])
 @login_required
 def add_device():
     """
@@ -213,7 +216,7 @@ def add_device():
 
 
 
-@emulator_bp.route("/add-emulator", methods=["POST"])
+@emulator_bp.route("/api/emulators/add-emulator", methods=["POST"])
 @login_required
 def add_emulator():
     """
@@ -345,7 +348,7 @@ def preview_blueprint(blueprint_name):
         logger.error(f"Error generating preview for blueprint '{blueprint_name}': {e}")
         return jsonify({"success": False, "error": "Failed to generate blueprint preview."}), 500
     
-@emulator_bp.route("/emulate", methods=["POST"])
+@emulator_bp.route("/api/emulators/emulate", methods=["POST"])
 @login_required
 def start_emulator():
     try:
@@ -368,7 +371,7 @@ def start_emulator():
         return jsonify({"success": False, "message": str(e)}), 500
 
 
-@emulator_bp.route("/start", methods=["GET", "POST"])
+@emulator_bp.route("/api/emulators/start", methods=["GET", "POST"])
 @login_required
 def start_emulation():
     """
@@ -416,7 +419,7 @@ def start_emulation():
     return jsonify({"success": False, "error": "Invalid form submission."}), 400
 
 
-@emulator_bp.route("/save-emulator-json", methods=["POST"])
+@emulator_bp.route("/api/emulators/save-emulator-json", methods=["POST"])
 @login_required
 def save_emulator_json():
     """Save JSON data to the database and a file."""

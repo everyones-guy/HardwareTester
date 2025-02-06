@@ -1,36 +1,30 @@
 // setup.js for the browser
 globalThis.$ = globalThis.jQuery = jQuery;
 
-import axios from 'axios';
+import axios from "axios";
 
-// Utility function for API calls
-globalThis.apiCall = function (endpoint, method, data = {}, onSuccess, onError) {
-    const csrfToken = document.querySelector('meta[name="csrf-token"]').content; // Dynamically fetch token
-    const isPostMethod = method.toUpperCase() === "POST";
-    const isGetMethod = method.toUpperCase() === "GET";
+// Utility function for API calls using axios
+globalThis.apiCall = async function (endpoint, method = "GET", data = {}) {
+    try {
+        const csrfMetaTag = document.querySelector('meta[name="csrf-token"]');
+        const csrfToken = csrfMetaTag ? csrfMetaTag.content : null; // Prevents errors if missing
 
-    $.ajax({
-        url: endpoint,
-        type: method,
-        contentType: isGetMethod ? undefined : "application/json",
-        headers: {
-            "X-CSRFToken": csrfToken, // Attach CSRF token dynamically
-        },
-        data: isGetMethod ? undefined : JSON.stringify(data),
-        processData: false,
-        success: function (response) {
-            if (onSuccess) {
-                onSuccess(response);
-            }
-        },
-        error: function (xhr) {
-            const errorMessage = xhr.responseJSON?.error || xhr.statusText || "An error occurred while communicating with the server.";
-            console.error(`API Error (${method} ${endpoint}):`, errorMessage);
-            if (onError) {
-                onError(xhr);
-            } else {
-                alert(errorMessage);
-            }
-        },
-    });
+        const headers = {};
+        if (csrfToken) {
+            headers["X-CSRFToken"] = csrfToken; // Attaches CSRF token if available
+        }
+
+        const response = await axios({
+            url: endpoint,
+            method: method.toUpperCase(),
+            headers: headers,
+            data: ["GET", "DELETE"].includes(method.toUpperCase()) ? undefined : data, // Ensures GET/DELETE don't send bodies
+        });
+
+        return response.data; // Resolves with API response
+
+    } catch (error) {
+        console.error(`API Error (${method} ${endpoint}):`, error.response?.data?.error || error.message);
+        throw error.response?.data || { error: "An unknown error occurred." }; // Throws error so it can be caught
+    }
 };
