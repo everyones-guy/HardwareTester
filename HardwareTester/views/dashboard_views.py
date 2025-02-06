@@ -12,9 +12,9 @@ from HardwareTester.extensions import logger
 
 logger.info("DASHBOARD_VIEWS")
 
-dashboard_bp = Blueprint("dashboard", __name__, url_prefix="/dashboard")
+dashboard_bp = Blueprint("dashboard", __name__)
 
-@dashboard_bp.route("/", methods=["GET"])
+@dashboard_bp.route("/dashboard", methods=["GET"])
 @login_required
 def dashboard():
     """Render the dashboard homepage."""
@@ -29,7 +29,7 @@ def dashboard():
 
     return render_template("dashboard.html", data=dashboard_data["data"])
 
-@dashboard_bp.route("/data", methods=["GET"])
+@dashboard_bp.route("/api/dashboard/data", methods=["GET"])
 @login_required
 def get_dashboard_data():
     """Fetch dashboard data for the current user."""
@@ -41,7 +41,7 @@ def get_dashboard_data():
         return jsonify({"success": True, "data": result["data"]})
     return jsonify({"success": False, "error": result["error"]})
 
-@dashboard_bp.route("/create", methods=["POST"])
+@dashboard_bp.route("/api/dashboard/create", methods=["POST"])
 @login_required
 def create_dashboard_item():
     """Create a new dashboard item."""
@@ -59,7 +59,7 @@ def create_dashboard_item():
     )
     return jsonify(result)
 
-@dashboard_bp.route("/update/<int:item_id>", methods=["POST"])
+@dashboard_bp.route("/api/dashboard/update/<int:item_id>", methods=["POST"])
 @login_required
 def update_dashboard_item(item_id):
     """Update an existing dashboard item."""
@@ -73,7 +73,7 @@ def update_dashboard_item(item_id):
     )
     return jsonify(result)
 
-@dashboard_bp.route("/delete/<int:item_id>", methods=["POST"])
+@dashboard_bp.route("/api/dashboard/delete/<int:item_id>", methods=["POST"])
 @login_required
 def delete_dashboard_item(item_id):
     """Delete a dashboard item."""
@@ -83,7 +83,7 @@ def delete_dashboard_item(item_id):
     result = DashboardService.delete_dashboard_item(item_id=item_id)
     return jsonify(result)
 
-@dashboard_bp.route("/aggregate", methods=["GET"])
+@dashboard_bp.route("/api/dashboard/aggregate", methods=["GET"])
 @login_required
 def get_aggregate_metrics():
     """Fetch aggregate metrics for the dashboard."""
@@ -95,7 +95,7 @@ def get_aggregate_metrics():
         return jsonify({"success": True, "metrics": result["metrics"]})
     return jsonify({"success": False, "error": result["error"]})
 
-@dashboard_bp.route("/user-management", methods=["GET"])
+@dashboard_bp.route("/api/dashboard/user-management", methods=["GET"])
 @login_required
 def user_management_page():
     """Render the User Management page."""
@@ -103,7 +103,7 @@ def user_management_page():
         return render_template("error.html", message="Access denied")
     return render_template("user_management.html")
 
-@dashboard_bp.route("/overview", methods=["GET"])
+@dashboard_bp.route("/api/dashboard/overview", methods=["GET"])
 @login_required
 def overview():
     """
@@ -121,7 +121,7 @@ def overview():
         logger.error(f"Error retrieving overview data: {e}")
         return jsonify({"success": False, "error": "Failed to load overview data."}), 500
 
-@dashboard_bp.route("/dashboard/system-health", methods=["GET"])
+@dashboard_bp.route("/api/dashboard/system-health", methods=["GET"])
 @login_required
 def dashboard_system_health():
     """
@@ -133,7 +133,7 @@ def dashboard_system_health():
     result = SystemStatusService.get_full_system_status()
     return jsonify(result)
 
-@dashboard_bp.route("/dashboard/test-metrics", methods=["GET"])
+@dashboard_bp.route("/api/dashboard/test-metrics", methods=["GET"])
 @login_required
 def dashboard_test_metrics():
     """

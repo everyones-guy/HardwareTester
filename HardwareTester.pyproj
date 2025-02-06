@@ -169,34 +169,13 @@
     <Compile Include="HardwareTester\utils\token_utils.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\views\api_routes.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="HardwareTester\views\auth_routes.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="HardwareTester\views\auth_views.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="HardwareTester\views\blueprint_routes.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="HardwareTester\views\blueprint_views.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\views\configuration_routes.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="HardwareTester\views\configuration_views.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="HardwareTester\views\dashboard_routes.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="HardwareTester\views\emulator_routes.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="HardwareTester\views\error_routes.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="HardwareTester\views\error_views.py">
@@ -241,73 +220,16 @@
     <Compile Include="HardwareTester\views\api_views.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\views\feature_tests_routes.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="HardwareTester\views\hardware_routes.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="HardwareTester\views\log_routes.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="HardwareTester\views\log_views.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="HardwareTester\views\main_routes.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="HardwareTester\views\main_views.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\views\mqtt_routes.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="HardwareTester\views\notifications_routes.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="HardwareTester\views\peripherals_routes.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="HardwareTester\views\reports_routes.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="HardwareTester\views\serial_routes.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="HardwareTester\views\settings_routes.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="HardwareTester\views\source_code_routes.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="HardwareTester\views\source_routes.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="HardwareTester\views\spec_sheet_routes.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="HardwareTester\views\ssh_routes.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="HardwareTester\views\ssh_views.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\views\system_status_routes.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="HardwareTester\views\test_plan_routes.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="HardwareTester\views\test_plan_views.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="HardwareTester\views\upload_routes.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="HardwareTester\views\user_management_routes.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="HardwareTester\views\valve_routes.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="HardwareTester\views\valve_views.py">

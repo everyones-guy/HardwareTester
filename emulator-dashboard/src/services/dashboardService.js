@@ -35,7 +35,7 @@ export const getSystemStatus = () => apiRequest("system-status");
 /**
  * Fetches currently active emulations.
  */
-export const getActiveEmulations = () => apiRequest("active-emulations");
+export const getActiveEmulations = () => apiRequest("list");
 
 /**
  * Fetches detailed logs for a specific emulation session.
