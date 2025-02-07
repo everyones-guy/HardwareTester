@@ -1,6 +1,6 @@
 $(document).ready(function () {
     // CSRF token
-    const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || "";
 
     // Utility: Show alerts
     function showAlert(message, type = "success") {
@@ -15,8 +15,9 @@ $(document).ready(function () {
     }
 
     // Fetch uploaded test plans and display them
-    function updateTestPlansList() {
-        apiCall("/test-plans/list", "GET", null, (data) => {
+    async function updateTestPlansList() {
+        try {
+            const data = await apiCall("/test-plans/list", "GET");
             const list = $("#test-plans-list");
             list.empty();
 
@@ -37,61 +38,58 @@ $(document).ready(function () {
             } else {
                 showAlert(data.message, "danger");
             }
-        });
+        } catch (error) {
+            console.error("Failed to load test plans:", error);
+            showAlert("Error loading test plans.", "danger");
+        }
     }
 
     // Handle test plan upload
-    $("#upload-test-plan-form").on("submit", function (event) {
+    $("#upload-test-plan-form").on("submit", async function (event) {
         event.preventDefault();
         const formData = new FormData(this);
 
-        apiCall("/upload-test-plan", "POST", Object.fromEntries(formData), (response) => {
+        try {
+            const response = await apiCall("/upload-test-plan", "POST", formData, true); // Handles FormData correctly
             showAlert(response.message, "success");
             updateTestPlansList();
-        });
+        } catch (error) {
+            console.error("Test plan upload failed:", error);
+            showAlert(error.error || "Failed to upload test plan.", "danger");
+        }
     });
 
     // Handle Spec Sheet Upload
-    function handleSpecSheetUpload() {
-        $("#upload-spec-sheet-form").on("submit", async function (event) {
-            event.preventDefault();
-            const formData = new FormData(this);
+    $("#upload-spec-sheet-form").on("submit", async function (event) {
+        event.preventDefault();
+        const formData = new FormData(this);
 
-            try {
-                // Upload spec sheet and generate JSON
-                const response = await fetch("/upload-spec-sheet", {
-                    method: "POST",
-                    headers: { "X-CSRFToken": csrfToken },
-                    body: formData,
-                });
-                const data = await response.json();
+        try {
+            const response = await apiCall("/upload-spec-sheet", "POST", formData, true); // Handles FormData correctly
 
-                if (data.success && data.generatedJson) {
-                    showAlert("Spec sheet processed successfully. Previewing JSON...");
-                    jsonEditor.set(data.generatedJson); // Populate JSON editor with generated data
-                } else {
-                    showAlert(data.message || "Failed to process spec sheet.", "danger");
-                }
-            } catch (error) {
-                console.error("Error processing spec sheet:", error);
-                showAlert("An error occurred while processing the spec sheet.", "danger");
+            if (response.success && response.generatedJson) {
+                showAlert("Spec sheet processed successfully. Previewing JSON...");
+                jsonEditor.set(response.generatedJson); // Populate JSON editor
+            } else {
+                showAlert(response.message || "Failed to process spec sheet.", "danger");
             }
-        });
-    }
+        } catch (error) {
+            console.error("Error processing spec sheet:", error);
+            showAlert("An error occurred while processing the spec sheet.", "danger");
+        }
+    });
 
     // Emulate JSON Configuration
-    function emulateJsonConfiguration() {
-        $("#emulate-json-button").on("click", function () {
-            try {
-                const configuration = jsonEditor.get();
-                validateConfiguration(configuration);
+    $("#emulate-json-button").on("click", function () {
+        try {
+            const configuration = jsonEditor.get();
+            validateConfiguration(configuration);
 
-                startEmulation(configuration);
-            } catch (err) {
-                showAlert(err.message, "danger");
-            }
-        });
-    }
+            startEmulation(configuration);
+        } catch (err) {
+            showAlert(err.message, "danger");
+        }
+    });
 
     // Real-Time Logging
     function setupSocketIO() {
@@ -103,9 +101,7 @@ $(document).ready(function () {
         });
     }
 
-
     // Initialize
     setupSocketIO();
     updateTestPlansList();
-
 });
