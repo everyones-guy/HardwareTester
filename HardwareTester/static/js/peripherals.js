@@ -1,102 +1,100 @@
-$(document).ready(function () {
-    const peripheralsList = $("#peripherals-list");
-    const peripheralPreview = $("#peripheral-preview");
-    const previewName = $("#preview-name");
-    const previewProperties = $("#preview-properties");
-    const addPeripheralForm = $("#add-peripheral-form");
+document.addEventListener("DOMContentLoaded", () => {
+    const peripheralsList = document.getElementById("peripherals-list");
+    const peripheralPreview = document.getElementById("peripheral-preview");
+    const previewName = document.getElementById("preview-name");
+    const previewProperties = document.getElementById("preview-properties");
+    const addPeripheralForm = document.getElementById("add-peripheral-form");
 
-    // Fetch peripherals and populate the list
-    function fetchPeripherals() {
-        $.ajax({
-            url: "/peripherals/list",
-            method: "GET",
-            success: function (data) {
-                peripheralsList.empty(); // Clear the list
-                if (data.success) {
-                    data.peripherals.forEach(function (peripheral) {
-                        const listItem = `
-                            <li class="list-group-item d-flex justify-content-between">
-                                <span>${peripheral.name}</span>
-                                <button class="btn btn-info btn-sm preview-peripheral" data-id="${peripheral.id}" data-properties='${JSON.stringify(peripheral.properties)}'>Preview</button>
-                            </li>`;
-                        peripheralsList.append(listItem);
-                    });
-                } else {
-                    peripheralsList.html("<li class='list-group-item'>No peripherals found.</li>");
-                }
-            },
-            error: function (xhr) {
-                console.error("Error fetching peripherals:", xhr);
-            },
+    /**
+     * Fetch and display peripherals
+     */
+    async function fetchPeripherals() {
+        try {
+            const data = await apiCall("/peripherals/list", "GET");
+
+            peripheralsList.innerHTML = "";
+            if (data.success && data.peripherals.length > 0) {
+                data.peripherals.forEach((peripheral) => {
+                    peripheralsList.innerHTML += `
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>${peripheral.name}</span>
+                            <button class="btn btn-info btn-sm preview-peripheral" data-id="${peripheral.id}" data-properties='${JSON.stringify(peripheral.properties)}'>Preview</button>
+                        </li>`;
+                });
+
+                attachPreviewListeners();
+            } else {
+                peripheralsList.innerHTML = "<li class='list-group-item text-danger'>No peripherals found.</li>";
+            }
+        } catch (error) {
+            console.error("Error fetching peripherals:", error);
+            peripheralsList.innerHTML = "<li class='list-group-item text-danger'>Failed to load peripherals.</li>";
+        }
+    }
+
+    /**
+     * Show peripheral preview
+     */
+    function attachPreviewListeners() {
+        document.querySelectorAll(".preview-peripheral").forEach((button) => {
+            button.addEventListener("click", () => {
+                const peripheralId = button.getAttribute("data-id");
+                const properties = JSON.parse(button.getAttribute("data-properties"));
+
+                previewName.textContent = peripheralId;
+                previewProperties.textContent = JSON.stringify(properties, null, 2);
+                peripheralPreview.classList.remove("d-none");
+
+                document.getElementById("test-connection").onclick = () => testPeripheralConnection(peripheralId);
+                document.getElementById("test-device").onclick = () => redirectToDashboard(peripheralId);
+            });
         });
     }
 
-    // Show peripheral preview
-    $(document).on("click", ".preview-peripheral", function () {
-        const peripheralId = $(this).data("id");
-        const peripheralProperties = $(this).data("properties");
-
-        previewName.text(peripheralId);
-        previewProperties.text(JSON.stringify(peripheralProperties, null, 2));
-        peripheralPreview.removeClass("d-none");
-
-        // Add event listener for test connection
-        $("#test-connection").off("click").on("click", function () {
-            testPeripheralConnection(peripheralId);
-        });
-
-        // Add event listener for test device
-        $("#test-device").off("click").on("click", function () {
-            redirectToDashboard(peripheralId);
-        });
-    });
-
-    // Test connection
-    function testPeripheralConnection(peripheralId) {
-        $.ajax({
-            url: `/peripherals/test-connection/${peripheralId}`,
-            method: "GET",
-            success: function (data) {
-                alert(data.message || "Connection test successful.");
-            },
-            error: function () {
-                alert("Failed to test connection.");
-            },
-        });
+    /**
+     * Test connection
+     */
+    async function testPeripheralConnection(peripheralId) {
+        try {
+            const data = await apiCall(`/peripherals/test-connection/${peripheralId}`, "GET");
+            alert(data.message || "Connection test successful.");
+        } catch (error) {
+            console.error("Connection test error:", error);
+            alert("Failed to test connection.");
+        }
     }
 
-    // Redirect to dashboard
+    /**
+     * Redirect to dashboard
+     */
     function redirectToDashboard(peripheralId) {
         window.location.href = `/dashboard?peripheral_id=${peripheralId}`;
     }
 
-    // Add peripheral form submission
-    addPeripheralForm.on("submit", function (event) {
-        event.preventDefault();
+    /**
+     * Handle adding a new peripheral
+     */
+    if (addPeripheralForm) {
+        addPeripheralForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
 
-        const name = $("#peripheral-name").val();
-        const properties = $("#peripheral-properties").val();
+            const name = document.getElementById("peripheral-name").value;
+            const propertiesInput = document.getElementById("peripheral-properties").value;
 
-        $.ajax({
-            url: "/peripherals/add",
-            method: "POST",
-            contentType: "application/json",
-            headers: {
-                "X-CSRFToken": $("meta[name='csrf-token']").attr("content"),
-            },
-            data: JSON.stringify({ name, properties: JSON.parse(properties) }),
-            success: function (data) {
-                alert(data.message || "Peripheral added successfully.");
+            try {
+                const properties = JSON.parse(propertiesInput); // Ensure valid JSON
+
+                const response = await apiCall("/peripherals/add", "POST", { name, properties });
+                alert(response.message || "Peripheral added successfully.");
                 fetchPeripherals();
-                addPeripheralForm[0].reset();
-            },
-            error: function (xhr) {
-                alert("Failed to add peripheral.");
-                console.error(xhr);
-            },
+                addPeripheralForm.reset();
+            } catch (error) {
+                console.error("Error adding peripheral:", error);
+                alert("Failed to add peripheral. Check console for details.");
+            }
         });
-    });
+    }
 
-    // Initial fetch
+    // **Initial fetch**
     fetchPeripherals();
 });

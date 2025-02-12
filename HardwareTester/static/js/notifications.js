@@ -1,78 +1,79 @@
+document.addEventListener("DOMContentLoaded", () => {
+    const notificationList = document.getElementById("notifications-list");
+    const addNotificationForm = document.getElementById("add-notification-form");
 
-// Fetch and display notifications
-function loadNotifications() {
-    $.getJSON("/notifications/list", function (data) {
-        const list = $("#notifications-list");
-        list.empty();
-        if (data.success) {
-            data.notifications.forEach((notification) => {
-                list.append(
-                    `<li class="list-group-item">
-                        <strong>${notification.title}</strong> - ${notification.message}
-                        <span class="badge bg-${notification.type} float-end">${notification.type}</span>
-                        <button class="btn btn-sm btn-danger float-end mx-2" onclick="deleteNotification(${notification.id})">Delete</button>
-                    </li>`
-                );
-            });
-        } else {
-            list.append(`<li class="list-group-item text-danger">${data.error}</li>`);
-        }
-    });
-}
+    /**
+     * Fetch and display notifications
+     */
+    async function loadNotifications() {
+        try {
+            const data = await apiCall("/notifications/list", "GET");
 
-// Handle notification addition
-function handleAddNotification() {
-    $("#add-notification-form").on("submit", function (event) {
-        event.preventDefault();
-        const formData = $(this).serializeArray();
-        const payload = {};
-        formData.forEach((item) => (payload[item.name] = item.value));
+            notificationList.innerHTML = "";
+            if (data.success && data.notifications.length > 0) {
+                data.notifications.forEach((notification) => {
+                    notificationList.innerHTML += `
+                        <li class="list-group-item">
+                            <strong>${notification.title}</strong> - ${notification.message}
+                            <span class="badge bg-${notification.type} float-end">${notification.type}</span>
+                            <button class="btn btn-sm btn-danger float-end mx-2 delete-notification" data-id="${notification.id}">Delete</button>
+                        </li>`;
+                });
 
-        //  APICall function from setup.js
-        apiCall(
-            "/notifications/add",
-            "POST",
-            payload,
-            (data) => {
-                if (data.success) {
-                    alert(data.message);
-                    loadNotifications();
-                } else {
-                    alert(data.error);
-                }
-            },
-            (xhr) => {
-                alert("Failed to add notification. Please try again later.");
-                console.error("Error adding notification:", xhr);
+                attachDeleteListeners();
+            } else {
+                notificationList.innerHTML = `<li class="list-group-item text-danger">No notifications available.</li>`;
             }
-        );
-    });
-}
+        } catch (error) {
+            console.error("Error fetching notifications:", error);
+            notificationList.innerHTML = `<li class="list-group-item text-danger">Failed to load notifications.</li>`;
+        }
+    }
 
-// Delete a notification
-function deleteNotification(notificationId) {
-    if (confirm("Are you sure you want to delete this notification?")) {
-        $.ajax({
-            url: `/notifications/delete/${notificationId}`,
-            type: "DELETE",
-            headers: {
-                "X-CSRFToken": $('meta[name="csrf-token"]').attr('content')  // Ensure CSRF token is sent
-            },
-            success: function (response) {
-                if (response.success) {
-                    alert(response.message);
-                    loadNotifications();
-                } else {
-                    alert(`Error: ${response.error}`);
-                }
-            },
+    /**
+     * Handle notification addition
+     */
+    if (addNotificationForm) {
+        addNotificationForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            const formData = new FormData(addNotificationForm);
+            const payload = Object.fromEntries(formData.entries());
+
+            try {
+                const response = await apiCall("/notifications/add", "POST", payload);
+                alert(response.message || "Notification added successfully!");
+                addNotificationForm.reset();
+                loadNotifications();
+            } catch (error) {
+                console.error("Error adding notification:", error);
+                alert("Failed to add notification. Please try again.");
+            }
         });
     }
-}
 
-// Initialize scripts
-$(document).ready(function () {
+    /**
+     * Attach delete listeners dynamically
+     */
+    function attachDeleteListeners() {
+        document.querySelectorAll(".delete-notification").forEach((button) => {
+            button.addEventListener("click", async () => {
+                const notificationId = button.getAttribute("data-id");
+
+                if (confirm("Are you sure you want to delete this notification?")) {
+                    try {
+                        const response = await apiCall(`/notifications/delete/${notificationId}`, "DELETE");
+                        alert(response.message || "Notification deleted.");
+                        loadNotifications();
+                    } catch (error) {
+                        console.error("Error deleting notification:", error);
+                        alert("Failed to delete notification.");
+                    }
+                }
+            });
+        });
+    }
+
+    // **Initial Load**
     loadNotifications();
-    handleAddNotification();
 });
-

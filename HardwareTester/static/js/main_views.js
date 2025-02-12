@@ -1,10 +1,14 @@
 $(document).ready(function () {
-    // Initialize dashboard data
+    /**
+     * Initialize dashboard data on page load
+     */
     if ($("#dashboard").length) {
         fetchDashboardData();
     }
 
-    // Handle contact form submission
+    /**
+     * Handle contact form submission
+     */
     const contactForm = $("#contact-form");
     if (contactForm.length) {
         contactForm.on("submit", function (event) {
@@ -13,34 +17,33 @@ $(document).ready(function () {
         });
     }
 
-    // Live dashboard update simulation (Optional)
+    /**
+     * Auto-refresh dashboard every 10 seconds (optional)
+     */
     if ($("#dashboard-live").length) {
-        setInterval(fetchDashboardData, 10000); // Refresh every 10 seconds
+        setInterval(fetchDashboardData, 10000);
     }
 
-    // Fetch dashboard data
-    function fetchDashboardData() {
-        $.ajax({
-            url: "/api/dashboard/data",
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": getCsrfToken(),
-            },
-            success: function (data) {
-                if (data.success) {
-                    updateDashboard(data.dashboard);
-                } else {
-                    console.error("Error fetching dashboard data:", data.error);
-                }
-            },
-            error: function (xhr) {
-                console.error("Dashboard fetch error:", xhr);
-            },
-        });
+    /**
+     * Fetch Dashboard Data
+     */
+    async function fetchDashboardData() {
+        try {
+            const data = await apiCall("/api/dashboard/data", "GET");
+
+            if (data.success) {
+                updateDashboard(data.dashboard);
+            } else {
+                console.error("Dashboard Data Error:", data.error);
+            }
+        } catch (error) {
+            console.error("Error fetching dashboard data:", error);
+        }
     }
 
-    // Update dashboard UI with new data
+    /**
+     * Update dashboard UI with new data
+     */
     function updateDashboard(dashboard) {
         const statsContainer = $("#dashboard-stats");
         const logsContainer = $("#dashboard-logs");
@@ -66,38 +69,29 @@ $(document).ready(function () {
         }
     }
 
-    // Handle contact form submission
-    function submitContactForm(form) {
+    /**
+     * Handle contact form submission
+     */
+    async function submitContactForm(form) {
         const formData = form.serializeArray();
         const payload = {};
+
         formData.forEach((item) => {
             payload[item.name] = item.value;
         });
 
-        $.ajax({
-            url: "/contact",
-            method: "POST",
-            contentType: "application/json",
-            headers: {
-                "X-CSRFToken": getCsrfToken(),
-            },
-            data: JSON.stringify(payload),
-            success: function (data) {
-                if (data.success) {
-                    alert(data.message || "Thank you for contacting us!");
-                    form[0].reset();
-                } else {
-                    alert(data.error || "Failed to submit your message. Please try again.");
-                }
-            },
-            error: function (xhr) {
-                console.error("Contact form submission error:", xhr);
-            },
-        });
-    }
+        try {
+            const data = await apiCall("/contact", "POST", payload);
 
-    // Get CSRF token
-    function getCsrfToken() {
-        return $("meta[name='csrf-token']").attr("content");
+            if (data.success) {
+                alert(data.message || "Thank you for contacting us!");
+                form[0].reset();
+            } else {
+                alert(data.error || "Failed to submit your message. Please try again.");
+            }
+        } catch (error) {
+            console.error("Contact form submission error:", error);
+            alert("An unexpected error occurred. Please try again later.");
+        }
     }
 });

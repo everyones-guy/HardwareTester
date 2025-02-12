@@ -9,13 +9,17 @@ $(document).ready(function () {
     // Fetch and display blueprints on page load
     fetchBlueprints();
 
-    // Utility: Show alerts
+    /**
+     * Utility: Show alerts for user feedback.
+     */
     function showAlert(message, isError = false) {
         alert(isError ? `Error: ${message}` : message);
     }
 
-    // Handle blueprint upload
-    uploadForm.on("submit", function (e) {
+    /**
+     * Handle blueprint upload.
+     */
+    uploadForm.on("submit", async function (e) {
         e.preventDefault();
 
         const file = blueprintFileInput[0].files[0];
@@ -27,72 +31,63 @@ $(document).ready(function () {
         const formData = new FormData();
         formData.append("blueprintFile", file);
 
-        $.ajax({
-            url: "/blueprints/upload",
-            method: "POST",
-            processData: false,
-            contentType: false,
-            data: formData,
-            success: function (data) {
-                if (data.success) {
-                    showAlert("Blueprint uploaded successfully!");
-                    fetchBlueprints();
-                } else {
-                    showAlert(data.error || "Failed to upload blueprint.", true);
-                }
-            },
-            error: function (xhr) {
-                console.error("Error uploading blueprint:", xhr);
-                showAlert("An error occurred while uploading the blueprint.", true);
-            },
-        });
+        try {
+            const data = await apiCall("/blueprints/upload", "POST", formData, true); // Handles FormData properly
+            if (data.success) {
+                showAlert("Blueprint uploaded successfully!");
+                fetchBlueprints();
+            } else {
+                showAlert(data.error || "Failed to upload blueprint.", true);
+            }
+        } catch (error) {
+            console.error("Error uploading blueprint:", error);
+            showAlert("An error occurred while uploading the blueprint.", true);
+        }
     });
 
-    // Fetch blueprints from the server
-    function fetchBlueprints() {
-        $.ajax({
-            url: "/blueprints",
-            method: "GET",
-            success: function (data) {
-                if (data.success && data.blueprints.length > 0) {
-                    blueprintsList.empty();
-                    blueprintsEmptyMessage.hide();
+    /**
+     * Fetch blueprints from the server.
+     */
+    async function fetchBlueprints() {
+        try {
+            const data = await apiCall("/blueprints", "GET");
 
-                    data.blueprints.forEach(function (blueprint) {
-                        const listItem = `
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <span>${blueprint.name}</span>
-                                <div>
-                                    <button 
-                                        class="btn btn-sm btn-info me-2 preview-blueprint" 
-                                        data-url="${blueprint.url}" 
-                                        data-name="${blueprint.name}">
-                                        Preview
-                                    </button>
-                                    <button 
-                                        class="btn btn-sm btn-danger delete-blueprint" 
-                                        data-id="${blueprint.id}">
-                                        Delete
-                                    </button>
-                                </div>
-                            </li>`;
-                        blueprintsList.append(listItem);
-                    });
-                } else {
-                    blueprintsList.empty();
-                    blueprintsEmptyMessage.show().text(
-                        "No blueprints available. Upload a blueprint to get started."
-                    );
-                }
-            },
-            error: function (xhr) {
-                console.error("Error fetching blueprints:", xhr);
-                showAlert("Failed to load blueprints.", true);
-            },
-        });
+            blueprintsList.empty();
+
+            if (data.success && data.blueprints.length > 0) {
+                blueprintsEmptyMessage.hide();
+                data.blueprints.forEach((blueprint) => {
+                    const listItem = `
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>${blueprint.name}</span>
+                            <div>
+                                <button 
+                                    class="btn btn-sm btn-info me-2 preview-blueprint" 
+                                    data-url="${blueprint.url}" 
+                                    data-name="${blueprint.name}">
+                                    Preview
+                                </button>
+                                <button 
+                                    class="btn btn-sm btn-danger delete-blueprint" 
+                                    data-id="${blueprint.id}">
+                                    Delete
+                                </button>
+                            </div>
+                        </li>`;
+                    blueprintsList.append(listItem);
+                });
+            } else {
+                blueprintsEmptyMessage.show().text("No blueprints available. Upload a blueprint to get started.");
+            }
+        } catch (error) {
+            console.error("Error fetching blueprints:", error);
+            showAlert("Failed to load blueprints.", true);
+        }
     }
 
-    // Preview a blueprint
+    /**
+     * Preview a blueprint.
+     */
     $(document).on("click", ".preview-blueprint", function () {
         const url = $(this).data("url");
         const name = $(this).data("name");
@@ -107,31 +102,31 @@ $(document).ready(function () {
         blueprintPreviewModal.show();
     });
 
-    // Delete a blueprint
-    $(document).on("click", ".delete-blueprint", function () {
+    /**
+     * Delete a blueprint.
+     */
+    $(document).on("click", ".delete-blueprint", async function () {
         const id = $(this).data("id");
 
         if (!confirm("Are you sure you want to delete this blueprint?")) return;
 
-        $.ajax({
-            url: `/blueprints/delete/${id}`,
-            method: "DELETE",
-            success: function (data) {
-                if (data.success) {
-                    showAlert("Blueprint deleted successfully!");
-                    fetchBlueprints();
-                } else {
-                    showAlert(data.error || "Failed to delete blueprint.", true);
-                }
-            },
-            error: function (xhr) {
-                console.error("Error deleting blueprint:", xhr);
-                showAlert("An error occurred while deleting the blueprint.", true);
-            },
-        });
+        try {
+            const data = await apiCall(`/blueprints/delete/${id}`, "DELETE");
+            if (data.success) {
+                showAlert("Blueprint deleted successfully!");
+                fetchBlueprints();
+            } else {
+                showAlert(data.error || "Failed to delete blueprint.", true);
+            }
+        } catch (error) {
+            console.error("Error deleting blueprint:", error);
+            showAlert("An error occurred while deleting the blueprint.", true);
+        }
     });
 
-    // Reset form and clear file input on modal close
+    /**
+     * Reset form and clear file input on modal close.
+     */
     $("#uploadBlueprintModal").on("hidden.bs.modal", function () {
         uploadForm[0].reset();
     });

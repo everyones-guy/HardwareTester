@@ -1,125 +1,163 @@
-$(document).ready(function () {
-    const csrfToken = $("meta[name='csrf-token']").attr("content");
+document.addEventListener("DOMContentLoaded", () => {
+    const sshConnectionsList = document.getElementById("ssh-connection-list");
+    const addSSHForm = document.getElementById("add-ssh-connection-form");
+    const editSSHForm = document.getElementById("edit-ssh-connection-form");
+    const testSSHForm = document.getElementById("test-ssh-connection-form");
 
-    // Fetch and display saved SSH connections
-    function fetchConnections() {
-        apiCall("/ssh/connections", "GET", null, (data) => {
-            const connectionList = $("#ssh-connection-list");
-            connectionList.empty();
+    /**
+     * Fetch and display saved SSH connections.
+     */
+    async function fetchConnections() {
+        try {
+            const data = await apiCall("/ssh/connections", "GET");
 
+            sshConnectionsList.innerHTML = "";
             if (data.success && data.connections.length > 0) {
                 data.connections.forEach((connection) => {
-                    connectionList.append(`
+                    sshConnectionsList.innerHTML += `
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             <strong>${connection.name}</strong>
                             <div>
                                 <button class="btn btn-primary btn-sm edit-ssh-connection" data-id="${connection.id}">Edit</button>
                                 <button class="btn btn-danger btn-sm delete-ssh-connection ms-2" data-id="${connection.id}">Delete</button>
                             </div>
-                        </li>
-                    `);
+                        </li>`;
                 });
             } else {
-                connectionList.html("<li class='list-group-item text-center'>No connections available.</li>");
+                sshConnectionsList.innerHTML = "<li class='list-group-item text-center'>No SSH connections available.</li>";
+            }
+        } catch (error) {
+            console.error("Error fetching SSH connections:", error);
+            alert("Failed to load SSH connections.");
+        }
+    }
+
+    /**
+     * Add a new SSH connection.
+     */
+    if (addSSHForm) {
+        addSSHForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            const formData = new FormData(addSSHForm);
+            const data = Object.fromEntries(formData);
+
+            try {
+                const response = await apiCall("/ssh/connection", "POST", data);
+                alert(response.message || "SSH connection added successfully.");
+                $("#add-ssh-connection-modal").modal("hide");
+                fetchConnections();
+            } catch (error) {
+                console.error("Error adding SSH connection:", error);
+                alert("Failed to add SSH connection.");
             }
         });
     }
 
-    // Add a new SSH connection
-    $("#add-ssh-connection-form").on("submit", function (event) {
-        event.preventDefault();
+    /**
+     * Edit an SSH connection.
+     */
+    document.addEventListener("click", async (event) => {
+        if (event.target.classList.contains("edit-ssh-connection")) {
+            const connectionId = event.target.dataset.id;
 
-        const data = {
-            name: $("#connection-name").val(),
-            host: $("#host").val(),
-            port: $("#port").val(),
-            username: $("#username").val(),
-            password: $("#password").val(),
-        };
+            try {
+                const data = await apiCall(`/ssh/connection/${connectionId}`, "GET");
 
-        apiCall("/ssh/connection", "POST", data, (response) => {
-            showAlert(response.message || "Connection added successfully.", "success");
-            $("#add-ssh-connection-modal").modal("hide");
-            fetchConnections();
-        });
-    });
+                if (data.success) {
+                    const connection = data.connection;
+                    document.getElementById("edit-connection-name").value = connection.name;
+                    document.getElementById("edit-host").value = connection.host;
+                    document.getElementById("edit-port").value = connection.port;
+                    document.getElementById("edit-username").value = connection.username;
+                    document.getElementById("edit-password").value = ""; // Prevent pre-filling passwords
 
-    // Edit an SSH connection
-    $(document).on("click", ".edit-ssh-connection", function () {
-        const connectionId = $(this).data("id");
+                    editSSHForm.onsubmit = async function (event) {
+                        event.preventDefault();
 
-        apiCall(`/ssh/connection/${connectionId}`, "GET", null, (data) => {
-            if (data.success) {
-                const connection = data.connection;
-                $("#edit-connection-name").val(connection.name);
-                $("#edit-host").val(connection.host);
-                $("#edit-port").val(connection.port);
-                $("#edit-username").val(connection.username);
-                $("#edit-password").val(""); // Passwords should not be prefilled
+                        const updatedData = {
+                            name: document.getElementById("edit-connection-name").value,
+                            host: document.getElementById("edit-host").value,
+                            port: document.getElementById("edit-port").value,
+                            username: document.getElementById("edit-username").value,
+                            password: document.getElementById("edit-password").value,
+                        };
 
-                $("#edit-ssh-connection-form").off("submit").on("submit", function (event) {
-                    event.preventDefault();
-
-                    const updatedData = {
-                        name: $("#edit-connection-name").val(),
-                        host: $("#edit-host").val(),
-                        port: $("#edit-port").val(),
-                        username: $("#edit-username").val(),
-                        password: $("#edit-password").val(),
+                        try {
+                            const response = await apiCall(`/ssh/connection/${connectionId}`, "POST", updatedData);
+                            alert(response.message || "SSH connection updated successfully.");
+                            $("#edit-ssh-connection-modal").modal("hide");
+                            fetchConnections();
+                        } catch (error) {
+                            console.error("Error updating SSH connection:", error);
+                            alert("Failed to update SSH connection.");
+                        }
                     };
 
-                    apiCall(`/ssh/connection/${connectionId}`, "POST", updatedData, (response) => {
-                        showAlert(response.message || "Connection updated successfully.", "success");
-                        $("#edit-ssh-connection-modal").modal("hide");
-                        fetchConnections();
-                    });
-                });
-
-                $("#edit-ssh-connection-modal").modal("show");
+                    $("#edit-ssh-connection-modal").modal("show");
+                }
+            } catch (error) {
+                console.error("Error fetching SSH connection details:", error);
+                alert("Failed to fetch SSH connection details.");
             }
-        });
-    });
-
-    // Delete an SSH connection
-    $(document).on("click", ".delete-ssh-connection", function () {
-        const connectionId = $(this).data("id");
-
-        if (confirm("Are you sure you want to delete this connection?")) {
-            apiCall(`/ssh/connection/${connectionId}`, "DELETE", null, (response) => {
-                showAlert(response.message || "Connection deleted successfully.", "success");
-                fetchConnections();
-            });
         }
     });
 
-    // Test SSH connection
-    $("#test-ssh-connection-form").on("submit", function (event) {
-        event.preventDefault();
+    /**
+     * Delete an SSH connection.
+     */
+    document.addEventListener("click", async (event) => {
+        if (event.target.classList.contains("delete-ssh-connection")) {
+            const connectionId = event.target.dataset.id;
 
-        const data = {
-            host: $("#test-host").val(),
-            port: $("#test-port").val(),
-            username: $("#test-username").val(),
-            password: $("#test-password").val(),
-        };
-
-        apiCall("/ssh/test", "POST", data, (response) => {
-            const testResults = $("#test-results");
-            if (response.success) {
-                testResults.html(`<p class="text-success">Connection successful!</p>`);
-                showAlert("SSH connection test successful.", "success");
-            } else {
-                testResults.html(`<p class="text-danger">Connection failed: ${response.error}</p>`);
-                showAlert("SSH connection test failed.", "danger");
+            if (confirm("Are you sure you want to delete this connection?")) {
+                try {
+                    const response = await apiCall(`/ssh/connection/${connectionId}`, "DELETE");
+                    alert(response.message || "SSH connection deleted successfully.");
+                    fetchConnections();
+                } catch (error) {
+                    console.error("Error deleting SSH connection:", error);
+                    alert("Failed to delete SSH connection.");
+                }
             }
-        });
+        }
     });
 
-    // Refresh connections
-    $("#refresh-ssh-connections").on("click", function () {
+    /**
+     * Test an SSH connection.
+     */
+    if (testSSHForm) {
+        testSSHForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            const formData = new FormData(testSSHForm);
+            const data = Object.fromEntries(formData);
+
+            try {
+                const response = await apiCall("/ssh/test", "POST", data);
+                const testResults = document.getElementById("test-results");
+
+                if (response.success) {
+                    testResults.innerHTML = `<p class="text-success">Connection successful!</p>`;
+                    alert("SSH connection test successful.");
+                } else {
+                    testResults.innerHTML = `<p class="text-danger">Connection failed: ${response.error}</p>`;
+                    alert("SSH connection test failed.");
+                }
+            } catch (error) {
+                console.error("Error testing SSH connection:", error);
+                alert("Failed to test SSH connection.");
+            }
+        });
+    }
+
+    /**
+     * Refresh SSH connections.
+     */
+    document.getElementById("refresh-ssh-connections").addEventListener("click", () => {
         fetchConnections();
     });
 
-    // Initial load
+    // **Initial Load**
     fetchConnections();
 });
