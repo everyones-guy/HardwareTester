@@ -360,6 +360,7 @@
     <Content Include="emulator-dashboard\src\services\notificationService.js" />
     <Content Include="emulator-dashboard\src\services\serialService.js" />
     <Content Include="emulator-dashboard\public\styles.css" />
+    <Content Include="emulator-dashboard\src\services\userManagement.js" />
     <Content Include="emulator-dashboard\src\styles.css" />
     <Content Include="HardwareTester\static\css\api_overview.css" />
     <Content Include="HardwareTester\static\css\configuration_management.css" />
