@@ -1,0 +1,205 @@
+/* Global Styles */
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #0a0a0a;
+    color: #ffffff;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+/* Main Container */
+.app-container {
+    width: 90%;
+    max-width: 1200px;
+    background: rgba(20, 20, 20, 0.95);
+    border-radius: 15px;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+    padding: 20px;
+    text-align: center;
+}
+
+/* Titles */
+h1, h2, h3 {
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: #00ffcc;
+    text-shadow: 0 0 8px rgba(0, 255, 255, 0.7);
+}
+
+/* Buttons */
+button {
+    background: linear-gradient(45deg, #00ffcc, #0088ff);
+    border: none;
+    color: #fff;
+    padding: 12px 20px;
+    font-size: 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin: 10px;
+    text-transform: uppercase;
+}
+
+    button:hover {
+        background: linear-gradient(45deg, #0088ff, #00ffcc);
+        box-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+        transform: scale(1.05);
+    }
+
+/* Dropdowns & Inputs */
+select, input {
+    background: #1a1a1a;
+    border: 2px solid #00ffcc;
+    color: #00ffcc;
+    padding: 10px;
+    border-radius: 5px;
+    margin: 10px 0;
+    font-size: 16px;
+    width: 80%;
+    text-align: center;
+}
+
+    input:focus, select:focus {
+        outline: none;
+        border-color: #0088ff;
+        box-shadow: 0 0 10px rgba(0, 136, 255, 0.5);
+    }
+
+/* Panels */
+.panel {
+    background: rgba(30, 30, 30, 0.9);
+    border-radius: 12px;
+    padding: 20px;
+    margin: 20px 0;
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+    transition: all 0.3s ease;
+}
+
+    .panel:hover {
+        box-shadow: 0 0 20px rgba(0, 255, 255, 0.7);
+        transform: scale(1.02);
+    }
+
+/* Tables */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    background: rgba(25, 25, 25, 0.95);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+th, td {
+    border: 1px solid #00ffcc;
+    padding: 12px;
+    text-align: center;
+}
+
+th {
+    background: rgba(0, 255, 255, 0.2);
+    text-transform: uppercase;
+}
+
+td {
+    font-size: 14px;
+}
+
+/* Log Console */
+.log-console {
+    background: #111;
+    border: 2px solid #00ffcc;
+    color: #00ffcc;
+    padding: 15px;
+    border-radius: 8px;
+    height: 150px;
+    overflow-y: auto;
+    font-family: monospace;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+}
+
+.modal {
+    padding: 15px;
+    background: white;
+    border: 1px solid #ccc;
+    width: 400px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
+}
+
+.message-box {
+    height: 200px;
+    overflow-y: auto;
+    background: #f0f0f0;
+    padding: 5px;
+    margin-bottom: 10px;
+}
+
+.command-box {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+input {
+    flex: 1;
+    padding: 5px;
+    border: 1px solid #ccc;
+}
+
+.close-btn {
+    background: red;
+    color: white;
+    padding: 5px 10px;
+    border: none;
+    cursor: pointer;
+}
+
+.status {
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+/* Animation for Real-Time Updates */
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 5px rgba(0, 255, 255, 0.4);
+    }
+
+    50% {
+        box-shadow: 0 0 15px rgba(0, 255, 255, 1);
+    }
+
+    100% {
+        box-shadow: 0 0 5px rgba(0, 255, 255, 0.4);
+    }
+}
+
+.live-update {
+    animation: pulse 2s infinite;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .app-container {
+        width: 95%;
+        padding: 15px;
+    }
+
+    button {
+        width: 100%;
+    }
+
+    input, select {
+        width: 100%;
+    }
+}

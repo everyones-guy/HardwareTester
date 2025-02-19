@@ -4,38 +4,31 @@ import threading
 import hashlib
 import os
 from pathlib import Path
-from paho.mqtt.client import Client
+from dotenv import load_dotenv
+from HardwareTester.services.mqtt_service import MQTTService
 from HardwareTester.utils.custom_logger import CustomLogger
 from HardwareTester.extensions import socketio
+
+# Load environment variables from .env
+load_dotenv()
 
 # Initialize logger
 logger = CustomLogger.get_logger("mqtt_client")
 
+# Constants
 DEFAULT_RETRY_COUNT = 3
 DEFAULT_RETRY_DELAY = 2  # Seconds between retries
 CHUNK_SIZE = 4096  # 4KB for firmware chunking
 
-
 class MQTTClient:
     """Enhanced MQTT Client for managing firmware updates and device interactions."""
 
-    def __init__(self, broker: str, port: int = 1883, username: str = None, password: str = None, tls: bool = False):
+    def __init__(self):
         """
         Initialize the MQTT client for firmware updates and device management.
-
-        :param broker: MQTT broker address.
-        :param port: MQTT broker port (default: 1883).
-        :param username: Username for authentication (optional).
-        :param password: Password for authentication (optional).
-        :param tls: Enable TLS/SSL (default: False).
+        Uses `MQTTService` for MQTT connection.
         """
-        self.broker = broker
-        self.port = port
-        self.username = username
-        self.password = password
-        self.tls = tls
-        self.client = Client()
-        self._setup_client()
+        self.mqtt_service = MQTTService()
         self.response = None  # Store the response
         self.response_event = threading.Event()  # Synchronize request/response
 
@@ -89,27 +82,11 @@ class MQTTClient:
 
     def publish(self, topic: str, payload: str, retries=DEFAULT_RETRY_COUNT):
         """Publish a message to a specific topic with retry mechanism."""
-        for attempt in range(retries):
-            try:
-                self.client.publish(topic, payload)
-                logger.info(f"Published to {topic}: {payload}")
-                return
-            except Exception as e:
-                logger.error(f"Failed to publish to {topic} on attempt {attempt + 1}: {e}")
-                time.sleep(DEFAULT_RETRY_DELAY)
-        logger.error(f"All attempts to publish to {topic} failed.")
+        self.mqtt_service.publish(topic, payload, retries)
 
     def subscribe(self, topic: str, retries=DEFAULT_RETRY_COUNT):
         """Subscribe to a specific topic with retry mechanism."""
-        for attempt in range(retries):
-            try:
-                self.client.subscribe(topic)
-                logger.info(f"Subscribed to {topic}")
-                return
-            except Exception as e:
-                logger.error(f"Failed to subscribe to {topic} on attempt {attempt + 1}: {e}")
-                time.sleep(DEFAULT_RETRY_DELAY)
-        logger.error(f"All attempts to subscribe to {topic} failed.")
+        self.mqtt_service.subscribe(topic, retries)
 
     def upload_firmware(self, device_id: str, firmware_path: str):
         """Upload firmware to a device in chunks."""
@@ -180,13 +157,13 @@ class MQTTClient:
             return None
 
     @socketio.on("start_mirror")
-    def start_mirror(self,data):
+    def start_mirror(self, data):
         device_topic = data.get("topic")
 
         def on_message(client, userdata, message):
             command = message.payload.decode()
             socketio.emit("mirror_update", {"command": command, "topic": message.topic})
 
-        self.client.subscribe(device_topic)
-        self.client.on_message = on_message
+        self.subscribe(device_topic)
+        self.mqtt_service.client.on_message = on_message  # Use the `MQTTService` client instance
         

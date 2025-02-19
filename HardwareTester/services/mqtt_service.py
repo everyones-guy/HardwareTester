@@ -1,10 +1,22 @@
+import os
 import json
 import time
 import threading
+from dotenv import load_dotenv
 from paho.mqtt.client import Client
 from HardwareTester.utils.custom_logger import CustomLogger
 
-# initialize logger
+# Load environment variables from .env
+load_dotenv()
+
+# Fetch MQTT broker details from .env
+MQTT_BROKER = os.getenv("MQTT_BROKER", "localhost")
+MQTT_PORT = int(os.getenv("MQTT_PORT", 1883))
+MQTT_USERNAME = os.getenv("MQTT_USERNAME", None)
+MQTT_PASSWORD = os.getenv("MQTT_PASSWORD", None)
+MQTT_TLS = os.getenv("MQTT_TLS", "False").lower() in ("true", "1")
+
+# Initialize logger
 logger = CustomLogger.get_logger("mqtt_service")
 
 DEFAULT_RETRY_COUNT = 3
@@ -14,12 +26,12 @@ DEFAULT_RETRY_DELAY = 2  # Seconds between retries
 class MQTTService:
     """Enhanced MQTT Service for interacting with devices."""
 
-    def __init__(self, broker: str, port: int = 1883, username: str = None, password: str = None, tls: bool = False):
+    def __init__(self, broker=MQTT_BROKER, port=MQTT_PORT, username=MQTT_USERNAME, password=MQTT_PASSWORD, tls=MQTT_TLS):
         """
         Initialize the MQTT client.
 
         :param broker: MQTT broker address.
-        :param port: MQTT broker port (default: 1883).
+        :param port: MQTT broker port.
         :param username: Username for authentication (optional).
         :param password: Password for authentication (optional).
         :param tls: Enable TLS/SSL (default: False).
@@ -74,7 +86,7 @@ class MQTTService:
         try:
             self.client.connect(self.broker, self.port, keepalive=60)
             self.client.loop_start()
-            logger.info("MQTT connection established.")
+            logger.info(f"Connected to MQTT broker at {self.broker}:{self.port}")
         except Exception as e:
             logger.error(f"Error connecting to MQTT broker: {e}")
 

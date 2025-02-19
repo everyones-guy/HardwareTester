@@ -8,6 +8,8 @@ logger = CustomLogger.get_logger("test_service")
 
 # Initialize API manager
 api_manager = create_api_manager("http://localhost:5000/api")
+api_manager = create_api_manager("http://localhost:5000/api", mqtt_broker="localhost")
+
 
 class TestService:
     """Service for managing and executing tests."""

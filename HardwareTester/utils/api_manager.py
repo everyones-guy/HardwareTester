@@ -1,14 +1,24 @@
+import os
 import requests
+from dotenv import load_dotenv
 from requests.exceptions import RequestException
 from HardwareTester.utils.custom_logger import CustomLogger
+from HardwareTester.services.mqtt_service import MQTTService
+from HardwareTester.services.hardware_service import HardwareService
+
+
+# Load up the env file
+load_dotenv()
+
+# Fetch MQTT broker from .env with a fallback to "localhost"
+MQTT_BROKER = os.getenv("MQTT_BROKER", "localhost")
 
 # Initialize logger
 logger = CustomLogger.get_logger("api_manager")
 
 class APIManager:
     """Library for managing API connections and requests."""
-
-    def __init__(self, base_url, default_timeout=30):
+    def __init__(self, base_url, mqtt_broker=MQTT_BROKER, default_timeout=30):
         """
         Initialize the API Manager.
         :param base_url: Base URL of the API.
@@ -16,7 +26,8 @@ class APIManager:
         """
         self.base_url = base_url.rstrip("/")
         self.default_timeout = default_timeout
-        logger.info(f"APIManager initialized with base URL: {self.base_url}")
+        self.mqtt_service = MQTTService(broker=mqtt_broker)  # Pass the broker from .env
+        logger.info(f"APIManager initialized with base URL: {self.base_url}, MQTT Broker: {mqtt_broker}")
 
     def _log_request(self, method, url, payload=None, headers=None):
         """Log request details."""
@@ -124,12 +135,51 @@ class APIManager:
             logger.error(f"Test connection failed: {e}")
             return {"status": "failed", "error": str(e)}
 
+    def get_device_from_db(self, device_id):
+        """
+        Retrieve device details from the database using HardwareService.
+        :param device_id: The unique ID of the device.
+        :return: JSON response with device details.
+        """
+        logger.info(f"Fetching device {device_id} from database via HardwareService...")
+        return HardwareService.get_device_from_db(device_id)
 
-# Utility function to create an APIManager instance with dynamic base URL
-def create_api_manager(base_url):
+    def start_mqtt_communication(self, device):
+        """
+        Start MQTT communication for a given device.
+        :param device: Dictionary containing device information.
+        :return: True if successful, False otherwise.
+        """
+        if not device or not isinstance(device, dict) or "id" not in device:
+            logger.error("Invalid device data: missing 'id'.")
+            return False
+
+        try:
+            if not self.mqtt_service:
+                logger.error("MQTT Service is not initialized.")
+                return False
+
+            # Ensure the MQTT connection is active
+            self.mqtt_service.connect()
+        
+            # Subscribe to the device's MQTT topic
+            topic = f"devices/{device['id']}/#"
+            self.mqtt_service.subscribe(topic)
+
+            logger.info(f"Successfully started MQTT communication for device {device['id']} on topic '{topic}'.")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to start MQTT communication for device {device.get('id', 'UNKNOWN')}: {e}")
+            return False
+
+
+
+def create_api_manager(base_url, mqtt_broker=MQTT_BROKER):
     """
     Utility function to create an APIManager instance.
     :param base_url: Base URL of the API.
+    :param mqtt_broker: MQTT broker address (defaults to environment variable).
     :return: APIManager instance.
     """
-    return APIManager(base_url=base_url)
+    api_manager = APIManager(base_url, mqtt_broker)
+    return api_manager
