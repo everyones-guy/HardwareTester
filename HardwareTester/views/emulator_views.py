@@ -10,6 +10,13 @@ from HardwareTester.utils.api_manager import APIManager
 from werkzeug.utils import secure_filename
 import json
 import os
+from dotenv import load_dotenv
+
+# Load up the env file
+load_dotenv()
+
+# Fetch MQTT broker from .env with a fallback to "localhost"
+BASE_URL = os.getenv("BASE_URL", "localhost")
 
 # Initialize logger
 #logger = CustomLogger.get_logger("emulator_views")
@@ -17,9 +24,7 @@ import os
 logger = CustomLogger.get_logger("Emulator_Views", per_module=True)
 
 # Create an API Manager instance
-api_manager = APIManager(base_url="http://localhost:5000/api")
-
-
+api_manager = APIManager(base_url=BASE_URL)
 
 # Define the Blueprint
 emulator_bp = Blueprint("emulators", __name__)

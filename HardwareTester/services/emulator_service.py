@@ -5,6 +5,8 @@ from typing import Dict, Any, Union
 from werkzeug.utils import secure_filename
 from sqlalchemy.exc import SQLAlchemyError
 import os
+from dotenv import load_dotenv
+
 from datetime import datetime
 from threading import Lock
 from sqlalchemy.sql import func
@@ -19,6 +21,8 @@ from HardwareTester.services.peripherals_service import PeripheralsService
 from HardwareTester.services.serial_service import SerialService
 from flask_login import current_user, login_required
 
+# Load environment variables from .env
+load_dotenv()
 
 # Initialize logger
 logger = CustomLogger.get_logger("API_Views", per_module=True)
@@ -272,7 +276,7 @@ class EmulatorService:
             logger.error(f"Error fetching commands for {blueprint_name}: {e}")
             return []
 
-    def fetch_commands_via_mqtt(self, topic: str, broker: str = "localhost", port: int = 1883) -> list:
+    def fetch_commands_via_mqtt(self, topic: str, broker: str = os.getenv("MQTT_BROKER","localhost"), port: int = 1883) -> list:
         """Fetch command listing via MQTT by subscribing to a specific topic."""
         commands = []
 

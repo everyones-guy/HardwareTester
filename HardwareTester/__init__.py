@@ -4,6 +4,7 @@ from flask_cors import CORS
 from datetime import datetime
 from cli import register_commands
 import os
+from dotenv import load_dotenv
 
 from HardwareTester.config import config
 from HardwareTester.extensions import db, socketio, migrate, csrf, login_manager, ma, bcrypt
@@ -11,6 +12,9 @@ from HardwareTester.views import register_blueprints
 from HardwareTester.models.user_models import User
 from HardwareTester.utils.custom_logger import CustomLogger
 from HardwareTester.utils.token_utils import get_token
+
+# Load environment variables from .env
+load_dotenv()
 
 # Initialize logger
 logger = CustomLogger.get_logger("app")
@@ -23,8 +27,12 @@ def create_app(config_name="default", *args, **kwargs):
     """
 
     # Initialize Flask app
-    app = Flask(__name__)
-    CORS(app, resources={r"/api/*": {"origins": "http://localhost:3000"}})
+    #app = Flask(__name__)
+    app = Flask(__name__, static_folder="./emulator-dashboard/build", static_url_path="/")
+
+    #CORS(app, resources={r"/api/*": {"origins": "http://localhost:3000"}})
+    CORS(app, resources={r"/api/*": {"origins": "*"}})  # Allow all
+
 
     # Ensure we always get a valid class reference, NOT a string
     config_class = config.get(config_name, config["default"])
@@ -40,11 +48,14 @@ def create_app(config_name="default", *args, **kwargs):
     register_blueprints(app)
     register_error_handlers(app)
 
-    # Serve React Frontend
+    # Serve React app
     @app.route("/", defaults={"path": ""})
     @app.route("/<path:path>")
     def serve_react(path):
-        return send_from_directory(app.static_folder, path or "index.html")
+        if path and os.path.exists(os.path.join(app.static_folder, path)):
+            return send_from_directory(app.static_folder, path)
+        return send_from_directory(app.static_folder, "index.html")
+
 
     # Ensure upload folders are created
     ensure_upload_folders(app)
@@ -93,6 +104,7 @@ def configure_logging(config_name):
     Configure application logging based on the environment.
     :param config_name: The configuration name ('development', 'testing', or 'production').
     """
+
     level = logger.debug if config_name == "development" else logger.info
     logger.basicConfig(
         level=level,
@@ -165,7 +177,9 @@ def load_user(user_id):
 
 def ensure_upload_folders(app):
     """Ensure all required upload folders exist."""
-    upload_folder_root = app.config.get('UPLOAD_FOLDER_ROOT', 'uploads')
+    # upload_folder_root = app.config.get('UPLOAD_FOLDER_ROOT', 'uploads')
+    upload_folder_root = os.path.abspath(app.config.get('UPLOAD_FOLDER_ROOT', 'uploads'))
+
     
     # Define subfolders for different purposes
     subfolders = ['blueprints', 'configs', 'logs', 'data']

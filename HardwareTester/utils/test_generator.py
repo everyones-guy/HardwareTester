@@ -1,7 +1,12 @@
 import json
 import os
+from dotenv import load_dotenv
 from datetime import datetime
 from HardwareTester.utils.source_code_analyzer import SourceCodeAnalyzer
+
+load_dotenv()
+
+base_url = os.getenv("BASE_URL", "http://localhost:5000/api")
 
 class TestGenerator:
     def __init__(self, blueprints=None, commands=None, csharp_files=None, output_dir="generated_tests"):

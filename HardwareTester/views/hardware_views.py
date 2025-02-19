@@ -1,3 +1,5 @@
+import os
+from dotenv import load_dotenv
 from flask import Blueprint, jsonify, request, render_template
 from flask_login import login_required
 from HardwareTester.services.mqtt_service import MQTTService
@@ -6,11 +8,17 @@ from HardwareTester.extensions import db
 from sqlalchemy.dialects.postgresql import JSON  # For metadata and settings storage
 from HardwareTester.utils.custom_logger import CustomLogger
 
+# Load environment variables from .env
+load_dotenv()
+
+# Fetch MQTT broker from .env with a fallback to "localhost"
+MQTT_BROKER = os.getenv("MQTT_BROKER", "localhost")
+
 # Initialize logger
 logger = CustomLogger.get_logger("hardware_views")
 
 hardware_bp = Blueprint("hardware", __name__)
-mqtt_service = MQTTService(broker="test.mosquitto.org", port=1883)
+mqtt_service = MQTTService(broker=MQTT_BROKER, port=1883)
 mqtt_service.connect()
 
 

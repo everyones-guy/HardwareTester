@@ -1,11 +1,17 @@
+import os
+from dotenv import load_dotenv
+
 from HardwareTester.utils.api_manager import create_api_manager
 from HardwareTester.utils.custom_logger import CustomLogger
+
+# Load environment variables from .env
+load_dotenv()
 
 # Initialize Logger
 logger = CustomLogger.get_logger("test_plan_manager")
 
 # Initialize APIManager
-api_manager = create_api_manager("http://localhost:5000/api")
+api_manager = create_api_manager(os.getenv("BASE_API_URL", "http://localhost:5000/api"))
 
 def list_test_plans():
     """Fetch and display all test plans."""

@@ -1,10 +1,13 @@
 import os
+from dotenv import load_dotenv
 from sqlalchemy import create_engine, inspect
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import OperationalError, IntegrityError, SQLAlchemyError
 from HardwareTester.extensions import db
 from HardwareTester.utils.custom_logger import CustomLogger
 from contextlib import contextmanager
+
+load_dotenv()
 
 # Logging configuration
 logger = CustomLogger.get_logger("DatabaseUtils")
