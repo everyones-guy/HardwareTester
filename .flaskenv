@@ -1,10 +1,12 @@
 # .flaskenv
 
 # Flask environment settings
-FLASK_APP=HardwareTester:create_app  # Entry point for the Flask app
+# Entry point for the Flask app
+FLASK_APP=HardwareTester:create_app
 FLASK_ENV=development
 FLASK_CONFIG=development
-FLASK_DEBUG=1  # Set to 0 in production
+# Set to 0 in production
+FLASK_DEBUG=1
 # TEMPLATES_FOLDER=C:/Users/Gary/source/repos/HardwareTester/HardwareTester/templates
 
 # Database Configuration

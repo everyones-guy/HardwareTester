@@ -7,7 +7,7 @@
         "request": "launch",
         "program": "${workspaceFolder}/runserver.py",  // Update with your entry point file
         "env": {
-          "FLASK_APP": "runserver.py",
+          "FLASK_APP": "HardwareTester:create_app",
           "FLASK_ENV": "development"
         },
         "args": ["run", "--no-debugger", "--no-reload"],
