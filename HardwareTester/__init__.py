@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, render_template, request, send_from_directory
+from flask_migrate import Migrate
 from flask_login import current_user
 from flask_cors import CORS
 from datetime import datetime
@@ -19,6 +20,9 @@ load_dotenv()
 # Initialize logger
 logger = logging.getLogger("app")
 
+# Ensure the migration object is initialized
+migrate = Migrate()
+
 def create_app(config_name="default", *args, **kwargs):
     """ven
     Create and configure the Flask application.
@@ -28,7 +32,7 @@ def create_app(config_name="default", *args, **kwargs):
 
     # Initialize Flask app
     #app = Flask(__name__)
-    app = Flask(__name__, static_folder="./emulator-dashboard/build", static_url_path="/")
+    app = Flask(__name__, static_folder="./emulator-dashboard-1/build", static_url_path="/")
 
     #CORS(app, resources={r"/api/*": {"origins": "http://localhost:3000"}})
     CORS(app, resources={r"/api/*": {"origins": "*"}})  # Allow all
