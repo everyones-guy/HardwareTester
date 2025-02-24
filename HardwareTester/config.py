@@ -1,8 +1,18 @@
 import os
 from dotenv import load_dotenv
 
+import socket
+
 # Load .env variables
 load_dotenv()
+
+
+def get_local_ip():
+    """Dynamically fetch local IP (useful in WSL/Windows setups)"""
+    try:
+        return socket.gethostbyname(socket.gethostname())
+    except Exception:
+        return "127.0.0.1"  # Fallback to localhost if it fails
 
 def str_to_bool(value):
     """Convert string values to boolean."""
@@ -13,6 +23,7 @@ class Config:
     BASE_DIR = os.path.abspath(os.path.dirname(__file__))
     INSTANCE_DIR = os.getenv("INSTANCE_DIR", "instance")
     UPLOAD_ROOT = os.getenv("UPLOAD_FOLDER", "uploads")  # Base upload folder from .env\
+    HOST_IP = os.getenv("HOST_IP", get_local_ip())
     
 
     os.makedirs(INSTANCE_DIR, exist_ok=True)  # Ensure the instance directory exists
@@ -59,7 +70,7 @@ class Config:
     SECURE_BASE_URL = os.getenv("SECURE_BASE_URL", "https://localhost:5000")
 
     # MQTT settings
-    MQTT_BROKER = os.getenv("MQTT_BROKER", "localhost")
+    MQTT_BROKER = os.getenv("MQTT_BROKER", socket.gethostbyname(socket.gethostname()))
     MQTT_PORT = int(os.getenv("MQTT_PORT", 1883))
     MQTT_USERNAME = os.getenv("MQTT_USERNAME", None)
     MQTT_PASSWORD = os.getenv("MQTT_PASSWORD", None)

@@ -1,5 +1,6 @@
 import json
 import stat
+import socket
 from turtle import st
 from typing import Dict, Any, Union
 from werkzeug.utils import secure_filename
@@ -40,7 +41,8 @@ class EmulatorService:
     emulator_state_lock = Lock()
 
     def __init__(self):
-        self.mqtt_client = MQTTClient(broker=os.getenv("MQTT_BROKER", "localhost"))
+        
+        self.mqtt_client = MQTTClient(broker=os.getenv("MQTT_BROKER", socket.gethostbyname(socket.gethostname())))
         self.serial_service = SerialService()
         self.peripherals_service = PeripheralsService()
         self.emulator_state = {
@@ -276,7 +278,7 @@ class EmulatorService:
             logger.error(f"Error fetching commands for {blueprint_name}: {e}")
             return []
 
-    def fetch_commands_via_mqtt(self, topic: str, broker: str = os.getenv("MQTT_BROKER","localhost"), port: int = 1883) -> list:
+    def fetch_commands_via_mqtt(self, topic: str, broker: str = os.getenv("MQTT_BROKER", socket.gethostbyname(socket.gethostname())), port: int = 1883) -> list:
         """Fetch command listing via MQTT by subscribing to a specific topic."""
         commands = []
 

@@ -1,4 +1,5 @@
 import os
+import socket
 import requests
 from dotenv import load_dotenv
 from requests.exceptions import RequestException
@@ -11,7 +12,7 @@ from HardwareTester.services.hardware_service import HardwareService
 load_dotenv()
 
 # Fetch MQTT broker from .env with a fallback to "localhost"
-MQTT_BROKER = os.getenv("MQTT_BROKER", "localhost")
+MQTT_BROKER = os.getenv("MQTT_BROKER", socket.gethostbyname(socket.gethostname()))
 
 # Initialize logger
 logger = CustomLogger.get_logger("api_manager")
@@ -181,5 +182,9 @@ def create_api_manager(base_url, mqtt_broker=MQTT_BROKER):
     :param mqtt_broker: MQTT broker address (defaults to environment variable).
     :return: APIManager instance.
     """
-    api_manager = APIManager(base_url, mqtt_broker)
+    # api_manager = APIManager(base_url, mqtt_broker)
+    api_manager = create_api_manager(os.getenv("BASE_API_URL", f"http://{socket.gethostbyname(socket.gethostname())}:5000/api"),
+                                 mqtt_broker=os.getenv("MQTT_BROKER", socket.gethostbyname(socket.gethostname())))
+
+
     return api_manager

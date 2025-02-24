@@ -3,7 +3,9 @@ import { Client as PahoMQTT } from "paho-mqtt";
 import { getSystemStatus, getActiveEmulations } from "../services/dashboardService";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
-const MQTT_BROKER = "wss://broker.hivemq.com/mqtt"; // Change if using a private broker.
+// const MQTT_BROKER = "wss://broker.hivemq.com/mqtt"; // Change if using a private broker.
+const MQTT_BROKER = process.env.REACT_APP_MQTT_BROKER || `ws://${window.location.hostname}:9001`;
+
 const CLIENT_ID = `mqtt_client_${Math.random().toString(16).substr(2, 8)}`;
 
 const LiveMetrics = () => {

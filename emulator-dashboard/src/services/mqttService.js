@@ -1,6 +1,8 @@
 import mqtt from "mqtt";
 
-const MQTT_BROKER = process.env.REACT_APP_MQTT_BROKER || "ws://localhost:9001"; // Use environment variable
+// const MQTT_BROKER = process.env.REACT_APP_MQTT_BROKER || "ws://localhost:9001"; // Use environment variable
+const MQTT_BROKER = process.env.REACT_APP_MQTT_BROKER || `ws://${window.location.hostname}:9001`;
+
 const RECONNECT_INTERVAL = 5000; // Initial reconnect delay (5 seconds)
 const MAX_RECONNECT_ATTEMPTS = 10; // Limit reconnect attempts
 

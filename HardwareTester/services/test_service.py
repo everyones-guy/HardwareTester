@@ -1,4 +1,5 @@
 import os
+import socket
 from dotenv import load_dotenv
 import json
 from HardwareTester.utils.custom_logger import CustomLogger
@@ -12,7 +13,10 @@ logger = CustomLogger.get_logger("test_service")
 # Initialize API manager
 #api_manager = create_api_manager("http://localhost:5000/api")
 #api_manager = create_api_manager("http://localhost:5000/api", mqtt_broker="localhost")
-api_manager = create_api_manager(os.getenv("BASE_API_URL", "http://localhost:5000/api"), mqtt_broker=os.getenv("MQTT_BROKER", "localhost"))
+#api_manager = create_api_manager(os.getenv("BASE_API_URL", "http://localhost:5000/api"), mqtt_broker=os.getenv("MQTT_BROKER", "localhost"))
+api_manager = create_api_manager(os.getenv("BASE_API_URL", f"http://{socket.gethostbyname(socket.gethostname())}:5000/api"),
+                                 mqtt_broker=os.getenv("MQTT_BROKER", socket.gethostbyname(socket.gethostname())))
+
 
 
 class TestService:

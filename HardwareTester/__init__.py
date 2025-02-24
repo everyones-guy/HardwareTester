@@ -2,22 +2,22 @@ from flask import Flask, jsonify, render_template, request, send_from_directory
 from flask_login import current_user
 from flask_cors import CORS
 from datetime import datetime
-from cli import register_commands
+from .cli import register_commands
 import os
+import logging
 from dotenv import load_dotenv
 
 from HardwareTester.config import config
 from HardwareTester.extensions import db, socketio, migrate, csrf, login_manager, ma, bcrypt
 from HardwareTester.views import register_blueprints
 from HardwareTester.models.user_models import User
-from HardwareTester.utils.custom_logger import CustomLogger
 from HardwareTester.utils.token_utils import get_token
 
 # Load environment variables from .env
 load_dotenv()
 
 # Initialize logger
-logger = CustomLogger.get_logger("app")
+logger = logging.getLogger("app")
 
 def create_app(config_name="default", *args, **kwargs):
     """ven
@@ -99,22 +99,21 @@ def initialize_extensions(app):
         raise e
 
 
-def configure_logging(config_name):
-    """
-    Configure application logging based on the environment.
-    :param config_name: The configuration name ('development', 'testing', or 'production').
-    """
+import logging
 
-    level = logger.debug if config_name == "development" else logger.info
-    logger.basicConfig(
-        level=level,
+def configure_logging(config_name):
+    log_level = logging.DEBUG if config_name == "development" else logging.INFO
+
+    logging.basicConfig(
+        level=log_level,
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         handlers=[
-            logger.StreamHandler(),
-            logger.FileHandler("hardware_tester.log"),
+            logging.StreamHandler(),
+            logging.FileHandler("hardware_tester.log"),
         ],
     )
-    logger.getLogger("werkzeug").setLevel(logger.WARNING)  # Suppress Werkzeug logs
+    logging.getLogger("werkzeug").setLevel(logging.WARNING)  # Suppress Werkzeug logs
+
 
 
 def register_error_handlers(app):
@@ -151,13 +150,13 @@ def register_error_handlers(app):
         return render_template("401.html"), 401
 
 
-#def register_cli_commands(app):
-#    """
-#    Register CLI commands with the Flask app.
-#    :param app: Flask application instance.
-#    """
-#    app.cli.register_commands(cli)
-#    logger.info("CLI commands registered successfully.")
+def register_cli_commands(app):
+    """
+    Register CLI commands with the Flask app.
+    :param app: Flask application instance.
+    """
+    app.cli.register_commands(cli)
+    logger.info("CLI commands registered successfully.")
 
 
 @login_manager.user_loader

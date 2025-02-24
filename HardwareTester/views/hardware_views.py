@@ -1,4 +1,5 @@
 import os
+import socket
 from dotenv import load_dotenv
 from flask import Blueprint, jsonify, request, render_template
 from flask_login import login_required
@@ -12,7 +13,8 @@ from HardwareTester.utils.custom_logger import CustomLogger
 load_dotenv()
 
 # Fetch MQTT broker from .env with a fallback to "localhost"
-MQTT_BROKER = os.getenv("MQTT_BROKER", "localhost")
+MQTT_BROKER = os.getenv("MQTT_BROKER", socket.gethostbyname(socket.gethostname()))
+
 
 # Initialize logger
 logger = CustomLogger.get_logger("hardware_views")

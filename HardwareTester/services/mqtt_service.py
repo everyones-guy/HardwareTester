@@ -2,6 +2,7 @@ import os
 import json
 import time
 import threading
+import socket
 from dotenv import load_dotenv
 from paho.mqtt.client import Client
 from HardwareTester.utils.custom_logger import CustomLogger
@@ -10,7 +11,7 @@ from HardwareTester.utils.custom_logger import CustomLogger
 load_dotenv()
 
 # Fetch MQTT broker details from .env
-MQTT_BROKER = os.getenv("MQTT_BROKER", "localhost")
+MQTT_BROKER = os.getenv("MQTT_BROKER",  socket.gethostbyname(socket.gethostname()))
 MQTT_PORT = int(os.getenv("MQTT_PORT", 1883))
 MQTT_USERNAME = os.getenv("MQTT_USERNAME", None)
 MQTT_PASSWORD = os.getenv("MQTT_PASSWORD", None)

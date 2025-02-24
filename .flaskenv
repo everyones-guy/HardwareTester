@@ -14,19 +14,21 @@ FLASK_DEBUG=1  # Set to 0 in production
 # DATABASE_URL=postgresql+psycopg2://postgres:postgres@localhost:5432/hardware_tester
 # SQLALCHEMY_DATABASE_URI=postgresql+psycopg2://postgres:postgres@localhost:5432/hardware_tester
 # SQLALCHEMY_TRACK_MODIFICATIONS=FalseINSTANCE_DIR=C:/Users/Gary/source/repos/HardwareTester/HardwareTester/instance
-DATABASE_URL=postgresql+psycopg2://postgres:postgres@172.17.128.1:5432/hardware_tester
-SQLALCHEMY_DATABASE_URI=postgresql+psycopg2://postgres:postgres@172.17.128.1:5432/hardware_tester
+# DATABASE_URL=postgresql+psycopg2://postgres:postgres@172.17.128.1:5432/hardware_tester
+# SQLALCHEMY_DATABASE_URI=postgresql+psycopg2://postgres:postgres@172.17.128.1:5432/hardware_tester
+DATABASE_URL=postgresql+psycopg2://postgres:postgres@${HOST_IP:-127.0.0.1}:5432/hardware_tester
+SQLALCHEMY_DATABASE_URI=postgresql+psycopg2://postgres:postgres@${HOST_IP:-127.0.0.1}:5432/hardware_tester
 SQLALCHEMY_TRACK_MODIFICATIONS=False
 
 # Network settings
-HOST=172.17.128.1
+HOST=${HOST:-127.0.0.1}
 PORT=5000
 BASE_URL=http://172.17.128.1:5000
 SECURE_BASE_URL=https://172.17.128.1:5000
 BASE_API_URL=http://172.17.128.1:5000/api
 
 # MQTT configuration
-MQTT_BROKER=172.17.128.1
+MQTT_BROKER=${HOST_IP:-127.0.0.1}
 MQTT_PORT=1883
 MQTT_USERNAME=
 MQTT_PASSWORD=
