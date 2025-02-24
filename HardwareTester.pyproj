@@ -33,7 +33,7 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="cli.py" />
+    <Compile Include="old\cli.py" />
     <Compile Include="HardwareTester\cli.py">
       <SubType>Code</SubType>
     </Compile>
@@ -308,6 +308,7 @@
     <Folder Include="HardwareTester\templates\ssh\" />
     <Folder Include="HardwareTester\templates\ssh\modals\" />
     <Folder Include="instance\" />
+    <Folder Include="old\" />
     <Folder Include="tests\" />
     <Folder Include="secrets\" />
     <Folder Include="HardwareTester\templates\auth\" />

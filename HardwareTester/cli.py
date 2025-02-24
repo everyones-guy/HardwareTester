@@ -1,5 +1,7 @@
 import click
 from flask.cli import with_appcontext
+from flask_migrate import Migrate, MigrateCommand
+
 from HardwareTester.extensions import db
 from HardwareTester.utils.bcrypt_utils import hash_password
 from HardwareTester.utils.custom_logger import CustomLogger
@@ -33,12 +35,21 @@ def cli():
 # ----------------------
 @cli.group(help="Database management commands.")
 def db():
+    """Database management commands."""
     pass
 
+# Attach Flask-Migrate’s built-in commands to `db`
+db.add_command("init", MigrateCommand.init)
+db.add_command("migrate", MigrateCommand.migrate)
+db.add_command("upgrade", MigrateCommand.upgrade)
+db.add_command("downgrade", MigrateCommand.downgrade)
+db.add_command("show", MigrateCommand.show)
 
-@db.command("init", help="Initialize the database.")
+
+@db.command("custom-init", help="Custom database initialization.")
 @with_appcontext
 def init_db():
+    """Manually initialize the database and create an admin user."""
     try:
         db.create_all()
         logger.info("Database initialized.")
@@ -47,10 +58,9 @@ def init_db():
         # Add default admin user
         admin_email = os.getenv("ADMIN_EMAIL", "admin@example.com")
         admin_password = os.getenv("ADMIN_PASSWORD", "adminPassword1!")
+
         if not User.query.filter_by(email=admin_email).first():
             hashed_password = hash_password(admin_password)
-            #hashed_password = hash_password(admin_password)
-
             admin = User(email=admin_email, username="admin", password=hashed_password, role="admin")
             db.session.add(admin)
             db.session.commit()
@@ -62,7 +72,7 @@ def init_db():
         click.echo(f"Error: {e}")
 
 
-@db.command("drop", help="Drop all database tables.")
+@db.command("custom-drop", help="Drop all database tables.")
 @with_appcontext
 def drop_db():
     try:
@@ -74,7 +84,7 @@ def drop_db():
         click.echo(f"Error: {e}")
 
 
-@db.command("seed", help="Seed the database with initial data.")
+@db.command("custom-seed", help="Seed the database with initial data.")
 @with_appcontext
 def seed_data():
     try:
@@ -364,10 +374,3 @@ def clear_mock_data():
         logger.error(f"Error clearing mock data: {e}")
         click.echo(f"Error clearing mock data: {e}")
 
-# ----------------------
-# CLI Registration
-# ----------------------
-def register_commands(app):
-    """Register CLI commands with the Flask app."""
-    app.cli.add_command(cli)
-    logger.info("CLI commands registered successfully.")

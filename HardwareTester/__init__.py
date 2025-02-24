@@ -3,7 +3,7 @@ from flask_migrate import Migrate
 from flask_login import current_user
 from flask_cors import CORS
 from datetime import datetime
-from .cli import register_commands
+
 import os
 import logging
 from dotenv import load_dotenv
@@ -154,12 +154,14 @@ def register_error_handlers(app):
         return render_template("401.html"), 401
 
 
+# ----------------------
+# CLI Registration
+# ----------------------
 def register_cli_commands(app):
-    """
-    Register CLI commands with the Flask app.
-    :param app: Flask application instance.
-    """
-    app.cli.register_commands(cli)
+    """Register CLI commands with the Flask app."""
+    from HardwareTester.cli import cli
+
+    app.cli.add_command(cli)
     logger.info("CLI commands registered successfully.")
 
 
