@@ -1,4 +1,5 @@
 import os
+import socket
 from dotenv import load_dotenv
 
 from HardwareTester.utils.api_manager import create_api_manager
@@ -11,7 +12,11 @@ load_dotenv()
 logger = CustomLogger.get_logger("test_plan_manager")
 
 # Initialize APIManager
-api_manager = create_api_manager(os.getenv("BASE_API_URL", "http://localhost:5000/api"))
+# api_manager = create_api_manager(os.getenv("BASE_API_URL", "http://localhost:5000/api"))
+#api_manager = create_api_manager(os.getenv("BASE_API_URL", f"http://{socket.gethostbyname(socket.gethostname())}:5000/api"),
+#                                 mqtt_broker=os.getenv("MQTT_BROKER", socket.gethostbyname(socket.gethostname())))
+
+api_manager = get_api_manager()
 
 def list_test_plans():
     """Fetch and display all test plans."""
@@ -51,6 +56,12 @@ def delete_test_plan(plan_id):
         return
     logger.info(f"Test plan deleted successfully: {response}")
     print(f"Deleted Test Plan ID {plan_id}")
+
+def get_api_manager():
+    return create_api_manager(
+        os.getenv("BASE_API_URL", f"http://{socket.gethostbyname(socket.gethostname())}:5000/api"),
+        mqtt_broker=os.getenv("MQTT_BROKER", socket.gethostbyname(socket.gethostname()))
+    )
 
 if __name__ == "__main__":
     list_test_plans()
