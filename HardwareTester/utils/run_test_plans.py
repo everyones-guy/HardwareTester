@@ -1,4 +1,4 @@
-from HardwareTester.utils.api_manager import create_api_manager
+from HardwareTester.utils.api_manager import get_api_manager
 from HardwareTester.utils.custom_logger import CustomLogger
 
 import os
@@ -10,7 +10,7 @@ load_dotenv()
 logger = CustomLogger.get_logger("TestRunner")
 
 # Initialize APIManager
-api_manager = create_api_manager(os.getenv("BASE_API_URL","http://localhost:5000/api"))
+api_manager = get_api_manager()
 
 def run_test_plan(test_plan_id):
     """Run a test plan."""

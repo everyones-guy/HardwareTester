@@ -1,11 +1,11 @@
-from HardwareTester.utils.api_manager import create_api_manager
-from HardwareTester.utils.logger import Logger
+from HardwareTester.utils.api_manager import get_api_manager
+from HardwareTester.utils.custom_logger import Logger
 
 # Initialize Logger
 logger = Logger(name="TestPlanManager", log_file="logs/test_plan_manager.log", level="INFO")
 
 # Initialize APIManager
-api_manager = create_api_manager("https://example.com/api")
+api_manager = get_api_manager()
 
 def list_test_plans():
     """Fetch and display all test plans."""

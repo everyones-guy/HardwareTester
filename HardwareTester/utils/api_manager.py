@@ -7,12 +7,17 @@ from HardwareTester.utils.custom_logger import CustomLogger
 from HardwareTester.services.mqtt_service import MQTTService
 from HardwareTester.services.hardware_service import HardwareService
 
-
 # Load up the env file
 load_dotenv()
 
-# Fetch MQTT broker from .env with a fallback to "localhost"
-MQTT_BROKER = os.getenv("MQTT_BROKER", socket.gethostbyname(socket.gethostname()))
+# Fetch MQTT broker details from .env
+def get_local_ip():
+    try:
+        return socket.gethostbyname(socket.gethostname())
+    except socket.gaierror:
+        return "127.0.0.1"  # Fallback if no network is available
+
+MQTT_BROKER = os.getenv("MQTT_BROKER", get_local_ip())
 
 # Initialize logger
 logger = CustomLogger.get_logger("api_manager")
@@ -20,15 +25,17 @@ logger = CustomLogger.get_logger("api_manager")
 class APIManager:
     """Library for managing API connections and requests."""
     def __init__(self, base_url, mqtt_broker=MQTT_BROKER, default_timeout=30):
-        """
-        Initialize the API Manager.
-        :param base_url: Base URL of the API.
-        :param default_timeout: Default timeout for requests in seconds.
-        """
         self.base_url = base_url.rstrip("/")
         self.default_timeout = default_timeout
-        self.mqtt_service = MQTTService(broker=mqtt_broker)  # Pass the broker from .env
+        self.mqtt_broker = mqtt_broker
+        try:
+            self.mqtt_service = MQTTService(broker=mqtt_broker)
+        except Exception as e:
+            logger.error(f"Failed to initialize MQTTService: {e}")
+            self.mqtt_service = None
+
         logger.info(f"APIManager initialized with base URL: {self.base_url}, MQTT Broker: {mqtt_broker}")
+
 
     def _log_request(self, method, url, payload=None, headers=None):
         """Log request details."""
@@ -45,19 +52,11 @@ class APIManager:
         logger.debug(f"Response Body: {response.text}")
 
     def get(self, endpoint, params=None, headers=None):
-        """
-        Make a GET request.
-        :param endpoint: API endpoint to hit.
-        :param params: Query parameters for the request.
-        :param headers: Additional headers for the request.
-        :return: Response JSON or error.
-        """
         url = f"{self.base_url}/{endpoint.lstrip('/')}"
-        self._log_request("GET", url, payload=params, headers=headers)
+        logger.debug(f"GET {url}")
 
         try:
             response = requests.get(url, params=params, headers=headers, timeout=self.default_timeout)
-            self._log_response(response)
             response.raise_for_status()
             return response.json()
         except RequestException as e:
@@ -73,11 +72,10 @@ class APIManager:
         :return: Response JSON or error.
         """
         url = f"{self.base_url}/{endpoint.lstrip('/')}"
-        self._log_request("POST", url, payload=payload, headers=headers)
+        logger.debug(f"POST {url}")
 
         try:
             response = requests.post(url, json=payload, headers=headers, timeout=self.default_timeout)
-            self._log_response(response)
             response.raise_for_status()
             return response.json()
         except RequestException as e:
@@ -173,18 +171,16 @@ class APIManager:
             logger.error(f"Failed to start MQTT communication for device {device.get('id', 'UNKNOWN')}: {e}")
             return False
 
+# Global instance (ensures only one APIManager exists)
+api_manager = None
 
-
-def create_api_manager(base_url, mqtt_broker=MQTT_BROKER):
-    """
-    Utility function to create an APIManager instance.
-    :param base_url: Base URL of the API.
-    :param mqtt_broker: MQTT broker address (defaults to environment variable).
-    :return: APIManager instance.
-    """
-    # api_manager = APIManager(base_url, mqtt_broker)
-    api_manager = create_api_manager(os.getenv("BASE_API_URL", f"http://{socket.gethostbyname(socket.gethostname())}:5000/api"),
-                                 mqtt_broker=os.getenv("MQTT_BROKER", socket.gethostbyname(socket.gethostname())))
-
-
+def get_api_manager():
+    """Ensures only one APIManager instance exists."""
+    global api_manager
+    if api_manager is None:
+        logger.info("Creating APIManager instance for the first time...")
+        api_manager = APIManager(
+            os.getenv("BASE_API_URL", f"http://{get_local_ip()}:5000/api"),
+            mqtt_broker=os.getenv("MQTT_BROKER", get_local_ip())
+        )
     return api_manager

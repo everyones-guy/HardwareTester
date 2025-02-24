@@ -1,11 +1,11 @@
-from HardwareTester.utils.api_manager import create_api_manager
-from HardwareTester.utils.logger import Logger
+from HardwareTester.utils.api_manager import get_api_manager
+from HardwareTester.utils.custom_logger import Logger
 
 # Initialize Logger
 logger = Logger(name="TestRunner", log_file="logs/test_runner.log", level="INFO")
 
 # Initialize APIManager
-api_manager = create_api_manager("https://example.com/api")
+api_manager = get_api_manager("https://example.com/api")
 
 def run_test_plan(test_plan_id):
     """Run a test plan."""
