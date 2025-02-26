@@ -1,43 +1,59 @@
 import paramiko
 from HardwareTester.utils.custom_logger import CustomLogger
+from HardwareTester.extensions import db
+from HardwareTester.models.device_models import Device
 
 # Initialize logger
 logger = CustomLogger.get_logger("ssh_service")
 
 
 class SSHService:
-    def __init__(self, device_id, host=None, port=22):
+    def __init__(self, device_id, host=None, port=22, username=None, password=None, key_file=None):
         """
-        Initialize the SSH service with a device ID and optional host and port.
+        Initialize the SSH service with a device ID and optional host, port, username, password, and key file.
         """
         self.device_id = device_id
         self.host = host or self.get_device_host(device_id)
         self.port = port
+        self.username = username
+        self.password = password
+        self.key_file = key_file
         self.ssh_client = None
 
     def get_device_host(self, device_id):
         """
         Retrieve the device host from the database or configuration.
         """
-        # Replace this with your actual database or configuration logic
-        logger.info(f"Fetching host for device {device_id}")
-        return "192.168.1.100"  # Mocked host address
+        logger.info(f"Fetching host for device {device_id} from database")
+        device = db.session.query(Device).filter_by(device_id=device_id).first()
+        if device:
+            return device.device_metadata.get("ip_address", "192.168.1.100")
+        logger.warning(f"Device {device_id} not found in database, using default IP")
+        return "192.168.1.100"
 
-    def connect(self, username, password):
+    def connect(self):
         """
-        Establish an SSH connection.
+        Establish an SSH connection using password or key-based authentication.
         """
         try:
             logger.info(f"Establishing SSH connection to {self.host}:{self.port} for device {self.device_id}")
             self.ssh_client = paramiko.SSHClient()
             self.ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-            self.ssh_client.connect(
-                hostname=self.host,
-                port=self.port,
-                username=username,
-                password=password,
-                timeout=10
-            )
+            
+            connect_params = {
+                "hostname": self.host,
+                "port": self.port,
+                "username": self.username,
+                "timeout": 10
+            }
+            
+            if self.key_file:
+                connect_params["key_filename"] = self.key_file
+            else:
+                connect_params["password"] = self.password
+            
+            self.ssh_client.connect(**connect_params)
+            self.ssh_client.get_transport().set_keepalive(30)
             logger.info(f"SSH connection established to {self.host} for device {self.device_id}")
             return True
         except paramiko.AuthenticationException as e:
@@ -54,9 +70,11 @@ class SSHService:
         """
         Execute a command on the remote device.
         """
-        if not self.ssh_client:
-            raise ConnectionError("SSH connection not established.")
-
+        if not self.ssh_client or not self.ssh_client.get_transport() or not self.ssh_client.get_transport().is_active():
+            logger.warning("SSH connection lost. Attempting to reconnect.")
+            if not self.connect():
+                return {"success": False, "error": "Reconnection failed."}
+        
         try:
             logger.info(f"Executing command on {self.device_id}: {command}")
             stdin, stdout, stderr = self.ssh_client.exec_command(command)
@@ -84,9 +102,21 @@ class SSHService:
         else:
             logger.warning(f"No SSH connection to close for device {self.device_id}")
 
+    def __enter__(self):
+        """
+        Context manager entry point.
+        """
+        self.connect()
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        """
+        Context manager exit point, ensuring connection closure.
+        """
+        self.disconnect()
+
     def __del__(self):
         """
         Ensure the SSH connection is closed when the object is deleted.
         """
         self.disconnect()
-

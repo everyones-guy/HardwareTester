@@ -34,7 +34,7 @@ class Config:
     FLASK_CONFIG = os.getenv("FLASK_CONFIG", "development")
 
     # Network settings
-    HOST = os.getenv("HOST", "localhost")
+    HOST = os.getenv("HOST_IP", get_local_ip())
     PORT = int(os.getenv("PORT", 5000))
 
     # Debugging and Logging

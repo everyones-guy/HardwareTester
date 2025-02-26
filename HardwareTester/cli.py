@@ -1,6 +1,7 @@
 import click
 from flask.cli import with_appcontext
-from flask_migrate import Migrate, MigrateCommand
+from flask_migrate import Migrate
+# , MigrateCommand
 
 from HardwareTester.extensions import db
 from HardwareTester.utils.bcrypt_utils import hash_password
@@ -39,11 +40,11 @@ def db():
     pass
 
 # Attach Flask-Migrate’s built-in commands to `db`
-db.add_command("init", MigrateCommand.init)
-db.add_command("migrate", MigrateCommand.migrate)
-db.add_command("upgrade", MigrateCommand.upgrade)
-db.add_command("downgrade", MigrateCommand.downgrade)
-db.add_command("show", MigrateCommand.show)
+# db.add_command("init", MigrateCommand.init)
+# db.add_command("migrate", MigrateCommand.migrate)
+# db.add_command("upgrade", MigrateCommand.upgrade)
+# db.add_command("downgrade", MigrateCommand.downgrade)
+# db.add_command("show", MigrateCommand.show)
 
 
 @db.command("custom-init", help="Custom database initialization.")
