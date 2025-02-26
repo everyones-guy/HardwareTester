@@ -8,11 +8,11 @@ import os
 import logging
 from dotenv import load_dotenv
 
-from HardwareTester.config import config
-from HardwareTester.extensions import db, socketio, migrate, csrf, login_manager, ma, bcrypt
-from HardwareTester.views import register_blueprints
-from HardwareTester.models.user_models import User
-from HardwareTester.utils.token_utils import get_token
+from .config import config
+from .extensions import db, socketio, migrate, csrf, login_manager, ma, bcrypt
+from .views import register_blueprints
+from .models.user_models import User
+from .utils.token_utils import get_token
 
 # Load environment variables from .env
 load_dotenv()
@@ -46,7 +46,7 @@ def create_app(config_name="default", *args, **kwargs):
     initialize_extensions(app)
 
     # Register CLI commands
-    register_commands(app)
+    register_cli_commands(app)
 
     # Register blueprints and error handlers
     register_blueprints(app)

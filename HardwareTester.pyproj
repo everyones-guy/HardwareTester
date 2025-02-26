@@ -190,7 +190,7 @@
     <Compile Include="HardwareTester\services\test_plan_service.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\services\valve_service.py">
+    <Compile Include="HardwareTester\services\controller_service.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="HardwareTester\utils\api_manager.py">
@@ -232,7 +232,7 @@
     <Compile Include="HardwareTester\views\test_plan_views.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\views\valve_views.py">
+    <Compile Include="HardwareTester\views\controller_views.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="HardwareTester\views\__init__.py">
