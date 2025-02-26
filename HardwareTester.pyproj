@@ -33,6 +33,7 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="cli.py" />
     <Compile Include="old\cli.py" />
     <Compile Include="HardwareTester\cli.py">
       <SubType>Code</SubType>
@@ -431,6 +432,7 @@
     <Content Include="logs\app.log" />
     <Content Include="logs\flask_app.log" />
     <Content Include="readme.md" />
+    <Content Include="repo_compare.sh" />
     <Content Include="requirements.txt" />
     <Content Include="HardwareTester\static\content\bootstrap.css" />
     <Content Include="HardwareTester\static\content\bootstrap.min.css" />
