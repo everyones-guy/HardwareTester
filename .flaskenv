@@ -28,8 +28,8 @@ PORT=5000
 # BASE_URL=http://172.17.128.1:5000
 # SECURE_BASE_URL=https://172.17.128.1:5000
 # BASE_API_URL=http://172.17.128.1:5000/api
-BASE_URL=http://127.0.0.1
-SECURE_BASE_URL=https://127.0.0.1
+BASE_URL=http://127.0.0.1:${PORT}
+SECURE_BASE_URL=https://127.0.0.1:${PORT}
 BASE_API_URL=http://127.0.0.1:5000/api
 
 # MQTT configuration
@@ -44,11 +44,11 @@ LOG_LEVEL=DEBUG
 LOG_FILE=app.log
 
 # File Upload Settings
-UPLOAD_ROOT=c:/Users/Gary/source/repos/HardwareTester/HardwareTester/uploads
-UPLOAD_FOLDER=c:/Users/Gary/source/repos/HardwareTester/HardwareTester/uploads
-UPLOAD_BLUEPRINTS_FOLDER=c:/Users/Gary/source/repos/HardwareTester/HardwareTester/uploads/blueprints
-UPLOAD_CONFIGS_FOLDER=c:/Users/Gary/source/repos/HardwareTester/HardwareTester/uploads/configs
-UPLOAD_MODIFIED_JSON_FILES=c:/Users/Gary/source/repos/HardwareTester/HardwareTester/uploads/modified_json_files
+UPLOAD_ROOT=/mnt/c/Users/Gary/source/repos/HardwareTester/HardwareTester/uploads
+UPLOAD_FOLDER=/mnt/c/Users/Gary/source/repos/HardwareTester/HardwareTester/uploads
+UPLOAD_BLUEPRINTS_FOLDER=/mnt/c/Users/Gary/source/repos/HardwareTester/HardwareTester/uploads/blueprints
+UPLOAD_CONFIGS_FOLDER=/mnt/c/Users/Gary/source/repos/HardwareTester/HardwareTester/uploads/configs
+UPLOAD_MODIFIED_JSON_FILES=/mnt/c/Users/Gary/source/repos/HardwareTester/HardwareTester/uploads/modified_json_files
 
 #UPLOAD_BLUEPRINTS_FOLDER=blueprints
 #UPLOAD_CONFIGS_FOLDER=configs
@@ -63,9 +63,13 @@ ALLOWED_SPEC_SHEET_EXTENSIONS=pdf,docx,xlsx
 ALLOWED_TEST_PLAN_EXTENSIONS=pdf,csv,txt
 
 # Other settings
-DEFAULT_SERIAL_PORT=COM3  # Default serial port for communication
-DEFAULT_BAUDRATE=115200  # Default baud rate for serial communication
+# Default serial port for communication
+DEFAULT_SERIAL_PORT=COM3
+# Default baud rate for serial communication
+DEFAULT_BAUDRATE=115200
 
 # Security settings
-SESSION_COOKIE_SECURE=False  # Set to True in production
-REMEMBER_COOKIE_SECURE=False  # Set to True in production
+# Set to True in production
+SESSION_COOKIE_SECURE=False  
+# Set to True in production
+REMEMBER_COOKIE_SECURE=False  
