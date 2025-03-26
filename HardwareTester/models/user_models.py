@@ -14,6 +14,7 @@ class UserRole(Enum):
 
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
+    __table_args__ = {'schema': 'public'}
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=True)
     email = db.Column(db.String(150), unique=True, nullable=False)
@@ -34,6 +35,7 @@ class User(UserMixin, db.Model):
 
 class Role(db.Model):
     __tablename__ = 'roles'
+    __table_args__ = {'schema': 'public'}
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), unique=True, nullable=False)
     description = db.Column(db.String(255))
@@ -44,6 +46,7 @@ class Role(db.Model):
 
 class Token(db.Model):
     __tablename__ = 'tokens'
+    __table_args__ = {'schema': 'public'}
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     token = db.Column(db.String(255), unique=True, nullable=False)
@@ -59,6 +62,7 @@ class Token(db.Model):
 
 class UserSettings(db.Model):
     __tablename__ = 'user_settings'
+    __table_args__ = {'schema': 'public'}
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     setting_key = db.Column(db.String(255), nullable=False)

@@ -5,6 +5,7 @@ from datetime import datetime
 
 class TestPlan(db.Model):
     __tablename__ = "test_plans"
+    __table_args__ = {'schema': 'public'}
 
     id = db.Column(Integer, primary_key=True)
     name = db.Column(String(255), nullable=False, unique=True)
@@ -36,6 +37,7 @@ class TestPlan(db.Model):
 
 class TestStep(db.Model):
     __tablename__ = "test_steps"
+    __table_args__ = {'schema': 'public'}
 
     id = db.Column(Integer, primary_key=True)
     action = db.Column(String(255), nullable=False)

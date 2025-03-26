@@ -5,6 +5,7 @@ from HardwareTester.extensions import db
 
 class DynamicConfiguration(db.Model):
     __tablename__ = "dynamic_configurations"
+    __table_args__ = {'schema': 'public'}
     
     id = db.Column(db.Integer, primary_key=True)
     type = db.Column(db.String(50), nullable=False)

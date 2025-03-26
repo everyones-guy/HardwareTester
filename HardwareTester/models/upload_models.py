@@ -4,6 +4,7 @@ from datetime import datetime
 
 class UploadedFile(db.Model):
     __tablename__ = 'uploaded_files'
+    __table_args__ = {'schema': 'public'}
 
     id = db.Column(db.Integer, primary_key=True)
     filename = db.Column(db.String(255), nullable=False)

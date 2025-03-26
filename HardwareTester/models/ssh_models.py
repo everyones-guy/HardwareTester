@@ -6,6 +6,7 @@ from HardwareTester.utils.bcrypt_utils import hash_password, check_password
 
 class SSHConnection(db.Model):
     __tablename__ = "ssh_connections"
+    __table_args__ = {'schema': 'public'}
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(255), nullable=False, unique=True, index=True)

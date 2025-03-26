@@ -5,6 +5,7 @@ from HardwareTester.extensions import db
 
 class Device(db.Model):
     __tablename__ = "devices"
+    __table_args__ = {'schema': 'public'}
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     device_id = db.Column(db.String(255), nullable=False, unique=True, index=True)
@@ -22,6 +23,7 @@ class Device(db.Model):
 
 class Peripheral(db.Model):
     __tablename__ = "peripherals"
+    __table_args__ = {'schema': 'public'}
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(255), nullable=False)
@@ -41,6 +43,7 @@ class Peripheral(db.Model):
 
 class Controller(db.Model):
     __tablename__ = "controllers"
+    __table_args__ = {'schema': 'public'}
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(255), nullable=False, unique=True)
@@ -61,6 +64,7 @@ class Controller(db.Model):
 
 class Emulation(db.Model):
     __tablename__ = "emulations"
+    __table_args__ = {'schema': 'public'}
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     controller_id = db.Column(db.Integer, ForeignKey("controllers.id"), nullable=False, index=True)
@@ -84,6 +88,7 @@ class Emulation(db.Model):
 
 class Blueprint(db.Model):
     __tablename__ = "blueprints"
+    __table_args__ = {'schema': 'public'}
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(255), nullable=False, unique=True, index=True)
@@ -100,6 +105,7 @@ class Blueprint(db.Model):
 
 class Firmware(db.Model):
     __tablename__ = "firmwares"
+    __table_args__ = {'schema': 'public'}
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     hash = db.Column(db.String(64), unique=True, nullable=False)
@@ -114,6 +120,7 @@ class Firmware(db.Model):
 
 class DeviceFirmwareHistory(db.Model):
     __tablename__ = "device_firmware_history"
+    __table_args__ = {'schema': 'public'}
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     device_id = db.Column(db.Integer, ForeignKey("devices.id"), nullable=False)
@@ -130,6 +137,7 @@ class DeviceFirmwareHistory(db.Model):
 
 class Valve(db.Model):
     __tablename__ = "valves"
+    __table_args__ = {'schema': 'public'}
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(255), nullable=False)

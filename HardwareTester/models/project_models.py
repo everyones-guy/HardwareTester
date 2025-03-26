@@ -4,6 +4,7 @@ from datetime import datetime
 
 class Project(db.Model):
     __tablename__ = 'projects'
+    __table_args__ = {'schema': 'public'}
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), nullable=False, unique=True)
     description = db.Column(db.Text, nullable=True)
@@ -16,6 +17,7 @@ class Project(db.Model):
 
 class Milestone(db.Model):
     __tablename__ = 'milestones'
+    __table_args__ = {'schema': 'public'}
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), nullable=False)
     project_id = db.Column(db.Integer, db.ForeignKey('projects.id'), nullable=False)

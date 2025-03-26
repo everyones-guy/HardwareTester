@@ -4,6 +4,7 @@ from datetime import datetime
 
 class DashboardData(db.Model):
     __tablename__ = 'dashboard_data'
+    __table_args__ = {'schema': 'public'}
     
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)  # Foreign key to User table

@@ -6,6 +6,7 @@ from HardwareTester.extensions import db
 
 class Configuration(db.Model):
     __tablename__ = "configurations"
+    __table_args__ = {'schema': 'public'}
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), nullable=False, unique=True)
@@ -32,6 +33,7 @@ class Configuration(db.Model):
 
 class Settings(db.Model):
     __tablename__ = "settings"
+    __table_args__ = {'schema': 'public'}
 
     id = db.Column(db.Integer, primary_key=True)
     key = db.Column(db.String(100), unique=True, nullable=False)
@@ -58,6 +60,7 @@ class Settings(db.Model):
 
 class GlobalSettings(db.Model):
     __tablename__ = "global_settings"
+    __table_args__ = {'schema': 'public'}
 
     id = db.Column(db.Integer, primary_key=True)
     setting_key = db.Column(db.String(255), unique=True, nullable=False)
@@ -86,6 +89,7 @@ class GlobalSettings(db.Model):
 
 class DynamicConfiguration(db.Model):
     __tablename__ = "dynamic_configurations"
+    __table_args__ = {'schema': 'public'}
     
     id = db.Column(db.Integer, primary_key=True)
     type = db.Column(db.String(50), nullable=False)
