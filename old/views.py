@@ -1,8 +1,8 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
-from HardwareTester.extensions import db
-from HardwareTester.models import Valve, TestPlan
-from HardwareTester.utils.parsers import parse_test_plan, parse_spec_sheet
-from HardwareTester.utils.validators import validate_file_upload
+from Hardware_Tester_App.extensions import db
+from Hardware_Tester_App.models import Valve, TestPlan
+from Hardware_Tester_App.utils.parsers import parse_test_plan, parse_spec_sheet
+from Hardware_Tester_App.utils.validators import validate_file_upload
 import os
 
 # Blueprint for main views
@@ -100,6 +100,6 @@ def run_test_plan(test_plan_id):
 @main.route("/get-system-info", methods=["GET"])
 def get_system_info():
     """Fetch and display system information."""
-    from HardwareTester.utils.hardware_manager import get_system_info
+    from Hardware_Tester_App.utils.hardware_manager import get_system_info
     info = get_system_info()
     return jsonify({"success": True, "info": info})

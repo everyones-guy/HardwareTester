@@ -1,11 +1,11 @@
 from flask import Blueprint, render_template, request, jsonify
 from flask_login import login_required, current_user
-from HardwareTester.services.dashboard_service import DashboardService
-from HardwareTester.services.test_plan_service import TestPlanService
-from HardwareTester.services.system_status_service import SystemStatusService
-from HardwareTester.models.user_models import UserRole
-from HardwareTester.extensions import logger
-#from HardwareTester.utils.custom_logger import CustomLogger
+from Hardware_Tester_App.services.dashboard_service import DashboardService
+from Hardware_Tester_App.services.test_plan_service import TestPlanService
+from Hardware_Tester_App.services.system_status_service import SystemStatusService
+from Hardware_Tester_App.models.user_models import UserRole
+from Hardware_Tester_App.extensions import logger
+#from Hardware_Tester_App.utils.custom_logger import CustomLogger
 
 # Initialize logger
 #logger = CustomLogger.get_logger("dashboard_views")

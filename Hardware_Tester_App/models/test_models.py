@@ -6,7 +6,7 @@
 # The TestPlan model has the following attributes:
     
 
-from HardwareTester.extensions import db
+from Hardware_Tester_App.extensions import db
 from datetime import datetime
 
 

@@ -10,7 +10,7 @@ class APITestCase(unittest.TestCase):
     def setUp(self):
         """Set up the Flask app and client."""
         #app = Flask(__name__)
-        app = Flask(__name__, template_folder="C:/Users/Gary/source/repos/HardwareTester/Hardware_Tester_App/templates")  # Explicitly set template folder
+        app = Flask(__name__, template_folder="C:/Users/Gary/source/repos/Hardware_Tester_App/Hardware_Tester_App/templates")  # Explicitly set template folder
         app.register_blueprint(api_bp, url_prefix="/api")
         app.config["TESTING"] = True
         app.config["SECRET_KEY"] = "test_secret_key"  # Set the secret key for CSRF

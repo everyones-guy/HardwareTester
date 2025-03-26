@@ -2,10 +2,10 @@
 
 from flask import Blueprint, request, jsonify, render_template
 from flask_login import login_required
-from HardwareTester.extensions import logger
-from HardwareTester.services.upload_service import UploadService
-from HardwareTester.services.hardware_service import HardwareService
-#from HardwareTester.utils.custom_logger import CustomLogger
+from Hardware_Tester_App.extensions import logger
+from Hardware_Tester_App.services.upload_service import UploadService
+from Hardware_Tester_App.services.hardware_service import HardwareService
+#from Hardware_Tester_App.utils.custom_logger import CustomLogger
 import json
 import os
 

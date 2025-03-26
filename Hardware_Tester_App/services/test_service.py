@@ -2,8 +2,8 @@ import os
 import socket
 from dotenv import load_dotenv
 import json
-from HardwareTester.utils.custom_logger import CustomLogger
-from HardwareTester.utils.api_manager import get_api_manager
+from Hardware_Tester_App.utils.custom_logger import CustomLogger
+from Hardware_Tester_App.utils.api_manager import get_api_manager
 
 load_dotenv()
 

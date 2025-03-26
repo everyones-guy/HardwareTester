@@ -13,13 +13,13 @@ from threading import Lock
 from sqlalchemy.sql import func
 from flask import current_app
 
-from HardwareTester.extensions import db
-from HardwareTester.utils.custom_logger import CustomLogger
-from HardwareTester.services.mqtt_client import MQTTClient
-from HardwareTester.models.device_models import Emulation, Blueprint, Controller, Peripheral  # Replace with actual path to your model
-from HardwareTester.models.upload_models import UploadedFile
-from HardwareTester.services.peripherals_service import PeripheralsService
-from HardwareTester.services.serial_service import SerialService
+from Hardware_Tester_App.extensions import db
+from Hardware_Tester_App.utils.custom_logger import CustomLogger
+from Hardware_Tester_App.services.mqtt_client import MQTTClient
+from Hardware_Tester_App.models.device_models import Emulation, Blueprint, Controller, Peripheral  # Replace with actual path to your model
+from Hardware_Tester_App.models.upload_models import UploadedFile
+from Hardware_Tester_App.services.peripherals_service import PeripheralsService
+from Hardware_Tester_App.services.serial_service import SerialService
 from flask_login import current_user, login_required
 
 # Load environment variables from .env

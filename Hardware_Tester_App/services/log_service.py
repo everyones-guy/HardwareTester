@@ -1,7 +1,7 @@
 from datetime import datetime
-from HardwareTester.models.log_models import ActivityLog, Notification
-from HardwareTester.extensions import db
-from HardwareTester.utils.custom_logger import CustomLogger
+from Hardware_Tester_App.models.log_models import ActivityLog, Notification
+from Hardware_Tester_App.extensions import db
+from Hardware_Tester_App.utils.custom_logger import CustomLogger
 
 # Initialize logger
 logger = CustomLogger.get_logger("log_service")

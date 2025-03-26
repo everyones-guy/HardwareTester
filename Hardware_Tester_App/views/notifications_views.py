@@ -1,7 +1,7 @@
 
 from flask import Blueprint, jsonify, request, render_template
 from flask_login import login_required
-from HardwareTester.services.notifications_service import NotificationService
+from Hardware_Tester_App.services.notifications_service import NotificationService
 
 notifications_bp = Blueprint("notifications", __name__)
 

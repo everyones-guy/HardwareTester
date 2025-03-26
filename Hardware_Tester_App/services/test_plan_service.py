@@ -1,5 +1,5 @@
-from HardwareTester.extensions import db, logger
-from HardwareTester.models.test_models import TestPlan, TestStep
+from Hardware_Tester_App.extensions import db, logger
+from Hardware_Tester_App.models.test_models import TestPlan, TestStep
 import os
 import psutil
 

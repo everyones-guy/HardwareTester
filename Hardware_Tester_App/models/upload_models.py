@@ -1,6 +1,6 @@
 # models/upload_models.py
 
-from HardwareTester.extensions import db
+from Hardware_Tester_App.extensions import db
 from datetime import datetime
 
 class UploadedFile(db.Model):

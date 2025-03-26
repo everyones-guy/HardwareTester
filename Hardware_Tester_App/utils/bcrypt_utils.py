@@ -1,5 +1,5 @@
-from HardwareTester.extensions import bcrypt
-from HardwareTester.utils.custom_logger import CustomLogger
+from Hardware_Tester_App.extensions import bcrypt
+from Hardware_Tester_App.utils.custom_logger import CustomLogger
 
 # Initialize bcrypt and logger
 logger = CustomLogger.get_logger("bcrypt_utils")

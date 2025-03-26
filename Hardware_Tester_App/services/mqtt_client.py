@@ -5,9 +5,9 @@ import hashlib
 import os
 from pathlib import Path
 from dotenv import load_dotenv
-from HardwareTester.services.mqtt_service import MQTTService
-from HardwareTester.utils.custom_logger import CustomLogger
-from HardwareTester.extensions import socketio
+from Hardware_Tester_App.services.mqtt_service import MQTTService
+from Hardware_Tester_App.utils.custom_logger import CustomLogger
+from Hardware_Tester_App.extensions import socketio
 
 # Load environment variables from .env
 load_dotenv()

@@ -1,9 +1,9 @@
 
 # reports_service.py
 import datetime
-from HardwareTester.extensions import db
-from HardwareTester.utils.custom_logger import CustomLogger
-from HardwareTester.models.report_models import Report
+from Hardware_Tester_App.extensions import db
+from Hardware_Tester_App.utils.custom_logger import CustomLogger
+from Hardware_Tester_App.models.report_models import Report
 
 # Initialize logger
 logger = CustomLogger.get_logger("reports_service")

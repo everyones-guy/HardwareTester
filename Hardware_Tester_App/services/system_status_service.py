@@ -2,7 +2,7 @@ import os
 import psutil
 import platform
 from datetime import datetime
-from HardwareTester.utils.custom_logger import CustomLogger
+from Hardware_Tester_App.utils.custom_logger import CustomLogger
 
 # Initialize logger
 logger = CustomLogger.get_logger("system_status_service")

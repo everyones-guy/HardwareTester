@@ -1,8 +1,8 @@
 from flask import Blueprint, jsonify, request, render_template
 from flask_login import login_required
-from HardwareTester.services.log_service import LogService
-#from HardwareTester.utils.custom_logger import CustomLogger
-from HardwareTester.extensions import logger
+from Hardware_Tester_App.services.log_service import LogService
+#from Hardware_Tester_App.utils.custom_logger import CustomLogger
+from Hardware_Tester_App.extensions import logger
 
 # Initialize logger
 #logger = CustomLogger.get_logger("log_views")

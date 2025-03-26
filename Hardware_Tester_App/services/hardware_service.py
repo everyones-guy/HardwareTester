@@ -1,12 +1,12 @@
 
 import json
 from flask import current_app
-from HardwareTester.extensions import db
-from HardwareTester.models.link_models import Link
+from Hardware_Tester_App.extensions import db
+from Hardware_Tester_App.models.link_models import Link
 from sqlalchemy.exc import SQLAlchemyError
 
-from HardwareTester.utils.custom_logger import CustomLogger
-from HardwareTester.models.device_models import Device, DeviceFirmwareHistory, Firmware, Peripheral, Controller
+from Hardware_Tester_App.utils.custom_logger import CustomLogger
+from Hardware_Tester_App.models.device_models import Device, DeviceFirmwareHistory, Firmware, Peripheral, Controller
 import hashlib
 
 # Initialize logger
@@ -151,7 +151,7 @@ class HardwareService:
         :return: Result of the operation.
         """
         try:
-            from HardwareTester.models.device_models import Firmware  # Ensure a Firmware model exists
+            from Hardware_Tester_App.models.device_models import Firmware  # Ensure a Firmware model exists
             existing_firmware = Firmware.query.filter_by(hash=firmware_hash).first()
             if existing_firmware:
                 logger.info(f"Firmware with hash {firmware_hash} already exists in the database.")

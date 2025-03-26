@@ -3,9 +3,9 @@ import socket
 import requests
 from dotenv import load_dotenv
 from requests.exceptions import RequestException
-from HardwareTester.utils.custom_logger import CustomLogger
-from HardwareTester.services.mqtt_service import MQTTService
-from HardwareTester.services.hardware_service import HardwareService
+from Hardware_Tester_App.utils.custom_logger import CustomLogger
+from Hardware_Tester_App.services.mqtt_service import MQTTService
+from Hardware_Tester_App.services.hardware_service import HardwareService
 
 # Load up the env file
 load_dotenv()

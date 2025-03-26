@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, render_template, request
 from flask_login import login_required
-from HardwareTester.services.valve_service import (
+from Hardware_Tester_App.services.valve_service import (
     get_all_valves,
     add_valve,
     delete_valve,
@@ -8,7 +8,7 @@ from HardwareTester.services.valve_service import (
     get_valve_status,
     change_valve_state  # Import new state-changing function
 )
-from HardwareTester.extensions import logger
+from Hardware_Tester_App.extensions import logger
 
 logger.info("Valve_views")
 

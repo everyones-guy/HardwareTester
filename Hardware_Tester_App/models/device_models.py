@@ -1,5 +1,5 @@
 from datetime import datetime
-from HardwareTester.extensions import db
+from Hardware_Tester_App.extensions import db
 
 
 class Device(db.Model):

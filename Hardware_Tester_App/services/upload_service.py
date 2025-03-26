@@ -1,6 +1,6 @@
 import os
 from werkzeug.datastructures import FileStorage
-from HardwareTester.utils.custom_logger import CustomLogger
+from Hardware_Tester_App.utils.custom_logger import CustomLogger
 import json
 
 # Initialize logger

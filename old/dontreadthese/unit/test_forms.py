@@ -1,5 +1,5 @@
 import pytest
-from HardwareTester.forms import UploadSpecSheetForm, UploadTestPlanForm, AddValveForm, RunTestPlanForm
+from Hardware_Tester_App.forms import UploadSpecSheetForm, UploadTestPlanForm, AddValveForm, RunTestPlanForm
 
 def test_upload_spec_sheet_form():
     form = UploadSpecSheetForm(data={"valve_id": 1})

@@ -2,7 +2,7 @@ import os
 import pytest
 from flask import url_for
 from HardwareTester import create_app, db
-from HardwareTester.models import Valve, TestPlan
+from Hardware_Tester_App.models import Valve, TestPlan
 
 # Fixtures for the test environment
 @pytest.fixture

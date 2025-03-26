@@ -1,8 +1,8 @@
 from HardwareTester import app, socketio
-from HardwareTester.utils.testing import run_pytest
-from HardwareTester.utils.hardware_manager import print_system_info
-from HardwareTester.utils.auto_deploy import build_project, deploy_project
-from HardwareTester.utils.utils import confirm_action
+from Hardware_Tester_App.utils.testing import run_pytest
+from Hardware_Tester_App.utils.hardware_manager import print_system_info
+from Hardware_Tester_App.utils.auto_deploy import build_project, deploy_project
+from Hardware_Tester_App.utils.utils import confirm_action
 
 def start_web_app():
     """Start the Flask web application."""

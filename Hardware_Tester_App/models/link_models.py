@@ -1,4 +1,4 @@
-from HardwareTester.extensions import db
+from Hardware_Tester_App.extensions import db
 
 class Link(db.Model):
     __tablename__ = "links"

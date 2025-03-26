@@ -3,8 +3,8 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine, inspect
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import OperationalError, IntegrityError, SQLAlchemyError
-from HardwareTester.extensions import db
-from HardwareTester.utils.custom_logger import CustomLogger
+from Hardware_Tester_App.extensions import db
+from Hardware_Tester_App.utils.custom_logger import CustomLogger
 from contextlib import contextmanager
 
 load_dotenv()

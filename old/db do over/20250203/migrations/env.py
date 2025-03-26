@@ -7,16 +7,16 @@ from logging.config import fileConfig
 fileConfig(context.config.config_file_name)
 
 # Import your application's `db` instance and models
-from HardwareTester.extensions import db
-from HardwareTester.models.user_models import User, Token, Role, UserSettings
-from HardwareTester.models.device_models import Emulation, Device, Peripheral, Controller, Blueprint
-from HardwareTester.models.report_models import Report
-from HardwareTester.models.project_models import Project, Milestone
-from HardwareTester.models.metric_models import Metric
-from HardwareTester.models.log_models import ActivityLog, Notification
-from HardwareTester.models.dashboard_models import DashboardData
-from HardwareTester.models.configuration_models import Configuration, Settings, GlobalSettings
-from HardwareTester.models.test_models import TestPlan, TestStep
+from Hardware_Tester_App.extensions import db
+from Hardware_Tester_App.models.user_models import User, Token, Role, UserSettings
+from Hardware_Tester_App.models.device_models import Emulation, Device, Peripheral, Controller, Blueprint
+from Hardware_Tester_App.models.report_models import Report
+from Hardware_Tester_App.models.project_models import Project, Milestone
+from Hardware_Tester_App.models.metric_models import Metric
+from Hardware_Tester_App.models.log_models import ActivityLog, Notification
+from Hardware_Tester_App.models.dashboard_models import DashboardData
+from Hardware_Tester_App.models.configuration_models import Configuration, Settings, GlobalSettings
+from Hardware_Tester_App.models.test_models import TestPlan, TestStep
 
 # Set target metadata
 target_metadata = db.Model.metadata  # If issues arise, try `db.metadata`

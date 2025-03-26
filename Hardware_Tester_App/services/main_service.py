@@ -4,10 +4,10 @@
 # The logger is initialized with a log file and log level, and log messages are written to both the log file and the console.
 
 from datetime import datetime
-from HardwareTester.models.user_models import User, ContactMessage, DashboardData
-from HardwareTester.utils.db_utils import db_session
+from Hardware_Tester_App.models.user_models import User, ContactMessage, DashboardData
+from Hardware_Tester_App.utils.db_utils import db_session
 from sqlalchemy.exc import SQLAlchemyError
-from HardwareTester.utils.custom_logger import CustomLogger
+from Hardware_Tester_App.utils.custom_logger import CustomLogger
 import os
 
 # Initialize logger

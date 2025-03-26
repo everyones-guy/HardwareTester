@@ -1,7 +1,7 @@
 
 from flask import Blueprint, render_template, jsonify
 from flask_login import login_required
-from HardwareTester.services.reports_service import generate_report
+from Hardware_Tester_App.services.reports_service import generate_report
 
 reports_bp = Blueprint("reports", __name__)
 

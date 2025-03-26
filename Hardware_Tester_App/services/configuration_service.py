@@ -1,5 +1,5 @@
-from HardwareTester.extensions import db, logger
-from HardwareTester.models.configuration_models import Configuration, DynamicConfiguration
+from Hardware_Tester_App.extensions import db, logger
+from Hardware_Tester_App.models.configuration_models import Configuration, DynamicConfiguration
 import json
 
 

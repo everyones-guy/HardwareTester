@@ -1,8 +1,8 @@
 from flask import Blueprint, jsonify, request, render_template
 from flask_login import login_required, current_user
-from HardwareTester.services.test_plan_service import TestPlanService
-from HardwareTester.extensions import logger
-from HardwareTester.models.user_models import UserRole
+from Hardware_Tester_App.services.test_plan_service import TestPlanService
+from Hardware_Tester_App.extensions import logger
+from Hardware_Tester_App.models.user_models import UserRole
 
 # Define the Blueprint for test plan management
 test_plan_bp = Blueprint("test_plans", __name__)

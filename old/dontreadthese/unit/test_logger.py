@@ -1,4 +1,4 @@
-from HardwareTester.utils.custom_logger import CustomLogger
+from Hardware_Tester_App.utils.custom_logger import CustomLogger
 import os
 
 

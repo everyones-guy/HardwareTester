@@ -1,7 +1,7 @@
 import pytest
 from io import BytesIO
-from HardwareTester.utils.parsers import parse_text, parse_csv, parse_pdf, parse_file
-from HardwareTester.utils.validators import (
+from Hardware_Tester_App.utils.parsers import parse_text, parse_csv, parse_pdf, parse_file
+from Hardware_Tester_App.utils.validators import (
     allowed_file,
     validate_file_upload,
     validate_test_plan_steps,

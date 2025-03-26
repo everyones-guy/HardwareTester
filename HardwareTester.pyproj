@@ -303,6 +303,7 @@
     <Folder Include="Hardware_Tester_App\templates\ssh\modals\" />
     <Folder Include="instance\" />
     <Folder Include="old\" />
+    <Folder Include="old\hal\" />
     <Folder Include="tests\" />
     <Folder Include="secrets\" />
     <Folder Include="Hardware_Tester_App\templates\auth\" />

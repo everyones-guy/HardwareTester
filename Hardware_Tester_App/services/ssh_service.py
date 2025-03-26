@@ -1,7 +1,7 @@
 import paramiko
-from HardwareTester.utils.custom_logger import CustomLogger
-from HardwareTester.extensions import db
-from HardwareTester.models.device_models import Device
+from Hardware_Tester_App.utils.custom_logger import CustomLogger
+from Hardware_Tester_App.extensions import db
+from Hardware_Tester_App.models.device_models import Device
 
 # Initialize logger
 logger = CustomLogger.get_logger("ssh_service")

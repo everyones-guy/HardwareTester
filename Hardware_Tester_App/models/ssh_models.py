@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, DateTime
 from datetime import datetime
-from HardwareTester.extensions import db
-from HardwareTester.utils.bcrypt_utils import hash_password, check_password
+from Hardware_Tester_App.extensions import db
+from Hardware_Tester_App.utils.bcrypt_utils import hash_password, check_password
 
 
 class SSHConnection(db.Model):

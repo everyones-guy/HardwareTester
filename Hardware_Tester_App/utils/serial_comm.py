@@ -3,7 +3,7 @@ import hashlib
 import json
 import time
 import serial.tools.list_ports
-from HardwareTester.utils.custom_logger import CustomLogger
+from Hardware_Tester_App.utils.custom_logger import CustomLogger
 
 logger = CustomLogger.get_logger("serial_comm")  # Use a specific name for this module's logger
 

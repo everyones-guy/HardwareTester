@@ -1,6 +1,6 @@
-from HardwareTester.extensions import db
-from HardwareTester.models.device_models import Valve
-from HardwareTester.utils.custom_logger import CustomLogger
+from Hardware_Tester_App.extensions import db
+from Hardware_Tester_App.models.device_models import Valve
+from Hardware_Tester_App.utils.custom_logger import CustomLogger
 
 
 logger = CustomLogger.get_logger("ValveService")

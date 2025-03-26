@@ -1,9 +1,9 @@
 
 from flask import Blueprint, jsonify, request, render_template
 from flask_login import login_required
-from HardwareTester.extensions import logger
-from HardwareTester.services.mqtt_service import MQTTService
-from HardwareTester.services.hardware_service import HardwareService
+from Hardware_Tester_App.extensions import logger
+from Hardware_Tester_App.services.mqtt_service import MQTTService
+from Hardware_Tester_App.services.hardware_service import HardwareService
 
 mqtt_bp = Blueprint("mqtt", __name__)
 

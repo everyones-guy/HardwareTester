@@ -1,7 +1,7 @@
 
-from HardwareTester.extensions import db
-from HardwareTester.utils.custom_logger import CustomLogger
-from HardwareTester.models.device_models import Peripheral
+from Hardware_Tester_App.extensions import db
+from Hardware_Tester_App.utils.custom_logger import CustomLogger
+from Hardware_Tester_App.models.device_models import Peripheral
 from sqlalchemy.exc import SQLAlchemyError
 
 # Initialize logger

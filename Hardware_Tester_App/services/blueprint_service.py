@@ -3,8 +3,8 @@ import json
 import socket
 import platform
 import requests
-from HardwareTester.utils.custom_logger import CustomLogger
-from HardwareTester.models.device_models import Blueprint, Device, db
+from Hardware_Tester_App.utils.custom_logger import CustomLogger
+from Hardware_Tester_App.models.device_models import Blueprint, Device, db
 
 logger = CustomLogger.get_logger("blueprint_service")
 

@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request, render_template
 from flask_login import current_user, login_required
-from HardwareTester.services.peripherals_service import PeripheralsService
-from HardwareTester.models.user_models import UserRole
+from Hardware_Tester_App.services.peripherals_service import PeripheralsService
+from Hardware_Tester_App.models.user_models import UserRole
 
 peripherals_bp = Blueprint("peripherals", __name__)
 

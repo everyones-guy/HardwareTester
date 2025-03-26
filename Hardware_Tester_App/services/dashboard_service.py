@@ -1,9 +1,9 @@
 # dashboard_service.py
-from HardwareTester.models.user_models import User, Role
-from HardwareTester.models.dashboard_models import DashboardData
-from HardwareTester.models.metric_models import Metric  # Update imports based on your models
-from HardwareTester.extensions import db, logger
-#from HardwareTester.utils.custom_logger import CustomLogger
+from Hardware_Tester_App.models.user_models import User, Role
+from Hardware_Tester_App.models.dashboard_models import DashboardData
+from Hardware_Tester_App.models.metric_models import Metric  # Update imports based on your models
+from Hardware_Tester_App.extensions import db, logger
+#from Hardware_Tester_App.utils.custom_logger import CustomLogger
 from sqlalchemy.exc import SQLAlchemyError
 import psutil
 

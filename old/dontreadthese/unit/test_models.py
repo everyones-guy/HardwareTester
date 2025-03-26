@@ -1,7 +1,7 @@
 import pytest
 from sqlalchemy.exc import IntegrityError
 from HardwareTester import create_app, db
-from HardwareTester.models import Valve, TestPlan, TestResult
+from Hardware_Tester_App.models import Valve, TestPlan, TestResult
 
 # Fixtures for test environment
 @pytest.fixture

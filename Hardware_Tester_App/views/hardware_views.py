@@ -3,11 +3,11 @@ import socket
 from dotenv import load_dotenv
 from flask import Blueprint, jsonify, request, render_template
 from flask_login import login_required
-from HardwareTester.services.mqtt_service import MQTTService
-from HardwareTester.services.ssh_service import SSHService  # Hypothetical SSH service
-from HardwareTester.extensions import db
+from Hardware_Tester_App.services.mqtt_service import MQTTService
+from Hardware_Tester_App.services.ssh_service import SSHService  # Hypothetical SSH service
+from Hardware_Tester_App.extensions import db
 from sqlalchemy.dialects.postgresql import JSON  # For metadata and settings storage
-from HardwareTester.utils.custom_logger import CustomLogger
+from Hardware_Tester_App.utils.custom_logger import CustomLogger
 
 # Load environment variables from .env
 load_dotenv()

@@ -1,9 +1,9 @@
 # settings_service.py
 
 import os
-from HardwareTester.extensions import db
-from HardwareTester.utils.custom_logger import CustomLogger
-from HardwareTester.models import UserSettings, GlobalSettings
+from Hardware_Tester_App.extensions import db
+from Hardware_Tester_App.utils.custom_logger import CustomLogger
+from Hardware_Tester_App.models import UserSettings, GlobalSettings
 from sqlalchemy.exc import SQLAlchemyError
 
 # Initialize logger

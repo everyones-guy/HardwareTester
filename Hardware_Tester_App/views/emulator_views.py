@@ -1,12 +1,12 @@
 from flask import Blueprint, jsonify, request, render_template, current_app
 from flask_login import login_required, current_user
-from HardwareTester.services.emulator_service import EmulatorService
-from HardwareTester.utils.custom_logger import CustomLogger
-from HardwareTester.utils.token_utils import get_token
-from HardwareTester.utils.source_code_analyzer import SourceCodeAnalyzer
-from HardwareTester.forms import StartEmulationForm, AddEmulatorForm
+from Hardware_Tester_App.services.emulator_service import EmulatorService
+from Hardware_Tester_App.utils.custom_logger import CustomLogger
+from Hardware_Tester_App.utils.token_utils import get_token
+from Hardware_Tester_App.utils.source_code_analyzer import SourceCodeAnalyzer
+from Hardware_Tester_App.forms import StartEmulationForm, AddEmulatorForm
 from datetime import datetime
-from HardwareTester.utils.api_manager import APIManager
+from Hardware_Tester_App.utils.api_manager import APIManager
 from werkzeug.utils import secure_filename
 import json
 import os

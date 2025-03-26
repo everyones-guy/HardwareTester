@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, render_template, abort
 from flask_login import login_required, current_user
-from HardwareTester.services.user_management_service import UserManagementService
-from HardwareTester.extensions import logger
+from Hardware_Tester_App.services.user_management_service import UserManagementService
+from Hardware_Tester_App.extensions import logger
 
 user_management_bp = Blueprint("user_management", __name__)
 

@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, jsonify
 from flask_login import login_required, current_user
-from HardwareTester.services.configuration_service import ConfigurationService
-from HardwareTester.extensions import logger
+from Hardware_Tester_App.services.configuration_service import ConfigurationService
+from Hardware_Tester_App.extensions import logger
 from urllib.parse import unquote
 
 configuration_bp = Blueprint("configurations", __name__)

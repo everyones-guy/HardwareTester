@@ -1,8 +1,8 @@
 from flask import Blueprint, jsonify, request
 from flask_login import login_required
-from HardwareTester.extensions import logger
-from HardwareTester.services.serial_service import SerialService
-from HardwareTester.views.auth_views import login
+from Hardware_Tester_App.extensions import logger
+from Hardware_Tester_App.services.serial_service import SerialService
+from Hardware_Tester_App.views.auth_views import login
 
 serial_bp = Blueprint("serial", __name__)
 

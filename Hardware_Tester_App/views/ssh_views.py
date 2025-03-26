@@ -1,8 +1,8 @@
 from flask import Blueprint, jsonify, request, render_template
 from flask_login import login_required
-from HardwareTester.services.ssh_service import SSHService
-from HardwareTester.extensions import db, logger
-#from HardwareTester.utils.custom_logger import CustomLogger
+from Hardware_Tester_App.services.ssh_service import SSHService
+from Hardware_Tester_App.extensions import db, logger
+#from Hardware_Tester_App.utils.custom_logger import CustomLogger
 
 # Initialize logger
 #logger = CustomLogger.get_logger("ssh_views")

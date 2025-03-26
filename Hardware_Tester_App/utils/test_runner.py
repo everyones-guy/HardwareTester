@@ -1,4 +1,4 @@
-from HardwareTester.models.test_models import TestPlan, TestStep
+from Hardware_Tester_App.models.test_models import TestPlan, TestStep
 
 def run_test_plan(test_plan_id):
     """

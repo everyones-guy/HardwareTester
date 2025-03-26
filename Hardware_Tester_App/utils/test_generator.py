@@ -2,7 +2,7 @@ import json
 import os
 from dotenv import load_dotenv
 from datetime import datetime
-from HardwareTester.utils.source_code_analyzer import SourceCodeAnalyzer
+from Hardware_Tester_App.utils.source_code_analyzer import SourceCodeAnalyzer
 
 load_dotenv()
 

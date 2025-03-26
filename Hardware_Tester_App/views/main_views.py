@@ -1,9 +1,9 @@
 from flask import Blueprint, render_template, jsonify, request, redirect, url_for, flash
 from flask_login import login_required, current_user
-from HardwareTester.services.dashboard_service import DashboardService
-from HardwareTester.extensions import logger
+from Hardware_Tester_App.services.dashboard_service import DashboardService
+from Hardware_Tester_App.extensions import logger
 from datetime import datetime
-#from HardwareTester.utils.custom_logger import CustomLogger
+#from Hardware_Tester_App.utils.custom_logger import CustomLogger
 
 # Initialize logger
 #logger = CustomLogger.get_logger("main_views")

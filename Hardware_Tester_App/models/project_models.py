@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String
-from HardwareTester.extensions import db
+from Hardware_Tester_App.extensions import db
 from datetime import datetime
 
 class Project(db.Model):

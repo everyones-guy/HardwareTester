@@ -1,11 +1,11 @@
 from flask import Blueprint, render_template, redirect, url_for, request, flash
 from flask_login import login_user, logout_user, login_required, current_user
-from HardwareTester.extensions import db
-from HardwareTester.utils.bcrypt_utils import check_password, hash_password
-from HardwareTester.models.user_models import User
-from HardwareTester.forms import LoginForm, RegistrationForm, ProfileForm
+from Hardware_Tester_App.extensions import db
+from Hardware_Tester_App.utils.bcrypt_utils import check_password, hash_password
+from Hardware_Tester_App.models.user_models import User
+from Hardware_Tester_App.forms import LoginForm, RegistrationForm, ProfileForm
 from sqlalchemy.exc import IntegrityError
-from HardwareTester.utils.custom_logger import CustomLogger
+from Hardware_Tester_App.utils.custom_logger import CustomLogger
 
 # Initialize logger
 logger = CustomLogger.get_logger("auth_views")

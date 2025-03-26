@@ -1,10 +1,10 @@
 import tkinter as tk
 from tkinter import scrolledtext, filedialog, messagebox, Listbox
-from HardwareTester.services.mqtt_client import MQTTClient
-from HardwareTester.services.serial_service import SerialService
-from HardwareTester.utils.firmware_utils import validate_firmware_file
-from HardwareTester.services.hardware_service import HardwareService
-from HardwareTester.services.emulator_service import EmulatorService
+from Hardware_Tester_App.services.mqtt_client import MQTTClient
+from Hardware_Tester_App.services.serial_service import SerialService
+from Hardware_Tester_App.utils.firmware_utils import validate_firmware_file
+from Hardware_Tester_App.services.hardware_service import HardwareService
+from Hardware_Tester_App.services.emulator_service import EmulatorService
 from HardwareTester import create_app  # Ensure `create_app` initializes your Flask app
 from flask import current_app
 import logging

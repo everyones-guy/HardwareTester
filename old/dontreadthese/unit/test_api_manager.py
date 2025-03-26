@@ -1,5 +1,5 @@
 import pytest
-from HardwareTester.utils.api_manager import APIManager
+from Hardware_Tester_App.utils.api_manager import APIManager
 
 @pytest.fixture
 def api_manager():

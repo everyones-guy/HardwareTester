@@ -1,7 +1,7 @@
 import unittest
 from flask import Flask, Blueprint, render_template
 from unittest.mock import patch
-from HardwareTester.views.api_views import api_bp
+from Hardware_Tester_App.views.api_views import api_bp
 from flask_wtf.csrf import generate_csrf
 
 
@@ -31,7 +31,7 @@ class APITestCase(unittest.TestCase):
 
 
 
-    @patch("HardwareTester.services.api_service.APIService.test_api_connection")
+    @patch("Hardware_Tester_App.services.api_service.APIService.test_api_connection")
     def test_test_connection(self, mock_test_connection):
         """Test the test-connection endpoint."""
         mock_test_connection.return_value = {"success": True, "message": "Connection successful."}

@@ -1,11 +1,11 @@
 
 # user_management.py
 
-from HardwareTester.utils.validators import validate_email
-from HardwareTester.utils.custom_logger import CustomLogger
-from HardwareTester.extensions import db
-from HardwareTester.utils.bcrypt_utils import hash_password, check_password, is_strong_password
-from HardwareTester.models.user_models import User
+from Hardware_Tester_App.utils.validators import validate_email
+from Hardware_Tester_App.utils.custom_logger import CustomLogger
+from Hardware_Tester_App.extensions import db
+from Hardware_Tester_App.utils.bcrypt_utils import hash_password, check_password, is_strong_password
+from Hardware_Tester_App.models.user_models import User
 from sqlalchemy.exc import SQLAlchemyError
 
 # Initialize logger

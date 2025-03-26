@@ -1,5 +1,5 @@
 import unittest
-from HardwareTester.services.mqtt_service import MQTTService
+from Hardware_Tester_App.services.mqtt_service import MQTTService
 
 class TestMQTTService(unittest.TestCase):
     def setUp(self):

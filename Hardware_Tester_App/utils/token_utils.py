@@ -1,6 +1,6 @@
-from HardwareTester.models.user_models import Token
+from Hardware_Tester_App.models.user_models import Token
 from flask_wtf.csrf import generate_csrf
-from HardwareTester.extensions import db, logger
+from Hardware_Tester_App.extensions import db, logger
 from datetime import datetime, timedelta
 
 def get_token(user_id=None, expiration_duration=3600):

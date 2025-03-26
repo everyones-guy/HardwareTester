@@ -1,6 +1,6 @@
 
 from flask import Blueprint, request, jsonify
-from HardwareTester.services.blueprint_service import BlueprintService
+from Hardware_Tester_App.services.blueprint_service import BlueprintService
 
 blueprint_bp = Blueprint("blueprint", __name__)
 

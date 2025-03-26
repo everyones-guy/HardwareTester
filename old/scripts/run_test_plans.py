@@ -1,5 +1,5 @@
-from HardwareTester.utils.api_manager import get_api_manager
-from HardwareTester.utils.custom_logger import Logger
+from Hardware_Tester_App.utils.api_manager import get_api_manager
+from Hardware_Tester_App.utils.custom_logger import Logger
 
 # Initialize Logger
 logger = Logger(name="TestRunner", log_file="logs/test_runner.log", level="INFO")

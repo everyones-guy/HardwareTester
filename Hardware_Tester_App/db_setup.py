@@ -1,7 +1,7 @@
 import os
 import subprocess
 import sys
-from HardwareTester.utils.custom_logger import CustomLogger
+from Hardware_Tester_App.utils.custom_logger import CustomLogger
 
 # Initialize logger
 logger = CustomLogger.get_logger("db_setup")

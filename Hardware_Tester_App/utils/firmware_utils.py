@@ -6,7 +6,7 @@ import shutil
 import tempfile
 import subprocess
 import glob
-from HardwareTester.utils.custom_logger import CustomLogger
+from Hardware_Tester_App.utils.custom_logger import CustomLogger
 
 logger = CustomLogger.get_logger("FirmwareUtils")
 

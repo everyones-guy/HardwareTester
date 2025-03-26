@@ -2,12 +2,12 @@ from flask import Blueprint, jsonify, request, render_template, current_app
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 from urllib.parse import unquote
-from HardwareTester.services.api_service import APIService
-from HardwareTester.extensions import db
-from HardwareTester.services.configuration_service import ConfigurationService
-from HardwareTester.services.emulator_service import EmulatorService
-from HardwareTester.services.serial_service import SerialService
-from HardwareTester.utils.custom_logger import CustomLogger
+from Hardware_Tester_App.services.api_service import APIService
+from Hardware_Tester_App.extensions import db
+from Hardware_Tester_App.services.configuration_service import ConfigurationService
+from Hardware_Tester_App.services.emulator_service import EmulatorService
+from Hardware_Tester_App.services.serial_service import SerialService
+from Hardware_Tester_App.utils.custom_logger import CustomLogger
 import json
 import os
 

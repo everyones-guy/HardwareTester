@@ -2,9 +2,9 @@
 
 from flask import Blueprint, jsonify, render_template
 from flask_login import login_required
-from HardwareTester.services.system_status_service import SystemStatusService
-from HardwareTester.extensions import logger
-#from HardwareTester.utils.custom_logger import CustomLogger
+from Hardware_Tester_App.services.system_status_service import SystemStatusService
+from Hardware_Tester_App.extensions import logger
+#from Hardware_Tester_App.utils.custom_logger import CustomLogger
 
 # Initialize logger
 #logger = CustomLogger.get_logger("system_status_views")
