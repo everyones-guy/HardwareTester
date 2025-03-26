@@ -1,5 +1,4 @@
 from HardwareTester.extensions import db
-from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime
 from datetime import datetime
 
 class UploadedFile(db.Model):

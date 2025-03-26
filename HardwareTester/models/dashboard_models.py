@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+# dashboard_models.py
+
 from HardwareTester.extensions import db
 from datetime import datetime
 
@@ -7,7 +8,7 @@ class DashboardData(db.Model):
     __table_args__ = {'schema': 'public'}
     
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)  # Foreign key to User table
+    user_id = db.Column(db.Integer, db.ForeignKey("public.users.id"), nullable=False)  # Foreign key to User table
     name = db.Column(db.String(255), nullable=False, unique=True)
     value = db.Column(db.Integer, nullable=False)
     description = db.Column(db.String(500), nullable=True, default=None)

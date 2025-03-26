@@ -1,6 +1,5 @@
 # models/report_models.py
 
-from sqlalchemy import Column, Integer, String
 from HardwareTester.extensions import db
 from datetime import datetime
 
@@ -11,7 +10,7 @@ class Report(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(255), nullable=False)
     description = db.Column(db.Text, nullable=True)
-    created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    created_by = db.Column(db.Integer, db.ForeignKey('public.users.id'), nullable=False)
     generated_at = db.Column(db.DateTime, default=datetime.utcnow)
     file_path = db.Column(db.String(255), nullable=True)
     status = db.Column(db.String(50), nullable=False, default="Pending")

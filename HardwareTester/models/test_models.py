@@ -1,5 +1,4 @@
 from HardwareTester.extensions import db
-from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime
 from datetime import datetime
 
 
@@ -7,13 +6,13 @@ class TestPlan(db.Model):
     __tablename__ = "test_plans"
     __table_args__ = {'schema': 'public'}
 
-    id = db.Column(Integer, primary_key=True)
-    name = db.Column(String(255), nullable=False, unique=True)
-    description = db.Column(Text, nullable=True)
-    created_at = db.Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = db.Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
-    created_by = db.Column(Integer, ForeignKey("users.id"), nullable=True)  # Link to User table
-    modified_by = db.Column(Integer, ForeignKey("users.id"), nullable=True)  # Link to User table
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(255), nullable=False, unique=True)
+    description = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    created_by = db.Column(db.Integer, db.ForeignKey("public.users.id"), nullable=True)  # Link to User table
+    modified_by = db.Column(db.Integer, db.ForeignKey("public.users.id"), nullable=True)  # Link to User table
 
     # Relationship to TestStep
     steps = db.relationship("TestStep", backref="test_plan", cascade="all, delete-orphan")
@@ -39,14 +38,14 @@ class TestStep(db.Model):
     __tablename__ = "test_steps"
     __table_args__ = {'schema': 'public'}
 
-    id = db.Column(Integer, primary_key=True)
-    action = db.Column(String(255), nullable=False)
-    parameter = db.Column(String(255), nullable=True)
-    created_at = db.Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = db.Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
-    created_by = db.Column(Integer, ForeignKey("users.id"), nullable=True)  # Link to User table
-    modified_by = db.Column(Integer, ForeignKey("users.id"), nullable=True)  # Link to User table
-    test_plan_id = db.Column(Integer, ForeignKey("test_plans.id"), nullable=False)
+    id = db.Column(db.Integer, primary_key=True)
+    action = db.Column(db.String(255), nullable=False)
+    parameter = db.Column(db.String(255), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    created_by = db.Column(db.Integer, db.ForeignKey("public.users.id"), nullable=True)  # Link to User table
+    modified_by = db.Column(db.Integer, db.ForeignKey("public.users.id"), nullable=True)  # Link to User table
+    test_plan_id = db.Column(db.Integer, db.ForeignKey("public.test_plans.id"), nullable=False)
 
     def to_dict(self):
         """Convert the TestStep instance to a dictionary."""

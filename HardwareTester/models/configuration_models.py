@@ -1,4 +1,3 @@
-from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime
 from sqlalchemy.dialects.postgresql import JSON
 from datetime import datetime
 from HardwareTester.extensions import db
@@ -13,8 +12,8 @@ class Configuration(db.Model):
     layout = db.Column(db.JSON, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
-    created_by = db.Column(db.Integer, ForeignKey("users.id"), nullable=True)
-    modified_by = db.Column(db.Integer, ForeignKey("users.id"), nullable=True)
+    created_by = db.Column(db.Integer, db.ForeignKey("public.users.id"), nullable=True)
+    modified_by = db.Column(db.Integer, db.ForeignKey("public.users.id"), nullable=True)
 
     def to_dict(self):
         return {
@@ -40,8 +39,8 @@ class Settings(db.Model):
     value = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
-    created_by = db.Column(db.Integer, ForeignKey("users.id"), nullable=True)
-    modified_by = db.Column(db.Integer, ForeignKey("users.id"), nullable=True)
+    created_by = db.Column(db.Integer, db.ForeignKey("public.users.id"), nullable=True)
+    modified_by = db.Column(db.Integer, db.ForeignKey("public.users.id"), nullable=True)
 
     def to_dict(self):
         return {
@@ -68,8 +67,8 @@ class GlobalSettings(db.Model):
     description = db.Column(db.String(255), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
-    created_by = db.Column(db.Integer, ForeignKey("users.id"), nullable=True)
-    modified_by = db.Column(db.Integer, ForeignKey("users.id"), nullable=True)
+    created_by = db.Column(db.Integer, db.ForeignKey("public.users.id"), nullable=True)
+    modified_by = db.Column(db.Integer, db.ForeignKey("public.users.id"), nullable=True)
 
     def to_dict(self):
         return {
@@ -98,8 +97,8 @@ class DynamicConfiguration(db.Model):
     properties = db.Column(db.JSON, nullable=True)  # Store additional dynamic fields
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
-    created_by = db.Column(db.Integer, ForeignKey("users.id"), nullable=True)  # Link to User table
-    modified_by = db.Column(db.Integer, ForeignKey("users.id"), nullable=True)  # Link to User table
+    created_by = db.Column(db.Integer, db.ForeignKey("public.users.id"), nullable=True)  # Link to User table
+    modified_by = db.Column(db.Integer, db.ForeignKey("public.users.id"), nullable=True)  # Link to User table
 
     def to_dict(self):
         return {

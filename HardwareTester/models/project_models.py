@@ -8,7 +8,7 @@ class Project(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), nullable=False, unique=True)
     description = db.Column(db.Text, nullable=True)
-    configuration_id = db.Column(db.Integer, db.ForeignKey('configurations.id'), nullable=False)
+    configuration_id = db.Column(db.Integer, db.ForeignKey('public.configurations.id'), nullable=False)
 
     configuration = db.relationship('Configuration', backref=db.backref('projects', lazy=True, cascade="all, delete-orphan"))
                                     
@@ -20,7 +20,7 @@ class Milestone(db.Model):
     __table_args__ = {'schema': 'public'}
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), nullable=False)
-    project_id = db.Column(db.Integer, db.ForeignKey('projects.id'), nullable=False)
+    project_id = db.Column(db.Integer, db.ForeignKey('public.projects.id'), nullable=False)
     due_date = db.Column(db.DateTime, nullable=True)
     status = db.Column(db.String(50), default='pending', nullable=False)
     VALID_STATUSES = ['pending', 'completed', 'in_progress']

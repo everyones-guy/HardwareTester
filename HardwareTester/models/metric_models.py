@@ -9,7 +9,7 @@ class Metric(db.Model):
     __table_args__ = {'schema': 'public'}
 
     id = db.Column(db.Integer, primary_key=True)
-    peripheral_id = db.Column(db.Integer, db.ForeignKey('peripherals.id'), nullable=False)
+    peripheral_id = db.Column(db.Integer, db.ForeignKey('public.peripherals.id'), nullable=False)
     metric_type = db.Column(db.String(100), nullable=False)
     value = db.Column(db.Float, nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)

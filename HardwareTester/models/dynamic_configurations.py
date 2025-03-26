@@ -1,5 +1,5 @@
 from sqlalchemy.dialects.postgresql import JSON
-from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, Text
 from datetime import datetime
 from HardwareTester.extensions import db
 
@@ -14,8 +14,8 @@ class DynamicConfiguration(db.Model):
     properties = db.Column(db.JSON, nullable=True)  # Store additional dynamic fields
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
-    created_by = db.Column(db.Integer, ForeignKey("users.id"), nullable=True)  # Link to User table
-    modified_by = db.Column(db.Integer, ForeignKey("users.id"), nullable=True)  # Link to User table
+    created_by = db.Column(db.Integer, db.ForeignKey("public.users.id"), nullable=True)  # Link to User table
+    modified_by = db.Column(db.Integer, db.ForeignKey("public.users.id"), nullable=True)  # Link to User table
 
     def to_dict(self):
         return {

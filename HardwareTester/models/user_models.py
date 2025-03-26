@@ -1,6 +1,5 @@
 # user_models.py
 
-from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from datetime import datetime
 from enum import Enum
@@ -48,7 +47,7 @@ class Token(db.Model):
     __tablename__ = 'tokens'
     __table_args__ = {'schema': 'public'}
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('public.users.id'), nullable=False)
     token = db.Column(db.String(255), unique=True, nullable=False)
     expiration = db.Column(db.DateTime, nullable=False)
 
@@ -64,7 +63,7 @@ class UserSettings(db.Model):
     __tablename__ = 'user_settings'
     __table_args__ = {'schema': 'public'}
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('public.users.id'), nullable=False)
     setting_key = db.Column(db.String(255), nullable=False)
     setting_value = db.Column(db.Text, nullable=False)
 
