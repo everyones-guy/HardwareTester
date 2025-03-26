@@ -3,9 +3,9 @@ from flask import Flask
 from flask_login import current_user
 from unittest.mock import MagicMock, patch
 from io import BytesIO
-from HardwareTester.models.test_models import TestPlan, TestStep
-from HardwareTester.services.test_plan_service import TestPlanService
-from HardwareTester.views.test_plan_views import test_plan_bp
+from Hardware_Tester_App.models.test_models import TestPlan, TestStep
+from Hardware_Tester_App.services.test_plan_service import TestPlanService
+from Hardware_Tester_App.views.test_plan_views import test_plan_bp
 
 # Mock application and database for testing
 @pytest.fixture
@@ -22,7 +22,7 @@ def client(app):
 
 # Test: Upload Test Plan
 def test_upload_test_plan(client):
-    with patch("HardwareTester.services.test_plan_service.TestPlan.query") as mock_query:
+    with patch("Hardware_Tester_App.services.test_plan_service.TestPlan.query") as mock_query:
         mock_file = BytesIO(b"Test Plan Content")
         mock_file.filename = "test_plan.txt"
 
@@ -37,7 +37,7 @@ def test_upload_test_plan(client):
 
 # Test: Run Test Plan
 def test_run_test_plan(client):
-    with patch("HardwareTester.services.test_plan_service.TestPlan.query.get") as mock_get:
+    with patch("Hardware_Tester_App.services.test_plan_service.TestPlan.query.get") as mock_get:
         mock_get.return_value = TestPlan(id=1, name="Mock Test Plan", steps=[])
         with client:
             response = client.post("/test-plans/1/run")
@@ -46,7 +46,7 @@ def test_run_test_plan(client):
 
 # Test: Preview Test Plan
 def test_preview_test_plan(client):
-    with patch("HardwareTester.services.test_plan_service.TestPlan.query.get") as mock_get:
+    with patch("Hardware_Tester_App.services.test_plan_service.TestPlan.query.get") as mock_get:
         mock_get.return_value = TestPlan(id=1, name="Mock Test Plan", steps=[
             TestStep(action="Mock Action", parameter="Mock Parameter")
         ])
@@ -58,7 +58,7 @@ def test_preview_test_plan(client):
 
 # Test: List Test Plans
 def test_list_test_plans(client):
-    with patch("HardwareTester.services.test_plan_service.TestPlan.query.paginate") as mock_paginate:
+    with patch("Hardware_Tester_App.services.test_plan_service.TestPlan.query.paginate") as mock_paginate:
         mock_paginate.return_value.items = [
             TestPlan(id=1, name="Mock Test Plan", description="Mock Description")
         ]
@@ -71,8 +71,8 @@ def test_list_test_plans(client):
 
 # Test: Create Test Plan
 def test_create_test_plan(client):
-    with patch("HardwareTester.services.test_plan_service.TestPlan.query") as mock_query:
-        with patch("HardwareTester.services.test_plan_service.db.session.commit") as mock_commit:
+    with patch("Hardware_Tester_App.services.test_plan_service.TestPlan.query") as mock_query:
+        with patch("Hardware_Tester_App.services.test_plan_service.db.session.commit") as mock_commit:
             with client:
                 response = client.post(
                     "/test-plans/create",

@@ -2,13 +2,13 @@ import os
 import json
 import tkinter as tk
 from tkinter import filedialog, messagebox
-from HardwareTester.utils.firmware_utils import process_firmware_package
-from HardwareTester.utils.test_generator import TestGenerator
-from HardwareTester.services.emulator_service import EmulatorService
-from HardwareTester.services.hardware_service import HardwareService
-from HardwareTester.services.mqtt_service import MQTTService
+from Hardware_Tester_App.utils.firmware_utils import process_firmware_package
+from Hardware_Tester_App.utils.test_generator import TestGenerator
+from Hardware_Tester_App.services.emulator_service import EmulatorService
+from Hardware_Tester_App.services.hardware_service import HardwareService
+from Hardware_Tester_App.services.mqtt_service import MQTTService
 from flask import Flask
-from HardwareTester import create_app  # Ensure this exists in your project
+from Hardware_Tester_App import create_app  # Ensure this exists in your project
 
 app = create_app()
 

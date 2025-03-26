@@ -3,10 +3,10 @@ import os
 import unittest
 from unittest.mock import patch
 from flask import Flask, render_template_string, jsonify
-from HardwareTester.views.hardware_views import hardware_bp
+from Hardware_Tester_App.views.hardware_views import hardware_bp
 
 # Dynamically add the app folder to the Python path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../HardwareTester')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../Hardware_Tester_App')))
 
 class HardwareViewsTestCase(unittest.TestCase):
     def setUp(self):
@@ -73,7 +73,7 @@ class HardwareViewsTestCase(unittest.TestCase):
                 "status": "Online"
             }
         }
-        with unittest.mock.patch("HardwareTester.services.hardware_service.HardwareService.discover_device", return_value=mock_device):
+        with unittest.mock.patch("Hardware_Tester_App.services.hardware_service.HardwareService.discover_device", return_value=mock_device):
             response = self.client.post("/hardware/discover-device", json={"device_id": 1})
             self.assertEqual(response.status_code, 200)
             self.assertIn(b"Device A", response.data)

@@ -3,10 +3,10 @@ import os
 import unittest
 from unittest.mock import patch
 from flask import Flask, render_template_string, jsonify
-from HardwareTester.views.main_views import main_bp
+from Hardware_Tester_App.views.main_views import main_bp
 
 # Dynamically add the app folder to the Python path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../HardwareTester')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../Hardware_Tester_App')))
 
 class MainViewsTestCase(unittest.TestCase):
     def setUp(self):

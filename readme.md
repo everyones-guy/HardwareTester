@@ -186,7 +186,7 @@ npm run build
 1. Set the `FLASK_ENV` to `production` in your `.env` file.
 2. Use a production WSGI server like Gunicorn:
    ```bash
-   gunicorn -w 4 -b 0.0.0.0:8000  sqlite///HardwareTester:create_app()_
+   gunicorn -w 4 -b 0.0.0.0:8000  sqlite///Hardware_Tester_App:create_app()
    ```
 
 ---
@@ -238,6 +238,6 @@ set NODE_OPTIONS=--openssl-legacy-provider
 
 View Routes: 
 ```bash
-python -c "from HardwareTester import create_app; app = create_app(); print('\n'.join([str(rule) for rule in app.url_map.iter_rules()]))"
+python -c "from Hardware_Tester_App import create_app; app = create_app(); print('\n'.join([str(rule) for rule in app.url_map.iter_rules()]))"
 ```
 

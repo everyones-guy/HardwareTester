@@ -5,8 +5,8 @@ class Test_test_ssh_models(unittest.TestCase):
         self.fail("Not implemented")
         
 
-from HardwareTester.models.ssh_models import SSHConnection
-from HardwareTester.extensions import db
+from Hardware_Tester_App.models.ssh_models import SSHConnection
+from Hardware_Tester_App.extensions import db
 
 # Create a new connection
 new_connection = SSHConnection(

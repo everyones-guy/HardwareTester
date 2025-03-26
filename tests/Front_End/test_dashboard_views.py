@@ -1,7 +1,7 @@
 
 import unittest
 from flask import Flask
-from HardwareTester.views.dashboard_views import dashboard_bp
+from Hardware_Tester_App.views.dashboard_views import dashboard_bp
 
 class DashboardViewsTestCase(unittest.TestCase):
     def setUp(self):

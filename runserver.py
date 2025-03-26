@@ -1,8 +1,8 @@
 import argparse
 import os
 from flask_socketio import SocketIO
-from HardwareTester import create_app
-from HardwareTester.extensions import socketio  # Importing socketio instance
+from Hardware_Tester_App import create_app
+from Hardware_Tester_App.extensions import socketio  # Importing socketio instance
 
 def main():
     global socketio  # Explicitly mark it as global to avoid UnboundLocalError

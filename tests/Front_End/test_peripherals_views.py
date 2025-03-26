@@ -3,10 +3,10 @@ import os
 import unittest
 from unittest.mock import patch
 from flask import Flask, render_template_string
-from HardwareTester.views.peripherals_views import peripherals_bp
+from Hardware_Tester_App.views.peripherals_views import peripherals_bp
 
 # Dynamically add the app folder to the Python path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../HardwareTester')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../Hardware_Tester_App')))
 
 class PeripheralsViewsTestCase(unittest.TestCase):
     def setUp(self):
@@ -72,7 +72,7 @@ class PeripheralsViewsTestCase(unittest.TestCase):
             ]
         }
 
-        with patch("HardwareTester.services.peripheral_service.PeripheralService.list_peripherals", return_value=mock_peripherals):
+        with patch("Hardware_Tester_App.services.peripheral_service.PeripheralService.list_peripherals", return_value=mock_peripherals):
             response = self.client.get("/peripherals")
             self.assertEqual(response.status_code, 200)
             self.assertIn(b"Peripheral A", response.data)

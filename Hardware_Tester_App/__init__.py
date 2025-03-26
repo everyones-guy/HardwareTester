@@ -159,7 +159,7 @@ def register_error_handlers(app):
 # ----------------------
 def register_cli_commands(app):
     """Register CLI commands with the Flask app."""
-    from HardwareTester.cli import cli
+    from Hardware_Tester_App.cli import cli
 
     app.cli.add_command(cli)
     logger.info("CLI commands registered successfully.")

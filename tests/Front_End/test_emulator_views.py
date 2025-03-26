@@ -3,10 +3,10 @@ import os
 import unittest
 from unittest.mock import patch
 from flask import Flask, render_template_string, jsonify
-from HardwareTester.views.emulator_views import emulator_bp
+from Hardware_Tester_App.views.emulator_views import emulator_bp
 
 # Dynamically add the app folder to the Python path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../HardwareTester')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../Hardware_Tester_App')))
 
 class EmulatorViewsTestCase(unittest.TestCase):
     def setUp(self):
@@ -63,7 +63,7 @@ class EmulatorViewsTestCase(unittest.TestCase):
             "success": True,
             "blueprints": ["Blueprint A", "Blueprint B"]
         }
-        with unittest.mock.patch("HardwareTester.services.emulator_service.EmulatorService.list_blueprints", return_value=mock_blueprints):
+        with unittest.mock.patch("Hardware_Tester_App.services.emulator_service.EmulatorService.list_blueprints", return_value=mock_blueprints):
             response = self.client.get("/emulator/blueprints")
             self.assertEqual(response.status_code, 200)
             self.assertIn(b"Blueprint A", response.data)

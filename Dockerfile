@@ -19,4 +19,4 @@ COPY . .
 ENV DATABASE_URL="sqlite:///instance/fallback.db"
 
 # Run the application
-CMD ["gunicorn", "-b", "0.0.0.0:5000", "HardwareTester:app"]
+CMD ["gunicorn", "-b", "0.0.0.0:5000", "Hardware_Tester_App:app"]

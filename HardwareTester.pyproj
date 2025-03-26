@@ -34,209 +34,209 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="old\cli.py" />
-    <Compile Include="HardwareTester\cli.py">
+    <Compile Include="Hardware_Tester_App\cli.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="decode.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\config.py">
+    <Compile Include="Hardware_Tester_App\config.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\create_extra_libraries.py">
+    <Compile Include="Hardware_Tester_App\create_extra_libraries.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\db_setup.py">
+    <Compile Include="Hardware_Tester_App\db_setup.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\extensions.py">
+    <Compile Include="Hardware_Tester_App\extensions.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\forms.py">
+    <Compile Include="Hardware_Tester_App\forms.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\hal\devices.py">
+    <Compile Include="Hardware_Tester_App\hal\devices.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\hal\hal.py">
+    <Compile Include="Hardware_Tester_App\hal\hal.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\hal\interfaces.py">
+    <Compile Include="Hardware_Tester_App\hal\interfaces.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\hal\__init__.py">
+    <Compile Include="Hardware_Tester_App\hal\__init__.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\models\configuration_models.py">
+    <Compile Include="Hardware_Tester_App\models\configuration_models.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\models\dynamic_configurations.py">
+    <Compile Include="Hardware_Tester_App\models\dynamic_configurations.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\models\link_models.py" />
-    <Compile Include="HardwareTester\models\ssh_models.py">
+    <Compile Include="Hardware_Tester_App\models\link_models.py" />
+    <Compile Include="Hardware_Tester_App\models\ssh_models.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\models\dashboard_models.py">
+    <Compile Include="Hardware_Tester_App\models\dashboard_models.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\models\db.py">
+    <Compile Include="Hardware_Tester_App\models\db.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\models\device_models.py">
+    <Compile Include="Hardware_Tester_App\models\device_models.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\models\log_models.py">
+    <Compile Include="Hardware_Tester_App\models\log_models.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\models\metric_models.py">
+    <Compile Include="Hardware_Tester_App\models\metric_models.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\models\project_models.py">
+    <Compile Include="Hardware_Tester_App\models\project_models.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\models\report_models.py">
+    <Compile Include="Hardware_Tester_App\models\report_models.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\models\test_models.py">
+    <Compile Include="Hardware_Tester_App\models\test_models.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\models\upload_models.py">
+    <Compile Include="Hardware_Tester_App\models\upload_models.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\models\user_models.py">
+    <Compile Include="Hardware_Tester_App\models\user_models.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\services\blueprint_service.py">
+    <Compile Include="Hardware_Tester_App\services\blueprint_service.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\services\configuration_service.py">
+    <Compile Include="Hardware_Tester_App\services\configuration_service.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\services\emulator_service.py">
+    <Compile Include="Hardware_Tester_App\services\emulator_service.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\services\hardware_service.py">
+    <Compile Include="Hardware_Tester_App\services\hardware_service.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\services\mqtt_client.py">
+    <Compile Include="Hardware_Tester_App\services\mqtt_client.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\services\peripheral_service.py">
+    <Compile Include="Hardware_Tester_App\services\peripheral_service.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\services\ssh_service.py">
+    <Compile Include="Hardware_Tester_App\services\ssh_service.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\services\test_execution_service.py">
+    <Compile Include="Hardware_Tester_App\services\test_execution_service.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\services\test_service.py">
+    <Compile Include="Hardware_Tester_App\services\test_service.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\utils\bcrypt_utils.py">
+    <Compile Include="Hardware_Tester_App\utils\bcrypt_utils.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\utils\csharp_runner.py">
+    <Compile Include="Hardware_Tester_App\utils\csharp_runner.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\utils\db_utils.py">
+    <Compile Include="Hardware_Tester_App\utils\db_utils.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\init.py">
+    <Compile Include="Hardware_Tester_App\init.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\utils\file_utils.py">
+    <Compile Include="Hardware_Tester_App\utils\file_utils.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\utils\firmware_utils.py">
+    <Compile Include="Hardware_Tester_App\utils\firmware_utils.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\utils\secrets.py" />
-    <Compile Include="HardwareTester\utils\serial_comm.py">
+    <Compile Include="Hardware_Tester_App\utils\secrets.py" />
+    <Compile Include="Hardware_Tester_App\utils\serial_comm.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\utils\source_code_analyzer.py">
+    <Compile Include="Hardware_Tester_App\utils\source_code_analyzer.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\utils\test_generator.py">
+    <Compile Include="Hardware_Tester_App\utils\test_generator.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\utils\test_utils.py" />
-    <Compile Include="HardwareTester\utils\token_utils.py">
+    <Compile Include="Hardware_Tester_App\utils\test_utils.py" />
+    <Compile Include="Hardware_Tester_App\utils\token_utils.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\views\auth_views.py">
+    <Compile Include="Hardware_Tester_App\views\auth_views.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\views\blueprint_views.py">
+    <Compile Include="Hardware_Tester_App\views\blueprint_views.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\views\configuration_views.py">
+    <Compile Include="Hardware_Tester_App\views\configuration_views.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\views\error_views.py">
+    <Compile Include="Hardware_Tester_App\views\error_views.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\services\api_service.py">
+    <Compile Include="Hardware_Tester_App\services\api_service.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\services\log_service.py">
+    <Compile Include="Hardware_Tester_App\services\log_service.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\services\test_plan_service.py">
+    <Compile Include="Hardware_Tester_App\services\test_plan_service.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\services\controller_service.py">
+    <Compile Include="Hardware_Tester_App\services\controller_service.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\utils\api_manager.py">
+    <Compile Include="Hardware_Tester_App\utils\api_manager.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\utils\auto_deploy.py">
+    <Compile Include="Hardware_Tester_App\utils\auto_deploy.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\utils\parsers.py">
+    <Compile Include="Hardware_Tester_App\utils\parsers.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\utils\testing.py">
+    <Compile Include="Hardware_Tester_App\utils\testing.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\utils\hardware_manager.py">
+    <Compile Include="Hardware_Tester_App\utils\hardware_manager.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\utils\test_runner.py">
+    <Compile Include="Hardware_Tester_App\utils\test_runner.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\utils\validators.py">
+    <Compile Include="Hardware_Tester_App\utils\validators.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\utils\__init__.py">
+    <Compile Include="Hardware_Tester_App\utils\__init__.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\views\api_views.py">
+    <Compile Include="Hardware_Tester_App\views\api_views.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\views\log_views.py">
+    <Compile Include="Hardware_Tester_App\views\log_views.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\views\main_views.py">
+    <Compile Include="Hardware_Tester_App\views\main_views.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\views\ssh_views.py">
+    <Compile Include="Hardware_Tester_App\views\ssh_views.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\views\test_plan_views.py">
+    <Compile Include="Hardware_Tester_App\views\test_plan_views.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\views\controller_views.py">
+    <Compile Include="Hardware_Tester_App\views\controller_views.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareTester\views\__init__.py">
+    <Compile Include="Hardware_Tester_App\views\__init__.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="runserver.py" />
-    <Compile Include="HardwareTester\__init__.py" />
+    <Compile Include="Hardware_Tester_App\__init__.py" />
     <Compile Include="tests\Back_End\test_ssh_models.py">
       <SubType>Code</SubType>
     </Compile>
@@ -293,31 +293,31 @@
     <Folder Include="emulator-dashboard\src\components\" />
     <Folder Include="emulator-dashboard\src\components\shared\" />
     <Folder Include="emulator-dashboard\src\services\" />
-    <Folder Include="HardwareTester\" />
-    <Folder Include="HardwareTester\hal\" />
-    <Folder Include="HardwareTester\models\" />
-    <Folder Include="HardwareTester\static\blueprints\" />
-    <Folder Include="HardwareTester\static\blueprints\delete\" />
-    <Folder Include="HardwareTester\static\blueprints\upload\" />
-    <Folder Include="HardwareTester\templates\ssh\" />
-    <Folder Include="HardwareTester\templates\ssh\modals\" />
+    <Folder Include="Hardware_Tester_App\" />
+    <Folder Include="Hardware_Tester_App\hal\" />
+    <Folder Include="Hardware_Tester_App\models\" />
+    <Folder Include="Hardware_Tester_App\static\blueprints\" />
+    <Folder Include="Hardware_Tester_App\static\blueprints\delete\" />
+    <Folder Include="Hardware_Tester_App\static\blueprints\upload\" />
+    <Folder Include="Hardware_Tester_App\templates\ssh\" />
+    <Folder Include="Hardware_Tester_App\templates\ssh\modals\" />
     <Folder Include="instance\" />
     <Folder Include="old\" />
     <Folder Include="tests\" />
     <Folder Include="secrets\" />
-    <Folder Include="HardwareTester\templates\auth\" />
-    <Folder Include="HardwareTester\views\" />
-    <Folder Include="HardwareTester\services\" />
-    <Folder Include="HardwareTester\static\" />
-    <Folder Include="HardwareTester\static\content\" />
-    <Folder Include="HardwareTester\static\fonts\" />
-    <Folder Include="HardwareTester\static\css\" />
-    <Folder Include="HardwareTester\static\js\" />
-    <Folder Include="HardwareTester\static\img\" />
-    <Folder Include="HardwareTester\static\js\test\" />
-    <Folder Include="HardwareTester\static\scripts\" />
-    <Folder Include="HardwareTester\templates\" />
-    <Folder Include="HardwareTester\utils\" />
+    <Folder Include="Hardware_Tester_App\templates\auth\" />
+    <Folder Include="Hardware_Tester_App\views\" />
+    <Folder Include="Hardware_Tester_App\services\" />
+    <Folder Include="Hardware_Tester_App\static\" />
+    <Folder Include="Hardware_Tester_App\static\content\" />
+    <Folder Include="Hardware_Tester_App\static\fonts\" />
+    <Folder Include="Hardware_Tester_App\static\css\" />
+    <Folder Include="Hardware_Tester_App\static\js\" />
+    <Folder Include="Hardware_Tester_App\static\img\" />
+    <Folder Include="Hardware_Tester_App\static\js\test\" />
+    <Folder Include="Hardware_Tester_App\static\scripts\" />
+    <Folder Include="Hardware_Tester_App\templates\" />
+    <Folder Include="Hardware_Tester_App\utils\" />
     <Folder Include="migrations\" />
     <Folder Include="logs\" />
     <Folder Include="tests\Front_End\" />
@@ -357,102 +357,101 @@
     <Content Include="emulator-dashboard\public\styles.css" />
     <Content Include="emulator-dashboard\src\services\userManagement.js" />
     <Content Include="emulator-dashboard\src\styles.css" />
-    <Content Include="HardwareTester\static\css\api_overview.css" />
-    <Content Include="HardwareTester\static\css\configuration_management.css" />
-    <Content Include="HardwareTester\static\css\device_blueprints.css" />
-    <Content Include="HardwareTester\static\css\forgot_password.css" />
-    <Content Include="HardwareTester\static\css\hardware.css" />
-    <Content Include="HardwareTester\static\css\logs.css" />
-    <Content Include="HardwareTester\static\css\mqtt_management.css" />
-    <Content Include="HardwareTester\static\css\styles.css" />
-    <Content Include="HardwareTester\static\js\api_overview.js" />
-    <Content Include="HardwareTester\static\js\app.js" />
-    <Content Include="HardwareTester\static\js\auth.js" />
-    <Content Include="HardwareTester\static\js\configuration_management.js" />
-    <Content Include="HardwareTester\static\js\dashboard.js" />
-    <Content Include="HardwareTester\static\js\device_blueprints.js" />
-    <Content Include="HardwareTester\static\js\emulator.js" />
-    <Content Include="HardwareTester\static\js\forgot_password.js" />
-    <Content Include="HardwareTester\static\js\hardware.js" />
-    <Content Include="HardwareTester\static\js\jest.config.js" />
-    <Content Include="HardwareTester\static\js\logs.js" />
-    <Content Include="HardwareTester\static\js\main_views.js" />
-    <Content Include="HardwareTester\static\js\mqtt_management.js" />
-    <Content Include="HardwareTester\static\js\ssh.js" />
-    <Content Include="HardwareTester\static\scripts\setup.js" />
-    <Content Include="HardwareTester\static\js\valve_management.js" />
-    <Content Include="HardwareTester\static\scripts\jquery-3.7.1.min.js" />
-    <Content Include="HardwareTester\templates\add_emulator.html" />
-    <Content Include="HardwareTester\templates\analytics.html" />
-    <Content Include="HardwareTester\templates\api_overview.html" />
-    <Content Include="HardwareTester\templates\auth\base.html" />
-    <Content Include="HardwareTester\templates\auth\forgot_password.html" />
-    <Content Include="HardwareTester\templates\auth\logout.html" />
-    <Content Include="HardwareTester\templates\auth\profile.html" />
-    <Content Include="HardwareTester\templates\auth\register.html" />
-    <Content Include="HardwareTester\templates\auth\reset_password.html" />
-    <Content Include="HardwareTester\templates\auth\verify_email.html" />
-    <Content Include="HardwareTester\templates\base.html" />
-    <Content Include="HardwareTester\templates\configuration_management.html" />
-    <Content Include="HardwareTester\templates\dashboard.html" />
-    <Content Include="HardwareTester\templates\auth\login.html" />
-    <Content Include="HardwareTester\templates\device_blueprints.html" />
-    <Content Include="HardwareTester\templates\emulator.html" />
-    <Content Include="HardwareTester\templates\error.html" />
-    <Content Include="HardwareTester\templates\help.html" />
-    <Content Include="HardwareTester\templates\mqtt_management.html" />
-    <Content Include="HardwareTester\templates\notifications.html" />
-    <Content Include="HardwareTester\templates\peripherals.html" />
-    <Content Include="HardwareTester\templates\logs.html" />
-    <Content Include="HardwareTester\templates\privacy.html" />
-    <Content Include="HardwareTester\templates\reports.html" />
-    <Content Include="HardwareTester\templates\settings.html" />
-    <Content Include="HardwareTester\templates\ssh\modals\add_ssh_connection.html" />
-    <Content Include="HardwareTester\templates\ssh\modals\edit_ssh_connection.html" />
-    <Content Include="HardwareTester\templates\ssh\modals\test_ssh_connection.html" />
-    <Content Include="HardwareTester\templates\ssh_dashboard.html" />
-    <Content Include="HardwareTester\templates\start_emulation.html" />
-    <Content Include="HardwareTester\templates\system_status.html" />
-    <Content Include="HardwareTester\templates\terms.html" />
-    <Content Include="HardwareTester\templates\test_plan_management.html" />
-    <Content Include="HardwareTester\templates\upload_test_plan.html" />
-    <Content Include="HardwareTester\templates\user_management.html" />
-    <Content Include="HardwareTester\templates\valve_management.html" />
-    <Content Include="HardwareTester\utils\DeviceRunner.cs">
+    <Content Include="Hardware_Tester_App\static\css\api_overview.css" />
+    <Content Include="Hardware_Tester_App\static\css\configuration_management.css" />
+    <Content Include="Hardware_Tester_App\static\css\device_blueprints.css" />
+    <Content Include="Hardware_Tester_App\static\css\forgot_password.css" />
+    <Content Include="Hardware_Tester_App\static\css\hardware.css" />
+    <Content Include="Hardware_Tester_App\static\css\logs.css" />
+    <Content Include="Hardware_Tester_App\static\css\mqtt_management.css" />
+    <Content Include="Hardware_Tester_App\static\css\styles.css" />
+    <Content Include="Hardware_Tester_App\static\js\api_overview.js" />
+    <Content Include="Hardware_Tester_App\static\js\app.js" />
+    <Content Include="Hardware_Tester_App\static\js\auth.js" />
+    <Content Include="Hardware_Tester_App\static\js\configuration_management.js" />
+    <Content Include="Hardware_Tester_App\static\js\dashboard.js" />
+    <Content Include="Hardware_Tester_App\static\js\device_blueprints.js" />
+    <Content Include="Hardware_Tester_App\static\js\emulator.js" />
+    <Content Include="Hardware_Tester_App\static\js\forgot_password.js" />
+    <Content Include="Hardware_Tester_App\static\js\hardware.js" />
+    <Content Include="Hardware_Tester_App\static\js\jest.config.js" />
+    <Content Include="Hardware_Tester_App\static\js\logs.js" />
+    <Content Include="Hardware_Tester_App\static\js\main_views.js" />
+    <Content Include="Hardware_Tester_App\static\js\mqtt_management.js" />
+    <Content Include="Hardware_Tester_App\static\js\ssh.js" />
+    <Content Include="Hardware_Tester_App\static\scripts\setup.js" />
+    <Content Include="Hardware_Tester_App\static\js\valve_management.js" />
+    <Content Include="Hardware_Tester_App\static\scripts\jquery-3.7.1.min.js" />
+    <Content Include="Hardware_Tester_App\templates\add_emulator.html" />
+    <Content Include="Hardware_Tester_App\templates\analytics.html" />
+    <Content Include="Hardware_Tester_App\templates\api_overview.html" />
+    <Content Include="Hardware_Tester_App\templates\auth\base.html" />
+    <Content Include="Hardware_Tester_App\templates\auth\forgot_password.html" />
+    <Content Include="Hardware_Tester_App\templates\auth\logout.html" />
+    <Content Include="Hardware_Tester_App\templates\auth\profile.html" />
+    <Content Include="Hardware_Tester_App\templates\auth\register.html" />
+    <Content Include="Hardware_Tester_App\templates\auth\reset_password.html" />
+    <Content Include="Hardware_Tester_App\templates\auth\verify_email.html" />
+    <Content Include="Hardware_Tester_App\templates\base.html" />
+    <Content Include="Hardware_Tester_App\templates\configuration_management.html" />
+    <Content Include="Hardware_Tester_App\templates\dashboard.html" />
+    <Content Include="Hardware_Tester_App\templates\auth\login.html" />
+    <Content Include="Hardware_Tester_App\templates\device_blueprints.html" />
+    <Content Include="Hardware_Tester_App\templates\emulator.html" />
+    <Content Include="Hardware_Tester_App\templates\error.html" />
+    <Content Include="Hardware_Tester_App\templates\help.html" />
+    <Content Include="Hardware_Tester_App\templates\mqtt_management.html" />
+    <Content Include="Hardware_Tester_App\templates\notifications.html" />
+    <Content Include="Hardware_Tester_App\templates\peripherals.html" />
+    <Content Include="Hardware_Tester_App\templates\logs.html" />
+    <Content Include="Hardware_Tester_App\templates\privacy.html" />
+    <Content Include="Hardware_Tester_App\templates\reports.html" />
+    <Content Include="Hardware_Tester_App\templates\settings.html" />
+    <Content Include="Hardware_Tester_App\templates\ssh\modals\add_ssh_connection.html" />
+    <Content Include="Hardware_Tester_App\templates\ssh\modals\edit_ssh_connection.html" />
+    <Content Include="Hardware_Tester_App\templates\ssh\modals\test_ssh_connection.html" />
+    <Content Include="Hardware_Tester_App\templates\ssh_dashboard.html" />
+    <Content Include="Hardware_Tester_App\templates\start_emulation.html" />
+    <Content Include="Hardware_Tester_App\templates\system_status.html" />
+    <Content Include="Hardware_Tester_App\templates\terms.html" />
+    <Content Include="Hardware_Tester_App\templates\test_plan_management.html" />
+    <Content Include="Hardware_Tester_App\templates\upload_test_plan.html" />
+    <Content Include="Hardware_Tester_App\templates\user_management.html" />
+    <Content Include="Hardware_Tester_App\templates\valve_management.html" />
+    <Content Include="Hardware_Tester_App\utils\DeviceRunner.cs">
       <SubType>Code</SubType>
     </Content>
     <Content Include="instance\app.db" />
     <Content Include="logs\app.log" />
-    <Content Include="logs\flask_app.log" />
     <Content Include="readme.md" />
     <Content Include="repo_compare.sh" />
     <Content Include="requirements.txt" />
-    <Content Include="HardwareTester\static\content\bootstrap.css" />
-    <Content Include="HardwareTester\static\content\bootstrap.min.css" />
-    <Content Include="HardwareTester\static\content\site.css" />
-    <Content Include="HardwareTester\static\fonts\glyphicons-halflings-regular.eot" />
-    <Content Include="HardwareTester\static\fonts\glyphicons-halflings-regular.svg" />
-    <Content Include="HardwareTester\static\fonts\glyphicons-halflings-regular.ttf" />
-    <Content Include="HardwareTester\static\fonts\glyphicons-halflings-regular.woff" />
-    <Content Include="HardwareTester\static\scripts\bootstrap.js" />
-    <Content Include="HardwareTester\static\scripts\bootstrap.min.js" />
-    <Content Include="HardwareTester\static\scripts\jquery-1.10.2.intellisense.js" />
-    <Content Include="HardwareTester\static\scripts\jquery-1.10.2.js" />
-    <Content Include="HardwareTester\static\scripts\jquery-3.7.1.js" />
-    <Content Include="HardwareTester\static\scripts\jquery-1.10.2.min.map" />
-    <Content Include="HardwareTester\static\scripts\jquery.validate-vsdoc.js" />
-    <Content Include="HardwareTester\static\scripts\jquery.validate.js" />
-    <Content Include="HardwareTester\static\scripts\jquery.validate.min.js" />
-    <Content Include="HardwareTester\static\scripts\jquery.validate.unobtrusive.js" />
-    <Content Include="HardwareTester\static\scripts\jquery.validate.unobtrusive.min.js" />
-    <Content Include="HardwareTester\static\scripts\modernizr-2.6.2.js" />
-    <Content Include="HardwareTester\static\scripts\respond.js" />
-    <Content Include="HardwareTester\static\scripts\respond.min.js" />
-    <Content Include="HardwareTester\static\scripts\_references.js" />
-    <Content Include="HardwareTester\templates\about.html" />
-    <Content Include="HardwareTester\templates\contact.html" />
-    <Content Include="HardwareTester\templates\index.html" />
-    <Content Include="HardwareTester\templates\layout.html" />
+    <Content Include="Hardware_Tester_App\static\content\bootstrap.css" />
+    <Content Include="Hardware_Tester_App\static\content\bootstrap.min.css" />
+    <Content Include="Hardware_Tester_App\static\content\site.css" />
+    <Content Include="Hardware_Tester_App\static\fonts\glyphicons-halflings-regular.eot" />
+    <Content Include="Hardware_Tester_App\static\fonts\glyphicons-halflings-regular.svg" />
+    <Content Include="Hardware_Tester_App\static\fonts\glyphicons-halflings-regular.ttf" />
+    <Content Include="Hardware_Tester_App\static\fonts\glyphicons-halflings-regular.woff" />
+    <Content Include="Hardware_Tester_App\static\scripts\bootstrap.js" />
+    <Content Include="Hardware_Tester_App\static\scripts\bootstrap.min.js" />
+    <Content Include="Hardware_Tester_App\static\scripts\jquery-1.10.2.intellisense.js" />
+    <Content Include="Hardware_Tester_App\static\scripts\jquery-1.10.2.js" />
+    <Content Include="Hardware_Tester_App\static\scripts\jquery-3.7.1.js" />
+    <Content Include="Hardware_Tester_App\static\scripts\jquery-1.10.2.min.map" />
+    <Content Include="Hardware_Tester_App\static\scripts\jquery.validate-vsdoc.js" />
+    <Content Include="Hardware_Tester_App\static\scripts\jquery.validate.js" />
+    <Content Include="Hardware_Tester_App\static\scripts\jquery.validate.min.js" />
+    <Content Include="Hardware_Tester_App\static\scripts\jquery.validate.unobtrusive.js" />
+    <Content Include="Hardware_Tester_App\static\scripts\jquery.validate.unobtrusive.min.js" />
+    <Content Include="Hardware_Tester_App\static\scripts\modernizr-2.6.2.js" />
+    <Content Include="Hardware_Tester_App\static\scripts\respond.js" />
+    <Content Include="Hardware_Tester_App\static\scripts\respond.min.js" />
+    <Content Include="Hardware_Tester_App\static\scripts\_references.js" />
+    <Content Include="Hardware_Tester_App\templates\about.html" />
+    <Content Include="Hardware_Tester_App\templates\contact.html" />
+    <Content Include="Hardware_Tester_App\templates\index.html" />
+    <Content Include="Hardware_Tester_App\templates\layout.html" />
     <Content Include="tests\Back_End\temperature_sensor_system_test.json" />
     <Content Include="tests\Back_End\controller_test.json" />
     <Content Include="tests\Back_End\device_test.json" />

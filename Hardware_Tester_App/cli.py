@@ -3,18 +3,18 @@ from flask.cli import with_appcontext
 from flask_migrate import Migrate
 # , MigrateCommand
 
-from HardwareTester.extensions import db
-from HardwareTester.utils.bcrypt_utils import hash_password
-from HardwareTester.utils.custom_logger import CustomLogger
-from HardwareTester.services.configuration_service import ConfigurationService
-from HardwareTester.services.emulator_service import EmulatorService
-from HardwareTester.services.mqtt_service import MQTTService
-from HardwareTester.services.test_service import TestService
-from HardwareTester.services.test_plan_service import TestPlanService
-from HardwareTester.models.user_models import User, UserRole
-from HardwareTester.models.dashboard_models import DashboardData
-from HardwareTester.utils.test_generator import TestGenerator
-from HardwareTester.utils.source_code_analyzer import SourceCodeAnalyzer
+from Hardware_Tester_App.extensions import db
+from Hardware_Tester_App.utils.bcrypt_utils import hash_password
+from Hardware_Tester_App.utils.custom_logger import CustomLogger
+from Hardware_Tester_App.services.configuration_service import ConfigurationService
+from Hardware_Tester_App.services.emulator_service import EmulatorService
+from Hardware_Tester_App.services.mqtt_service import MQTTService
+from Hardware_Tester_App.services.test_service import TestService
+from Hardware_Tester_App.services.test_plan_service import TestPlanService
+from Hardware_Tester_App.models.user_models import User, UserRole
+from Hardware_Tester_App.models.dashboard_models import DashboardData
+from Hardware_Tester_App.utils.test_generator import TestGenerator
+from Hardware_Tester_App.utils.source_code_analyzer import SourceCodeAnalyzer
 from faker import Faker
 import os
 from dotenv import load_dotenv

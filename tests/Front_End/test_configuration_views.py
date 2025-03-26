@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import patch, MagicMock
 from flask import Flask
-from HardwareTester.views.configuration_views import configuration_bp
+from Hardware_Tester_App.views.configuration_views import configuration_bp
 
 
 class ConfigurationViewsTestCase(unittest.TestCase):
@@ -34,7 +34,7 @@ class ConfigurationViewsTestCase(unittest.TestCase):
         }
 
         with patch(
-            "HardwareTester.services.configuration_service.ConfigurationService.list_configurations",
+            "Hardware_Tester_App.services.configuration_service.ConfigurationService.list_configurations",
             return_value=mock_configs,
         ) as mock_list_configs:
             response = self.client.get("/configurations/list")
@@ -50,7 +50,7 @@ class ConfigurationViewsTestCase(unittest.TestCase):
         }
 
         with patch(
-            "HardwareTester.services.configuration_service.ConfigurationService.generate_preview",
+            "Hardware_Tester_App.services.configuration_service.ConfigurationService.generate_preview",
             return_value=mock_preview,
         ) as mock_generate_preview:
             response = self.client.get("/configurations/preview/1")
@@ -66,7 +66,7 @@ class ConfigurationViewsTestCase(unittest.TestCase):
         }
 
         with patch(
-            "HardwareTester.services.configuration_service.ConfigurationService.save_configuration",
+            "Hardware_Tester_App.services.configuration_service.ConfigurationService.save_configuration",
             return_value=mock_response,
         ) as mock_save_configuration:
             response = self.client.post(
@@ -87,7 +87,7 @@ class ConfigurationViewsTestCase(unittest.TestCase):
         }
 
         with patch(
-            "HardwareTester.services.configuration_service.ConfigurationService.load_configuration",
+            "Hardware_Tester_App.services.configuration_service.ConfigurationService.load_configuration",
             return_value=mock_config,
         ) as mock_load_configuration:
             response = self.client.get("/configurations/load/1")

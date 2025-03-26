@@ -3,10 +3,10 @@ import os
 import unittest
 from unittest.mock import patch
 from flask import Flask, render_template_string, jsonify, request
-from HardwareTester.views.mqtt_views import mqtt_bp
+from Hardware_Tester_App.views.mqtt_views import mqtt_bp
 
 # Dynamically add the app folder to the Python path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../HardwareTester')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../Hardware_Tester_App')))
 
 class MQTTViewsTestCase(unittest.TestCase):
     def setUp(self):
@@ -71,7 +71,7 @@ class MQTTViewsTestCase(unittest.TestCase):
         """Test publishing an MQTT message."""
         mock_response = {"success": True, "message": "Message published."}
 
-        with patch("HardwareTester.services.mqtt_service.MQTTService.publish_message", return_value=mock_response):
+        with patch("Hardware_Tester_App.services.mqtt_service.MQTTService.publish_message", return_value=mock_response):
             response = self.client.post("/mqtt/publish", json={"topic": "test/topic", "message": "Hello World"})
             self.assertEqual(response.status_code, 200)
             self.assertIn(b"Message published", response.data)

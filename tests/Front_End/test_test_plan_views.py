@@ -2,7 +2,7 @@
 from flask import Flask
 from flask.testing import FlaskClient
 import unittest
-from HardwareTester.views.test_plan_views import test_plan_bp
+from Hardware_Tester_App.views.test_plan_views import test_plan_bp
 
 class TestPlanViewsTestCase(unittest.TestCase):
     def setUp(self):
@@ -28,7 +28,7 @@ class TestPlanViewsTestCase(unittest.TestCase):
             ]
         }
         with self.client.application.app_context():
-            with unittest.mock.patch("HardwareTester.services.test_plan_service.TestPlanService.list_tests", return_value=mock_test_plans):
+            with unittest.mock.patch("Hardware_Tester_App.services.test_plan_service.TestPlanService.list_tests", return_value=mock_test_plans):
                 response = self.client.get("/test-plans/list")
                 self.assertEqual(response.status_code, 200)
                 self.assertIn(b"Test Plan A", response.data)
@@ -43,7 +43,7 @@ class TestPlanViewsTestCase(unittest.TestCase):
                 "steps": ["Step 1: Open Valve", "Step 2: Close Valve"]
             }
         }
-        with unittest.mock.patch("HardwareTester.services.test_plan_service.TestPlanService.preview_test_plan", return_value=mock_preview):
+        with unittest.mock.patch("Hardware_Tester_App.services.test_plan_service.TestPlanService.preview_test_plan", return_value=mock_preview):
             response = self.client.get("/test-plans/1/preview")
             self.assertEqual(response.status_code, 200)
             self.assertIn(b"Step 1: Open Valve", response.data)

@@ -2,20 +2,20 @@
 
 # Flask environment settings
 # Entry point for the Flask app
-FLASK_APP=HardwareTester:create_app
+FLASK_APP=Hardware_Tester_App:create_app
 FLASK_ENV=development
 FLASK_CONFIG=development
 # Set to 0 in production
 FLASK_DEBUG=1
-# TEMPLATES_FOLDER=C:/Users/Gary/source/repos/HardwareTester/HardwareTester/templates
+# TEMPLATES_FOLDER=C:/Users/Gary/source/repos/HardwareTester/Hardware_Tester_App/templates
 
 # Database Configuration
 # DATABASE_URL=mysql:///instance/app.db  # mysql database example
 # SQLALCHEMY_DATABASE_URI=sqlite:///instance/app.db # SQLite database example
-# INSTANCE_DIR=C:/Users/Gary/source/repos/HardwareTester/HardwareTester/instance
+# INSTANCE_DIR=C:/Users/Gary/source/repos/HardwareTester/Hardware_Tester_App/instance
 # DATABASE_URL=postgresql+psycopg2://postgres:postgres@localhost:5432/hardware_tester
 # SQLALCHEMY_DATABASE_URI=postgresql+psycopg2://postgres:postgres@localhost:5432/hardware_tester
-# SQLALCHEMY_TRACK_MODIFICATIONS=FalseINSTANCE_DIR=C:/Users/Gary/source/repos/HardwareTester/HardwareTester/instance
+# SQLALCHEMY_TRACK_MODIFICATIONS=FalseINSTANCE_DIR=C:/Users/Gary/source/repos/HardwareTester/Hardware_Tester_App/instance
 # DATABASE_URL=postgresql+psycopg2://postgres:postgres@172.17.128.1:5432/hardware_tester
 # SQLALCHEMY_DATABASE_URI=postgresql+psycopg2://postgres:postgres@172.17.128.1:5432/hardware_tester
 DATABASE_URL=postgresql+psycopg2://postgres:postgres@${HOST_IP:-127.0.0.1}:5432/hardware_tester
@@ -44,11 +44,11 @@ LOG_LEVEL=DEBUG
 LOG_FILE=app.log
 
 # File Upload Settings
-UPLOAD_ROOT=/mnt/c/Users/Gary/source/repos/HardwareTester/HardwareTester/uploads
-UPLOAD_FOLDER=/mnt/c/Users/Gary/source/repos/HardwareTester/HardwareTester/uploads
-UPLOAD_BLUEPRINTS_FOLDER=/mnt/c/Users/Gary/source/repos/HardwareTester/HardwareTester/uploads/blueprints
-UPLOAD_CONFIGS_FOLDER=/mnt/c/Users/Gary/source/repos/HardwareTester/HardwareTester/uploads/configs
-UPLOAD_MODIFIED_JSON_FILES=/mnt/c/Users/Gary/source/repos/HardwareTester/HardwareTester/uploads/modified_json_files
+UPLOAD_ROOT=/mnt/c/Users/Gary/source/repos/HardwareTester/Hardware_Tester_App/uploads
+UPLOAD_FOLDER=/mnt/c/Users/Gary/source/repos/HardwareTester/Hardware_Tester_App/uploads
+UPLOAD_BLUEPRINTS_FOLDER=/mnt/c/Users/Gary/source/repos/HardwareTester/Hardware_Tester_App/uploads/blueprints
+UPLOAD_CONFIGS_FOLDER=/mnt/c/Users/Gary/source/repos/HardwareTester/Hardware_Tester_App/uploads/configs
+UPLOAD_MODIFIED_JSON_FILES=/mnt/c/Users/Gary/source/repos/HardwareTester/Hardware_Tester_App/uploads/modified_json_files
 
 #UPLOAD_BLUEPRINTS_FOLDER=blueprints
 #UPLOAD_CONFIGS_FOLDER=configs
@@ -58,7 +58,7 @@ MAX_CONTENT_LENGTH=16777216
     
 #UPLOAD_FOLDER=uploads
 #BLUEPRINT_UPLOAD_FOLDER=blueprints
-#UPLOAD_FOLDER_ROOT=C:/Users/Gary/source/repos/HardwareTester/HardwareTester/uploads
+#UPLOAD_FOLDER_ROOT=C:/Users/Gary/source/repos/HardwareTester/Hardware_Tester_App/uploads
 ALLOWED_SPEC_SHEET_EXTENSIONS=pdf,docx,xlsx
 ALLOWED_TEST_PLAN_EXTENSIONS=pdf,csv,txt
 
