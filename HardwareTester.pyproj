@@ -33,15 +33,11 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="cli.py" />
     <Compile Include="old\cli.py" />
     <Compile Include="HardwareTester\cli.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="decode.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="dynamic_test_gui.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="HardwareTester\config.py">
@@ -237,9 +233,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="HardwareTester\views\__init__.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="manage_migrations.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="runserver.py" />
