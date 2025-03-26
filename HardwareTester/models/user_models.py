@@ -1,4 +1,4 @@
-# user_models.py
+# models/user_models.py
 
 from flask_login import UserMixin
 from datetime import datetime

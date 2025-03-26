@@ -1,3 +1,11 @@
+# models/test_models.py
+# This file contains the SQLAlchemy models for the test plans and test steps. 
+# The TestPlan model represents a test plan, which is a collection of test steps. 
+# The TestStep model represents a single test step in a test plan. 
+# The TestPlan model has a one-to-many relationship with the TestStep model. 
+# The TestPlan model has the following attributes:
+    
+
 from HardwareTester.extensions import db
 from datetime import datetime
 
