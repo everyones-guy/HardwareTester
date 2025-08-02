@@ -1,0 +1,14 @@
+flask
+pytest
+alembic
+Faker
+pdfplumber
+tldextract
+python-dotenv
+pyserial
+pypdfium2
+debugpy
+future
+Mako
+email-validator
+flask-cors

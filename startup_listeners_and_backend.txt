@@ -1,0 +1,123 @@
+Script started on 2025-04-27 23:37:00-05:00 [TERM="xterm-256color" TTY="/dev/pts/2" COLUMNS="171" LINES="44"]
+[?2004h]0;gary@Omen: /mnt/c/Users/Gary/source/repos/HardwareTester[01;32mgary@Omen[00m:[01;34m/mnt/c/Users/Gary/source/repos/HardwareTester[00m$ python3 -m venv wenv
+[?2004l[?2004h]0;gary@Omen: /mnt/c/Users/Gary/source/repos/HardwareTester[01;32mgary@Omen[00m:[01;34m/mnt/c/Users/Gary/source/repos/HardwareTester[00m$ pip[K[K[Ksource wenv/sc[K[KSc[K[K
+bin/        include/    lib/        lib64/      pyvenv.cfg  
+]0;gary@Omen: /mnt/c/Users/Gary/source/repos/HardwareTester[01;32mgary@Omen[00m:[01;34m/mnt/c/Users/Gary/source/repos/HardwareTester[00m$ source wenv/bin/activate
+[?2004l[?2004h(wenv) ]0;gary@Omen: /mnt/c/Users/Gary/source/repos/HardwareTester[01;32mgary@Omen[00m:[01;34m/mnt/c/Users/Gary/source/repos/HardwareTester[00m$ pip install pip-tools
+[?2004l[33mWARNING: Retrying (Retry(total=4, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError('<pip._vendor.urllib3.connection.HTTPSConnection object at 0x7f89c7407b30>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution')': /simple/pip-tools/[0m[33m
+[0m[33mWARNING: Retrying (Retry(total=3, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError('<pip._vendor.urllib3.connection.HTTPSConnection object at 0x7f89c6359220>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution')': /simple/pip-tools/[0m[33m
+[0m[33mWARNING: Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError('<pip._vendor.urllib3.connection.HTTPSConnection object at 0x7f89c63593d0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution')': /simple/pip-tools/[0m[33m
+[0m[33mWARNING: Retrying (Retry(total=1, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError('<pip._vendor.urllib3.connection.HTTPSConnection object at 0x7f89c6359640>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution')': /simple/pip-tools/[0m[33m
+[0m[33mWARNING: Retrying (Retry(total=0, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError('<pip._vendor.urllib3.connection.HTTPSConnection object at 0x7f89c6359850>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution')': /simple/pip-tools/[0m[33m
+[0m[31mERROR: Could not find a version that satisfies the requirement pip-tools (from versions: none)[0m[31m
+[0m[31mERROR: No matching distribution found for pip-tools[0m[31m
+[0m[?2004h(wenv) ]0;gary@Omen: /mnt/c/Users/Gary/source/repos/HardwareTester[01;32mgary@Omen[00m:[01;34m/mnt/c/Users/Gary/source/repos/HardwareTester[00m$ pip compile [K[K[K[K[K[K[K[K[K-compile requirements.in
+[?2004lpip-compile: command not found
+[?2004h(wenv) ]0;gary@Omen: /mnt/c/Users/Gary/source/repos/HardwareTester[01;32mgary@Omen[00m:[01;34m/mnt/c/Users/Gary/source/repos/HardwareTester[00m$ pip3 install pip-tools
+[?2004l[33mWARNING: Retrying (Retry(total=4, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError('<pip._vendor.urllib3.connection.HTTPSConnection object at 0x7fd4a4cd8da0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution')': /simple/pip-tools/[0m[33m
+[0m[33mWARNING: Retrying (Retry(total=3, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError('<pip._vendor.urllib3.connection.HTTPSConnection object at 0x7fd4a4c28fb0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution')': /simple/pip-tools/[0m[33m
+[0m[33mWARNING: Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError('<pip._vendor.urllib3.connection.HTTPSConnection object at 0x7fd4a4c292b0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution')': /simple/pip-tools/[0m[33m
+[0m[33mWARNING: Retrying (Retry(total=1, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError('<pip._vendor.urllib3.connection.HTTPSConnection object at 0x7fd4a4c294c0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution')': /simple/pip-tools/[0m[33m
+[0m[33mWARNING: Retrying (Retry(total=0, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError('<pip._vendor.urllib3.connection.HTTPSConnection object at 0x7fd4a4c296d0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution')': /simple/pip-tools/[0m[33m
+[0m[31mERROR: Could not find a version that satisfies the requirement pip-tools (from versions: none)[0m[31m
+[0m[31mERROR: No matching distribution found for pip-tools[0m[31m
+[0m[?2004h(wenv) ]0;gary@Omen: /mnt/c/Users/Gary/source/repos/HardwareTester[01;32mgary@Omen[00m:[01;34m/mnt/c/Users/Gary/source/repos/HardwareTester[00m$ pi[K[Kwhich[K[K[K[K[Kpip3 install pip-tools[Kpython runserver.py 
+[?2004lTraceback (most recent call last):
+  File "/mnt/c/Users/Gary/source/repos/HardwareTester/runserver.py", line 3, in <module>
+    from flask_socketio import SocketIO
+ModuleNotFoundError: No module named 'flask_socketio'
+[?2004h(wenv) ]0;gary@Omen: /mnt/c/Users/Gary/source/repos/HardwareTester[01;32mgary@Omen[00m:[01;34m/mnt/c/Users/Gary/source/repos/HardwareTester[00m$ pi [Kp install flask_socketio
+[?2004l[33mWARNING: Retrying (Retry(total=4, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError('<pip._vendor.urllib3.connection.HTTPSConnection object at 0x7f11b1bdbe60>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution')': /simple/flask-socketio/[0m[33m
+[0m[33mWARNING: Retrying (Retry(total=3, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError('<pip._vendor.urllib3.connection.HTTPSConnection object at 0x7f11b1ab8b00>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution')': /simple/flask-socketio/[0m[33m
+[0m[33mWARNING: Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError('<pip._vendor.urllib3.connection.HTTPSConnection object at 0x7f11b189d400>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution')': /simple/flask-socketio/[0m[33m
+[0m[33mWARNING: Retrying (Retry(total=1, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError('<pip._vendor.urllib3.connection.HTTPSConnection object at 0x7f11b189d610>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution')': /simple/flask-socketio/[0m[33m
+[0m[33mWARNING: Retrying (Retry(total=0, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError('<pip._vendor.urllib3.connection.HTTPSConnection object at 0x7f11b189d820>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution')': /simple/flask-socketio/[0m[33m
+[0m[31mERROR: Could not find a version that satisfies the requirement flask_socketio (from versions: none)[0m[31m
+[0m[31mERROR: No matching distribution found for flask_socketio[0m[31m
+[0m[?2004h(wenv) ]0;gary@Omen: /mnt/c/Users/Gary/source/repos/HardwareTester[01;32mgary@Omen[00m:[01;34m/mnt/c/Users/Gary/source/repos/HardwareTester[00m$ d[Kdeactivate
+[?2004l[?2004h]0;gary@Omen: /mnt/c/Users/Gary/source/repos/HardwareTester[01;32mgary@Omen[00m:[01;34m/mnt/c/Users/Gary/source/repos/HardwareTester[00m$ pip3 install pip-tools
+[?2004l[1;31merror[0m: [1mexternally-managed-environment[0m
+
+[31m×[0m This environment is externally managed
+[31m╰─>[0m To install Python packages system-wide, try apt install
+[31m   [0m python3-xyz, where xyz is the package you are trying to
+[31m   [0m install.
+[31m   [0m 
+[31m   [0m If you wish to install a non-Debian-packaged Python package,
+[31m   [0m create a virtual environment using python3 -m venv path/to/venv.
+[31m   [0m Then use path/to/venv/bin/python and path/to/venv/bin/pip. Make
+[31m   [0m sure you have python3-full installed.
+[31m   [0m 
+[31m   [0m If you wish to install a non-Debian packaged Python application,
+[31m   [0m it may be easiest to use pipx install xyz, which will manage a
+[31m   [0m virtual environment for you. Make sure you have pipx installed.
+[31m   [0m 
+[31m   [0m See /usr/share/doc/python3.12/README.venv for more information.
+
+[1;35mnote[0m: If you believe this is a mistake, please contact your Python installation or OS distribution provider. You can override this, at the risk of breaking your Python installation or OS, by passing --break-system-packages.
+[1;36mhint[0m: See PEP 668 for the detailed specification.
+[?2004h]0;gary@Omen: /mnt/c/Users/Gary/source/repos/HardwareTester[01;32mgary@Omen[00m:[01;34m/mnt/c/Users/Gary/source/repos/HardwareTester[00m$ pip-compile
+[?2004lpip-compile: command not found
+[?2004h]0;gary@Omen: /mnt/c/Users/Gary/source/repos/HardwareTester[01;32mgary@Omen[00m:[01;34m/mnt/c/Users/Gary/source/repos/HardwareTester[00m$ pip install pip-tools
+[?2004l[1;31merror[0m: [1mexternally-managed-environment[0m
+
+[31m×[0m This environment is externally managed
+[31m╰─>[0m To install Python packages system-wide, try apt install
+[31m   [0m python3-xyz, where xyz is the package you are trying to
+[31m   [0m install.
+[31m   [0m 
+[31m   [0m If you wish to install a non-Debian-packaged Python package,
+[31m   [0m create a virtual environment using python3 -m venv path/to/venv.
+[31m   [0m Then use path/to/venv/bin/python and path/to/venv/bin/pip. Make
+[31m   [0m sure you have python3-full installed.
+[31m   [0m 
+[31m   [0m If you wish to install a non-Debian packaged Python application,
+[31m   [0m it may be easiest to use pipx install xyz, which will manage a
+[31m   [0m virtual environment for you. Make sure you have pipx installed.
+[31m   [0m 
+[31m   [0m See /usr/share/doc/python3.12/README.venv for more information.
+
+[1;35mnote[0m: If you believe this is a mistake, please contact your Python installation or OS distribution provider. You can override this, at the risk of breaking your Python installation or OS, by passing --break-system-packages.
+[1;36mhint[0m: See PEP 668 for the detailed specification.
+[?2004h]0;gary@Omen: /mnt/c/Users/Gary/source/repos/HardwareTester[01;32mgary@Omen[00m:[01;34m/mnt/c/Users/Gary/source/repos/HardwareTester[00m$ pip[K[K[Ki[Ksource [K[K[K[K[K[K[Kpip install pip-tools[10P-compile3 install pip-tools[12Pdeactivatepip install flask_socketio[6Python runserver.py ip3 install pip-tools-compile requirements.in[6P install pip-toolssource wenv/bin/activate[4Ppython3 -m venv wenvsource wenv/bin/activate
+[?2004l[?2004h(wenv) ]0;gary@Omen: /mnt/c/Users/Gary/source/repos/HardwareTester[01;32mgary@Omen[00m:[01;34m/mnt/c/Users/Gary/source/repos/HardwareTester[00m$ source wenv/bin/activate[3Ppip install pip-tools[10P-compile3 install pip-tools[11P-compile install pip-toolssource wenv/bin/activate[Kwhich pip
+[?2004l/mnt/c/Users/Gary/source/repos/HardwareTester/wenv/bin/pip
+[?2004h(wenv) ]0;gary@Omen: /mnt/c/Users/Gary/source/repos/HardwareTester[01;32mgary@Omen[00m:[01;34m/mnt/c/Users/Gary/source/repos/HardwareTester[00m$ /mnt/c/user[K[K[K[K[K[K[K[K[K[K[K./[K[Ksource python run[K[K[K[K[K[K[K[K[K[Kpip install pip-tools
+[?2004lCommand 'import' not found, but can be installed with:
+sudo apt install graphicsmagick-imagemagick-compat  # version 1.4+really1.3.42-1, or
+sudo apt install imagemagick-6.q16                  # version 8:6.9.11.60+dfsg-1.6ubuntu1
+sudo apt install imagemagick-6.q16hdri              # version 8:6.9.11.60+dfsg-1.6ubuntu1
+Command 'import' not found, but can be installed with:
+sudo apt install graphicsmagick-imagemagick-compat  # version 1.4+really1.3.42-1, or
+sudo apt install imagemagick-6.q16                  # version 8:6.9.11.60+dfsg-1.6ubuntu1
+sudo apt install imagemagick-6.q16hdri              # version 8:6.9.11.60+dfsg-1.6ubuntu1
+Command 'from' not found, but can be installed with:
+sudo apt install mailutils
+bash: /mnt/c/Users/Gary/source/repos/HardwareTester/wenv/bin/pip: line 7: syntax error near unexpected token `('
+bash: /mnt/c/Users/Gary/source/repos/HardwareTester/wenv/bin/pip: line 7: `    sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])'
+[?2004h(wenv) ]0;gary@Omen: /mnt/c/Users/Gary/source/repos/HardwareTester[01;32mgary@Omen[00m:[01;34m/mnt/c/Users/Gary/source/repos/HardwareTester[00m$ pip instal[K[K[K[K[K[K[K[K[K[Ksource pip install requirements.txt 
+[?2004lCommand 'import' not found, but can be installed with:
+sudo apt install graphicsmagick-imagemagick-compat  # version 1.4+really1.3.42-1, or
+sudo apt install imagemagick-6.q16                  # version 8:6.9.11.60+dfsg-1.6ubuntu1
+sudo apt install imagemagick-6.q16hdri              # version 8:6.9.11.60+dfsg-1.6ubuntu1
+Command 'import' not found, but can be installed with:
+sudo apt install graphicsmagick-imagemagick-compat  # version 1.4+really1.3.42-1, or
+sudo apt install imagemagick-6.q16                  # version 8:6.9.11.60+dfsg-1.6ubuntu1
+sudo apt install imagemagick-6.q16hdri              # version 8:6.9.11.60+dfsg-1.6ubuntu1
+Command 'from' not found, but can be installed with:
+sudo apt install mailutils
+bash: /mnt/c/Users/Gary/source/repos/HardwareTester/wenv/bin/pip: line 7: syntax error near unexpected token `('
+bash: /mnt/c/Users/Gary/source/repos/HardwareTester/wenv/bin/pip: line 7: `    sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])'
+[?2004h(wenv) ]0;gary@Omen: /mnt/c/Users/Gary/source/repos/HardwareTester[01;32mgary@Omen[00m:[01;34m/mnt/c/Users/Gary/source/repos/HardwareTester[00m$ pip install requirements.txt 
+[?2004l[33mWARNING: Retrying (Retry(total=4, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError('<pip._vendor.urllib3.connection.HTTPSConnection object at 0x7f6e2ee95a60>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution')': /simple/requirements-txt/[0m[33m
+[0m[33mWARNING: Retrying (Retry(total=3, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError('<pip._vendor.urllib3.connection.HTTPSConnection object at 0x7f6e2eecc560>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution')': /simple/requirements-txt/[0m[33m
+[0m[33mWARNING: Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError('<pip._vendor.urllib3.connection.HTTPSConnection object at 0x7f6e2eecd2e0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution')': /simple/requirements-txt/[0m[33m
+[0m[33mWARNING: Retrying (Retry(total=1, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError('<pip._vendor.urllib3.connection.HTTPSConnection object at 0x7f6e2eecd4f0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution')': /simple/requirements-txt/[0m[33m
+[0m[33mWARNING: Retrying (Retry(total=0, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError('<pip._vendor.urllib3.connection.HTTPSConnection object at 0x7f6e2eecd700>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution')': /simple/requirements-txt/[0m[33m
+[0m[31mERROR: Could not find a version that satisfies the requirement requirements.txt (from versions: none)[0m[31m
+[0mHINT: You are attempting to install a package literally named "requirements.txt" (which cannot exist). Consider using the '-r' flag to install the packages listed in requirements.txt
+[31mERROR: No matching distribution found for requirements.txt[0m[31m
+[0m[?2004h(wenv) ]0;gary@Omen: /mnt/c/Users/Gary/source/repos/HardwareTester[01;32mgary@Omen[00m:[01;34m/mnt/c/Users/Gary/source/repos/HardwareTester[00m$ exit
+[?2004lexit
+
+Script done on 2025-04-27 23:49:30-05:00 [COMMAND_EXIT_CODE="1"]

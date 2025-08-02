@@ -16,7 +16,7 @@ const HardwarePanel = () => {
         try {
             setLoading(true);
             const deviceList = await listDevices();
-            setDevices(deviceList);
+            setDevices(deviceList ?? []);
             setError(null);
         } catch (err) {
             console.error("Error fetching devices:", err);

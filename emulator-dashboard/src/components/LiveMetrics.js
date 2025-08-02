@@ -44,7 +44,10 @@ const LiveMetrics = () => {
 
     // Initialize MQTT Connection
     useEffect(() => {
-        const client = new PahoMQTT(MQTT_BROKER, CLIENT_ID);
+        const [protocol, , hostWithPort] = MQTT_BROKER.split('/');
+        const [host, port] = hostWithPort.split(':');
+        const client = new PahoMQTT(host, parseInt(port), CLIENT_ID);
+
         setMqttClient(client);
 
         client.connect({
