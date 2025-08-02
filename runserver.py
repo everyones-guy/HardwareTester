@@ -1,9 +1,12 @@
 import argparse
 import os
 import platform
+from dotenv import load_dotenv
 from flask_socketio import SocketIO
 from Hardware_Tester_App import create_app
 from Hardware_Tester_App.extensions import socketio  # Importing socketio instance
+
+load_dotenv()
 
 def is_wsl_environment():
     """Check if running in Windows Subsystem for Linux (WSL)."""

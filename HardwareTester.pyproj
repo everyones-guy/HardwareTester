@@ -333,7 +333,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include=".env" />
-    <Content Include=".flaskenv" />
+    <Content Include=".flaskenv.bak" />
     <Content Include="alembic.ini" />
     <Content Include="emulator-dashboard\src\components\ActiveEmulations.js" />
     <Content Include="emulator-dashboard\src\components\CodeScanner.js" />
