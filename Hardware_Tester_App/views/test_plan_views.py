@@ -1,8 +1,9 @@
 from flask import Blueprint, jsonify, request, render_template
 from flask_login import login_required, current_user
 from Hardware_Tester_App.services.test_plan_service import TestPlanService
-from Hardware_Tester_App.extensions import logger
+from Hardware_Tester_App.extensions import logger, db
 from Hardware_Tester_App.models.user_models import UserRole
+from Hardware_Tester_App.models.test_models import TestPlan
 
 # Define the Blueprint for test plan management
 test_plan_bp = Blueprint("test_plans", __name__)
@@ -15,6 +16,44 @@ def show_test_plans():
     Render the test plan management page.
     """
     return render_template("test_plan_management.html")
+
+@test_plan_bp.route("/api/test-plans/from-form", methods=["POST"])
+def create_test_plan_from_form():
+    test_plan_name = request.form.get("testPlanName")
+    test_plan_description = request.form.get("testPlanDescription")
+    screen = request.form.get("testPlanScreen")
+    event = request.form.get("testPlanEvent")
+    timing = request.form.get("testPlanTiming")
+
+    # Validate timing
+    if not timing.isdigit() or int(timing) < 0:
+        return jsonify({"error": "Invalid timing value. Must be a positive number."}), 400
+
+    # Convert timing to integer
+    timing = int(timing)
+
+    # Perform validation and save the test plan
+    if not all([test_plan_name, screen, event]):
+        return jsonify({"error": "All fields are required"}), 400
+
+    # Save to database or any persistent storage
+    new_test_plan = TestPlan(
+        name=test_plan_name,
+        description=test_plan_description,
+        screen=screen,
+        event=event,
+        timing=timing
+    )
+
+    # Example: Save to database
+    db.session.add(new_test_plan)
+    db.session.commit()
+
+    return jsonify({
+        "message": "Test plan created successfully!",
+        "id": new_test_plan.id
+    }), 201
+
 
 
 @test_plan_bp.route("/api/test-plans/upload", methods=["POST"])

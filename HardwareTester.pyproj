@@ -358,6 +358,7 @@
     <Content Include="emulator-dashboard\public\styles.css" />
     <Content Include="emulator-dashboard\src\services\userManagement.js" />
     <Content Include="emulator-dashboard\src\styles.css" />
+    <Content Include="Hardware_Tester_App\hardware_tester_api.yaml" />
     <Content Include="Hardware_Tester_App\static\css\api_overview.css" />
     <Content Include="Hardware_Tester_App\static\css\configuration_management.css" />
     <Content Include="Hardware_Tester_App\static\css\device_blueprints.css" />

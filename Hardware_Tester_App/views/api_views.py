@@ -16,7 +16,7 @@ import os
 logger = CustomLogger.get_logger("API_Views", per_module=True)
 
 # Blueprint for API operations
-api_bp = Blueprint("api", __name__, url_prefix="/api")
+api_bp = Blueprint("api", __name__)
 
 
 @api_bp.route("/", methods=["GET"])
@@ -120,7 +120,18 @@ def get_available_endpoints():
 @api_bp.route("/get-overview", methods=["GET"])
 @login_required
 def get_overview():
-    """Fetch a summarized overview of devices, endpoints, and state."""
+    """
+    Fetch a summarized overview of devices, endpoints, and state.
+    Response:
+    {
+      "success": true,
+      "overview": {
+        "devices": [ ... ],
+        "endpoints": [ ... ],
+        "api_logs": [ ... ]
+      }
+    }
+    """
     try:
         overview = {
             "devices": APIService.get_devices(),
@@ -167,41 +178,6 @@ def simulate_device():
         logger.error(f"Simulation failed: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
 
-@api_bp.route("/test-plans", methods=["POST"])
-def create_test_plan():
-    test_plan_name = request.form.get("testPlanName")
-    test_plan_description = request.form.get("testPlanDescription")
-    screen = request.form.get("testPlanScreen")
-    event = request.form.get("testPlanEvent")
-    timing = request.form.get("testPlanTiming")
-
-    # Validate timing
-    if not timing.isdigit() or int(timing) < 0:
-        return jsonify({"error": "Invalid timing value. Must be a positive number."}), 400
-
-    # Convert timing to integer
-    timing = int(timing)
-
-    # Perform validation and save the test plan
-    if not all([test_plan_name, screen, event]):
-        return jsonify({"error": "All fields are required"}), 400
-
-    # Save to database or any persistent storage
-    new_test_plan = {
-        "name": test_plan_name,
-        "description": test_plan_description,
-        "screen": screen,
-        "event": event,
-        "timing": timing,
-    }
-
-    # Example: Save to database
-    db.session.add(new_test_plan)
-    db.session.commit()
-
-    return jsonify({"message": "Test plan created successfully!"}), 201
-
-
 @api_bp.route("/emulators/json/save", methods=["POST"])
 @login_required
 def emulator_save_json():
@@ -246,4 +222,8 @@ def emulator_save_json():
         logger.error(f"Error saving JSON via API: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
 
+# Dev tools
+@api_bp.route("/ping", methods=["GET"])
+def ping():
+    return jsonify({"success": True, "message": "API is alive."}), 200
 
