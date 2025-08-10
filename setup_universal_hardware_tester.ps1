@@ -92,8 +92,8 @@ if (-Not (Get-Command aws -ErrorAction SilentlyContinue)) {
 # -------------------------------
 # 7. Clone GitHub Repository
 # -------------------------------
-$repoUrl = "https://github.com/your-username/universal-hardware-tester.git"
-$repoDir = "$HOME\universal-hardware-tester"
+$repoUrl = "https://github.com/everyones-guy/HardwareTester.git"
+$repoDir = "$HOME\HardwareTester"
 
 if (-Not (Test-Path $repoDir)) {
     Write-Host "Cloning repository..."
