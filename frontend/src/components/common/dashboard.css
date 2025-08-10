@@ -1,0 +1,37 @@
+/* Shared dashboard layout helpers */
+
+/* Two-column content on wide screens; collapses to one on small */
+.dashboard-grid {
+    display: grid;
+    gap: 16px;
+}
+
+@media (min-width: 1100px) {
+    .dashboard-grid.cols-2 {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (min-width: 1400px) {
+    .dashboard-grid.cols-3 {
+        grid-template-columns: 1fr 1fr 1fr;
+    }
+}
+
+/* Card look for sections */
+.dashboard-section {
+    padding: 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,.04);
+}
+
+/* Page header row */
+.dashboard-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+}

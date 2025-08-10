@@ -1,0 +1,59 @@
+.active-emulations {
+    padding: 16px;
+    background-color: #fff;
+    border-radius: 6px;
+    max-height: 300px;
+    overflow-y: auto;
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.1);
+}
+
+.emulation-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.emulation-controls {
+    display: flex;
+    gap: 10px;
+}
+
+    .emulation-controls input[type="text"] {
+        padding: 6px;
+        font-size: 14px;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+    }
+
+    .emulation-controls button {
+        padding: 6px 12px;
+        font-size: 14px;
+        background-color: #0077cc;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+.emulation-table-wrapper {
+    overflow-x: auto;
+}
+
+.emulation-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+    .emulation-table th,
+    .emulation-table td {
+        padding: 8px;
+        text-align: left;
+        border-bottom: 1px solid #eee;
+    }
+
+.empty-state {
+    text-align: center;
+    font-style: italic;
+    color: #666;
+}

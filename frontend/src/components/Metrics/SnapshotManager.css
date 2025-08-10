@@ -1,0 +1,35 @@
+/* src/components/Metrics/SnapshotManager.css */
+
+.snapshot-manager {
+    padding: 1rem;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+    .snapshot-manager h2 {
+        margin-bottom: 1rem;
+    }
+
+    .snapshot-manager ul {
+        list-style: none;
+        padding: 0;
+    }
+
+    .snapshot-manager li {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem;
+        border-bottom: 1px solid #eee;
+    }
+
+    .snapshot-manager .status {
+        margin: 0 1rem;
+        font-size: 0.85rem;
+        color: #888;
+    }
+
+    .snapshot-manager .actions button {
+        margin-left: 0.5rem;
+    }

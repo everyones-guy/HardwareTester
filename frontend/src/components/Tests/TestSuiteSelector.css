@@ -1,0 +1,8 @@
+.test-suite-selector {
+    margin-top: 10px;
+}
+
+    .test-suite-selector select {
+        padding: 6px;
+        margin-left: 10px;
+    }

@@ -1,0 +1,24 @@
+.emulator-dashboard {
+    display: flex;
+    flex-direction: row;
+    gap: 24px;
+    padding: 24px;
+    background-color: #f5f5f5;
+}
+
+.emulator-main {
+    flex: 3;
+    min-width: 600px;
+}
+
+.emulator-side {
+    flex: 1;
+    max-width: 350px;
+    background-color: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 16px;
+    overflow-y: auto;
+    max-height: 90vh;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}

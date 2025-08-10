@@ -1,0 +1,36 @@
+.peripheral-list {
+    background-color: #fff;
+    padding: 16px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+}
+
+    .peripheral-list table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .peripheral-list th,
+    .peripheral-list td {
+        padding: 10px;
+        text-align: left;
+        border-bottom: 1px solid #eee;
+    }
+
+    .peripheral-list th {
+        background-color: #f8f8f8;
+        font-weight: 600;
+    }
+
+    .peripheral-list td button {
+        background: none;
+        border: none;
+        cursor: pointer;
+        margin-right: 8px;
+        font-size: 14px;
+        color: #444;
+    }
+
+        .peripheral-list td button:hover {
+            color: #0077cc;
+        }

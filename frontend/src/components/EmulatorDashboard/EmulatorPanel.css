@@ -1,0 +1,86 @@
+.emulator-panel {
+    padding: 24px;
+    background-color: #fefefe;
+    border-radius: 8px;
+    max-width: 1000px;
+    margin: auto;
+    font-family: sans-serif;
+}
+
+    .emulator-panel h1 {
+        text-align: center;
+        font-size: 2rem;
+        margin-bottom: 24px;
+    }
+
+    .emulator-panel h2 {
+        margin-top: 32px;
+        font-size: 1.5rem;
+        margin-bottom: 12px;
+    }
+
+    .emulator-panel .error {
+        color: #b30000;
+        background-color: #ffe5e5;
+        padding: 10px;
+        border-radius: 4px;
+        font-weight: 600;
+        margin-bottom: 16px;
+        text-align: center;
+    }
+
+    .emulator-panel button {
+        padding: 8px 14px;
+        background-color: #0077cc;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+        margin: 6px 8px 6px 0;
+    }
+
+        .emulator-panel button:disabled {
+            background-color: #999;
+            cursor: not-allowed;
+        }
+
+    .emulator-panel input[type="file"] {
+        display: block;
+        margin-bottom: 12px;
+    }
+
+    .emulator-panel table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 12px;
+        background-color: #fff;
+        border: 1px solid #ccc;
+    }
+
+    .emulator-panel th,
+    .emulator-panel td {
+        padding: 10px;
+        border-bottom: 1px solid #eee;
+        text-align: left;
+    }
+
+    .emulator-panel th {
+        background-color: #f4f4f4;
+        font-weight: 600;
+    }
+
+    .emulator-panel td button {
+        margin-right: 8px;
+    }
+
+    .emulator-panel pre {
+        background-color: #f0f0f0;
+        border: 1px solid #ccc;
+        padding: 12px;
+        font-family: monospace;
+        white-space: pre-wrap;
+        border-radius: 6px;
+        max-height: 300px;
+        overflow-y: auto;
+    }

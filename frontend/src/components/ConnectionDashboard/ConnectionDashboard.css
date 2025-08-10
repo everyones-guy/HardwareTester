@@ -1,0 +1,39 @@
+/* src/components/ConnectionDashboard/ConnectionDashboard.css */
+.connection-dashboard {
+    padding: 24px;
+    /* remove global centering */
+    /* max-width: 1200px; */
+    /* margin: auto; */
+}
+
+    .connection-dashboard h1 {
+        /* remove forced center */
+        /* text-align: center; */
+        margin-bottom: 24px;
+        font-size: 2rem;
+    }
+
+.connection-sections {
+    /* new wrapper you’ll add in JSX */
+    display: grid;
+    gap: 16px;
+}
+
+@media (min-width: 1100px) {
+    .connection-sections {
+        grid-template-columns: 1fr 1fr; /* 2 columns on wide screens */
+    }
+}
+
+.connection-section {
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #fff;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+    .connection-section h2 {
+        margin-bottom: 16px;
+        font-size: 1.4rem;
+    }

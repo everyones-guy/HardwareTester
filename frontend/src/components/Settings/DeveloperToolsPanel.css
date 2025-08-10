@@ -1,0 +1,37 @@
+/* src/components/SettingsPanel/DeveloperToolsPanel.css */
+
+.dev-tools-panel {
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
+}
+
+    .dev-tools-panel h2 {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .dev-tools-panel .tool-section {
+        margin-bottom: 1.5rem;
+    }
+
+    .dev-tools-panel label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+    }
+
+    .dev-tools-panel button {
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+        background-color: #0d6efd;
+        color: white;
+        border: none;
+        border-radius: 0.25rem;
+        cursor: pointer;
+    }
+
+        .dev-tools-panel button:hover {
+            background-color: #0b5ed7;
+        }

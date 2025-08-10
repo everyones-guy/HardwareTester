@@ -1,0 +1,94 @@
+.firmware-dashboard {
+    padding: 24px;
+    max-width: 1000px;
+    margin: auto;
+    background-color: #fff;
+    border-radius: 8px;
+    font-family: sans-serif;
+    display: grid;
+    gap: 16px;
+}
+    .firmware-dashboard h1 {
+        font-size: 2rem;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    .firmware-dashboard h2 {
+        margin-top: 30px;
+        font-size: 1.4rem;
+        margin-bottom: 10px;
+    }
+
+.firmware-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.firmware-actions input {
+    min-width: 240px;
+}
+
+.firmware-tools {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+.tool-card {
+    padding: 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #fff;
+}
+
+.firmware-upload {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+    .firmware-upload input[type="file"] {
+        flex: 1;
+    }
+
+    .firmware-upload button {
+        padding: 8px 14px;
+        background-color: #0077cc;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 600;
+    }
+
+.firmware-dashboard table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.firmware-dashboard th,
+.firmware-dashboard td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.firmware-dashboard th {
+    background-color: #f0f0f0;
+    font-weight: 600;
+}
+
+.firmware-dashboard td button {
+    margin-right: 8px;
+    padding: 4px 8px;
+    font-size: 12px;
+    border-radius: 4px;
+    border: none;
+    background-color: #666;
+    color: white;
+    cursor: pointer;
+}

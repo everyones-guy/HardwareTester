@@ -1,0 +1,34 @@
+.bluetooth-panel {
+    padding: 10px;
+    font-family: sans-serif;
+}
+
+.bt-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+    .bt-controls select,
+    .bt-controls button,
+    .bt-controls input[type="checkbox"] {
+        font-size: 14px;
+        padding: 6px;
+    }
+
+.bt-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+}
+
+.bt-log textarea {
+    width: 100%;
+    font-family: monospace;
+    padding: 10px;
+    resize: vertical;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}

@@ -1,0 +1,17 @@
+.hardware-stats {
+    background-color: #fff;
+    padding: 16px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+}
+
+    .hardware-stats ul {
+        list-style: none;
+        padding: 0;
+        font-size: 15px;
+        line-height: 1.6;
+    }
+
+    .hardware-stats li {
+        padding: 4px 0;
+    }

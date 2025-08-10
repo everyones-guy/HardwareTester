@@ -1,0 +1,11 @@
+.user-dashboard h1 {
+    margin-bottom: 20px;
+}
+
+.user-dashboard > div {
+    margin-bottom: 30px;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background: #fff;
+}

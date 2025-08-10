@@ -1,0 +1,81 @@
+.mqtt-panel {
+    padding: 20px;
+    border-radius: 8px;
+    background-color: #f8f8f8;
+    max-width: 900px;
+    margin: auto;
+    font-family: sans-serif;
+}
+
+    .mqtt-panel h2 {
+        margin-bottom: 20px;
+        font-size: 1.8rem;
+        text-align: center;
+    }
+
+    .mqtt-panel label {
+        display: block;
+        margin-top: 12px;
+        margin-bottom: 6px;
+        font-weight: 600;
+    }
+
+    .mqtt-panel input[type="text"] {
+        width: 100%;
+        padding: 8px;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+        margin-bottom: 10px;
+    }
+
+    .mqtt-panel button {
+        padding: 8px 14px;
+        margin-top: 5px;
+        margin-right: 10px;
+        background-color: #0077cc;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 500;
+    }
+
+        .mqtt-panel button:disabled {
+            background-color: #999;
+            cursor: not-allowed;
+        }
+
+    .mqtt-panel ul {
+        list-style: none;
+        padding-left: 0;
+        margin-top: 10px;
+    }
+
+        .mqtt-panel ul li {
+            margin-bottom: 8px;
+        }
+
+            .mqtt-panel ul li button {
+                background-color: #cc0000;
+                margin-left: 10px;
+            }
+
+    .mqtt-panel textarea {
+        width: 100%;
+        font-family: monospace;
+        margin-top: 10px;
+        padding: 10px;
+        resize: vertical;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+        background-color: #fff;
+    }
+
+    .mqtt-panel div {
+        margin-bottom: 20px;
+    }
+
+    .mqtt-panel h3 {
+        font-size: 1.2rem;
+        margin-bottom: 10px;
+    }

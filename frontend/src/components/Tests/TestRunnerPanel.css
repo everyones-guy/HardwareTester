@@ -1,0 +1,16 @@
+.test-runner-panel {
+    background: #f5faff;
+    padding: 15px;
+    border-radius: 6px;
+    border: 1px solid #bcd;
+}
+
+    .test-runner-panel button {
+        background: #28a745;
+        color: white;
+        border: none;
+        padding: 8px 14px;
+        font-weight: bold;
+        border-radius: 4px;
+        cursor: pointer;
+    }

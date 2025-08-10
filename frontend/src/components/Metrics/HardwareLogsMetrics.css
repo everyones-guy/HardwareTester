@@ -1,0 +1,53 @@
+.hardware-logs-metrics {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    border: 1px solid #ddd;
+}
+
+.metrics-panel,
+.logs-panel {
+    flex: 1;
+    min-width: 320px;
+}
+
+    .metrics-panel ul {
+        list-style: none;
+        padding-left: 0;
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
+    .logs-panel .log-list {
+        list-style: none;
+        padding-left: 0;
+        max-height: 300px;
+        overflow-y: auto;
+        font-family: monospace;
+        font-size: 13px;
+    }
+
+.log-item {
+    padding: 6px 0;
+    border-bottom: 1px solid #eee;
+}
+
+    .log-item .log-time {
+        font-weight: bold;
+        margin-right: 6px;
+    }
+
+    .log-item.info {
+        color: #333;
+    }
+
+    .log-item.warning {
+        color: #d18f00;
+    }
+
+    .log-item.error {
+        color: #cc0000;
+    }

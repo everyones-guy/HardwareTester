@@ -1,0 +1,25 @@
+.test-editor {
+    background: #fff;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    margin-bottom: 20px;
+}
+
+    .test-editor textarea {
+        width: 100%;
+        font-family: monospace;
+        padding: 10px;
+        border-radius: 4px;
+        resize: vertical;
+    }
+
+    .test-editor button {
+        margin-top: 10px;
+        padding: 8px 14px;
+        background-color: #007acc;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }

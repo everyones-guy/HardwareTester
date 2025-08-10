@@ -1,0 +1,21 @@
+.test-config-form {
+    background: #fdfdfd;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    margin-bottom: 20px;
+}
+
+    .test-config-form label {
+        display: block;
+        margin-top: 10px;
+        font-weight: bold;
+    }
+
+    .test-config-form input {
+        width: 100%;
+        padding: 6px;
+        margin-top: 4px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }

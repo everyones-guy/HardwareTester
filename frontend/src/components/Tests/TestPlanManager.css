@@ -1,0 +1,39 @@
+.test-plan-manager {
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    max-width: 900px;
+}
+
+    .test-plan-manager h2 {
+        margin-bottom: 16px;
+    }
+
+    .test-plan-manager section {
+        margin-bottom: 20px;
+    }
+
+    .test-plan-manager select {
+        padding: 6px;
+        font-size: 14px;
+        margin-left: 10px;
+    }
+
+.test-controls button {
+    padding: 8px 16px;
+    font-weight: bold;
+    background-color: #007acc;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.test-plan-manager textarea {
+    width: 100%;
+    font-family: monospace;
+    padding: 8px;
+    border-radius: 4px;
+    background: #f5f5f5;
+}

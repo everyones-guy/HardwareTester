@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "lib": [ "DOM", "DOM.Iterable", "ESNext" ],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "outDir": "./build", // Output here
+    "rootDir": "./src", // Source files live here
+    "allowJs": false, // Only .ts/.tsx allowed
+    "strict": true,
+    "noImplicitAny": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true, // Use `true` if using CRA or Vite to handle output
+    "baseUrl": "src", // Enables `@/services/...` paths
+    "types": [ "vite/client" ],
+    "paths": {
+      "@/*": [ "*" ]
+    }
+  },
+  "include": [ "src" ],
+  "exclude": [ "node_modules", "build" ],
+  "references": [ { "path": "./tsconfig.node.json" } ]
+}

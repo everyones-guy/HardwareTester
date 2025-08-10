@@ -1,0 +1,53 @@
+/* src/components/Common/NotificationPanel.css */
+
+.notification-panel {
+    padding: 1rem;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+    .notification-panel h2 {
+        margin-bottom: 1rem;
+    }
+
+.notification {
+    display: flex;
+    justify-content: space-between;
+    border-left: 5px solid;
+    padding: 0.75rem;
+    margin-bottom: 0.75rem;
+    border-radius: 5px;
+    background: #f9f9f9;
+}
+
+    .notification.read {
+        opacity: 0.6;
+    }
+
+    .notification.info {
+        border-color: #3498db;
+    }
+
+    .notification.success {
+        border-color: #2ecc71;
+    }
+
+    .notification.warning {
+        border-color: #f1c40f;
+    }
+
+    .notification.error {
+        border-color: #e74c3c;
+    }
+
+.notification-content {
+    flex: 1;
+}
+
+.notification-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-left: 1rem;
+}

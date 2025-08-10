@@ -1,0 +1,73 @@
+/* src/components/FirmwareDashboard/FirmwareTable.css */
+
+.firmware-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    margin-top: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background-color: #fff;
+}
+
+.firmware-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+}
+
+    .firmware-table thead {
+        background-color: #f5f5f5;
+    }
+
+    .firmware-table th,
+    .firmware-table td {
+        padding: 0.6rem 0.8rem;
+        text-align: left;
+        border-bottom: 1px solid #e0e0e0;
+        vertical-align: middle;
+    }
+
+    .firmware-table th {
+        font-weight: 600;
+        color: #333;
+    }
+
+    .firmware-table tbody tr:hover {
+        background-color: #f9f9f9;
+    }
+
+    .firmware-table td button {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0.25rem;
+        margin: 0 0.2rem;
+        color: #555;
+        transition: color 0.2s ease;
+    }
+
+        .firmware-table td button:hover {
+            color: #000;
+        }
+
+        .firmware-table td button:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+    /* Empty state row */
+    .firmware-table td[colspan] {
+        text-align: center;
+        padding: 1rem;
+        color: #666;
+        font-style: italic;
+    }
+
+/* Responsive tweaks */
+@media (max-width: 768px) {
+    .firmware-table th,
+    .firmware-table td {
+        padding: 0.5rem;
+        font-size: 0.9rem;
+    }
+}
