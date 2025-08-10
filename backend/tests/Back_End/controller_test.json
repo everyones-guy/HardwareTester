@@ -1,0 +1,10 @@
+{
+  "name": "Main Controller",
+  "firmware_version": "2.3.0",
+  "device_metadata": {
+    "communication_protocol": "MQTT",
+    "supported_peripherals": [ "sensor", "actuator", "valve" ]
+  },
+  "device_id": 1,
+  "available": true
+}

@@ -1,0 +1,9 @@
+{
+  "controller_id": 1,
+  "status": "running",
+  "logs": "Starting emulation for temperature sensor...",
+  "machine_name": "temp-sensor-emu-01",
+  "blueprint_id": 1,
+  "stress_test": false,
+  "start_time": "2025-01-19T10:30:00Z"
+}

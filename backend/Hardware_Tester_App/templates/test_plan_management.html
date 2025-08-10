@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block title %}Test Plan Management{% endblock %}
+
+{% block extra_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/test_plan_management.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="text-center">Test Plan Management</h2>
+
+    <div class="row">
+        <!-- Test Plans Section -->
+        <div class="col-md-8">
+            <h5>Uploaded Test Plans</h5>
+            <ul id="test-plans-list" class="list-group">
+                <li class="list-group-item text-center">Loading...</li>
+            </ul>
+        </div>
+
+        <!-- Upload Section -->
+        <div class="col-md-4">
+            <h5>Upload New Test Plan</h5>
+            <form id="upload-test-plan-form" class="test-plan-upload-form">
+                <div class="mb-3">
+                    <label for="file" class="form-label">Select File</label>
+                    <input type="file" id="file" name="file" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label for="uploaded_by" class="form-label">Uploaded By</label>
+                    <input type="text" id="uploaded_by" name="uploaded_by" class="form-control" placeholder="Your Name" required>
+                </div>
+                <button type="submit" class="btn btn-primary upload-btn w-100">Upload</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Preview Section -->
+    <div class="mt-4 d-none" id="test-plan-preview-section">
+        <h5>Test Plan Preview</h5>
+        <div class="card">
+            <div class="card-body">
+                <h6 id="preview-plan-name"></h6>
+                <p><strong>Uploaded By:</strong> <span id="preview-uploaded-by"></span></p>
+                <ul id="preview-steps" class="list-group"></ul>
+                <button class="btn btn-success mt-3" id="run-preview-plan">Run This Test Plan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Test Results Section -->
+    <div class="mt-4">
+        <h5>Test Results</h5>
+        <div id="test-results" class="border bg-light p-3">
+            <p class="text-muted">No test results to display.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Create Test Plan Modal -->
+<div class="modal fade" id="createTestPlanModal" tabindex="-1" aria-labelledby="createTestPlanModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createTestPlanModalLabel">Create New Test Plan</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createTestPlanForm">
+                    <!-- Test Plan Name -->
+                    <div class="mb-3">
+                        <label for="testPlanName" class="form-label">Test Plan Name</label>
+                        <input type="text" class="form-control" id="testPlanName" name="testPlanName" placeholder="Enter the test plan name" required>
+                    </div>
+
+                    <!-- Screen Selection -->
+                    <div class="mb-3">
+                        <label for="testPlanScreen" class="form-label">Screen</label>
+                        <div class="input-group">
+                            <select class="form-select" id="testPlanScreen" name="testPlanScreen" required>
+                                <option value="" disabled selected>Select a screen</option>
+                                <option value="configuration">Configuration</option>
+                                <option value="main_page">Main Page</option>
+                                <option value="administration">Administration</option>
+                                <option value="home">Home</option>
+                                <option value="networking">Networking</option>
+                                <option value="provision">Provision</option>
+                                <option value="test">Test</option>
+                            </select>
+                            <button type="button" class="btn btn-outline-secondary" id="addScreenButton">Add</button>
+                        </div>
+                    </div>
+
+                    <!-- Event Selection -->
+                    <div class="mb-3">
+                        <label for="testPlanEvent" class="form-label">Event (Button/Input)</label>
+                        <div class="input-group">
+                            <select class="form-select" id="testPlanEvent" name="testPlanEvent" required>
+                                <option value="" disabled selected>Select an event</option>
+                                <option value="button_one">Button One</option>
+                                <option value="button_two">Button Two</option>
+                                <option value="button_three">Button Three</option>
+                                <option value="home">Home</option>
+                                <option value="configuration">Configuration</option>
+                                <option value="profile">Profile</option>
+                                <option value="provision">Provision</option>
+                                <option value="administration">Administration</option>
+                            </select>
+                            <button type="button" class="btn btn-outline-secondary" id="addEventButton">Add</button>
+                        </div>
+                    </div>
+
+                    <!-- Test Plan Description -->
+                    <div class="mb-3">
+                        <label for="testPlanDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="testPlanDescription" name="testPlanDescription" rows="3" placeholder="Enter a brief description"></textarea>
+                    </div>
+
+                    <!-- Timing Between Commands -->
+                    <div class="mb-3">
+                        <label for="testPlanTiming" class="form-label">Timing Between Commands (ms)</label>
+                        <input type="number" class="form-control" id="testPlanTiming" name="testPlanTiming" placeholder="Enter delay in milliseconds (e.g., 500)" min="0" step="100" value="500">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveTestPlanButton">Save Test Plan</button>
+                <button type="button" class="btn btn-outline-primary" id="loadExistingTestPlanButton">Load Existing Test Plan</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="existingTestPlanModal" tabindex="-1" aria-labelledby="existingTestPlanModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="existingTestPlanModalLabel">Existing Test Plans</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <ul id="existingTestPlanList" class="list-group"></ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+{% endblock %}
+
+{% block additional_scripts %}
+<script src="{{ url_for('static', filename='js/test_plan_management.js') }}"></script>
+{% endblock %}

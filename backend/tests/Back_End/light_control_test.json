@@ -1,0 +1,43 @@
+{
+  "controller": {
+    "name": "Light Controller",
+    "connection": {
+      "type": "Bluetooth",
+      "device_name": "LightCtrl123"
+    },
+    "peripherals": [
+      {
+        "name": "Living Room Light",
+        "type": "Light",
+        "commands": {
+          "on": "LIGHT_ON_LIVING",
+          "off": "LIGHT_OFF_LIVING",
+          "set_color": "LIGHT_COLOR_LIVING",
+          "set_brightness": "LIGHT_BRIGHTNESS_LIVING"
+        }
+      },
+      {
+        "name": "Bedroom Light",
+        "type": "Light",
+        "commands": {
+          "on": "LIGHT_ON_BEDROOM",
+          "off": "LIGHT_OFF_BEDROOM",
+          "set_color": "LIGHT_COLOR_BEDROOM",
+          "set_brightness": "LIGHT_BRIGHTNESS_BEDROOM"
+        }
+      }
+    ]
+  },
+  "commands": [
+    {
+      "name": "All Lights On",
+      "description": "Turn on all connected lights",
+      "command": "LIGHTS_ON_ALL"
+    },
+    {
+      "name": "All Lights Off",
+      "description": "Turn off all connected lights",
+      "command": "LIGHTS_OFF_ALL"
+    }
+  ]
+}

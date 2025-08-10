@@ -1,0 +1,12 @@
+{
+  "device_id": "device-001",
+  "name": "Temperature Sensor Device",
+  "firmware_version": "1.0.2",
+  "device_metadata": {
+    "manufacturer": "Acme Corp",
+    "model": "TSD-100",
+    "capabilities": [ "temperature", "humidity" ],
+    "max_operating_temperature": 100,
+    "min_operating_temperature": -40
+  }
+}

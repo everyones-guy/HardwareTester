@@ -1,0 +1,173 @@
+openapi: 3.0.3
+info:
+  title: Hardware Tester API
+  version: 1.0.0
+  description: API routes for device configuration, simulation, and management.
+
+paths:
+  /api/ping:
+    get:
+      summary: Ping the API
+      responses:
+        '200':
+          description: API is alive
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+
+  /api/test-connection:
+    get:
+      summary: Test API connection
+      responses:
+        '200':
+          description: Successful connection
+        '500':
+          description: Failed connection
+
+  /api/configurations/{blueprint}:
+    get:
+      summary: Get configuration by blueprint name
+      parameters:
+        - name: blueprint
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Configuration found
+        '404':
+          description: Configuration not found
+
+  /api/fetch-data:
+    post:
+      summary: Fetch remote data from endpoint
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                endpoint:
+                  type: string
+                params:
+                  type: object
+      responses:
+        '200':
+          description: Data retrieved
+        '400':
+          description: Missing endpoint
+
+  /api/push-data:
+    post:
+      summary: Push data to remote endpoint
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                endpoint:
+                  type: string
+                data:
+                  type: object
+      responses:
+        '200':
+          description: Data pushed
+        '400':
+          description: Missing endpoint
+
+  /api/endpoints:
+    get:
+      summary: List all available endpoints
+      responses:
+        '200':
+          description: List of endpoints
+
+  /api/get-overview:
+    get:
+      summary: Get full system overview
+      responses:
+        '200':
+          description: Overview with devices, endpoints, and logs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  overview:
+                    type: object
+                    properties:
+                      devices:
+                        type: array
+                        items: {}
+                      endpoints:
+                        type: array
+                        items: {}
+                      api_logs:
+                        type: array
+                        items: {}
+
+  /api/device-config:
+    get:
+      summary: Get device configuration over serial
+      responses:
+        '200':
+          description: Device config returned
+        '500':
+          description: Error reading serial
+
+  /api/simulate-device:
+    post:
+      summary: Simulate a device
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [device_id, action]
+              properties:
+                device_id:
+                  type: string
+                action:
+                  type: string
+                parameters:
+                  type: object
+      responses:
+        '200':
+          description: Simulation result
+        '400':
+          description: Missing parameters
+
+  /api/emulators/json/save:
+    post:
+      summary: Save emulator JSON config
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [filename, data]
+              properties:
+                filename:
+                  type: string
+                data:
+                  type: object
+      responses:
+        '200':
+          description: Saved successfully
+        '400':
+          description: Validation error
+        '500':
+          description: Internal error

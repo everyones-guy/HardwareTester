@@ -1,0 +1,35 @@
+<div class="modal fade" id="test-ssh-connection-modal" tabindex="-1" aria-labelledby="testSSHConnectionLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="testSSHConnectionLabel">Test SSH Connection</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="test-ssh-connection-form">
+                    <div class="mb-3">
+                        <label for="test-host" class="form-label">Host</label>
+                        <input type="text" id="test-host" name="host" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="test-port" class="form-label">Port</label>
+                        <input type="number" id="test-port" name="port" class="form-control" value="22" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="test-username" class="form-label">Username</label>
+                        <input type="text" id="test-username" name="username" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="test-password" class="form-label">Password</label>
+                        <input type="password" id="test-password" name="password" class="form-control" required>
+                    </div>
+                </form>
+                <div id="test-results" class="mt-3"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="submit" form="test-ssh-connection-form" class="btn btn-primary">Test Connection</button>
+            </div>
+        </div>
+    </div>
+</div>

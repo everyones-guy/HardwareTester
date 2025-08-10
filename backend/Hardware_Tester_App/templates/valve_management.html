@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+    <h1>Valve Management</h1>
+    <button id="add-valve-btn" class="btn btn-primary">Add Valve</button>
+    <ul id="valve-list" class="list-group mt-3"></ul>
+</div>
+{% endblock %}
+
+
+{% block additional_scripts %}
+<script src="{{ url_for('static', filename='js/valve_management.js') }}"></script>
+{% endblock %}

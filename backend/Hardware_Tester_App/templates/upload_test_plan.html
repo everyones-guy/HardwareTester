@@ -1,0 +1,24 @@
+{% block content %}
+<div class="container mt-4">
+    <h2>Upload Test Plan</h2>
+    <form id="upload-test-plan-form" method="POST" enctype="multipart/form-data">
+        {{ form.hidden_tag() }}
+        <div class="mb-3">
+            <label for="testPlanFile" class="form-label">Test Plan File</label>
+            <input type="file" class="form-control" id="testPlanFile" name="file" required>
+        </div>
+        <div class="mb-3">
+            <label for="uploadedBy" class="form-label">Uploaded By</label>
+            <input type="text" class="form-control" id="uploadedBy" name="uploaded_by" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Upload</button>
+    </form>
+    <div id="alert-container" class="mt-3"></div>
+</div>
+{% endblock %}
+
+{% block additional_scripts %}
+<script src="{{ url_for('static', filename='js/upload_test_plan.js') }}"></script>
+{% endblock %}
+
+

@@ -1,0 +1,14 @@
+{
+  "menu": [
+    {
+      "type": "button",
+      "label": "Start",
+      "action": "startMachine"
+    },
+    {
+      "type": "button",
+      "label": "Stop",
+      "action": "stopMachine"
+    }
+  ]
+}

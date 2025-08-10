@@ -1,0 +1,43 @@
+/* User Management */
+.user-card {
+    background: white;
+    padding: 1rem;
+    border: 1px solid #ced4da;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+    .user-card:hover {
+        background-color: #f8f9fa;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .user-card .user-name {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #343a40;
+    }
+
+.add-user-btn {
+    background-color: #28a745;
+    color: white;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+    .add-user-btn:hover {
+        background-color: #218838;
+    }
+
+    .add-user-btn:active {
+        background-color: #1e7e34;
+    }
