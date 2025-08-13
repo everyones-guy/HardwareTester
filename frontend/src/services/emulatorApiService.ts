@@ -46,7 +46,7 @@ const EmulatorService = {
      * List all active emulations.
      */
     listActiveEmulations(): Promise<APIResponse<{ emulations: EmulationSession[] }>> {
-        return APIService.apiCall(`${BASE_PATH}/active`, "GET");
+        return APIService.apiCall(`${BASE_PATH}/list`, "GET");
     },
 
     /**
