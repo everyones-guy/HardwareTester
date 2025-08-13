@@ -42,11 +42,11 @@ login_manager.login_message_category = "warning"
 logger.addHandler(file_handler)
 logger.addHandler(console_handler)
 
-# Log initialization status
-try:
-    logger.info("Extensions initialized successfully.")
-except Exception as e:
-    logger.error(f"Error initializing extensions: {e}")
-    raise e
+
+
+
+
+
+
 
 

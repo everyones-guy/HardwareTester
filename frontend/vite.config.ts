@@ -17,12 +17,12 @@ export default defineConfig({
         open: true,
         proxy: {
             "/api": {
-                target: "http://localhost:5000", // Flask backend
+                target: "http://localhost:5000/api", // Flask backend
                 changeOrigin: true,
                 secure: false,
             },
             "/socket.io": {
-                target: "http://localhost:5000",
+                target: "http://localhost:5000/api",
                 ws: true,
             },
         },

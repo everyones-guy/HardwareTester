@@ -1,72 +1,71 @@
+# migrations/env.py
 from __future__ import with_statement
+
 from alembic import context
-from sqlalchemy import engine_from_config, pool
 from logging.config import fileConfig
+from sqlalchemy import engine_from_config, pool
 
-# Load Alembic config file
-fileConfig(context.config.config_file_name)
+# NEW: use the app's configured URL via Flask-Migrate/Flask
+from flask import current_app
 
-# Import your application's `db` instance and models
-from Hardware_Tester_App.extensions import db
-from Hardware_Tester_App.models.user_models import User, Token, Role, UserSettings
-from Hardware_Tester_App.models.device_models import Emulation, Device, Peripheral, Controller, Blueprint
-from Hardware_Tester_App.models.report_models import Report
-from Hardware_Tester_App.models.project_models import Project, Milestone
-from Hardware_Tester_App.models.metric_models import Metric
-from Hardware_Tester_App.models.log_models import ActivityLog, Notification
-from Hardware_Tester_App.models.dashboard_models import DashboardData
-from Hardware_Tester_App.models.configuration_models import Configuration, Settings, GlobalSettings
-from Hardware_Tester_App.models.test_models import TestPlan, TestStep
-
-# Set target metadata
-target_metadata = db.Model.metadata  # If issues arise, try `db.metadata`
-
+# Interpret the config file for Python logging.
 config = context.config
-config.set_main_option("sqlalchemy.url", "postgresql+psycopg2://postgres:postgres@localhost:5432/hardware_tester")
-print("🔹 Alembic is now using database URL:", config.get_main_option("sqlalchemy.url"))
+fileConfig(config.config_file_name)
 
- 
+# Pull SQLAlchemy URL from the Flask app (single source of truth)
+# Works with Flask-Migrate since it sets current_app during CLI runs.
+db_uri = str(current_app.extensions["migrate"].db.engine.url)
+config.set_main_option("sqlalchemy.url", db_uri)
+print("🔹 Alembic is using:", db_uri)
+
+# Target metadata from Flask-SQLAlchemy
+db = current_app.extensions["migrate"].db
+target_metadata = db.metadata
+
+NAMING_CONVENTION = {
+    "ix": "ix_%(table_name)s_%(column_0_name)s",
+    "uq": "uq_%(table_name)s_%(column_0_name)s",
+    "ck": "ck_%(table_name)s_%(constraint_name)s",
+    "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
+    "pk": "pk_%(table_name)s",
+}
 
 def run_migrations_offline():
-    """Run migrations in 'offline' mode."""
+    """Run migrations in 'offline' mode'."""
     context.configure(
         url=config.get_main_option("sqlalchemy.url"),
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
-        naming_convention={
-            "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
-            "uq": "uq_%(table_name)s_%(column_0_name)s",
-            "ix": "ix_%(table_name)s_%(column_0_name)s",
-            "ck": "ck_%(table_name)s_%(constraint_name)s",
-            "pk": "pk_%(table_name)s"},
+        compare_type=True,
+        compare_server_default=True,
+        render_as_batch=False,  # set True only for old SQLite
+        naming_convention=NAMING_CONVENTION,
     )
     with context.begin_transaction():
         context.run_migrations()
 
 def run_migrations_online():
-    """Run migrations in 'online' mode."""
+    """Run migrations in 'online' mode'."""
     connectable = engine_from_config(
         config.get_section(config.config_ini_section),
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )
-
     with connectable.connect() as connection:
         context.configure(
             connection=connection,
             target_metadata=target_metadata,
-            naming_convention={
-                "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
-                "uq": "uq_%(table_name)s_%(column_0_name)s",
-                "ix": "ix_%(table_name)s_%(column_0_name)s",
-                "ck": "ck_%(table_name)s_%(constraint_name)s",
-                "pk": "pk_%(table_name)s"},
+            compare_type=True,
+            compare_server_default=True,
+            render_as_batch=False,  # set True only for old SQLite
+            naming_convention=NAMING_CONVENTION,
         )
         with context.begin_transaction():
             context.run_migrations()
 
-if context.is_offline_mode(): 
+if context.is_offline_mode():
     run_migrations_offline()
 else:
     run_migrations_online()
+
