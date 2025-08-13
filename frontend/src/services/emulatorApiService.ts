@@ -10,7 +10,7 @@ import {
 } from "@/types/emulatorTypes";
 import { PeripheralInput } from "@/types/peripheralTypes";
 
-const BASE_PATH = "emulator";
+const BASE_PATH = "emulators";
 
 const EmulatorService = {
     /**
