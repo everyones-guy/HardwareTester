@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.9.34728.123
+VisualStudioVersion = 17.12.35707.178 d17.12
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "HardwareTester", "HardwareTester.pyproj", "{3B659E0F-742D-4AC4-B093-31DEEBDA9DCD}"
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "HardwareTester", "HardwareTester.pyproj", "{26039B2F-AB19-41B7-9DC8-726C48E44AE9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,15 +11,12 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{3B659E0F-742D-4AC4-B093-31DEEBDA9DCD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3B659E0F-742D-4AC4-B093-31DEEBDA9DCD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3B659E0F-742D-4AC4-B093-31DEEBDA9DCD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3B659E0F-742D-4AC4-B093-31DEEBDA9DCD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{26039B2F-AB19-41B7-9DC8-726C48E44AE9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{26039B2F-AB19-41B7-9DC8-726C48E44AE9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{26039B2F-AB19-41B7-9DC8-726C48E44AE9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{26039B2F-AB19-41B7-9DC8-726C48E44AE9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {DE9687EF-B040-4848-8B65-0D1B5BE18D85}
 	EndGlobalSection
 EndGlobal
