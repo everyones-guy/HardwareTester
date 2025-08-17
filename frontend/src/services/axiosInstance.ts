@@ -11,7 +11,7 @@ import {
     clearToken,
 } from "@/utils/tokenUtils";
 
-const API_BASE = import.meta.env.VITE_API_BASE ?? "http://localhost:5000/api"; // || "http://localhost:5000";
+const API_BASE = import.meta.env.VITE_API_BASE ?? "http://localhost:5000"; // || "http://localhost:5000";
 
 const instance: AxiosInstance = axios.create({
     baseURL: API_BASE,
