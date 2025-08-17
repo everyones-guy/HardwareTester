@@ -13,6 +13,7 @@ from .extensions import db, socketio, migrate, csrf, login_manager, ma, bcrypt
 from .views import register_blueprints
 from .models.user_models import User
 from .utils.token_utils import get_token
+from .diagnostics import log_routes
 
 # Load environment variables early
 load_dotenv()
@@ -40,6 +41,9 @@ def create_app(config_name="default", *args, **kwargs):
     # Register Flask Blueprints and error handlers
     register_blueprints(app)
     register_error_handlers(app)
+
+    # Log the routs - turn this off during prod
+    log_routes(app)
 
     # Serve React frontend (from /frontend/build)
     @app.route("/", defaults={"path": ""})
