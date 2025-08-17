@@ -22,13 +22,14 @@ logger = logging.getLogger("app")
 def create_app(config_name="default", *args, **kwargs):
     """Create and configure the Flask application."""
     app = Flask(__name__, static_folder="../frontend/build", static_url_path="/")
+    app.url_map.strict_slashes = False
 
     # Load configuration class from the config mapping
     config_class = config.get(config_name, config["default"])
     app.config.from_object(config_class)
 
     # Enable CORS for API routes
-    CORS(app, resources={r"/api/*": {"origins": "*"}})
+    CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True)
 
     # Initialize all extensions
     initialize_extensions(app)
