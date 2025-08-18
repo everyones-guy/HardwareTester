@@ -13,6 +13,7 @@ from .extensions import db, socketio, migrate, csrf, login_manager, ma, bcrypt
 from .views import register_blueprints
 from .models.user_models import User
 from .utils.token_utils import get_token
+from .diagnostics import log_routes
 
 # Load environment variables early
 load_dotenv()
@@ -22,13 +23,14 @@ logger = logging.getLogger("app")
 def create_app(config_name="default", *args, **kwargs):
     """Create and configure the Flask application."""
     app = Flask(__name__, static_folder="../frontend/build", static_url_path="/")
+    app.url_map.strict_slashes = False
 
     # Load configuration class from the config mapping
     config_class = config.get(config_name, config["default"])
     app.config.from_object(config_class)
 
     # Enable CORS for API routes
-    CORS(app, resources={r"/api/*": {"origins": "*"}})
+    CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True)
 
     # Initialize all extensions
     initialize_extensions(app)
@@ -39,6 +41,9 @@ def create_app(config_name="default", *args, **kwargs):
     # Register Flask Blueprints and error handlers
     register_blueprints(app)
     register_error_handlers(app)
+
+    # Log the routs - turn this off during prod
+    log_routes(app)
 
     # Serve React frontend (from /frontend/build)
     @app.route("/", defaults={"path": ""})

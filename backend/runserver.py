@@ -50,7 +50,7 @@ def main():
         else:
             print("Could not determine WSL IP for host access.")
 
-    local_socketio.run(app, host=args.host, port=args.port, debug=args.debug)
+    local_socketio.run(app, host=args.host, port=args.port, debug=args.debug, use_reloader=False)
 
 if __name__ == "__main__":
     main()
