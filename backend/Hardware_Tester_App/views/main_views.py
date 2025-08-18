@@ -9,9 +9,7 @@ from datetime import datetime
 #logger = CustomLogger.get_logger("main_views")
 
 # Create the Blueprint
-main_bp = Blueprint("main", __name__)
-
-
+main_bp = Blueprint("main", __name__, url_prefix="/api/main")
 @main_bp.route("/", methods=["GET"])
 @login_required
 def index():

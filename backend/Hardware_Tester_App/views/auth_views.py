@@ -10,8 +10,7 @@ from Hardware_Tester_App.utils.custom_logger import CustomLogger
 # Initialize logger
 logger = CustomLogger.get_logger("auth_views")
 
-auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
-
+auth_bp = Blueprint("auth", __name__, url_prefix="/api/auth")
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()

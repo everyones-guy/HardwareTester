@@ -9,9 +9,7 @@ from Hardware_Tester_App.extensions import logger
 # Initialize logger
 #logger = CustomLogger.get_logger("system_status_views")
 
-system_status_bp = Blueprint("system_status", __name__)
-
-
+system_status_bp = Blueprint("system_status", __name__, url_prefix="/api/system_status")
 @system_status_bp.route("/system-status", methods=["GET"])
 @login_required
 def system_status_page():

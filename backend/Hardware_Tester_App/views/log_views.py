@@ -7,8 +7,8 @@ from Hardware_Tester_App.extensions import logger
 # Initialize logger
 #logger = CustomLogger.get_logger("log_views")
 
-logs_bp = Blueprint("logs", __name__, url_prefix="/")
-
+logs_bp = Blueprint("logs", __name__, url_prefix="/api/logs")
+@logs_bp.route("/", methods=["GET"])
 @logs_bp.route("/api/logs", methods=["GET"])
 @login_required
 def logs():
@@ -49,6 +49,7 @@ def logs():
         return jsonify({"success": False, "error": f"Failed to fetch logs: {str(e)}"})
 
 
+@logs_bp.route("/recent", methods=["GET"])
 @logs_bp.route("/api/logs/recent", methods=["GET"])
 @login_required
 def recent_logs():
@@ -62,6 +63,7 @@ def recent_logs():
 
 
 # Activity Logs
+@logs_bp.route("/activity", methods=["GET"])
 @logs_bp.route("/api/logs/activity", methods=["GET"])
 @login_required
 def get_activity_logs():
@@ -73,6 +75,7 @@ def get_activity_logs():
     return jsonify(result), 200 if result["success"] else 500
 
 
+@logs_bp.route("/activity/log", methods=["POST"])
 @logs_bp.route("/api/logs/activity/log", methods=["POST"])
 @login_required
 def log_activity():
@@ -87,6 +90,7 @@ def log_activity():
 
 
 # Notifications
+@logs_bp.route("/notifications", methods=["GET"])
 @logs_bp.route("/api/logs/notifications", methods=["GET"])
 @login_required
 def get_notifications():
@@ -97,6 +101,7 @@ def get_notifications():
     return jsonify(result), 200 if result["success"] else 500
 
 
+@logs_bp.route("/notifications/send", methods=["POST"])
 @logs_bp.route("/api/logs/notifications/send", methods=["POST"])
 @login_required
 def send_notification():
@@ -110,6 +115,7 @@ def send_notification():
     return jsonify(result), 200 if result["success"] else 500
 
 
+@logs_bp.route("/notifications/read/<int:notification_id>", methods=["POST"])
 @logs_bp.route("/api/logs/notifications/read/<int:notification_id>", methods=["POST"])
 @login_required
 def mark_notification_as_read(notification_id):

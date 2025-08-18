@@ -19,11 +19,12 @@ MQTT_BROKER = os.getenv("MQTT_BROKER", socket.gethostbyname(socket.gethostname()
 # Initialize logger
 logger = CustomLogger.get_logger("hardware_views")
 
-hardware_bp = Blueprint("hardware", __name__)
+hardware_bp = Blueprint("hardware", __name__, url_prefix="/api/hardware")
 mqtt_service = MQTTService(broker=MQTT_BROKER, port=1883)
 mqtt_service.connect()
 
 
+@hardware_bp.route("/", methods=["GET"])
 @hardware_bp.route("/hardware", methods=["GET"])
 @login_required
 def hardware_dashboard():
@@ -35,6 +36,7 @@ def hardware_dashboard():
         return jsonify({"success": False, "error": "Failed to render the hardware dashboard."}), 500
 
 
+@hardware_bp.route("/list", methods=["GET"])
 @hardware_bp.route("/api/hardware/list", methods=["GET"])
 @login_required
 def list_devices():
@@ -56,6 +58,7 @@ def list_devices():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
+@hardware_bp.route("/discover-device", methods=["POST"])
 @hardware_bp.route("/api/hardware/discover-device", methods=["POST"])
 @login_required  
 def discover_device():
@@ -110,6 +113,7 @@ def discover_device():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
+@hardware_bp.route("/device/<string:device_id>", methods=["GET"])
 @hardware_bp.route("/api/hardware/device/<string:device_id>", methods=["GET"])
 @login_required
 def get_device(device_id):
@@ -135,6 +139,7 @@ def get_device(device_id):
         return jsonify({"success": False, "error": str(e)}), 500
 
 
+@hardware_bp.route("/device/<string:device_id>/test-firmware", methods=["POST"])
 @hardware_bp.route("/api/hardware/device/<string:device_id>/test-firmware", methods=["POST"])
 @login_required
 def test_firmware(device_id):
@@ -156,6 +161,7 @@ def test_firmware(device_id):
         return jsonify({"success": False, "error": str(e)}), 500
 
 
+@hardware_bp.route("/device/<string:device_id>/ssh-connect", methods=["POST"])
 @hardware_bp.route("/api/hardware/device/<string:device_id>/ssh-connect", methods=["POST"])
 @login_required
 def ssh_connect(device_id):
@@ -180,6 +186,7 @@ def ssh_connect(device_id):
         return jsonify({"success": False, "error": str(e)}), 500
 
 
+@hardware_bp.route("/device/<string:device_id>/execute-command", methods=["POST"])
 @hardware_bp.route("/api/hardware/device/<string:device_id>/execute-command", methods=["POST"])
 @login_required
 def execute_command(device_id):

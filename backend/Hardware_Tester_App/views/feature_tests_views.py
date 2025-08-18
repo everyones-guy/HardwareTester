@@ -3,9 +3,7 @@ from flask import Blueprint, jsonify
 from flask_login import login_required
 import subprocess
 
-feature_tests_bp = Blueprint('feature_tests', __name__)
-
-@feature_tests_bp.route('/run-feature-tests', methods=['POST'])
+feature_tests_bp = Blueprint("feature_tests", __name__, url_prefix="/api/feature_tests")@feature_tests_bp.route('/run-feature-tests', methods=['POST'])
 @login_required
 def run_feature_tests():
     try:

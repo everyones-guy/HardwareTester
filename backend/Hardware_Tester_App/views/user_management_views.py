@@ -3,8 +3,7 @@ from flask_login import login_required, current_user
 from Hardware_Tester_App.services.user_management_service import UserManagementService
 from Hardware_Tester_App.extensions import logger
 
-user_management_bp = Blueprint("user_management", __name__)
-
+user_management_bp = Blueprint("user_management", __name__, url_prefix="/api/user_management")
 @user_management_bp.route("/users", methods=["GET"])
 @login_required
 def manage_users():

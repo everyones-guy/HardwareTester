@@ -2,8 +2,7 @@
 from flask import Blueprint, request, jsonify
 from Hardware_Tester_App.services.blueprint_service import BlueprintService
 
-blueprint_bp = Blueprint("blueprint", __name__)
-
+blueprint_bp = Blueprint("blueprint", __name__, url_prefix="/api/blueprint")@blueprint_bp.route("/generate_blueprint", methods=["POST"])
 @blueprint_bp.route("/api/blueprint/generate_blueprint", methods=["POST"])
 def generate_blueprint():
     """Generate a hardware blueprint for a given machine."""

@@ -14,8 +14,7 @@ import os
 
 logger.info("upload_views")
 
-upload_bp = Blueprint("upload", __name__)
-
+upload_bp = Blueprint("upload", __name__, url_prefix="/api/upload")
 @upload_bp.route("/api/test-plans/upload", methods=["POST"])
 @login_required
 def upload_test_plan_view():

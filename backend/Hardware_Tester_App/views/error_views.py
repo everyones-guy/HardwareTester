@@ -1,8 +1,7 @@
 
 from flask import Blueprint, render_template
 
-error_bp = Blueprint("error", __name__)
-
+error_bp = Blueprint("error", __name__, url_prefix="/api/error")
 @error_bp.app_errorhandler(404)
 def not_found_error(error):
     """Render the 404 error page."""

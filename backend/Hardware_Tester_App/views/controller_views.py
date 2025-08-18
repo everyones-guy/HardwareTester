@@ -12,14 +12,15 @@ from Hardware_Tester_App.extensions import logger
 
 logger.info("Controller_Views")
 
-controller_bp = Blueprint("controller", __name__)
-
+controller_bp = Blueprint("controller", __name__, url_prefix="/api/controller")
+@controller_bp.route("/s", methods=["GET"])
 @controller_bp.route("/controllers", methods=["GET"])
 @login_required
 def show_controllers():
     """Render the controller management page."""
     return render_template("controller_management.html")
 
+@controller_bp.route("/s/list", methods=["GET"])
 @controller_bp.route("/api/controllers/list", methods=["GET"])
 @login_required
 def list_controllers():
@@ -27,6 +28,7 @@ def list_controllers():
     response = get_all_controllers()
     return jsonify(response)
 
+@controller_bp.route("/s/add", methods=["POST"])
 @controller_bp.route("/api/controllers/add", methods=["POST"])
 @login_required
 def add_new_controller():
@@ -35,6 +37,7 @@ def add_new_controller():
     response = add_controller(data)
     return jsonify(response)
 
+@controller_bp.route("/s/<int:controller_id>/delete", methods=["DELETE"])
 @controller_bp.route("/api/controllers/<int:controller_id>/delete", methods=["DELETE"])
 @login_required
 def delete_existing_controller(controller_id):
@@ -42,6 +45,7 @@ def delete_existing_controller(controller_id):
     response = delete_controller(controller_id)
     return jsonify(response)
 
+@controller_bp.route("/s/<int:controller_id>/update", methods=["PUT"])
 @controller_bp.route("/api/controllers/<int:controller_id>/update", methods=["PUT"])
 @login_required
 def update_existing_controller(controller_id):
@@ -50,6 +54,7 @@ def update_existing_controller(controller_id):
     response = update_controller(controller_id, data)
     return jsonify(response)
 
+@controller_bp.route("/s/<int:controller_id>/status", methods=["GET"])
 @controller_bp.route("/api/controllers/<int:controller_id>/status", methods=["GET"])
 @login_required
 def controller_status(controller_id):
@@ -57,6 +62,7 @@ def controller_status(controller_id):
     response = get_controller_status(controller_id)
     return jsonify(response)
 
+@controller_bp.route("/s/<int:controller_id>/change-state", methods=["POST"])
 @controller_bp.route("/api/controllers/<int:controller_id>/change-state", methods=["POST"])
 @login_required
 def change_controller_state_endpoint(controller_id):

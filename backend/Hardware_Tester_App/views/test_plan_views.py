@@ -6,9 +6,7 @@ from Hardware_Tester_App.models.user_models import UserRole
 from Hardware_Tester_App.models.test_models import TestPlan
 
 # Define the Blueprint for test plan management
-test_plan_bp = Blueprint("test_plans", __name__)
-
-
+test_plan_bp = Blueprint("test_plans", __name__, url_prefix="/api/test_plans")
 @test_plan_bp.route("/test-plans", methods=["GET"])
 @login_required
 def show_test_plans():

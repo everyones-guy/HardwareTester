@@ -16,9 +16,7 @@ import os
 logger = CustomLogger.get_logger("API_Views", per_module=True)
 
 # Blueprint for API operations
-api_bp = Blueprint("api", __name__)
-
-
+api_bp = Blueprint("api", __name__, url_prefix="/api/api")
 @api_bp.route("/", methods=["GET"])
 @login_required
 def api_overview():

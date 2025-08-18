@@ -12,14 +12,14 @@ from Hardware_Tester_App.extensions import logger
 
 logger.info("Valve_views")
 
-valve_bp = Blueprint("valve", __name__)
-
+valve_bp = Blueprint("valve", __name__, url_prefix="/api/valve")@valve_bp.route("/s", methods=["GET"])
 @valve_bp.route("/valves", methods=["GET"])
 @login_required
 def show_valves():
     """Render the valve management page."""
     return render_template("valve_management.html")
 
+@valve_bp.route("/s/list", methods=["GET"])
 @valve_bp.route("/api/valves/list", methods=["GET"])
 @login_required
 def list_valves():
@@ -27,6 +27,7 @@ def list_valves():
     response = get_all_valves()
     return jsonify(response)
 
+@valve_bp.route("/s/add", methods=["POST"])
 @valve_bp.route("/api/valves/add", methods=["POST"])
 @login_required
 def add_new_valve():
@@ -35,6 +36,7 @@ def add_new_valve():
     response = add_valve(data)
     return jsonify(response)
 
+@valve_bp.route("/s/<int:valve_id>/delete", methods=["DELETE"])
 @valve_bp.route("/api/valves/<int:valve_id>/delete", methods=["DELETE"])
 @login_required
 def delete_existing_valve(valve_id):
@@ -42,6 +44,7 @@ def delete_existing_valve(valve_id):
     response = delete_valve(valve_id)
     return jsonify(response)
 
+@valve_bp.route("/s/<int:valve_id>/update", methods=["PUT"])
 @valve_bp.route("/api/valves/<int:valve_id>/update", methods=["PUT"])
 @login_required
 def update_existing_valve(valve_id):
@@ -50,6 +53,7 @@ def update_existing_valve(valve_id):
     response = update_valve(valve_id, data)
     return jsonify(response)
 
+@valve_bp.route("/s/<int:valve_id>/status", methods=["GET"])
 @valve_bp.route("/api/valves/<int:valve_id>/status", methods=["GET"])
 @login_required
 def valve_status(valve_id):
@@ -57,6 +61,7 @@ def valve_status(valve_id):
     response = get_valve_status(valve_id)
     return jsonify(response)
 
+@valve_bp.route("/s/<int:valve_id>/change-state", methods=["POST"])
 @valve_bp.route("/api/valves/<int:valve_id>/change-state", methods=["POST"])
 @login_required
 def change_valve_state_endpoint(valve_id):
