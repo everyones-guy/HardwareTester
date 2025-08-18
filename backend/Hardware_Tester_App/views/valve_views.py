@@ -12,7 +12,8 @@ from Hardware_Tester_App.extensions import logger
 
 logger.info("Valve_views")
 
-valve_bp = Blueprint("valve", __name__, url_prefix="/api/valve")@valve_bp.route("/s", methods=["GET"])
+valve_bp = Blueprint("valve", __name__, url_prefix="/api/valve")
+@valve_bp.route("/s", methods=["GET"])
 @valve_bp.route("/valves", methods=["GET"])
 @login_required
 def show_valves():
