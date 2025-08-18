@@ -19,13 +19,20 @@ export default defineConfig({
       "@": path.resolve(__dirname, "src"),
     },
   },
-  server: {
-    port: 5173,
-    strictPort: false,
-  },
+// vite.config.ts
+server: {
+    proxy: {
+        "/api": {
+            target: "http://127.0.0.1:5000",
+            changeOrigin: true,
+            // DO NOT rewrite path — backend expects /api
+        },
+    },
+},
+
   build: {
     outDir: "build",
     sourcemap: true,
+    emptyOutDir: true,
   },
 });
-
