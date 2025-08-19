@@ -25,7 +25,7 @@ _IS_WERKZEUG_MAIN = _os.environ.get("WERKZEUG_RUN_MAIN") == "true"
 
 def create_app(config_name="default", *args, **kwargs):
     """Create and configure the Flask application."""
-    app = Flask(__name__, static_folder="../frontend/build", static_url_path="/")
+    app = Flask(__name__, static_folder="Hardware_Tester_App/static", static_url_path="/")
 
     # Load configuration class from the config mapping
     config_class = config.get(config_name, config["default"])
