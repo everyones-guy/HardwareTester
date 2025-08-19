@@ -38,7 +38,7 @@ def db():
     """Database management commands."""
     pass
 
-# Attach Flask-Migrate’s built-in commands to `db`
+# Attach Flask-Migrates built-in commands to 'db'
 #db.add_command("init", MigrateCommand.init)
 #db.add_command("migrate", MigrateCommand.migrate)
 #db.add_command("upgrade", MigrateCommand.upgrade)
