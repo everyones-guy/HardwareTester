@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-db_setup.py — Safe database bootstrapper for Universal Hardware Tester.
+db_setup.py - Safe database bootstrapper for Universal Hardware Tester.
 
 Usage examples:
   python db_setup.py
@@ -44,7 +44,7 @@ def run(cmd: List[str], ok_if_contains: Optional[str] = None, timeout: int = 120
     if stdout:
         logger.info(stdout)
     if stderr:
-        # don't treat any stderr as fatal — many alembic logs go to stderr
+        # don't treat any stderr as fatal - many alembic logs go to stderr
         logger.warning(stderr)
 
     if proc.returncode == 0:
@@ -62,7 +62,7 @@ def run(cmd: List[str], ok_if_contains: Optional[str] = None, timeout: int = 120
 def ensure_migrations_initialized() -> None:
     """Run `flask db init` if the migrations/ folder is missing."""
     if not os.path.isdir("migrations"):
-        logger.info("No migrations/ folder detected — initializing Alembic.")
+        logger.info("No migrations/ folder detected - initializing Alembic.")
         if not run(["flask", "db", "init"]):
             # If this fails because it already exists (race/etc), just continue.
             logger.warning("`flask db init` reported an error; continuing (it may already exist).")

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-create_extra_libraries.py — Build/Install extra native/python libs used by the project.
+create_extra_libraries.py - Build/Install extra native/python libs used by the project.
 
 By default it scans ./extra_libs and tries, in order, for each subdir:
   1) ./build.sh
