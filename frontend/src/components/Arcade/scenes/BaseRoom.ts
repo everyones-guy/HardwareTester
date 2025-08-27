@@ -1,6 +1,6 @@
 // File: src/components/Arcade/scenes/BaseRoom.ts
 import Phaser from "phaser";
-import { makePlayer } from "../utils/Sprites";
+import { makePlayer } from "@/components/Arcade/utils/Sprites";
 
 export default class BaseRoom extends Phaser.Scene {
     cursors!: Phaser.Types.Input.Keyboard.CursorKeys;

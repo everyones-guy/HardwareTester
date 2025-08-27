@@ -1,6 +1,6 @@
 // File: src/components/Arcade/integrations/ArcadeIntegrations.ts
-import { ArcadeEventBus } from "../events/EventBus";
-// Import your existing services. Adjust paths to match your project.
+import { ArcadeEventBus } from "@/components/Arcade/events/EventBus";
+// Import existing services. Adjust paths to match project.
 import mqttService from "@/services/mqttService";
 import hardwareService from "@/services/hardwareService";
 import firmwareService from "@/services/firmwareService";

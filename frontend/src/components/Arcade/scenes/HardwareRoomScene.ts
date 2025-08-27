@@ -1,7 +1,7 @@
 // File: src/components/Arcade/scenes/HardwareRoomScene.ts
 import Phaser from "phaser";
-import BaseRoom from "./BaseRoom";
-import { ArcadeEventBus } from "../events/EventBus";
+import BaseRoom from "@/components/Arcade/scenes/BaseRoom";
+import { ArcadeEventBus } from "@/components/Arcade/events/EventBus";
 
 export default class HardwareRoomScene extends BaseRoom {
     constructor() { super("HardwareRoomScene"); }

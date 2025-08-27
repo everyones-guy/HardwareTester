@@ -1,7 +1,7 @@
 // File: src/components/Arcade/scenes/LobbyScene.ts
 import Phaser from "phaser";
-import BaseRoom from "./BaseRoom";
-import { loadCommonAssets } from "../utils/Sprites";
+import BaseRoom from "@/components/Arcade/scenes/BaseRoom";
+import { loadCommonAssets } from "@/components/Arcade/utils/Sprites";
 
 export default class LobbyScene extends BaseRoom {
     constructor() { super("LobbyScene"); }

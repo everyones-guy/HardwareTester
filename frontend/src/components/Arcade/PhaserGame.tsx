@@ -1,11 +1,11 @@
 // File: src/components/Arcade/PhaserGame.tsx
 import React, { useEffect, useRef } from "react";
 import Phaser from "phaser";
-import LobbyScene from "./scenes/LobbyScene";
-import EmulatorRoomScene from "./scenes/EmulatorRoomScene";
-import HardwareRoomScene from "./scenes/HardwareRoomScene";
-import FirmwareRoomScene from "./scenes/FirmwareRoomScene";
-import { ArcadeEventBus } from "./events/EventBus";
+import LobbyScene from "@/components/Arcade/scenes/LobbyScene";
+import EmulatorRoomScene from "@/components/Arcade/scenes/EmulatorRoomScene";
+import HardwareRoomScene from "@/components/Arcade/scenes/HardwareRoomScene";
+import FirmwareRoomScene from "@/components/Arcade/scenes/FirmwareRoomScene";
+import { ArcadeEventBus } from "@/components/Arcade/events/EventBus";
 
 const GAME_WIDTH = 960;
 const GAME_HEIGHT = 540;
