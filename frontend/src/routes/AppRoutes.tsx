@@ -18,12 +18,17 @@ import PeripheralDashboard from "@/components/PeripheralManager/PeripheralDashbo
 import Settings from "@/components/Settings/SettingsPanel";
 import UserDashboard from "../components/User/UserDashboard";
 
+import ArcadePage from "@/pages/ArcadePage";
+
 const AppRoutes: React.FC = () => {
     return (
         <DashboardLayout>
             <Routes>
                 {/* Default - Emulator */}
                 <Route path="/" element={<Navigate to="/emulator" replace />} />
+
+                {/* Arcade */}
+                <Route path="/arcade" element={<ArcadePage />} />
 
                 {/* Emulator */}
                 <Route path="/emulator" element={<EmulatorDashboard />} />
