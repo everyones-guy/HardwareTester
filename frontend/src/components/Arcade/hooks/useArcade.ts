@@ -1,6 +1,6 @@
 // File: src/components/Arcade/hooks/useArcade.ts
 import { useEffect } from "react";
-import { initArcadeIntegrations } from "../integrations/ArcadeIntegrations";
+import { initArcadeIntegrations } from "@/components/Arcade/integrations/ArcadeIntegrations";
 
 export default function useArcade() {
     useEffect(() => {
