@@ -2,6 +2,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import PhaserGame from "@/components/Arcade/PhaserGame";
+import ArcadeSidebar from "@/components/Arcade/ui/ArcadeSidebar";
 
 /**
  * Route wrapper for the Arcade view.
@@ -14,16 +15,13 @@ export default function ArcadeRoute() {
                 <h1 className="text-2xl font-bold">UHT Arcade</h1>
                 <a href="/" className="underline">Back to Dashboard</a>
             </div>
-            <p className="text-sm max-w-3xl">
-                Walk your bot through rooms to assemble controllers, connect peripherals, flash firmware, and run tests.
-                The game talks to the existing services (MQTT, hardware, firmware) via an event bus.
-            </p>
-            <div className="border rounded-xl shadow p-2">
-                <PhaserGame />
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4">
+                <div className="border rounded-xl shadow p-2">
+                    <PhaserGame />
+                </div>
+                <ArcadeSidebar />
             </div>
-            <div className="text-xs text-gray-500">
-                Tip: WASD/Arrows to move. E to interact. M to toggle minimap.
-            </div>
+            <div className="text-xs text-gray-500">WASD/Arrows to move. E to interact.</div>
         </div>
     );
 }

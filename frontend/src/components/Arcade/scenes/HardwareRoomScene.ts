@@ -22,5 +22,13 @@ export default class HardwareRoomScene extends BaseRoom {
         });
 
         this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
+
+        for (let i = 0; i < 5; i++) {
+            const kid = this.physics.add.sprite(600 + i*40, 420, "minibot");
+            this.physics.add.overlap(this.player, kid, () => {
+            this.events.emit("arcade:addItem", { name: "Peripheral Bot" });
+            kid.destroy();
+            });
+         }
     }
 }

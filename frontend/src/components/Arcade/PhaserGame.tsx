@@ -7,6 +7,10 @@ import HardwareRoomScene from "@/components/Arcade/scenes/HardwareRoomScene";
 import FirmwareRoomScene from "@/components/Arcade/scenes/FirmwareRoomScene";
 import { ArcadeEventBus } from "@/components/Arcade/events/EventBus";
 
+// Register pixel sprites once per game boot
+import { registerPixelSprites } from "./utils/SpriteFactory";
+
+
 const GAME_WIDTH = 960;
 const GAME_HEIGHT = 540;
 

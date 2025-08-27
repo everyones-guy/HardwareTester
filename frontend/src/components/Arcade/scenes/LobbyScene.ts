@@ -2,12 +2,15 @@
 import Phaser from "phaser";
 import BaseRoom from "@/components/Arcade/scenes/BaseRoom";
 import { loadCommonAssets } from "@/components/Arcade/utils/Sprites";
+import TestsBossRoomScene from "@/components/Arcade/scenes/TestBossRoomScene";
+import { registerPixelSprites } from "@/components/Arcade/utils/SpriteFactory";
 
 export default class LobbyScene extends BaseRoom {
     constructor() { super("LobbyScene"); }
 
     preload() {
         loadCommonAssets(this);
+        registerPixelSprites(this);
     }
 
     create() {
@@ -22,6 +25,9 @@ export default class LobbyScene extends BaseRoom {
             { x: 500, y: 300, label: "Hardware Lab", target: "HardwareRoomScene" },
             { x: 800, y: 300, label: "Firmware Bay", target: "FirmwareRoomScene" },
         ];
+
+        // Start up one test
+        doors.push({ x: 1100, y: 300, label: "Tests Boss Room", target: "TestBossRoomScene" });
 
         doors.forEach(d => {
             const door = this.physics.add.staticSprite(d.x, d.y, "door");

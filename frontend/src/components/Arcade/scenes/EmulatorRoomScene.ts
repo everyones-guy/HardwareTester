@@ -24,5 +24,9 @@ export default class EmulatorRoomScene extends BaseRoom {
         });
 
         this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
+
+        // Use bigbot as player sprite if present
+        // In BaseRoom, after createRoom, you can swap texture:
+        this.player.setTexture("bigbot");
     }
 }
