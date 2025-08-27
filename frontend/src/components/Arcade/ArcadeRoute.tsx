@@ -1,7 +1,7 @@
 // File: src/components/Arcade/ArcadeRoute.tsx
 import React from "react";
 import { Link } from "react-router-dom";
-import PhaserGame from "./PhaserGame";
+import PhaserGame from "@/components/Arcade/PhaserGame";
 
 /**
  * Route wrapper for the Arcade view.
