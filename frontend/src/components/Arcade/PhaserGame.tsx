@@ -36,7 +36,9 @@ export default function PhaserGame() {
 
         // Cleanup
         return () => {
-            ArcadeEventBus.removeAllListeners();
+            if((ArcadeEventBus as any).removeAllListeners) {
+                ArcadeEventBus.removeAllListeners();
+            }
             game.destroy(true);
             gameRef.current = null;
         };

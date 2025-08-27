@@ -1,6 +1,6 @@
 // File: src/components/Arcade/integrations/ArcadeIntegrations.ts
 import { ArcadeEventBus } from "@/components/Arcade/events/EventBus";
-import { useArcadeStore } from "components/Arcade/utils/arcadeStore"
+import { useArcadeStore } from "@/components/Arcade/utils/arcadeStore"
 import mqttService from "@/services/mqttService";
 import hardwareService from "@/services/hardwareService";
 import firmwareService from "@/services/firmwareService";

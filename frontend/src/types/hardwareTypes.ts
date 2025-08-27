@@ -84,3 +84,29 @@ export interface TrackFirmwarePayload {
     device_id: number;
     firmware_id: number;
 }
+
+// -----------------------------
+// Extended Discovery Types
+// -----------------------------
+export type Transport = "usb" | "bluetooth" | "wifi" | "ethernet";
+
+export interface Device {
+    id: string;
+    name: string;
+    transport: Transport;
+    vendor?: string;
+    product?: string;
+    address?: string;
+    port?: number;
+    serial?: string;
+    firmwareVersion?: string;
+    lastSeen?: string;
+    status?: "online" | "offline" | "unknown";
+    tags?: string[];
+}
+
+export interface DiscoverResponse {
+    devices: Device[];
+    scanId: string;
+    startedAt: string;
+}
