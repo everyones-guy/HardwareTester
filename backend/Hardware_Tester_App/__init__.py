@@ -1,36 +1,38 @@
+# Hardware_Tester_App/__init__.py
 from flask import Flask, jsonify, render_template, request, send_from_directory
-from flask_migrate import Migrate
 from flask_login import current_user
 from flask_cors import CORS
 from datetime import datetime
 
 import os
-import logging
 from dotenv import load_dotenv
 
 from .config import config
-from .extensions import db, socketio, migrate, csrf, login_manager, ma, bcrypt
+from .extensions import db, socketio, migrate, csrf, login_manager, ma, bcrypt, logger
 from .views import register_blueprints
 from .models.user_models import User
 from .utils.token_utils import get_token
-from .diagnostics import log_routes
 
 # Load environment variables early
 load_dotenv()
 
-logger = logging.getLogger("app")
+# --- Side-effect guard (module-level) ---
+import os as _os
+_RUNNING_FLASK_CLI = _os.environ.get("FLASK_CLI") == "true"
+_IS_WERKZEUG_MAIN = _os.environ.get("WERKZEUG_RUN_MAIN") == "true"
+# --- end guard ---
+
 
 def create_app(config_name="default", *args, **kwargs):
     """Create and configure the Flask application."""
-    app = Flask(__name__, static_folder="../frontend/build", static_url_path="/")
-    app.url_map.strict_slashes = False
+    app = Flask(__name__, static_folder="Hardware_Tester_App/static", static_url_path="/")
 
     # Load configuration class from the config mapping
     config_class = config.get(config_name, config["default"])
     app.config.from_object(config_class)
 
     # Enable CORS for API routes
-    CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True)
+    CORS(app, resources={r"/api/*": {"origins": "*"}})
 
     # Initialize all extensions
     initialize_extensions(app)
@@ -41,9 +43,6 @@ def create_app(config_name="default", *args, **kwargs):
     # Register Flask Blueprints and error handlers
     register_blueprints(app)
     register_error_handlers(app)
-
-    # Log the routs - turn this off during prod
-    log_routes(app)
 
     # Serve React frontend (from /frontend/build)
     @app.route("/", defaults={"path": ""})
@@ -56,6 +55,13 @@ def create_app(config_name="default", *args, **kwargs):
 
     # Ensure necessary folders exist
     ensure_upload_folders(app)
+
+    # Ensure extra library directories exist
+    try:
+        from .create_extra_libraries import ensure_directories
+        ensure_directories()
+    except Exception as e:
+        logger.error(f"Failed to ensure extra libraries: {e}")
 
     # Inject CSRF and timestamp into templates
     @app.context_processor
@@ -103,28 +109,40 @@ def register_error_handlers(app):
     @app.errorhandler(404)
     def not_found_error(error):
         logger.warning(f"404 error: {error}")
-        if request.accept_mimetypes["application/json"]:
+        wants_json = request.accept_mimetypes.accept_json and (
+            request.accept_mimetypes.get('application/json', 0) >= request.accept_mimetypes.get('text/html', 0)
+        )
+        if wants_json:
             return jsonify({"error": "Resource not found"}), 404
         return render_template("404.html"), 404
 
     @app.errorhandler(500)
     def internal_error(error):
         logger.error(f"500 error: {error}")
-        if request.accept_mimetypes["application/json"]:
+        wants_json = request.accept_mimetypes.accept_json and (
+            request.accept_mimetypes.get('application/json', 0) >= request.accept_mimetypes.get('text/html', 0)
+        )
+        if wants_json:
             return jsonify({"error": "An internal error occurred"}), 500
         return render_template("500.html"), 500
 
     @app.errorhandler(403)
     def forbidden_error(error):
         logger.warning(f"403 error: {error}")
-        if request.accept_mimetypes["application/json"]:
+        wants_json = request.accept_mimetypes.accept_json and (
+            request.accept_mimetypes.get('application/json', 0) >= request.accept_mimetypes.get('text/html', 0)
+        )
+        if wants_json:
             return jsonify({"error": "Forbidden"}), 403
         return render_template("403.html"), 403
 
     @app.errorhandler(401)
     def unauthorized_error(error):
         logger.warning(f"401 error: {error}")
-        if request.accept_mimetypes["application/json"]:
+        wants_json = request.accept_mimetypes.accept_json and (
+            request.accept_mimetypes.get('application/json', 0) >= request.accept_mimetypes.get('text/html', 0)
+        )
+        if wants_json:
             return jsonify({"error": "Unauthorized"}), 401
         return render_template("401.html"), 401
 
