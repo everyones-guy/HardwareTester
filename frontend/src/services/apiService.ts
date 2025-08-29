@@ -118,7 +118,8 @@ const APIService = {
         method: "GET" | "POST" | "PUT" | "DELETE",
         data: any = null,
         headers: Record<string, string> = {},
-        responseType: AxiosRequestConfig["responseType"] = "json"
+        responseType: AxiosRequestConfig["responseType"] = "json",
+        timeoutMs?: number
     ): Promise<T> {
         try {
             const config: AxiosRequestConfig = {
@@ -127,6 +128,7 @@ const APIService = {
                 data,
                 headers,
                 responseType,
+                timeout: timeoutMs,
             };
             const response = await axiosInstance(config);
             return response.data;
@@ -145,46 +147,46 @@ const APIService = {
      * Compute exponential backoff with full jitter.
      * attempt: 1-based attempt number
      */
-    async backoffWithJitter(
+    backoffWithJitter(
         baseDelayMs: number,
         attempt: number,
         backoffFactor: number,
         maxDelayMs: number
-    ): Promise<number> {
+    ): number {
         const exp = Math.min(maxDelayMs, baseDelayMs * Math.pow(backoffFactor, attempt - 1));
-        // full jitter: [0, exp)
-        return Math.floor(Math.random() * exp);
+        return Math.floor(Math.random() * exp); // full jitter
     },
 
     /**
-     * Retry-enabled version of apiCall with exponential backoff.
+     * Retry-enabled version of apiCall with exponential backoff + Jitter.
      */
-    // Retry-enabled version of apiCall with exponential backoff + jitter and per-attempt timeout growth.
+
     async apiCallWithRetry<T>(
         url: string,
         method: "GET" | "POST" | "PUT" | "DELETE",
         data: any = null,
         headers: Record<string, string> = {},
         retries = 3,
-        baseDelayMs = 750,        // base delay between attempts
-        backoffFactor = 2,        // growth factor
-        maxDelayMs = 10_000,      // cap for delay
-        baseTimeoutMs?: number,   // optional override for initial timeout; defaults to apiState.config.timeout
-        maxTimeoutMs = 30_000     // cap for timeout
+        baseDelayMs = 750,
+        backoffFactor = 2,
+        maxDelayMs = 10_000,
+        baseTimeoutMs?: number,
+        maxTimeoutMs = 30_000
     ): Promise<T> {
         const initialTimeoutMs =
-            baseTimeoutMs ??
-            (apiState.config.timeout ? apiState.config.timeout * 1000 : 5_000); // default 5s if unset
+            baseTimeoutMs ?? (apiState.config.timeout ? apiState.config.timeout * 1000 : 5_000);
 
         for (let attempt = 1; attempt <= retries; attempt++) {
-            // Exponential timeout with jitter per attempt (cap at maxTimeoutMs)
+            // grow timeout per attempt (capped)
             const attemptTimeoutBase = Math.min(
                 maxTimeoutMs,
                 initialTimeoutMs * Math.pow(backoffFactor, attempt - 1)
             );
-            const attemptTimeoutMs = Math.floor(Math.random() * attemptTimeoutBase) || attemptTimeoutBase;
+            const attemptTimeoutMs =
+                Math.floor(Math.random() * attemptTimeoutBase) || attemptTimeoutBase;
 
             try {
+                // PASS the timeout down to apiCall
                 return await APIService.apiCall<T>(
                     url,
                     method,
@@ -197,25 +199,25 @@ const APIService = {
                 if (attempt === retries) throw err;
 
                 // Exponential delay with full jitter before next attempt
-                const delay = backoffWithJitter(baseDelayMs, attempt, backoffFactor, maxDelayMs);
-                await sleep(delay);
+                const delay = APIService.backoffWithJitter(baseDelayMs, attempt, backoffFactor, maxDelayMs);
+                await APIService.sleep(delay);  // <— FIX: call on APIService
             }
         }
         throw new Error("Unreachable");
-    }
-};
+    },
+    /**
+     * Generate the full WebSocket URL based on the configured API base URL.
+     * Automatically switches to ws:// or wss:// depending on protocol.
+     * @param path - Path to append after /ws/
+     */
 
-/**
- * Generate the full WebSocket URL based on the configured API base URL.
- * Automatically switches to ws:// or wss:// depending on protocol.
- * @param path - Path to append after /ws/
- */
-export function getWebSocketURL(path: string): string {
-    const baseUrl = apiState.config.base_url || window.location.origin;
-    const url = new URL(baseUrl);
-    const protocol = url.protocol === "https:" ? "wss:" : "ws:";
-    const host = url.host;
-    return `${protocol}//${host}/ws/${path}`;
-}
+    getWebSocketURL(path: string): string {
+        const baseUrl = apiState.config.base_url || window.location.origin;
+        const url = new URL(baseUrl);
+        const protocol = url.protocol === "https:" ? "wss:" : "ws:";
+        const host = url.host;
+        return `${protocol}//${host}/ws/${path}`;
+    },
+};
 
 export default APIService;

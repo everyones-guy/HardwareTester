@@ -176,11 +176,18 @@ async function discoverDevicesExtended(): Promise<DiscoverResponse> {
             })
         );
         */
-        const res = await APIService.apiCallWithRetry(() =>
+
+
+        /*=>
             APIService.apiCall(ENDPOINTS.discoverDevices, "POST", {
                 transports: ["usb", "bluetooth", "wifi", "ethernet"],
             })
         );
+        */
+        const res = await APIService.apiCallWithRetry(
+            ENDPOINTS.discoverDevices, "POST", {
+            transports: ["usb", "bluetooth", "wifi", "ethernet"],
+        });
         const devices = normalizeDevices(res?.data?.devices ?? []);
         return {
             scanId: res?.data?.scanId ?? `scan_${Date.now()}`,
@@ -197,9 +204,7 @@ async function discoverDevicesExtended(): Promise<DiscoverResponse> {
 
 async function listDevicesExtended(): Promise<Device[]> {
     try {
-        const res = await APIService.apiCallWithRetry(() =>
-            APIService.apiCall(ENDPOINTS.listDevices, "GET")
-        );
+        const res = await APIService.apiCallWithRetry(ENDPOINTS.listDevices, "GET");
         return normalizeDevices(res?.data ?? []);
     } catch (err: any) {
         if (err?.response?.status === 404) return [];
