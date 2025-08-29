@@ -8,6 +8,9 @@ export default class EmulatorRoomScene extends BaseRoom {
 
     create() {
         this.createRoom({ w: 1600, h: 900 });
+        // Use bigbot as player sprite if present
+        // Swap texture:
+        this.player.setTexture("bigbot");
         this.add.text(24, 16, "Emulator Room — assemble your virtual controller", { fontSize: "14px", color: "#fff" }).setScrollFactor(0);
 
         const terminal = this.physics.add.staticSprite(300, 300, "terminal");
@@ -25,8 +28,7 @@ export default class EmulatorRoomScene extends BaseRoom {
 
         this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
 
-        // Use bigbot as player sprite if present
-        // In BaseRoom, after createRoom, you can swap texture:
-        this.player.setTexture("bigbot");
+        
+        
     }
 }

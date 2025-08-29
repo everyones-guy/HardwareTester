@@ -11,27 +11,22 @@ import testService from "@/services/testService";
 export function initArcadeIntegrations() {
     ArcadeEventBus.on("ui:toast", ({ message }) => notificationService.toast(message));
 
-
     ArcadeEventBus.on("mqtt:send", ({ topic, payload }) => mqttService.publish(topic, payload));
-
 
     ArcadeEventBus.on("hardware:discover", async () => {
         const devices = await hardwareService.discoverDevices();
         notificationService.toast(`${devices.length} device(s) discovered`);
     });
 
-
     ArcadeEventBus.on("hardware:select", async ({ deviceId }) => {
         await hardwareService.selectDevice(deviceId);
         notificationService.toast(`Selected ${deviceId}`);
     });
 
-
     ArcadeEventBus.on("firmware:flash", async ({ deviceId, firmwareId }) => {
         const ok = await firmwareService.flashFirmware(deviceId, firmwareId);
         notificationService.toast(ok ? `Flashed ${firmwareId}` : `Flash failed`);
     });
-
 
     ArcadeEventBus.on("tests:metrics", ({ passed, failed, duration }) => {
         notificationService.toast(`BVT Results — Passed: ${passed}, Failed: ${failed}, Duration: ${duration}s`);
@@ -42,6 +37,13 @@ export function initArcadeIntegrations() {
     window.addEventListener("arcade:addItem", (e: any) => {
         useArcadeStore.getState().addItem(e.detail.name, 1);
     });
+
+    // Inventory bridge: allow scenes to push items via events on the game
+    // Each scene can: this.events.emit("arcade:addItem", { name: "Peripheral Bot" })
+    window.addEventListener("arcade:addItem", (e: any) => {
+        useArcadeStore.getState().addItem(e.detail.name, 1);
+    });
+
 
     // Tests/BVT handlers
     ArcadeEventBus.on("tests:bvt:start", async () => {

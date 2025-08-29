@@ -2,11 +2,9 @@
 import Phaser from "phaser";
 import BaseRoom from "@/components/Arcade/scenes/BaseRoom";
 import { ArcadeEventBus } from "@/components/Arcade/events/EventBus";
-import { useArcadeStore } from "@/components/Arcade/utils/arcadeStore";
 
-
-export default class TestBossRoomScene extends BaseRoom {
-    constructor() { super("TestBossRoomScene"); }
+export default class TestsBossRoomScene extends BaseRoom {
+    constructor() { super("TestsBossRoomScene"); }
 
 
     create() {

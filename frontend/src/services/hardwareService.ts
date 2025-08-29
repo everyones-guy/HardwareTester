@@ -1,22 +1,22 @@
 // src/services/hardwareService.ts
 // Unified HardwareService: backend contract methods + extended discovery helpers
 
-import APIService, { apiCallWithRetry, getWebSocketURL } from "@/services/apiService";
+import APIService from "@/services/apiService";
 import {
     DeviceInfo,
     DeviceStatus,
     FirmwareMetadata,
     DeviceDetails,
     LinkInfo,
-    Device,             // from extended types
-    DiscoverResponse,   // from extended types
+    Device,             // extended types
+    DiscoverResponse,   // extended types
 } from "@/types/hardwareTypes";
 import { APIResponse } from "@/types/apiTypes";
 
 const BASE_PATH = "hardware";
 
 // -----------------------------
-// Backend Contract Methods (yours)
+// Backend Contract Methods (yours, unchanged)
 // -----------------------------
 const HardwareService = {
     discoverDevice(deviceId: number): Promise<APIResponse<{ device: DeviceInfo }>> {
@@ -41,7 +41,10 @@ const HardwareService = {
         });
     },
 
-    storeFirmware(firmwareHash: string, firmwareData: string): Promise<APIResponse<{ firmware_id: number; existing: boolean }>> {
+    storeFirmware(
+        firmwareHash: string,
+        firmwareData: string
+    ): Promise<APIResponse<{ firmware_id: number; existing: boolean }>> {
         return APIService.apiCall(`${BASE_PATH}/firmware/store`, "POST", {
             firmware_hash: firmwareHash,
             firmware_data: firmwareData,
@@ -66,7 +69,11 @@ const HardwareService = {
         return APIService.apiCall(url, "GET");
     },
 
-    saveLink(sourceId: number, targetId: number, metadata: Record<string, any> = {}): Promise<APIResponse<{ link_id: number }>> {
+    saveLink(
+        sourceId: number,
+        targetId: number,
+        metadata: Record<string, any> = {}
+    ): Promise<APIResponse<{ link_id: number }>> {
         return APIService.apiCall(`${BASE_PATH}/link/save`, "POST", {
             source_id: sourceId,
             target_id: targetId,
@@ -84,14 +91,14 @@ const HardwareService = {
 };
 
 // -----------------------------
-// Extended Discovery Helpers
+// Extended Discovery Helpers (additive)
 // -----------------------------
 const BASE = "/api/hardware";
 const ENDPOINTS = {
-    discoverDevices: `${BASE}/devices/discover`,
-    listDevices: `${BASE}/devices`,
+    discoverDevices: `${BASE}/devices/discover`,   // POST triggers a scan
+    listDevices: `${BASE}/devices`,            // GET returns known devices
     deviceById: (id: string) => `${BASE}/devices/${encodeURIComponent(id)}`,
-    discoveryStream: `${BASE}/devices/discover/stream`,
+    discoveryStream: `${BASE}/devices/discover/stream`, // WS/SSE
 };
 
 function normalizeDevices(arr: any[]): Device[] {
@@ -107,7 +114,7 @@ function normalizeDevices(arr: any[]): Device[] {
         serial: d.serial ?? d.sn ?? undefined,
         firmwareVersion: d.firmwareVersion ?? d.fw ?? undefined,
         lastSeen: d.lastSeen ?? d.updatedAt ?? d.discoveredAt ?? undefined,
-        status: d.status ?? "unknown",
+        status: (d.status as Device["status"]) ?? "unknown",
         tags: Array.isArray(d.tags) ? d.tags : [],
     }));
 }
@@ -162,8 +169,17 @@ function mockDiscover(): DiscoverResponse {
 
 async function discoverDevicesExtended(): Promise<DiscoverResponse> {
     try {
-        const res = await apiCallWithRetry(() =>
-            APIService.post(ENDPOINTS.discoverDevices, { transports: ["usb", "bluetooth", "wifi", "ethernet"] })
+        /* starting point...why does it hate endpoints
+        const res = await APIService.apiCallWithRetry(() =>
+            APIService.apiCall(ENDPOINTS.discoverDevices, "POST", {
+                transports: ["usb", "bluetooth", "wifi", "ethernet"],
+            })
+        );
+        */
+        const res = await APIService.apiCallWithRetry(() =>
+            APIService.apiCall(ENDPOINTS.discoverDevices, "POST", {
+                transports: ["usb", "bluetooth", "wifi", "ethernet"],
+            })
         );
         const devices = normalizeDevices(res?.data?.devices ?? []);
         return {
@@ -181,7 +197,9 @@ async function discoverDevicesExtended(): Promise<DiscoverResponse> {
 
 async function listDevicesExtended(): Promise<Device[]> {
     try {
-        const res = await apiCallWithRetry(() => APIService.get(ENDPOINTS.listDevices));
+        const res = await APIService.apiCallWithRetry(() =>
+            APIService.apiCall(ENDPOINTS.listDevices, "GET")
+        );
         return normalizeDevices(res?.data ?? []);
     } catch (err: any) {
         if (err?.response?.status === 404) return [];
@@ -191,7 +209,9 @@ async function listDevicesExtended(): Promise<Device[]> {
 
 async function discoverDeviceExtended(deviceId: string): Promise<Device | null> {
     try {
-        const res = await apiCallWithRetry(() => APIService.get(ENDPOINTS.deviceById(deviceId)));
+        const res = await APIService.apiCallWithRetry(() =>
+            APIService.apiCall(ENDPOINTS.deviceById(deviceId), "GET")
+        );
         const normalized = normalizeDevices([res?.data ?? {}]);
         return normalized[0] ?? null;
     } catch (err: any) {
@@ -201,13 +221,13 @@ async function discoverDeviceExtended(deviceId: string): Promise<Device | null> 
 }
 
 function subscribeToDiscoveryWS(onMessage: (devices: Device[]) => void): () => void {
-    const url = getWebSocketURL(ENDPOINTS.discoveryStream);
+    const url = APIService.getWebSocketURL(ENDPOINTS.discoveryStream);
     const ws = new WebSocket(url);
     ws.onmessage = (evt) => {
         try {
             const payload = JSON.parse(evt.data);
             if (Array.isArray(payload.devices)) onMessage(normalizeDevices(payload.devices));
-        } catch (_) { }
+        } catch { }
     };
     return () => ws.close(1000);
 }
@@ -218,13 +238,13 @@ function subscribeToDiscoverySSE(onMessage: (devices: Device[]) => void): () => 
         try {
             const payload = JSON.parse(evt.data);
             if (Array.isArray(payload.devices)) onMessage(normalizeDevices(payload.devices));
-        } catch (_) { }
+        } catch { }
     };
     sse.addEventListener("message", handler as any);
     return () => sse.close();
 }
 
-// Attach extended helpers
+// Attach extended helpers (non-breaking, additive)
 Object.assign(HardwareService, {
     discoverDevicesExtended,
     listDevicesExtended,

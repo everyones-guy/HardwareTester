@@ -6,6 +6,7 @@ export default function ArcadeSidebar() {
     const inventory = useArcadeStore(s => s.inventory);
     const quests = useArcadeStore(s => s.quests);
     const metrics = useArcadeStore(s => s.metrics);
+    const devices = useArcadeStore(s => s.devices) || [];
 
 
     return (
@@ -20,7 +21,6 @@ export default function ArcadeSidebar() {
                 </ul>
             </section>
 
-
             <section>
                 <h2 className="text-lg font-semibold">Quests</h2>
                 <ul className="list-disc pl-5 text-sm">
@@ -33,7 +33,6 @@ export default function ArcadeSidebar() {
                 </ul>
             </section>
 
-
             <section>
                 <h2 className="text-lg font-semibold">BVT Metrics</h2>
                 <div className="text-xs grid grid-cols-2 gap-2">
@@ -42,6 +41,14 @@ export default function ArcadeSidebar() {
                     <div>Running:</div><div>{metrics.running ? "yes" : "no"}</div>
                     <div>Current:</div><div className="col-span-2 truncate">{metrics.current}</div>
                 </div>
+            </section>
+
+            <section>
+                <h2 className="text-lg font-semibold">Discovered Devices</h2>
+                <ul className="list-disc pl-5 text-sm max-h-44 overflow-auto">
+                    {devices.map((d) => (<li key={d.id}>{d.name}</li>))}
+                    {devices.length === 0 && <li>None yet</li>}
+                </ul>
             </section>
         </aside>
     );

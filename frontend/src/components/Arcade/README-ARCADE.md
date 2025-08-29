@@ -34,17 +34,15 @@ A lightweight Phaser mini - world embedded in the UHT frontend. Move a bot throu
 - **Tests Boss Room**: triggers `testService.startBVT()` and streams metrics via `subscribeToTestMetrics()` into the sidebar.
 - **React Sidebar**: shows Inventory, Quests, BVT Metrics. Powered by a tiny Zustand store.
 
-
 ## Expected service APIs
 - `testService.startBVT(): Promise<void>`
 - `testService.subscribeToTestMetrics(cb: (m: { pass: number; fail: number; currentTestName: string; running: boolean }) => void): () => void`
 
-
 ## Hook-up notes
 - Replace placeholder pixel art with assets whenever ready.
 - Scenes can add inventory items by dispatching a DOM event:
-```ts
-this.events.emit("arcade:addItem", { name: "Peripheral Bot" });
-window.dispatchEvent(new CustomEvent("arcade:addItem", { detail: { name: "Peripheral Bot" } }));
-```
+  ```ts
+  this.events.emit("arcade:addItem", { name: "Peripheral Bot" });
+  window.dispatchEvent(new CustomEvent("arcade:addItem", { detail: { name: "Peripheral Bot" } }));
+  ```
 - If you already have a WebSocket metrics stream, swap `testService.subscribeToTestMetrics` to that.
