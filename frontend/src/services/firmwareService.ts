@@ -1,5 +1,5 @@
 // src/services/firmwareService.ts
-import APIService, { getWebSocketURL } from "@/services/apiService";
+import APIService from "@/services/apiService";
 import { APIResponse } from "@/types/apiTypes";
 import {
     FirmwareMeta,
@@ -111,7 +111,7 @@ const FirmwareService = {
         deviceId: string,
         callback: (update: FirmwareProgressUpdate) => void
     ): () => void {
-        const socket = new WebSocket(getWebSocketURL(`${BASE_PATH}/progress/${deviceId}`));
+        const socket = new WebSocket(APIService.getWebSocketURL(`${BASE_PATH}/progress/${deviceId}`));
 
         socket.onmessage = (event) => {
             try {
