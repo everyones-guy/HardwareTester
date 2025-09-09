@@ -6,6 +6,7 @@ import EmulatorRoomScene from "@/components/Arcade/scenes/EmulatorRoomScene";
 import HardwareRoomScene from "@/components/Arcade/scenes/HardwareRoomScene";
 import FirmwareRoomScene from "@/components/Arcade/scenes/FirmwareRoomScene";
 import { ArcadeEventBus } from "@/components/Arcade/events/EventBus";
+import ControllerSwarmScene from "@/components/Arcade/scenes/ControllerSwarmScene";
 
 // Register pixel sprites once per game boot
 import { registerPixelSprites } from "./utils/SpriteFactory";
@@ -26,13 +27,17 @@ export default function PhaserGame() {
             width: GAME_WIDTH,
             height: GAME_HEIGHT,
             parent: containerRef.current,
-            physics: { default: "arcade", arcade: { gravity: { y: 0 }, debug: false } },
+            physics: { default: "arcade", arcade: { debug: false } },
             backgroundColor: "#111827",
-            scene: [LobbyScene, EmulatorRoomScene, HardwareRoomScene, FirmwareRoomScene],
+            scene: [ControllerSwarmScene, LobbyScene, EmulatorRoomScene, HardwareRoomScene, FirmwareRoomScene],
         };
 
         const game = new Phaser.Game(config);
         gameRef.current = game;
+
+        // Make scene API reachable from devtools/UI
+        (window as any).Arcade = (window as any).Arcade || {};
+        (window as any).Arcade.scene = () => game.scene.getScene("ControllerSwarmScene");
 
         // Cleanup
         return () => {

@@ -375,3 +375,7 @@ FodyWeavers.xsd
 /old version
 /FE/build/tree-sitter-languages
 /backend/Hardware_Tester_App/updates_root_scripts/suggestions and dropins
+/frontend/old
+/frontend/build
+/frontend/src/src_folders.zip
+/frontend/src/components/Arcade.zip

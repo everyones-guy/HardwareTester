@@ -1,6 +1,18 @@
 // File: src/components/Arcade/events/EventBus.ts
 import mitt, { Emitter } from "mitt";
 
+export type DeviceSummary = {
+    id: string;
+    name: string;
+    type: "USB" | "WiFi" | "Bluetooth" | "Serial" | "Other";
+    online?: boolean;
+};
+
+export type DevicesUpdatedEvent = {
+    controllerId?: string | null;
+    devices: DeviceSummary[];
+};
+
 export type ArcadeEvents = {
     "mqtt:send": { topic: string; payload: string };
     "hardware:discover": void;
@@ -8,6 +20,7 @@ export type ArcadeEvents = {
     "firmware:flash": { deviceId: string; firmwareId: string };
     "ui:toast": { message: string };
     "tests:metrics": { passed: number; failed: number; duration: number };
+    "devices:updated": DevicesUpdatedEvent;
 };
 
 // Extend the emitter type with our shim
