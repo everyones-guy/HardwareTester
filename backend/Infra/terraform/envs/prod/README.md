@@ -1,0 +1,1 @@
+Uses the shared tfstate in tfstate-rg. Run from this folder.
