@@ -73,7 +73,12 @@ const BluetoothPanel: React.FC = () => {
             <div className="bt-controls">
                 <button onClick={scanForDevices}>Scan for Devices</button>
 
+                {/* Label for the select */}
+                <label htmlFor="bt-device-select" className="visually-hidden">
+                    Bluetooth device
+                </label>
                 <select
+                    id="bt-device-select"
                     value={selectedDevice}
                     onChange={(e) => setSelectedDevice(e.target.value)}
                     disabled={isConnected}
@@ -106,8 +111,14 @@ const BluetoothPanel: React.FC = () => {
             </div>
 
             <div className="bt-log">
-                <h4>Log</h4>
-                <textarea value={log.join("\n")} readOnly rows={10} />
+                <h4 id="bt-log-label">Log</h4>
+                <textarea
+                    id="bt-log"
+                    value={log.join("\n")}
+                    readOnly
+                    rows={10}
+                    aria-labelledby="bt-log-label"
+                />
             </div>
         </div>
     );
