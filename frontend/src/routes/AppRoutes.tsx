@@ -23,7 +23,7 @@ const AppRoutes: React.FC = () => {
         <DashboardLayout>
             <Routes>
                 {/* Default - Emulator */}
-                <Route path="/" element={<Navigate to="/emulator" replace />} />
+                <Route path="/" element={<Navigate to="/legacy/emulator" replace />} />
 
                 {/* Emulator */}
                 <Route path="/emulator" element={<EmulatorDashboard />} />

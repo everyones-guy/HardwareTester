@@ -113,7 +113,7 @@ const EmulatorPanel: React.FC = () => {
     const handleViewLogs = async () => {
         try {
             const res = await EmulatorService.getLogs();
-            const entries: EmulatorLogEntry[] = res?.data?.logs ?? res?.logs ?? [];
+            const entries: EmulatorLogEntry[] = res?.data?.logs ?? [];
             const formatted = Array.isArray(entries)
                 ? entries.map((l) => `[${l.timestamp}] ${l.message}`)
                 : [];

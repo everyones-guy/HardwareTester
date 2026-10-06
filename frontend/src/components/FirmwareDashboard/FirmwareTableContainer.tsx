@@ -1,9 +1,14 @@
 // src/components/FirmwareDashboard/FirmwareTableContainer.tsx
-import React, { useEffect, useState } from "react";
-import FirmwareTable from "./FirmwareTable";
+import React, { useEffect, useMemo, useState } from "react";
+import FirmwareTable from "../FirmwareDashboard/FirmwareTable";
 import FirmwareService, { listAsTableEntries, FirmwareTableEntry } from "@/services/firmwareService";
 
-const FirmwareTableContainer: React.FC = () => {
+interface Props {
+    reloadToken?: number; // bump to force reload (e.g., after upload/delete)
+    query?: string;       // optional text filter
+}
+
+const FirmwareTableContainer: React.FC<Props> = ({ reloadToken, query = "" }) => {
     const [items, setItems] = useState<FirmwareTableEntry[]>([]);
     const [loading, setLoading] = useState(false);
     const [err, setErr] = useState<string | null>(null);
@@ -23,6 +28,7 @@ const FirmwareTableContainer: React.FC = () => {
     };
 
     useEffect(() => { load(); }, []);
+    useEffect(() => { if (reloadToken !== undefined) load(); }, [reloadToken]);
 
     const onDownload = async (id: string) => {
         try {
@@ -45,6 +51,18 @@ const FirmwareTableContainer: React.FC = () => {
         }
     };
 
+    const q = query.trim().toLowerCase();
+    const filtered = useMemo(() => {
+        if (!q) return items;
+        return items.filter((fw) =>
+            [fw.name, fw.version, fw.deviceType, fw.uploadDate]
+                .filter(Boolean)
+                .join(" ")
+                .toLowerCase()
+                .includes(q)
+        );
+    }, [items, q]);
+
     return (
         <div>
             <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 8 }}>
@@ -54,7 +72,7 @@ const FirmwareTableContainer: React.FC = () => {
                 {err && <span style={{ color: "crimson" }}>{err}</span>}
             </div>
 
-            <FirmwareTable firmwareList={items} onDownload={onDownload} onDelete={onDelete} />
+            <FirmwareTable firmwareList={filtered} onDownload={onDownload} onDelete={onDelete} />
         </div>
     );
 };

@@ -118,7 +118,8 @@ const APIService = {
         method: "GET" | "POST" | "PUT" | "DELETE",
         data: any = null,
         headers: Record<string, string> = {},
-        responseType: AxiosRequestConfig["responseType"] = "json"
+        responseType: AxiosRequestConfig["responseType"] = "json",
+        timeout?: number
     ): Promise<T> {
         try {
             const config: AxiosRequestConfig = {
@@ -127,6 +128,7 @@ const APIService = {
                 data,
                 headers,
                 responseType,
+                timeout,
             };
             const response = await axiosInstance(config);
             return response.data;
@@ -197,8 +199,8 @@ const APIService = {
                 if (attempt === retries) throw err;
 
                 // Exponential delay with full jitter before next attempt
-                const delay = backoffWithJitter(baseDelayMs, attempt, backoffFactor, maxDelayMs);
-                await sleep(delay);
+                const delay = await APIService.backoffWithJitter(baseDelayMs, attempt, backoffFactor, maxDelayMs);
+                await APIService.sleep(delay);
             }
         }
         throw new Error("Unreachable");

@@ -1,14 +1,11 @@
 // src/App.tsx
-import React from "react";
-import AppRoutes from "./routes/AppRoutes";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-
-const App: React.FC = () => (
-    <>
-        <AppRoutes />
-        <ToastContainer position="top-right" autoClose={5000} hideProgressBar />
-    </>
-);
+import React, { Suspense } from "react";
+import { Route, Routes } from 'react-router-dom';
+import Workbench from './workbench/Workbench';
+const LegacyApp = React.lazy(() => import('./LegacyApp'));
+const App: React.FC = () => <Routes>
+    <Route path="/legacy/*" element={<Suspense fallback={<p>Loading original dashboards…</p>}><LegacyApp /></Suspense>} />
+    <Route path="/*" element={<Workbench />} />
+</Routes>;
 
 export default App;

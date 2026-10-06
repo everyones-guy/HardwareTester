@@ -1,22 +1,13 @@
-# Use a Python base image
-FROM python:3.11-slim
-
-# Set environment variables
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-
-# Set working directory
+# Self-contained simulation workbench. Flask integration is a separate milestone.
+FROM node:22-alpine AS frontend
 WORKDIR /app
+COPY frontend/package.json frontend/package-lock.json ./
+RUN npm ci --no-audit --no-fund
+COPY frontend/ ./
+RUN npm run build
 
-# Install dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy application files
-COPY . .
-
-# Set SQLite database as a fallback
-ENV DATABASE_URL="sqlite:///instance/fallback.db"
-
-# Run the application
-CMD ["gunicorn", "-b", "0.0.0.0:5000", "Hardware_Tester_App:app"]
+FROM nginx:stable-alpine
+COPY deployment/nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=frontend /app/build /usr/share/nginx/html
+EXPOSE 80
+HEALTHCHECK --interval=30s --timeout=3s CMD wget -q -O /dev/null http://127.0.0.1/health || exit 1

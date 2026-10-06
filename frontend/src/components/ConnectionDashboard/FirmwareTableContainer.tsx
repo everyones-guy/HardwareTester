@@ -1,6 +1,6 @@
 // src/components/FirmwareDashboard/FirmwareTableContainer.tsx
 import React, { useEffect, useMemo, useState } from "react";
-import FirmwareTable from "./FirmwareTable";
+import FirmwareTable from "../FirmwareDashboard/FirmwareTable";
 import FirmwareService, { listAsTableEntries, FirmwareTableEntry } from "@/services/firmwareService";
 
 interface Props {

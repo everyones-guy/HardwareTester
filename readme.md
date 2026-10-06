@@ -1,5 +1,11 @@
 # Hardware Tester
 
+## Interactive React workbench
+
+Start the new self-contained simulation lab with `.\start-workbench.ps1`, or start Docker Desktop and run `docker compose up --build -d` (http://localhost:8080). Connect virtual MQTT/Serial/USB devices, inject faults, run health and control tests, and export results.
+
+See [WORKBENCH.md](WORKBENCH.md) for the current launch instructions, verification, simulation boundaries, and backend integration backlog. The older Flask setup instructions below describe the original backend and are not required for the simulation workbench.
+
 Hardware Tester is a Flask-based application for testing and managing hardware devices such as valves, peripherals, and MQTT-connected devices. The app provides a robust interface for hardware interaction, configuration, and real-time monitoring.
 
 ## Features

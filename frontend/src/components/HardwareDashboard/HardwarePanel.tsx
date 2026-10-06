@@ -62,7 +62,7 @@ const HardwarePanel: React.FC = () => {
         setLoading(true);
         setError(null);
         try {
-            const res = await HardwareService.getDeviceDetails(deviceId);
+            const res = await HardwareService.getDeviceFromDb(deviceId);
             const details: HardwareDevice =
                 // @ts-ignore unwrap common shapes
                 res?.data?.device ?? res?.device ?? res;

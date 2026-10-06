@@ -1,0 +1,11 @@
+.git
+**/node_modules
+**/build
+**/__pycache__
+**/.venv
+**/venv
+**/.env
+**/app.db
+**/*.zip
+work
+outputs

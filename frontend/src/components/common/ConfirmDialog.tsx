@@ -7,7 +7,9 @@ interface ConfirmDialogProps {
     onCancel: () => void;
     confirmText?: string;
     cancelText?: string;
-    isOpen: boolean;
+    isOpen?: boolean;
+    open?: boolean;
+    disableConfirm?: boolean;
 }
 
 const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
@@ -18,8 +20,10 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
     confirmText = "Yes",
     cancelText = "Cancel",
     isOpen,
+    open,
+    disableConfirm,
 }) => {
-    if (!isOpen) return null;
+    if (!(isOpen ?? open)) return null;
 
     return (
         <div className="confirm-dialog-overlay">
@@ -30,7 +34,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
                     <button className="btn btn-secondary" onClick={onCancel}>
                         {cancelText}
                     </button>
-                    <button className="btn btn-primary" onClick={onConfirm}>
+                    <button className="btn btn-primary" disabled={disableConfirm} onClick={onConfirm}>
                         {confirmText}
                     </button>
                 </div>

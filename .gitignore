@@ -374,3 +374,9 @@ FodyWeavers.xsd
 /models_combined_full.txt
 /old version
 /FE/build/tree-sitter-languages
+# Hardware Tester generated artifacts
+/frontend/build/
+/frontend/test-results/
+/frontend/playwright-report/
+/work/
+/outputs/

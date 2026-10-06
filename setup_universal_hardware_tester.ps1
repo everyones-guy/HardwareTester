@@ -72,7 +72,7 @@ if (-Not (Get-Command kubectl -ErrorAction SilentlyContinue)) {
 if (-Not (Get-Command minikube -ErrorAction SilentlyContinue)) {
     Write-Host "Installing Minikube..."
     Invoke-WebRequest -Uri "https://storage.googleapis.com/minikube/releases/latest/minikube-windows-amd64.exe" -OutFile "$env:ProgramFiles\minikube.exe"
-    [System.Environment]::SetEnvironmentVariable("Path", $env:Path + ";$env:ProgramFiles", [System.EnvironmentVariableTarget]::Machine
+    [System.Environment]::SetEnvironmentVariable("Path", $env:Path + ";$env:ProgramFiles", [System.EnvironmentVariableTarget]::Machine)
 } else {
     Write-Host "Minikube is already installed. Skipping..."
 }
