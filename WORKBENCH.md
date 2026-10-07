@@ -28,9 +28,9 @@ Start Docker Desktop's Linux engine, then:
 .\start-workbench.ps1 -Docker
 ```
 
-Or `docker compose up --build -d`. Open http://localhost:8080. Docker builds React with server mode as its default; nginx proxies `/api/` to Flask, and the backend keeps state in the named `lab-data` volume. The only published application port is bound to loopback. `docker compose down` preserves the volume; removing it deletes the server workspace.
+Or run `docker compose up --build -d --wait --wait-timeout 180` from the repository root. Open http://localhost:8080. This launches React/nginx, Flask, Mosquitto, and a mock MQTT valve. Startup waits for health checks, including a correlated read from the mock valve. Docker builds React with server mode as its default; nginx proxies `/api/` to Flask, and the backend keeps state in the named `lab-data` volume. Application port 8080 and broker port 1883 are published only on loopback. `docker compose down` preserves the volume; removing it deletes the server workspace. `docker compose logs -f` shows all service logs.
 
-Both Compose configurations were validated. Image execution remains unverified on this machine because Docker Desktop's Linux engine is not running.
+Compose configurations were validated. Container builds/execution remain unverified on this machine because the Linux engine is unavailable and `docker desktop start` could not locate the Docker Desktop installation. Start or repair Docker Desktop with Linux containers enabled before launching. You can issue the command directly in Windows PowerShell; the application does not require a separate WSL shell. The Docker workspace is a separate named volume from a locally launched Flask database.
 
 ## Exercise the workflow
 
@@ -78,13 +78,13 @@ Serial framing is tested against controlled port peers; MQTT was tested through 
 
 ## MQTT mock fixture
 
-An optional Mosquitto broker and mock valve peer let you exercise the wire-level adapter without physical hardware:
+A Mosquitto broker and mock valve peer are included in the default stack so you can exercise the wire-level adapter without physical hardware:
 
 ```powershell
-docker compose -f docker-compose.yml -f docker-compose.fixture.yml up --build -d
+docker compose up --build -d --wait --wait-timeout 180
 ```
 
-For the local Flask backend, enable hardware and add a valve with endpoint `mqtt://127.0.0.1:1883/lab/demo-valve`. For the backend running inside Compose, set `LAB_ALLOW_HARDWARE=true` before bringing up the stack and use `mqtt://broker:1883/lab/demo-valve`. The fixture broker is for development only, with its published port bound to loopback.
+At http://localhost:8080 select **Add device**, choose the valve profile and MQTT adapter, and enter `mqtt://broker:1883/lab/demo-valve`. Connect that device and run **Control response** to send a real MQTT command through Mosquitto to the emulator, verify its response, and restore its original value. **Connect all** applies to simulation adapters; connect this MQTT device individually. The Docker stack defaults `LAB_ALLOW_HARDWARE=true` to enable its MQTT adapter; no host hardware devices are mounted. Set it to false to disable transport adapters. For a separately launched local Flask backend, enable hardware explicitly and use `mqtt://127.0.0.1:1883/lab/demo-valve`. The broker is for local development, allows anonymous connections, and publishes its port only on loopback. The old `docker-compose.fixture.yml` command remains compatible as a no-op overlay.
 
 Alternatively run the mock peer against an existing local broker:
 

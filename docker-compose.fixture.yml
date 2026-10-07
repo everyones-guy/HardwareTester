@@ -1,21 +1,3 @@
-# Optional wire-level MQTT emulator alongside the normal application.
-services:
-  broker:
-    image: eclipse-mosquitto:2
-    ports:
-      - "127.0.0.1:1883:1883"
-    volumes:
-      - ./deployment/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
-  mqtt-fixture:
-    healthcheck:
-      disable: true
-    build:
-      context: .
-      dockerfile: Dockerfile.backend
-    user: lab
-    depends_on:
-      - broker
-    volumes:
-      - ./backend/tools/mqtt_fixture.py:/app/mqtt_fixture.py:ro
-    command: ["python", "mqtt_fixture.py", "--broker", "broker"]
-    restart: on-failure
+# Compatibility overlay: broker and MQTT fixture are now in docker-compose.yml.
+# Existing commands that include this file continue to work.
+services: {}

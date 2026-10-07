@@ -5,6 +5,7 @@ COPY backend/requirements-workbench.txt ./
 RUN pip install --no-cache-dir -r requirements-workbench.txt
 COPY backend/Hardware_Tester_App ./Hardware_Tester_App
 COPY backend/runserver.py ./
+COPY backend/tools ./tools
 RUN useradd --create-home lab && mkdir -p /data && chown lab:lab /data
 USER lab
 EXPOSE 5000

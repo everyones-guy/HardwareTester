@@ -8,9 +8,10 @@ if ($Docker) {
     try {
         docker info --format '{{.ServerVersion}}'
         if ($LASTEXITCODE -ne 0) { throw 'Docker engine is unavailable. Start Docker Desktop and try again.' }
-        docker compose up --build -d
+        docker compose up --build -d --wait --wait-timeout 180
         if ($LASTEXITCODE -ne 0) { throw 'Docker Compose failed.' }
         Write-Host 'Hardware Tester: http://localhost:8080'
+        Write-Host 'Mosquitto + mock valve are ready. Add an MQTT valve using mqtt://broker:1883/lab/demo-valve.'
     } finally { Pop-Location }
     exit
 }

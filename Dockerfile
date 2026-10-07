@@ -1,4 +1,4 @@
-# Self-contained simulation workbench. Flask integration is a separate milestone.
+# React workbench served by nginx with the Flask API proxy.
 FROM node:22-alpine AS frontend
 ARG VITE_LAB_MODE=server
 ENV VITE_LAB_MODE=$VITE_LAB_MODE

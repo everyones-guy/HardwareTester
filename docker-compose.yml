@@ -10,14 +10,46 @@ services:
       - "127.0.0.1:8080:80"
     restart: unless-stopped
   backend:
+    depends_on:
+      mqtt-fixture:
+        condition: service_healthy
     build:
       context: .
       dockerfile: Dockerfile.backend
     environment:
-      LAB_ALLOW_HARDWARE: "${LAB_ALLOW_HARDWARE:-false}"
+      # Enables the MQTT transport to the included mock peer. No host devices are mounted.
+      LAB_ALLOW_HARDWARE: "${LAB_ALLOW_HARDWARE:-true}"
       LAB_API_TOKEN: "${LAB_API_TOKEN:-}"
     volumes:
       - lab-data:/data
+    restart: unless-stopped
+  broker:
+    image: eclipse-mosquitto:2
+    ports:
+      - "127.0.0.1:1883:1883"
+    volumes:
+      - ./deployment/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+    healthcheck:
+      test: ["CMD", "mosquitto_pub", "-h", "127.0.0.1", "-t", "lab/health", "-m", "ok", "-q", "1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+  mqtt-fixture:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    depends_on:
+      broker:
+        condition: service_healthy
+    command: ["python", "tools/mqtt_fixture.py", "--broker", "broker"]
+    healthcheck:
+      test: ["CMD", "python", "tools/mqtt_fixture.py", "--broker", "broker", "--check"]
+      interval: 10s
+      timeout: 8s
+      retries: 5
+      start_period: 5s
     restart: unless-stopped
 volumes:
   lab-data:
