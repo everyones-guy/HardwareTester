@@ -1,5 +1,7 @@
 import { isLabState, LabState } from './simulator';
-export interface ServerResponse { state: LabState; deviceId?: string; runId?: string; capabilities?: { hardware: boolean } }
+export interface Peripheral { id: string; name: string; type: string; device_id: string; properties: Record<string, unknown>; version: number }
+export interface Blueprint { id: string; name: string; description: string; configuration: Record<string, unknown>; devices: {name: string; kind: string}[]; warnings: string[] }
+export interface ServerResponse { state: LabState; deviceId?: string; runId?: string; blueprintId?: string; preview?: Blueprint; capabilities?: { hardware: boolean } }
 export async function labRequest(path = '', method = 'GET', data?: unknown): Promise<ServerResponse> {
   const token = sessionStorage.getItem('hardware-tester.api-token');
   const response = await fetch(`/api/lab${path}`, {

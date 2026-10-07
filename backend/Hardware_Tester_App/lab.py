@@ -70,6 +70,8 @@ class Lab:
         self.connection.execute('CREATE TABLE IF NOT EXISTS lab_state (id INTEGER PRIMARY KEY CHECK(id = 1), payload TEXT NOT NULL)')
         row = self.connection.execute('SELECT payload FROM lab_state WHERE id=1').fetchone()
         self.state = json.loads(row[0]) if row else initial_state()
+        self.state.setdefault('peripherals', [])
+        self.state.setdefault('blueprints', [])
         for d in self.state['devices']:
             d['connected'] = False
         for run in self.state['runs']:
@@ -103,6 +105,16 @@ class Lab:
         with self.lock:
             return copy.deepcopy(self.state)
 
+    def in_range(self, device, value):
+        limits = []
+        for p in self.state['peripherals']:
+            if p['device_id'] == device['id'] and p['properties'].get('threshold') is not None:
+                t = p['properties']['threshold']
+                limits.append(t if isinstance(t, dict) else {'max': t})
+        if not limits:
+            return 0 <= value <= {'temperature': 50, 'valve': 100, 'relay': 1}[device['kind']]
+        return all(t.get('min', -math.inf) <= value <= t.get('max', math.inf) for t in limits)
+
     def device(self, device_id):
         d = next((d for d in self.state['devices'] if d['id'] == device_id), None)
         if not d:
@@ -128,6 +140,7 @@ class Lab:
             d = self.device(device_id)
             self.disconnect(d)
             self.state['devices'].remove(d)
+            self.state['peripherals'] = [p for p in self.state['peripherals'] if p['device_id'] != device_id]
             self.log(f"Removed {d['name']}.")
             self.save()
 
@@ -281,7 +294,7 @@ class Lab:
                 elif name == 'Restore initial state' and active['changed']:
                     self.write(d, run['originalValue'])
                 value = self.read(d)
-                if name in ('Validate operating range', 'Verify response') and not 0 <= value <= {'temperature': 50, 'valve': 100, 'relay': 1}[d['kind']]:
+                if name in ('Validate operating range', 'Verify response') and not self.in_range(d, value):
                     raise TransportError(f'Reading {value} is outside expected operating range.')
                 if name == 'Verify response' and value != {'temperature': 30, 'valve': 75, 'relay': 1}[d['kind']]:
                     raise TransportError(f'Command response mismatch: received {value}.')
@@ -334,7 +347,9 @@ class Lab:
             for d in self.state['devices']:
                 self.disconnect(d)
             revision = self.state.get('revision', 0)
+            blueprints = self.state['blueprints']
             self.state = initial_state()
+            self.state.update(peripherals=[], blueprints=blueprints)
             self.state['revision'] = revision
             self.save()
 

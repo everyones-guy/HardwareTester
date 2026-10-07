@@ -1,27 +1,5 @@
-# __init__.py
-
-# Importing essential utilities
-from .test_runner import *
-from .test_utils import *
-from .testing import *
-from .token_utils import *
-from .validators import *
-from .api_manager import *
-from .auto_deploy import *
-from .bcrypt_utils import *
-from .custom_logger import *
-from .db_utils import *
-from .firmware_utils import *
-from .hardware_manager import *
-from .manage_test_plans import *
-from .manage_valves import *
-from .parsers import *
-from .run_test_plans import *
-from .secrets import *
-from .serial_comm import *
-from .test_generator import *
-
-# Optionally, define a __all__ list to control what gets imported with `from utils import *`
+"""Utilities load individually; importing validators does not initialize hardware."""
+from importlib import import_module
 __all__ = [
     "test_runner",
     "test_utils",
@@ -43,3 +21,8 @@ __all__ = [
     "serial_comm",
     "test_generator",
 ]
+
+def __getattr__(name):
+    if name in __all__:
+        return import_module(f"{__name__}.{name}")
+    raise AttributeError(name)

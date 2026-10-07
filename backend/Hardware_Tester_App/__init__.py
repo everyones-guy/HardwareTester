@@ -19,12 +19,14 @@ def create_app(config_name='development', overrides=None, **kwargs):
         LAB_API_TOKEN=os.environ.get('LAB_API_TOKEN', ''),
         LAB_ALLOWED_ORIGINS=os.environ.get('LAB_ALLOWED_ORIGINS', 'http://localhost:5173,http://127.0.0.1:5173,http://localhost:8080,http://127.0.0.1:8080').split(','),
         FRONTEND_BUILD=str(root / 'frontend' / 'build'),
-        MAX_CONTENT_LENGTH=16384,
+        MAX_CONTENT_LENGTH=131072,
     )
     if overrides:
         app.config.update(overrides)
     lab = Lab(app.config['LAB_DB_PATH'], allow_hardware=app.config['LAB_ALLOW_HARDWARE'], autostart=app.config['LAB_WORKER'], step_seconds=app.config.get('LAB_STEP_SECONDS', .75))
     app.extensions['lab'] = lab
+    from .catalog import register_catalog
+    register_catalog(app, lab)
     if not app.testing:
         atexit.register(lab.close)
 

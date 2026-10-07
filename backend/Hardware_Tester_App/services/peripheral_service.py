@@ -1,19 +1,32 @@
+"""Original peripheral CRUD, with an injectable workbench repository."""
+import logging
+logger = logging.getLogger('peripheral_service')
 
-from Hardware_Tester_App.extensions import db
-from Hardware_Tester_App.utils.custom_logger import CustomLogger
-from Hardware_Tester_App.models.device_models import Peripheral
-from sqlalchemy.exc import SQLAlchemyError
 
-# Initialize logger
-logger = CustomLogger.get_logger("peripheral_service")
+class SQLAlchemyError(Exception):
+    pass
+
+
+def legacy_models():
+    # Keep the old SQLAlchemy path opt-in instead of importing the entire model graph.
+    global SQLAlchemyError
+    from sqlalchemy.exc import SQLAlchemyError as database_error
+    from Hardware_Tester_App.extensions import db
+    from Hardware_Tester_App.models.device_models import Peripheral
+    SQLAlchemyError = database_error
+    return db, Peripheral
+
 
 class PeripheralService:
     """Service for managing peripherals."""
 
     @staticmethod
-    def list_peripherals() -> dict:
+    def list_peripherals(repository=None) -> dict:
         """List all available peripherals."""
+        if repository is not None:
+            return repository.list_peripherals()
         try:
+            db, Peripheral = legacy_models()
             peripherals = Peripheral.query.all()
             result = [
                 {
@@ -35,7 +48,7 @@ class PeripheralService:
             return {"success": False, "error": "An unexpected error occurred."}
 
     @staticmethod
-    def add_peripheral(name: str, type: str, properties: dict, device_id: int) -> dict:
+    def add_peripheral(name: str, type: str, properties: dict, device_id: int, repository=None) -> dict:
         """
         Add a new peripheral.
         :param name: Name of the peripheral.
@@ -44,7 +57,10 @@ class PeripheralService:
         :param device_id: ID of the associated device.
         :return: Success or error message.
         """
+        if repository is not None:
+            return repository.add_peripheral(name, type, properties, device_id)
         try:
+            db, Peripheral = legacy_models()
             new_peripheral = Peripheral(name=name, type=type, properties=properties, device_id=device_id)
             db.session.add(new_peripheral)
             db.session.commit()
@@ -59,13 +75,16 @@ class PeripheralService:
             return {"success": False, "error": "An unexpected error occurred."}
 
     @staticmethod
-    def delete_peripheral(peripheral_id: int) -> dict:
+    def delete_peripheral(peripheral_id: int, repository=None) -> dict:
         """
         Delete a peripheral by ID.
         :param peripheral_id: ID of the peripheral to delete.
         :return: Success or error message.
         """
+        if repository is not None:
+            return repository.delete_peripheral(peripheral_id)
         try:
+            db, Peripheral = legacy_models()
             peripheral = Peripheral.query.get(peripheral_id)
             if not peripheral:
                 logger.warning(f"Peripheral ID {peripheral_id} not found.")
@@ -84,14 +103,17 @@ class PeripheralService:
             return {"success": False, "error": "An unexpected error occurred."}
 
     @staticmethod
-    def update_peripheral(peripheral_id: int, properties: dict) -> dict:
+    def update_peripheral(peripheral_id: int, properties: dict, repository=None) -> dict:
         """
         Update the properties of a peripheral.
         :param peripheral_id: ID of the peripheral to update.
         :param properties: Updated properties for the peripheral.
         :return: Success or error message.
         """
+        if repository is not None:
+            return repository.update_peripheral(peripheral_id, properties)
         try:
+            db, Peripheral = legacy_models()
             peripheral = Peripheral.query.get(peripheral_id)
             if not peripheral:
                 logger.warning(f"Peripheral ID {peripheral_id} not found.")

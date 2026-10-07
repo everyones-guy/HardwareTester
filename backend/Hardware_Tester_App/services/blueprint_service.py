@@ -2,11 +2,8 @@ import os
 import json
 import socket
 import platform
-import requests
-from Hardware_Tester_App.utils.custom_logger import CustomLogger
-from Hardware_Tester_App.models.device_models import Blueprint, Device, db
-
-logger = CustomLogger.get_logger("blueprint_service")
+import logging
+logger = logging.getLogger("blueprint_service")
 
 class BlueprintService:
     @staticmethod
@@ -24,6 +21,8 @@ class BlueprintService:
         }
 
         try:
+            import requests
+            from Hardware_Tester_App.models.device_models import Blueprint, db
             # Check if it's a URL (assume REST API response contains system info)
             if machine_address.startswith("http"):
                 response = requests.get(machine_address, timeout=5)
@@ -59,7 +58,7 @@ class BlueprintService:
             new_blueprint = Blueprint(
                 name=blueprint_data["name"],
                 description=blueprint_data["description"],
-                data=json.dumps(blueprint_data)
+                configuration=blueprint_data
             )
             db.session.add(new_blueprint)
             db.session.commit()
@@ -70,3 +69,9 @@ class BlueprintService:
         except Exception as e:
             logger.error(f"Error scanning machine {machine_address}: {e}")
             return {"error": str(e)}
+
+    @staticmethod
+    def normalize_configuration(configuration):
+        """Convert saved controller/peripheral JSON into a reviewed lab blueprint."""
+        from Hardware_Tester_App.blueprints import normalize_configuration
+        return normalize_configuration(configuration)
