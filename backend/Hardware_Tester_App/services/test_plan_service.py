@@ -1,16 +1,23 @@
-from Hardware_Tester_App.extensions import db, logger
-from Hardware_Tester_App.models.test_models import TestPlan, TestStep
+import logging
+logger = logging.getLogger("test_plan_service")
+
+def legacy_context():
+    from Hardware_Tester_App.extensions import db
+    from Hardware_Tester_App.models.test_models import TestPlan, TestStep
+    return db, TestPlan, TestStep
 import os
-import psutil
 
 
 class TestPlanService:
     @staticmethod
-    def list_test_plans(search=None, page=1, per_page=10):
+    def list_test_plans(search=None, page=1, per_page=10, repository=None):
         """
         List all test plans with optional search and pagination.
         """
+        if repository is not None:
+            return repository.list_test_plans(search, page, per_page)
         try:
+            db, TestPlan, TestStep = legacy_context()
             query = TestPlan.query
             if search:
                 query = query.filter(TestPlan.name.ilike(f"%{search}%"))
@@ -32,6 +39,7 @@ class TestPlanService:
         Upload a test plan file and log it in the database.
         """
         try:
+            db, TestPlan, TestStep = legacy_context()
             if not file:
                 return {"success": False, "error": "No file provided."}
 
@@ -54,11 +62,14 @@ class TestPlanService:
             return {"success": False, "error": str(e)}
 
     @staticmethod
-    def run_test_plan(test_plan_id):
+    def run_test_plan(test_plan_id, device_id=None, repository=None):
         """
         Execute a test plan by ID.
         """
+        if repository is not None:
+            return repository.run_test_plan(test_plan_id, device_id)
         try:
+            db, TestPlan, TestStep = legacy_context()
             test_plan = TestPlan.query.get(test_plan_id)
             if not test_plan:
                 return {"success": False, "error": "Test plan not found."}
@@ -72,11 +83,14 @@ class TestPlanService:
 
 
     @staticmethod
-    def preview_test_plan(test_plan_id):
+    def preview_test_plan(test_plan_id, repository=None):
         """
         Preview the details of a test plan.
         """
+        if repository is not None:
+            return repository.preview_test_plan(test_plan_id)
         try:
+            db, TestPlan, TestStep = legacy_context()
             test_plan = TestPlan.query.get(test_plan_id)
             if not test_plan:
                 return {"success": False, "error": "Test plan not found."}
@@ -88,11 +102,14 @@ class TestPlanService:
             return {"success": False, "error": "An error occurred while previewing the test plan."}
 
     @staticmethod
-    def create_test_plan(data, created_by):
+    def create_test_plan(data, created_by, repository=None):
         """
         Create a new test plan and ensure it's committed to the database.
         """
+        if repository is not None:
+            return repository.create_test_plan(data, created_by)
         try:
+            db, TestPlan, TestStep = legacy_context()
             test_plan = TestPlan(name=data["name"], description=data.get("description", ""), created_by=created_by)
             db.session.add(test_plan)
             db.session.commit()
@@ -110,6 +127,7 @@ class TestPlanService:
         Add a test step to a specific test plan and ensure it's committed.
         """
         try:
+            db, TestPlan, TestStep = legacy_context()
             test_plan = TestPlan.query.get(plan_id)
             if not test_plan:
                 return {"success": False, "error": "Test plan not found."}
@@ -133,6 +151,7 @@ class TestPlanService:
             :return: JSON response with test metrics
             """
             try:
+                db, TestPlan, TestStep = legacy_context()
                 total_test_plans = db.session.query(TestPlan).count()
                 total_test_steps = db.session.query(TestStep).count()
                 passed_tests = db.session.query(TestStep).filter_by(result="Passed").count()

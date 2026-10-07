@@ -1,6 +1,8 @@
 import { isLabState, LabState } from './simulator';
 export interface Peripheral { id: string; name: string; type: string; device_id: string; properties: Record<string, unknown>; version: number }
 export interface Blueprint { id: string; name: string; description: string; configuration: Record<string, unknown>; devices: {name: string; kind: string}[]; warnings: string[] }
+export interface PlanStep { name: string; action: 'read' | 'set' | 'assert_range' | 'assert_equal' | 'wait'; timeout?: number; value?: number; tolerance?: number; min?: number; max?: number; seconds?: number }
+export interface SavedPlan { id: string; name: string; description: string; kind: 'temperature' | 'valve' | 'relay'; version: number; steps: PlanStep[] }
 export interface ServerResponse { state: LabState; deviceId?: string; runId?: string; blueprintId?: string; preview?: Blueprint; capabilities?: { hardware: boolean } }
 export async function labRequest(path = '', method = 'GET', data?: unknown): Promise<ServerResponse> {
   const token = sessionStorage.getItem('hardware-tester.api-token');

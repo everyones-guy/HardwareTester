@@ -5,14 +5,15 @@ export interface Device {
   id: string; name: string; kind: DeviceKind; protocol: 'MQTT' | 'Serial' | 'USB';
   endpoint: string; connected: boolean; fault: Fault; value: number; enabled: boolean;
 }
-export interface TestStep { name: string; status: 'pending' | 'passed' | 'failed'; detail: string }
+export interface TestStep { name: string; status: 'pending' | 'passed' | 'failed'; detail: string; observed?: number; finishedAt?: string }
 export interface TestRun {
+  configuration?: { device: Device; peripherals: import('./backend').Peripheral[]; plan: { id: string; version: number; name: string; steps: (string | import('./backend').PlanStep)[] }; workspaceRevision: number };
   id: string; deviceId: string; deviceName: string; plan: string; startedAt: string;
   finishedAt?: string; status: 'running' | 'passed' | 'failed' | 'cancelled'; steps: TestStep[];
   originalValue?: number; originalEnabled?: boolean;
 }
 export interface LogEntry { id: string; time: string; level: 'info' | 'error' | 'success'; message: string }
-export interface LabState { version: 1; devices: Device[]; runs: TestRun[]; logs: LogEntry[]; revision?: number; peripherals?: import('./backend').Peripheral[]; blueprints?: import('./backend').Blueprint[] }
+export interface LabState { version: 1; devices: Device[]; runs: TestRun[]; logs: LogEntry[]; revision?: number; peripherals?: import('./backend').Peripheral[]; blueprints?: import('./backend').Blueprint[]; testPlans?: import('./backend').SavedPlan[] }
 export const profiles: Record<DeviceKind, { name: string; protocol: Device['protocol']; endpoint: string; unit: string }> = {
   temperature: { name: 'Temperature sensor', protocol: 'MQTT', endpoint: 'sim://mqtt/lab/temperature', unit: '°C' },
   valve: { name: 'Proportional valve', protocol: 'Serial', endpoint: 'sim://serial/COM-DEMO', unit: '%' },

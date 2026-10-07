@@ -1,0 +1,11 @@
+{
+  "name": "Valve response at 75 percent",
+  "description": "Command the valve, allow it to settle, and verify its response. Original output is restored automatically.",
+  "kind": "valve",
+  "steps": [
+    {"name": "Set valve to 75 percent", "action": "set", "value": 75, "timeout": 3},
+    {"name": "Allow output to settle", "action": "wait", "seconds": 0.5},
+    {"name": "Verify valve response", "action": "assert_equal", "value": 75, "tolerance": 0.5, "timeout": 3},
+    {"name": "Validate valve range", "action": "assert_range", "min": 0, "max": 100, "timeout": 3}
+  ]
+}

@@ -30,7 +30,7 @@ Start Docker Desktop's Linux engine, then:
 
 Or run `docker compose up --build -d --wait --wait-timeout 180` from the repository root. Open http://localhost:8080. This launches React/nginx, Flask, Mosquitto, and a mock MQTT valve. Startup waits for health checks, including a correlated read from the mock valve. Docker builds React with server mode as its default; nginx proxies `/api/` to Flask, and the backend keeps state in the named `lab-data` volume. Application port 8080 and broker port 1883 are published only on loopback. `docker compose down` preserves the volume; removing it deletes the server workspace. `docker compose logs -f` shows all service logs.
 
-Compose configurations were validated. Container builds/execution remain unverified on this machine because the Linux engine is unavailable and `docker desktop start` could not locate the Docker Desktop installation. Start or repair Docker Desktop with Linux containers enabled before launching. You can issue the command directly in Windows PowerShell; the application does not require a separate WSL shell. The Docker workspace is a separate named volume from a locally launched Flask database.
+The user launched the Docker stack and its published application API passed an MQTT smoke check: connect, command 75%, verify, restore 0%. A custom plan on an isolated local backend also passed against the Docker Mosquitto broker and mock valve (set 60%, wait, equality/range assertions, restore 0%). This session cannot access Docker's API pipe directly, so rebuilding the latest images is performed from the user's PowerShell window. You can issue the command directly in Windows PowerShell; the application does not require a separate WSL shell. The Docker workspace is a separate named volume from a locally launched Flask database.
 
 ## Exercise the workflow
 
@@ -134,7 +134,31 @@ Run one backend owner process per database. Waitress serves concurrent HTTP requ
 
 The original factory and launcher are retained as `legacy_app.py` and `runserver_legacy.py`; old models, services, and React dashboards are reference material for further migration. The clean default factory deliberately does not import their duplicate database objects, broker setup, or mismatched route registrations. The old API contract is not served by the new workbench backend. `Dockerfile.legacy` and `docker-compose.legacy.yml` preserve the original deployment attempts.
 
-Remaining work includes physical-device validation, TLS/authenticated MQTT, device-specific protocol adapters, editable test plans, and migration of firmware/user-management features. This is a working local test product foundation; production multiuser deployment and arbitrary hardware compatibility are not claimed.
+Remaining work includes physical-device validation, TLS/authenticated MQTT, device-specific protocol adapters, role-based access, and migration of firmware/user-management features. This is a working local test product foundation; production multiuser deployment and arbitrary hardware compatibility are not claimed.
+
+## Editable test plans and reproducible results
+
+In Flask mode, open **Plan library** (`/plans`). Create, edit, duplicate, import, export, and delete plans. Each plan declares its device profile and contains 1–30 ordered steps. The runner adds a connection check and, for plans with output commands, an automatic restoration step. Choose a matching target device and a saved plan from **Test bench**. Browser-only mode retains the two existing built-in plans.
+
+Supported actions:
+
+| Action | Parameters | Behavior |
+| --- | --- | --- |
+| `read` | `timeout` | Read fresh telemetry. |
+| `set` | `value`, `timeout` | Send a numeric profile-limited output command. |
+| `assert_equal` | `value`, `tolerance`, `timeout` | Read and check the expected numeric value within tolerance. |
+| `assert_range` | `min`, `max`, `timeout` | Read and check explicit inclusive limits. |
+| `wait` | `seconds` | Yield while allowing an output to settle; cancellation remains available. |
+
+Response timeouts default to 2 seconds and accept 0.1–10 seconds. They bound each step's transport work; they are not polling/retry windows for an assertion. Waits accept 0–30 seconds. Command limits are temperature 0–50, valve 0–100, and relay 0 or 1. Explicit custom assertions use their own limits/tolerances; the built-in plans continue to use peripheral thresholds or profile defaults. After a failed check, subsequent `set` operations fail as skipped instead of issuing more output commands. Restoration is attempted on success, failure, cancellation, or graceful shutdown; a real-transport cleanup failure remains a failed result with a persistent device warning. Server restarts cancel interrupted runs and require hardware inspection if output state is unknown.
+
+The original `TestPlanService` list/create/preview/run methods now accept a workspace repository. The default workbench uses validated executable plans and the existing single-owner runner; the original SQLAlchemy/file-upload path remains opt-in. Legacy PDF plans, arbitrary shell commands, and protocol-specific free-text steps are not executed by this editor.
+
+Every new server run stores a deep copy of the selected plan/version, device configuration, attached peripherals, and workspace revision. **Results** shows the captured configuration and exports individual runs. Updating or deleting a plan does not rewrite earlier results. Saved plan libraries survive restart and workspace reset. Stale edits/deletes return HTTP 409, and plan changes are blocked during an active run.
+
+Plan APIs: `/api/lab/test-plans` GET/POST; `/api/lab/test-plans/<id>` GET/PUT/DELETE; `/api/lab/test-plans/<id>/run` POST with `deviceId`. The existing `/api/lab/runs` endpoint also accepts saved plan IDs. PUT and DELETE require the saved `version`. Import JSON contains `name`, `kind`, optional `description`, and `steps`. A ready-to-import example is `deployment/plans/valve-response.json`.
+
+Rebuild and verify Docker with `.\start-workbench.ps1 -Docker -Verify`. The verification creates an isolated temporary MQTT valve device, runs a control check, verifies restoration, and removes the temporary device; the result remains in history. It refuses a busy bench or an already-connected peer at the same endpoint. To rerun only the check: `docker compose exec -T backend python tools/smoke_mqtt.py`. A host Python can also run `backend/tools/smoke_mqtt.py --url http://127.0.0.1:8080`.
 
 ## Original blueprints and peripherals
 

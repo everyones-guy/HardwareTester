@@ -72,6 +72,7 @@ class Lab:
         self.state = json.loads(row[0]) if row else initial_state()
         self.state.setdefault('peripherals', [])
         self.state.setdefault('blueprints', [])
+        self.state.setdefault('testPlans', [])
         for d in self.state['devices']:
             d['connected'] = False
         for run in self.state['runs']:
@@ -235,22 +236,34 @@ class Lab:
         with self.lock:
             if self.active:
                 raise LabError('A test is already running.', 409)
-            if not isinstance(plan, str) or plan not in PLANS:
+            if not isinstance(plan, str):
                 raise LabError('Unknown test plan.')
             d = self.device(device_id)
             if not d['connected']:
                 raise LabError('Connect the device before running a test.', 409)
-            run = {'id': str(uuid.uuid4()), 'deviceId': d['id'], 'deviceName': d['name'], 'plan': PLANS[plan][0], 'startedAt': now(), 'status': 'running', 'originalValue': d['value'], 'originalEnabled': d['enabled'], 'steps': [{'name': name, 'status': 'pending', 'detail': 'Waiting to execute'} for name in PLANS[plan][1]]}
+            definition = None
+            if plan not in PLANS:
+                from .test_plans import PlanRepository, normalize_plan
+                saved = PlanRepository(self).find(plan)
+                definition = dict(normalize_plan(saved), id=saved['id'], version=saved['version'])
+                if definition['kind'] != d['kind']:
+                    raise LabError('The test plan profile does not match this device.', 409)
+            title = definition['name'] if definition else PLANS[plan][0]
+            names = ['Connection handshake'] + [s['name'] for s in definition['steps']] + (['Restore initial state'] if any(s['action'] == 'set' for s in definition['steps']) else []) if definition else PLANS[plan][1]
+            run = {'id': str(uuid.uuid4()), 'deviceId': d['id'], 'deviceName': d['name'], 'plan': title, 'startedAt': now(), 'status': 'running', 'originalValue': d['value'], 'originalEnabled': d['enabled'], 'steps': [{'name': name, 'status': 'pending', 'detail': 'Waiting to execute'} for name in names]}
+            run['configuration'] = {'device': copy.deepcopy(d), 'peripherals': copy.deepcopy([p for p in self.state['peripherals'] if p['device_id'] == d['id']]), 'plan': copy.deepcopy(definition) if definition else {'id': plan, 'version': 1, 'name': title, 'steps': list(names)}, 'workspaceRevision': self.state.get('revision', 0)}
+            if not definition:
+                run['configuration']['plan']['parameters'] = {'defaultMin': 0, 'defaultMax': {'temperature': 50, 'valve': 100, 'relay': 1}[d['kind']], 'controlValue': {'temperature': 30, 'valve': 75, 'relay': 1}[d['kind']]}
             self.state['runs'].insert(0, run)
             del self.state['runs'][100:]
-            self.active = {'run': run, 'device': d, 'plan': plan, 'index': 0, 'changed': False}
+            self.active = {'run': run, 'device': d, 'plan': plan, 'definition': definition, 'index': 0, 'changed': False}
             self.next_step = time.monotonic() + self.step_seconds
             self.log(f"Started {run['plan']} on {d['name']} ({d['adapter']}).")
             self.save()
             return run['id']
 
     def cleanup(self, active):
-        if active['plan'] != 'control' or not active['changed']:
+        if not active['changed']:
             return
         d, run = active['device'], active['run']
         if d['adapter'] == 'simulation':
@@ -285,6 +298,9 @@ class Lab:
             d, run = active['device'], active['run']
             step = run['steps'][active['index']]
             name = step['name']
+            if active.get('definition'):
+                self.advance_custom(active, step)
+                return
             try:
                 if name == 'Send control command':
                     if any(previous['status'] == 'failed' for previous in run['steps'][:active['index']]):
@@ -294,6 +310,7 @@ class Lab:
                 elif name == 'Restore initial state' and active['changed']:
                     self.write(d, run['originalValue'])
                 value = self.read(d)
+                step['observed'] = value
                 if name in ('Validate operating range', 'Verify response') and not self.in_range(d, value):
                     raise TransportError(f'Reading {value} is outside expected operating range.')
                 if name == 'Verify response' and value != {'temperature': 30, 'valve': 75, 'relay': 1}[d['kind']]:
@@ -304,6 +321,7 @@ class Lab:
             except Exception as error:
                 step.update(status='failed', detail=str(error)[:300])
                 d['lastError'] = step['detail']
+            step['finishedAt'] = now()
             self.log(f"{d['name']} · {step['detail']}", 'success' if step['status'] == 'passed' else 'error')
             active['index'] += 1
             if active['index'] == len(run['steps']):
@@ -312,6 +330,70 @@ class Lab:
                 self.active = None
                 self.log(f"{d['name']}: test {run['status']}.", 'success' if run['status'] == 'passed' else 'error')
             self.save()
+
+    def advance_custom(self, active, step):
+        """Execute one typed step; waits yield to the worker rather than blocking it."""
+        d, run = active['device'], active['run']
+        definitions = active['definition']['steps']
+        index = active['index']
+        operation = {'action': 'read', 'timeout': 2} if index == 0 else definitions[index - 1] if index <= len(definitions) else {'action': 'restore', 'timeout': 2}
+        action = operation['action']
+        adapter = self.adapters.get(d['id'])
+        previous_timeout = getattr(adapter, 'timeout', 2)
+        started = time.monotonic()
+        try:
+            if action == 'wait':
+                deadline = active.setdefault('wait_until', started + operation['seconds'])
+                if started < deadline:
+                    self.next_step = min(deadline, started + .1)
+                    return
+                active.pop('wait_until', None)
+                detail = f"Waited {operation['seconds']} seconds."
+            else:
+                # After any failed check, do not issue further control commands.
+                if action == 'set' and any(s['status'] == 'failed' for s in run['steps'][:index]):
+                    raise TransportError('Control command skipped because a previous check failed.')
+                if adapter:
+                    adapter.timeout = operation['timeout']
+                if action == 'set':
+                    active['changed'] = True
+                    self.write(d, operation['value'])
+                elif action == 'restore':
+                    if active['changed']:
+                        self.write(d, run['originalValue'])
+                remaining = operation['timeout'] - (time.monotonic() - started)
+                if remaining <= 0:
+                    raise TransportError('Step response exceeded its timeout.')
+                if adapter:
+                    adapter.timeout = remaining
+                value = self.read(d)
+                step['observed'] = value
+                if time.monotonic() - started > operation['timeout']:
+                    raise TransportError('Step response exceeded its timeout.')
+                if action == 'assert_range' and not operation['min'] <= value <= operation['max']:
+                    raise TransportError(f"Reading {value} is outside expected range {operation['min']}–{operation['max']}.")
+                if action == 'assert_equal' and abs(value - operation['value']) > operation['tolerance']:
+                    raise TransportError(f"Expected {operation['value']} ± {operation['tolerance']}; received {value}.")
+                if action == 'restore' and value != run['originalValue']:
+                    raise TransportError(f"Restoration mismatch: expected {run['originalValue']}, received {value}.")
+                detail = f'{action}: observed {value} via {d["adapter"]}.'
+                step['observed'] = value
+            step.update(status='passed', detail=detail)
+        except Exception as error:
+            step.update(status='failed', detail=str(error)[:300])
+            d['lastError'] = step['detail']
+        finally:
+            if adapter:
+                adapter.timeout = previous_timeout
+        step['finishedAt'] = now()
+        self.log(f"{d['name']} · {step['detail']}", 'success' if step['status'] == 'passed' else 'error')
+        active['index'] += 1
+        if active['index'] == len(run['steps']):
+            self.cleanup(active)
+            run.update(status='passed' if all(s['status'] == 'passed' for s in run['steps']) else 'failed', finishedAt=now())
+            self.active = None
+            self.log(f"{d['name']}: test {run['status']}.", 'success' if run['status'] == 'passed' else 'error')
+        self.save()
 
     def work(self):
         while not self.stop_event.wait(.1):
@@ -334,8 +416,8 @@ class Lab:
                                 d['lastError'] = message
                         self.save()
                     if self.active and time.monotonic() >= self.next_step:
-                        self.advance()
                         self.next_step = time.monotonic() + self.step_seconds
+                        self.advance()
             except Exception:
                 import logging
                 logging.getLogger(__name__).exception('Lab worker failed')
@@ -348,8 +430,10 @@ class Lab:
                 self.disconnect(d)
             revision = self.state.get('revision', 0)
             blueprints = self.state['blueprints']
+            test_plans = self.state['testPlans']
             self.state = initial_state()
             self.state.update(peripherals=[], blueprints=blueprints)
+            self.state['testPlans'] = test_plans
             self.state['revision'] = revision
             self.save()
 

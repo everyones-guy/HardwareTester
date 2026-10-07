@@ -69,8 +69,9 @@ class SerialTransport:
         if value is not None:
             payload['value'] = value
         try:
+            self.port.write_timeout = getattr(self, 'timeout', 2)
             self.port.write((json.dumps(payload) + '\n').encode())
-            deadline = time.monotonic() + 2
+            deadline = time.monotonic() + getattr(self, 'timeout', 2)
             buffer = bytearray()
             while time.monotonic() < deadline:
                 chunk = self.port.read(1)
@@ -91,7 +92,7 @@ class SerialTransport:
                     if response.get('error'):
                         raise TransportError(str(response['error'])[:200])
                     return numeric(response.get('value'))
-            raise TransportError('Serial response timed out after 2 seconds.')
+            raise TransportError(f'Serial response timed out after {getattr(self, "timeout", 2):g} seconds.')
         except TransportError:
             raise
         except Exception as error:
@@ -172,8 +173,8 @@ class MQTTTransport:
         if value is not None:
             payload['value'] = value
         result = self.client.publish(self.topic + '/command', json.dumps(payload), qos=1, retain=False)
-        if result.rc != 0 or not self.replied.wait(2):
-            raise TransportError('MQTT device response timed out after 2 seconds.')
+        if result.rc != 0 or not self.replied.wait(getattr(self, 'timeout', 2)):
+            raise TransportError(f'MQTT device response timed out after {getattr(self, "timeout", 2):g} seconds.')
         if self.error:
             raise TransportError(self.error)
         return self.value

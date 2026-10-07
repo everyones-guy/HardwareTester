@@ -27,6 +27,8 @@ def create_app(config_name='development', overrides=None, **kwargs):
     app.extensions['lab'] = lab
     from .catalog import register_catalog
     register_catalog(app, lab)
+    from .test_plans import register_plans
+    register_plans(app, lab)
     if not app.testing:
         atexit.register(lab.close)
 
@@ -114,7 +116,11 @@ def create_app(config_name='development', overrides=None, **kwargs):
     @app.post('/api/lab/runs')
     def start():
         payload = body()
-        run_id = lab.start(payload.get('deviceId'), payload.get('plan'))
+        if payload.get('plan') in ('smoke', 'control'):
+            run_id = lab.start(payload.get('deviceId'), payload.get('plan'))
+        else:
+            from .services.test_plan_service import TestPlanService
+            run_id = TestPlanService.run_test_plan(payload.get('plan'), device_id=payload.get('deviceId'), repository=app.extensions['plan_repository'])['runId']
         return result(runId=run_id), 202
 
     @app.post('/api/lab/runs/cancel')

@@ -14,3 +14,5 @@
 .backend-warning{padding:16px;margin-bottom:20px;border:1px solid #efcfc5;border-radius:8px;color:#9a483b;background:#fff4ed;font-size:12px}.backend-busy{position:fixed;top:80px;right:25px;z-index:15;background:#173e30;color:white;border-radius:6px;padding:10px 15px;font-size:11px}
 
 .catalog-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:24px; margin-bottom:24px; } .catalog-item { padding:16px 0; border-bottom:1px solid var(--line); } .catalog-item pre { white-space:pre-wrap; overflow-wrap:anywhere; } .settings-panel textarea { width:100%; box-sizing:border-box; padding:12px; border:1px solid #d8e3e0; background:#fff; color:#173b43; border-radius:8px; font-family:monospace; } @media(max-width:1000px){.catalog-grid{grid-template-columns:1fr;}}
+
+.plan-step-editor{min-width:0;border:1px solid var(--line);border-radius:8px;margin:16px 0;padding:16px}.plan-step-editor legend{padding:0 8px;font-size:12px}.plan-step-editor .inline{margin:12px 0}.run-configuration{white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px;line-height:1.7;margin:16px 0}

@@ -1,0 +1,40 @@
+import { useState } from 'react';
+import { NavLink } from 'react-router-dom';
+import { PlanStep, SavedPlan, ServerResponse } from './backend';
+import { LabState } from './simulator';
+
+const blankStep = (): PlanStep => ({name:'Read telemetry',action:'read',timeout:2});
+const actions = {read:'Read telemetry',set:'Set output',assert_range:'Check range',assert_equal:'Check expected value',wait:'Wait for response to settle'};
+function changeAction(action: PlanStep['action']): PlanStep {
+  return {name:actions[action], action, ...(action === 'wait' ? {seconds:1} : {timeout:2}), ...(action === 'set' ? {value:0} : action === 'assert_equal' ? {value:0,tolerance:0} : action === 'assert_range' ? {min:0,max:50} : {})};
+}
+
+export default function TestPlanLibrary({lab, enabled, action}: {lab: LabState; enabled: boolean; action: (path:string, method?:string, data?:unknown) => Promise<ServerResponse | undefined>}) {
+  const [name,setName] = useState('My health check');
+  const [description,setDescription] = useState('');
+  const [kind,setKind] = useState<SavedPlan['kind']>('temperature');
+  const [steps,setSteps] = useState<PlanStep[]>([blankStep(),{name:'Operating range',action:'assert_range',min:0,max:50,timeout:2}]);
+  const [editing,setEditing] = useState<{id:string;version:number}>();
+  const [error,setError] = useState('');
+  const update = (index:number, changes:Partial<PlanStep>) => setSteps(previous => previous.map((s,i) => i === index ? {...s,...changes} : s));
+  function reset() {setEditing(undefined);setName('My health check');setDescription('');setKind('temperature');setSteps([blankStep()]);setError('');}
+  function load(p:SavedPlan, clone=false) {setEditing(clone ? undefined : {id:p.id,version:p.version});setName(clone ? `${p.name.slice(0,90)} copy` : p.name);setDescription(p.description);setKind(p.kind);setSteps(p.steps.map(s => ({...s})));setError('');}
+  function exportPlan(p:SavedPlan) {const url=URL.createObjectURL(new Blob([JSON.stringify(p,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='test-plan.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+  return <><div className="page-heading"><div><span className="eyebrow">DEFINE SUCCESS</span><h1>Test plan library</h1><p>Build repeatable commands and assertions for your devices.</p></div></div>
+    {!enabled && <p className="backend-warning">Plan changes use the Flask backend and require an idle bench. <NavLink to="/settings">Workspace settings</NavLink></p>}
+    {error && <p className="backend-warning" role="alert">{error}</p>}
+    <div className="catalog-grid"><section className="panel settings-panel"><h2>{editing ? 'Edit test plan' : 'New test plan'}</h2><label>Plan name<input aria-label="Plan name" maxLength={100} value={name} onChange={e=>setName(e.target.value)} /></label><label>Description<input aria-label="Plan description" maxLength={2000} value={description} onChange={e=>setDescription(e.target.value)} /></label><label>Device profile<select aria-label="Plan device profile" value={kind} onChange={e=>setKind(e.target.value as SavedPlan['kind'])}><option value="temperature">Temperature sensor</option><option value="valve">Valve</option><option value="relay">Relay</option></select></label>
+      <p>Every run starts with a connection check. Plans that set outputs automatically restore the original output after completion, failure, or cancellation.</p>
+      {steps.map((s,i)=><fieldset className="plan-step-editor" key={i}><legend>Step {i+1}</legend><label>Name<input aria-label={`Step ${i+1} name`} value={s.name} maxLength={100} onChange={e=>update(i,{name:e.target.value})}/></label><label>Action<select aria-label={`Step ${i+1} action`} value={s.action} onChange={e=>setSteps(previous=>previous.map((step,j)=>j===i?changeAction(e.target.value as PlanStep['action']):step))}>{Object.entries(actions).map(([id,label])=><option key={id} value={id}>{label}</option>)}</select></label>
+        {s.action!=='wait' && <label>Response timeout (seconds)<input aria-label={`Step ${i+1} timeout`} type="number" min="0.1" max="10" step="0.1" value={s.timeout ?? 2} onChange={e=>update(i,{timeout:Number(e.target.value)})}/></label>}
+        {(s.action==='set'||s.action==='assert_equal') && <label>{s.action==='set'?'Output value':'Expected value'}<input aria-label={`Step ${i+1} value`} type="number" step="any" value={s.value ?? 0} onChange={e=>update(i,{value:Number(e.target.value)})}/></label>}
+        {s.action==='assert_equal' && <label>Tolerance<input aria-label={`Step ${i+1} tolerance`} type="number" min="0" step="any" value={s.tolerance ?? 0} onChange={e=>update(i,{tolerance:Number(e.target.value)})}/></label>}
+        {s.action==='assert_range' && <div className="inline"><label>Minimum<input aria-label={`Step ${i+1} minimum`} type="number" step="any" value={s.min ?? 0} onChange={e=>update(i,{min:Number(e.target.value)})}/></label><label>Maximum<input aria-label={`Step ${i+1} maximum`} type="number" step="any" value={s.max ?? 50} onChange={e=>update(i,{max:Number(e.target.value)})}/></label></div>}
+        {s.action==='wait' && <label>Wait duration (seconds)<input aria-label={`Step ${i+1} duration`} type="number" min="0" max="30" step="0.1" value={s.seconds ?? 1} onChange={e=>update(i,{seconds:Number(e.target.value)})}/></label>}
+        <div className="inline"><button className="button secondary" disabled={i===0} onClick={()=>setSteps(previous=>{const next=[...previous];[next[i-1],next[i]]=[next[i],next[i-1]];return next;})}>Move up</button><button className="button secondary danger" disabled={steps.length===1} onClick={()=>setSteps(previous=>previous.filter((_,j)=>i!==j))}>Remove step</button></div>
+      </fieldset>)}
+      <div className="inline"><button className="button secondary" disabled={steps.length>=30} onClick={()=>setSteps(previous=>[...previous,blankStep()])}>Add step</button><button className="button primary" disabled={!enabled||!name.trim()} onClick={async()=>{setError('');const result=await action(editing?`/test-plans/${editing.id}`:'/test-plans',editing?'PUT':'POST',{name,description,kind,steps,version:editing?.version});if(result)reset();}}>{editing?'Save changes':'Save test plan'}</button><button className="button secondary" onClick={reset}>New plan</button></div>
+      <label>Import test plan JSON<input aria-label="Import test plan JSON" type="file" accept=".json,application/json" disabled={!enabled} onChange={async e=>{const file=e.target.files?.[0];if(!file)return;setError('');try{if(file.size>100000)throw new Error('Choose a JSON file under 100 KB.');const input=JSON.parse(await file.text());const result=await action('/test-plans','POST',input);if(result)reset();}catch(e){setError(e instanceof Error?e.message:'Invalid JSON.');}e.target.value='';}} /></label>
+    </section><section className="panel settings-panel"><h2>Saved test plans</h2><p>Choose a matching device on the <NavLink to="/tests">test bench</NavLink>, then select your saved plan. Plan versions and settings are captured in every server result.</p>{!lab.testPlans?.length&&<p className="empty">Save your first plan to start testing.</p>}{lab.testPlans?.map(p=><article className="catalog-item" key={p.id}><h3>{p.name}</h3><p>{p.kind} · version {p.version} · {p.steps.length} steps</p>{p.description&&<p>{p.description}</p>}<ol>{p.steps.map((s,i)=><li key={i}>{s.name} <span className="muted">({actions[s.action]})</span></li>)}</ol><div className="inline"><button className="button secondary" disabled={!enabled} onClick={()=>load(p)}>Edit</button><button className="button secondary" disabled={!enabled} onClick={()=>load(p,true)}>Duplicate</button><button className="button secondary" onClick={()=>exportPlan(p)}>Export JSON</button><button className="button secondary danger" disabled={!enabled} onClick={()=>{if(confirm(`Delete test plan ${p.name}? Previous results keep their saved plan.`))void action(`/test-plans/${p.id}`,'DELETE',{version:p.version});}}>Delete</button></div></article>)}</section></div>
+  </>;
+}
