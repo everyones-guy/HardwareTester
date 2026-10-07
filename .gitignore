@@ -380,3 +380,5 @@ FodyWeavers.xsd
 /frontend/playwright-report/
 /work/
 /outputs/
+/backend/.venv/
+/backend/instance/*.sqlite3*

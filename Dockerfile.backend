@@ -1,0 +1,12 @@
+FROM python:3.13-slim
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 LAB_DB_PATH=/data/workbench.sqlite3
+WORKDIR /app
+COPY backend/requirements-workbench.txt ./
+RUN pip install --no-cache-dir -r requirements-workbench.txt
+COPY backend/Hardware_Tester_App ./Hardware_Tester_App
+COPY backend/runserver.py ./
+RUN useradd --create-home lab && mkdir -p /data && chown lab:lab /data
+USER lab
+EXPOSE 5000
+HEALTHCHECK --interval=15s --timeout=3s CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5000/api/health', timeout=2)" || exit 1
+CMD ["python", "runserver.py", "--host", "0.0.0.0"]

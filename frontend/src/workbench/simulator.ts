@@ -1,6 +1,7 @@
 export type DeviceKind = 'temperature' | 'valve' | 'relay';
 export type Fault = 'none' | 'timeout' | 'out-of-range';
 export interface Device {
+  adapter?: 'simulation' | 'serial' | 'mqtt'; baudrate?: number; lastError?: string | null; safetyWarning?: string | null;
   id: string; name: string; kind: DeviceKind; protocol: 'MQTT' | 'Serial' | 'USB';
   endpoint: string; connected: boolean; fault: Fault; value: number; enabled: boolean;
 }
@@ -11,7 +12,7 @@ export interface TestRun {
   originalValue?: number; originalEnabled?: boolean;
 }
 export interface LogEntry { id: string; time: string; level: 'info' | 'error' | 'success'; message: string }
-export interface LabState { version: 1; devices: Device[]; runs: TestRun[]; logs: LogEntry[] }
+export interface LabState { version: 1; devices: Device[]; runs: TestRun[]; logs: LogEntry[]; revision?: number }
 export const profiles: Record<DeviceKind, { name: string; protocol: Device['protocol']; endpoint: string; unit: string }> = {
   temperature: { name: 'Temperature sensor', protocol: 'MQTT', endpoint: 'sim://mqtt/lab/temperature', unit: '°C' },
   valve: { name: 'Proportional valve', protocol: 'Serial', endpoint: 'sim://serial/COM-DEMO', unit: '%' },
