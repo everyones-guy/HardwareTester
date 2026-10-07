@@ -2,8 +2,9 @@
 import atexit
 import hmac
 import os
+import hashlib
 from pathlib import Path
-from flask import Flask, jsonify, request, send_from_directory
+from flask import Flask, jsonify, request, send_from_directory, g
 from werkzeug.exceptions import HTTPException
 from .lab import Lab, LabError
 
@@ -16,6 +17,9 @@ def create_app(config_name='development', overrides=None, **kwargs):
         LAB_DB_PATH=os.environ.get('LAB_DB_PATH', str(Path(app.instance_path) / 'workbench.sqlite3')),
         LAB_ALLOW_HARDWARE=os.environ.get('LAB_ALLOW_HARDWARE', 'false').lower() == 'true',
         LAB_WORKER=True,
+        LAB_AUTH_ENABLED=os.environ.get('LAB_AUTH_ENABLED', 'false' if config_name == 'testing' else 'true').lower() == 'true',
+        LAB_COOKIE_SECURE=os.environ.get('LAB_COOKIE_SECURE', 'false').lower() == 'true',
+        LAB_BUILD_ID=os.environ.get('LAB_BUILD_ID', ''),
         LAB_API_TOKEN=os.environ.get('LAB_API_TOKEN', ''),
         LAB_ALLOWED_ORIGINS=os.environ.get('LAB_ALLOWED_ORIGINS', 'http://localhost:5173,http://127.0.0.1:5173,http://localhost:8080,http://127.0.0.1:8080').split(','),
         FRONTEND_BUILD=str(root / 'frontend' / 'build'),
@@ -29,12 +33,21 @@ def create_app(config_name='development', overrides=None, **kwargs):
     register_catalog(app, lab)
     from .test_plans import register_plans
     register_plans(app, lab)
+    from .auth import register_auth, required_role
+    with lab.lock:
+        register_auth(app, lab)
+    source_hash=hashlib.sha256()
+    for source in sorted(Path(__file__).parent.rglob('*.py')):
+        source_hash.update(str(source.relative_to(Path(__file__).parent)).replace('\\','/').encode())
+        source_hash.update(source.read_bytes())
+    build_id=app.config['LAB_BUILD_ID'] or source_hash.hexdigest()[:12]
+    instance=app.extensions['accounts'].instance
     if not app.testing:
         atexit.register(lab.close)
 
     @app.before_request
     def guard_api():
-        if not request.path.startswith('/api/lab'):
+        if not request.path.startswith(('/api/lab','/api/auth')):
             return
         if request.method != 'GET':
             origin = request.headers.get('Origin')
@@ -43,8 +56,11 @@ def create_app(config_name='development', overrides=None, **kwargs):
             if not request.is_json:
                 raise LabError('Use application/json for lab commands.', 415)
         token = app.config['LAB_API_TOKEN']
-        if token and not hmac.compare_digest(request.headers.get('Authorization', ''), 'Bearer ' + token):
+        if request.path.startswith('/api/lab') and token and not hmac.compare_digest(request.headers.get('Authorization', ''), 'Bearer ' + token):
             raise LabError('A valid lab API token is required.', 401)
+        if request.path.startswith('/api/lab') and app.config['LAB_AUTH_ENABLED']:
+            with lab.lock:
+                g.workbench_user=app.extensions['accounts'].require(required_role(request.path,request.method),csrf=request.method!='GET')
 
     @app.after_request
     def headers(response):
@@ -67,6 +83,10 @@ def create_app(config_name='development', overrides=None, **kwargs):
     def health():
         # Do not disclose paths or device configuration in an unauthenticated probe.
         return jsonify(status='ok', service='hardware-tester', version=2)
+
+    @app.get('/api/version')
+    def version():
+        return jsonify(version='0.4.0',build=build_id,instance=instance,deployment=os.environ.get('LAB_DEPLOYMENT','local'),apiOrigin=request.host_url.rstrip('/'),authEnabled=app.config['LAB_AUTH_ENABLED'])
 
     @app.get('/api/lab')
     def state():
@@ -117,7 +137,7 @@ def create_app(config_name='development', overrides=None, **kwargs):
     def start():
         payload = body()
         if payload.get('plan') in ('smoke', 'control'):
-            run_id = lab.start(payload.get('deviceId'), payload.get('plan'))
+            run_id = lab.start(payload.get('deviceId'), payload.get('plan'), actor=getattr(g,'workbench_user',None))
         else:
             from .services.test_plan_service import TestPlanService
             run_id = TestPlanService.run_test_plan(payload.get('plan'), device_id=payload.get('deviceId'), repository=app.extensions['plan_repository'])['runId']

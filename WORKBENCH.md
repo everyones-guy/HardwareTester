@@ -134,7 +134,31 @@ Run one backend owner process per database. Waitress serves concurrent HTTP requ
 
 The original factory and launcher are retained as `legacy_app.py` and `runserver_legacy.py`; old models, services, and React dashboards are reference material for further migration. The clean default factory deliberately does not import their duplicate database objects, broker setup, or mismatched route registrations. The old API contract is not served by the new workbench backend. `Dockerfile.legacy` and `docker-compose.legacy.yml` preserve the original deployment attempts.
 
-Remaining work includes physical-device validation, TLS/authenticated MQTT, device-specific protocol adapters, role-based access, and migration of firmware/user-management features. This is a working local test product foundation; production multiuser deployment and arbitrary hardware compatibility are not claimed.
+Remaining work includes physical-device validation, TLS/authenticated MQTT, device-specific protocol adapters, and migration of firmware/legacy dashboard features. This is a working local test product foundation; production multiuser deployment and arbitrary hardware compatibility are not claimed.
+
+## Accounts, roles, and environment identity
+
+Authentication is enabled by default for normal local and Docker servers. In Flask mode the first launch asks you to create an admin account; there is no default password or open registration afterward. Usernames contain 3–50 letters, numbers, dots, underscores, or hyphens and are stored in lowercase. Passwords require 12–128 characters. The original `UserManagementService` create/list/authenticate methods are used with a workbench repository, and the existing email validator is reused. Legacy accounts in the older database are not automatically migrated.
+
+In **Settings**, admins create accounts, choose their role, enable/disable them, and reset passwords. The last enabled admin cannot be disabled or demoted. Account changes are version checked. Password resets and disabling accounts revoke sessions; role changes apply on the next server request and update the UI when its session poll refreshes. Signed-in users can sign out in Settings. Running tests continue after sign-out, and new authenticated runs record their initiating account in the result.
+
+| Role | Permissions |
+| --- | --- |
+| Viewer | Read devices, plans, blueprints, logs, and results; export reports. |
+| Operator | Viewer permissions plus connect/disconnect, control outputs, inject simulator faults, run and cancel tests. |
+| Admin | Operator permissions plus device/configuration CRUD, workspace reset, and account management. |
+
+Flask enforces every shared-workspace operation even if a caller bypasses React. The private browser simulator remains independent of the authenticated server and cannot control its hardware. Read-only library views remain available to viewers/operators; editing requires admin.
+
+Accounts and sessions persist in separate SQLite tables alongside the bench. They survive workspace reset and are excluded from workspace exports. Passwords use Werkzeug's salted scrypt hashing. Sessions use random opaque tokens stored as hashes, last eight hours, and are sent only in HttpOnly, SameSite=Strict cookies. Each database has its own cookie name so two environments on different localhost ports do not overwrite each other's login. Mutating authenticated requests require a session-bound `X-CSRF-Token`; the existing origin/JSON checks remain active. Failed login attempts are limited to five per username/client address in ten minutes.
+
+`LAB_AUTH_ENABLED=false` explicitly opts into unrestricted local development mode; automated non-auth regression servers use this setting. `LAB_COOKIE_SECURE=true` requires HTTPS cookies when deployed behind HTTPS. For the documented loopback HTTP setup it defaults to false. A configured `LAB_API_TOKEN` remains an additional gate for lab routes, and does not replace user login when accounts are enabled. The old legacy-dashboard authentication/API contract is still separate.
+
+**Settings → Environment and build** shows application version, a frontend source fingerprint and build time, backend source fingerprint, backend address, deployment type, and persistent workspace instance ID. `/api/version` exposes only that build information; it contains no filesystem paths, credentials, or bench data. Frontend fingerprints are calculated at build/dev-server startup; rebuild or restart to refresh them after source changes. Backend fingerprints are calculated at server startup. Optional `VITE_BUILD_ID` and `LAB_BUILD_ID` override source fingerprints for deployment labels.
+
+Rebuild Docker normally with `.\start-workbench.ps1 -Docker`, open http://localhost:8080, and create an admin for that separate Docker workspace. For authenticated MQTT verification, provide an admin account through `LAB_SMOKE_USERNAME` and `LAB_SMOKE_PASSWORD` environment variables in your PowerShell session, then use `.\start-workbench.ps1 -Docker -Verify`. The script forwards those environment variables by name; the smoke checker logs in using a cookie session and CSRF token. It does not create an admin or print credentials. Clear the environment variables afterward. Without them, authenticated verification reports how to configure it and performs no device commands.
+
+Auth APIs: `/api/auth/session` GET; `/api/auth/setup`, `/login`, `/logout` POST; `/api/auth/users` GET/POST; `/api/auth/users/<id>` PATCH. User creation takes username/email/password/role. PATCH supports role, enabled, and optional password, plus the current version. Logout and administrative mutations require the CSRF header. Run auth browser verification with `npx playwright test -c playwright.auth.config.ts` in frontend.
 
 ## Editable test plans and reproducible results
 

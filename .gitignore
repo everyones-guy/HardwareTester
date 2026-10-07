@@ -378,6 +378,7 @@ FodyWeavers.xsd
 /frontend/build/
 /frontend/test-results/
 /frontend/playwright-report/
+/frontend/test-results-auth/
 /work/
 /outputs/
 /backend/.venv/

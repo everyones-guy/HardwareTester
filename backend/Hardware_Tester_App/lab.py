@@ -232,7 +232,7 @@ class Lab:
             d['safetyWarning'] = None
             self.save()
 
-    def start(self, device_id, plan):
+    def start(self, device_id, plan, actor=None):
         with self.lock:
             if self.active:
                 raise LabError('A test is already running.', 409)
@@ -251,6 +251,8 @@ class Lab:
             title = definition['name'] if definition else PLANS[plan][0]
             names = ['Connection handshake'] + [s['name'] for s in definition['steps']] + (['Restore initial state'] if any(s['action'] == 'set' for s in definition['steps']) else []) if definition else PLANS[plan][1]
             run = {'id': str(uuid.uuid4()), 'deviceId': d['id'], 'deviceName': d['name'], 'plan': title, 'startedAt': now(), 'status': 'running', 'originalValue': d['value'], 'originalEnabled': d['enabled'], 'steps': [{'name': name, 'status': 'pending', 'detail': 'Waiting to execute'} for name in names]}
+            if actor:
+                run['startedBy']={key:actor[key] for key in ('id','username','role')}
             run['configuration'] = {'device': copy.deepcopy(d), 'peripherals': copy.deepcopy([p for p in self.state['peripherals'] if p['device_id'] == d['id']]), 'plan': copy.deepcopy(definition) if definition else {'id': plan, 'version': 1, 'name': title, 'steps': list(names)}, 'workspaceRevision': self.state.get('revision', 0)}
             if not definition:
                 run['configuration']['plan']['parameters'] = {'defaultMin': 0, 'defaultMax': {'temperature': 50, 'valve': 100, 'relay': 1}[d['kind']], 'controlValue': {'temperature': 30, 'valve': 75, 'relay': 1}[d['kind']]}

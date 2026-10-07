@@ -4,6 +4,7 @@ import json
 import os
 import time
 import urllib.request
+import http.cookiejar
 
 
 def main():
@@ -12,12 +13,23 @@ def main():
     parser.add_argument('--endpoint', default='mqtt://broker:1883/lab/demo-valve')
     args = parser.parse_args()
     token = os.environ.get('LAB_API_TOKEN', '')
+    opener=urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
+    csrf=''
+    with opener.open(args.url.rstrip('/')+'/api/auth/session',timeout=15) as response:
+        session=json.load(response)
+    if session['enabled']:
+        username,password=os.environ.get('LAB_SMOKE_USERNAME'),os.environ.get('LAB_SMOKE_PASSWORD')
+        if not username or not password:
+            raise RuntimeError('Create an admin in the UI, then set LAB_SMOKE_USERNAME and LAB_SMOKE_PASSWORD to an admin account before verification.')
+        login=urllib.request.Request(args.url.rstrip('/')+'/api/auth/login',headers={'Content-Type':'application/json'},data=json.dumps({'username':username,'password':password}).encode())
+        with opener.open(login,timeout=15) as response:
+            csrf=json.load(response)['csrf']
 
     def api(path='', method='GET', data=None):
-        headers = {'Content-Type': 'application/json'}
+        headers = {'Content-Type': 'application/json','X-CSRF-Token':csrf}
         if token: headers['Authorization'] = 'Bearer ' + token
         request = urllib.request.Request(args.url.rstrip('/') + '/api/lab' + path, method=method, headers=headers, data=None if data is None else json.dumps(data).encode())
-        with urllib.request.urlopen(request, timeout=15) as response:
+        with opener.open(request, timeout=15) as response:
             return json.load(response)
 
     state = api()['state']

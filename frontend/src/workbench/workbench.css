@@ -16,3 +16,6 @@
 .catalog-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:24px; margin-bottom:24px; } .catalog-item { padding:16px 0; border-bottom:1px solid var(--line); } .catalog-item pre { white-space:pre-wrap; overflow-wrap:anywhere; } .settings-panel textarea { width:100%; box-sizing:border-box; padding:12px; border:1px solid #d8e3e0; background:#fff; color:#173b43; border-radius:8px; font-family:monospace; } @media(max-width:1000px){.catalog-grid{grid-template-columns:1fr;}}
 
 .plan-step-editor{min-width:0;border:1px solid var(--line);border-radius:8px;margin:16px 0;padding:16px}.plan-step-editor legend{padding:0 8px;font-size:12px}.plan-step-editor .inline{margin:12px 0}.run-configuration{white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px;line-height:1.7;margin:16px 0}
+
+.auth-screen{max-width:850px;margin:40px auto;padding:20px}.auth-screen>.button{margin:16px 12px 0 0}.settings-panel form .button{margin:16px 0}.settings-panel dd{overflow-wrap:anywhere}
+.workbench.auth-screen{display:block;min-height:0}.auth-screen>h1{margin-bottom:24px}

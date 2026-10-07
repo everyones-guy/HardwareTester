@@ -11,7 +11,7 @@ if ($Docker) {
         docker compose up --build -d --wait --wait-timeout 180
         if ($LASTEXITCODE -ne 0) { throw 'Docker Compose failed.' }
         if ($Verify) {
-            docker compose exec -T backend python tools/smoke_mqtt.py
+            docker compose exec -T -e LAB_SMOKE_USERNAME -e LAB_SMOKE_PASSWORD backend python tools/smoke_mqtt.py
             if ($LASTEXITCODE -ne 0) { throw 'MQTT end-to-end verification failed. Check docker compose logs.' }
         }
         Write-Host 'Hardware Tester: http://localhost:8080'

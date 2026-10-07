@@ -20,6 +20,8 @@ services:
       # Enables the MQTT transport to the included mock peer. No host devices are mounted.
       LAB_ALLOW_HARDWARE: "${LAB_ALLOW_HARDWARE:-true}"
       LAB_API_TOKEN: "${LAB_API_TOKEN:-}"
+      LAB_AUTH_ENABLED: "${LAB_AUTH_ENABLED:-true}"
+      LAB_COOKIE_SECURE: "${LAB_COOKIE_SECURE:-false}"
     volumes:
       - lab-data:/data
     restart: unless-stopped

@@ -2,7 +2,7 @@
 import copy
 import math
 import uuid
-from flask import jsonify, request
+from flask import jsonify, request, g, has_request_context
 from .lab import LabError, now
 from .utils.validators import validate_json
 
@@ -92,7 +92,7 @@ class PlanRepository:
         return {'success': True, 'plan': copy.deepcopy(self.find(identity))}
 
     def run_test_plan(self, identity, device_id):
-        return {'success': True, 'runId': self.lab.start(device_id, identity)}
+        return {'success': True, 'runId': self.lab.start(device_id, identity, actor=getattr(g,'workbench_user',None) if has_request_context() else None)}
 
     def update(self, identity, data):
         self.editable()

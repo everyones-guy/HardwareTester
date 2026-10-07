@@ -1,5 +1,5 @@
 FROM python:3.13-slim
-ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 LAB_DB_PATH=/data/workbench.sqlite3
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 LAB_DB_PATH=/data/workbench.sqlite3 LAB_DEPLOYMENT=docker
 WORKDIR /app
 COPY backend/requirements-workbench.txt ./
 RUN pip install --no-cache-dir -r requirements-workbench.txt

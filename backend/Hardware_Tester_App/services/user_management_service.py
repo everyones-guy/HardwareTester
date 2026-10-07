@@ -2,23 +2,31 @@
 # user_management.py
 
 from Hardware_Tester_App.utils.validators import validate_email
-from Hardware_Tester_App.utils.custom_logger import CustomLogger
-from Hardware_Tester_App.extensions import db
-from Hardware_Tester_App.utils.bcrypt_utils import hash_password, check_password, is_strong_password
-from Hardware_Tester_App.models.user_models import User
-from sqlalchemy.exc import SQLAlchemyError
+import logging
+logger = logging.getLogger('user_management_service')
+class SQLAlchemyError(Exception):
+    pass
 
-# Initialize logger
-logger = CustomLogger.get_logger("user_management_service")
+def legacy_context():
+    global SQLAlchemyError
+    from sqlalchemy.exc import SQLAlchemyError as database_error
+    from Hardware_Tester_App.extensions import db
+    from Hardware_Tester_App.utils.bcrypt_utils import hash_password, check_password, is_strong_password
+    from Hardware_Tester_App.models.user_models import User
+    SQLAlchemyError = database_error
+    return db, User, hash_password, check_password, is_strong_password
 
 class UserManagementService:
     """Service for managing user accounts."""
     
     @staticmethod
-    def create_user(username: str, email: str, password: str) -> dict:
+    def create_user(username: str, email: str, password: str, repository=None, role='viewer') -> dict:
+        if repository is not None:
+            return repository.create_user(username, email, password, role)
         try:
+            db, User, hash_password, check_password, is_strong_password = legacy_context()
             # Validate email format
-            if not validate_email(email):
+            if not validate_email(email)[0]:
                 return {"success": False, "error": "Invalid email format."}
 
             # Check for existing username or email
@@ -42,8 +50,11 @@ class UserManagementService:
             return {"success": False, "error": "Database error."}
 
     @staticmethod
-    def list_users(page: int = 1, per_page: int = 10) -> dict:
+    def list_users(page: int = 1, per_page: int = 10, repository=None) -> dict:
+        if repository is not None:
+            return repository.list_users(page, per_page)
         try:
+            db, User, hash_password, check_password, is_strong_password = legacy_context()
             paginated_users = User.query.paginate(page=page, per_page=per_page, error_out=False)
             user_list = [
                 {
@@ -67,6 +78,7 @@ class UserManagementService:
         """
         logger.info(f"Fetching user ID {user_id}...")
         try:
+            db, User, hash_password, check_password, is_strong_password = legacy_context()
             user = User.query.get(user_id)
             if not user:
                 logger.warning(f"User ID {user_id} not found.")
@@ -86,7 +98,7 @@ class UserManagementService:
             return {"success": False, "error": str(e)}
 
     @staticmethod
-    def authenticate_user(username: str, password: str) -> dict:
+    def authenticate_user(username: str, password: str, repository=None) -> dict:
         """
         Authenticate a user by username and password.
         :param username: Username of the user.
@@ -94,9 +106,12 @@ class UserManagementService:
         :return: Authentication result and user info if successful.
         """
         logger.info(f"Authenticating user '{username}'...")
+        if repository is not None:
+            return repository.authenticate_user(username, password)
         try:
+            db, User, hash_password, check_password, is_strong_password = legacy_context()
             user = User.query.filter_by(username=username).first()
-            if not user or not check_password(user.password, password):
+            if not user or not check_password(password, user.password_hash):
                 logger.warning(f"Authentication failed for user '{username}'.")
                 return {"success": False, "error": "Invalid username or password."}
 
@@ -118,6 +133,7 @@ class UserManagementService:
         """
         logger.info(f"Updating user ID {user_id}...")
         try:
+            db, User, hash_password, check_password, is_strong_password = legacy_context()
             user = User.query.get(user_id)
             if not user:
                 logger.warning(f"User ID {user_id} not found.")
@@ -128,7 +144,7 @@ class UserManagementService:
             if email:
                 user.email = email
             if password:
-                user.password = hash_password(password)
+                user.password_hash = hash_password(password)
 
             db.session.commit()
             logger.info(f"User ID {user_id} updated successfully.")
@@ -150,6 +166,7 @@ class UserManagementService:
         """
         logger.info(f"Deleting user ID {user_id}...")
         try:
+            db, User, hash_password, check_password, is_strong_password = legacy_context()
             user = User.query.get(user_id)
             if not user:
                 logger.warning(f"User ID {user_id} not found.")
