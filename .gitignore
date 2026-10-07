@@ -382,3 +382,12 @@ FodyWeavers.xsd
 /outputs/
 /backend/.venv/
 /backend/instance/*.sqlite3*
+/backend/Hardware_Tester_App/updates_root_scripts/suggestions and dropins
+/frontend/old
+/frontend/src/components/Arcade.zip
+/frontend/src/src_folders.zip
+/backend/Hardware_Tester_App/root_scripts_patched_20250818_193422.zip
+/backend/Hardware_Tester_App/root_scripts.zip
+/backend/Hardware_Tester_App/views/views_normalized_20250818_182331_with_legacy.zip
+/backend/Hardware_Tester_App/views/views.zip
+/backend/Hardware_Tester_App/views/route_changes.json
