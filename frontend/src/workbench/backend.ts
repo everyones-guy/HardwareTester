@@ -35,6 +35,7 @@ export interface SavedPlan {
   steps: PlanStep[];
 }
 export interface ServerResponse {
+  scenarioId?: string;
   state: LabState;
   deviceId?: string;
   runId?: string;

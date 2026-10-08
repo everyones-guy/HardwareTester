@@ -10,7 +10,9 @@ test('saved emulator sequences exercise diagnostics, restart, and timed test fai
   for (const s of state.scenarios.filter((s: { name: string }) => s.name === 'Browser recovery'))
     await request.delete(`/api/lab/scenarios/${s.id}`, { data: { version: s.version } });
   await page.goto('/scenarios');
-  await expect(page.getByRole('heading', { name: 'Healthy device', exact: true })).toBeVisible();
+  await expect(
+    page.getByRole('button', { name: 'Scenario Healthy device', exact: true }),
+  ).toBeVisible();
   await page.getByLabel('Scenario name', { exact: true }).fill('Browser recovery');
   await page.getByLabel('Stage 1 reads').fill('1');
   await page.getByRole('button', { name: 'Save scenario', exact: true }).click();

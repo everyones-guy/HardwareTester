@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import SavedScenarioLibrary, { scenarioBehaviors } from './SavedScenarioLibrary';
+import { FiChevronDown } from 'react-icons/fi';
+import { useEffect, useRef, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { Device, LabState } from './simulator';
 import { ServerResponse } from './backend';
@@ -16,12 +18,7 @@ export interface Scenario {
   builtin: boolean;
   frames: ScenarioFrame[];
 }
-const behaviors = {
-  healthy: 'Healthy response',
-  timeout: 'No response / timeout',
-  'out-of-range': 'Out-of-range reading',
-  delay: 'Delayed response',
-};
+const behaviors = scenarioBehaviors;
 export function ScenarioControls({
   device,
   lab,
@@ -149,6 +146,29 @@ export default function ScenarioLibrary({
   ]);
   const [editing, setEditing] = useState<Scenario>();
   const [error, setError] = useState('');
+  const [expanded, setExpanded] = useState<Set<number>>(new Set([0]));
+  const [revealId, setRevealId] = useState('');
+  const [revealVersion, setRevealVersion] = useState(0);
+  const [editorFocus, setEditorFocus] = useState(0);
+  const editorHeading = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    if (editorFocus) editorHeading.current?.focus();
+  }, [editorFocus]);
+  const stageErrors = frames.map((f) =>
+    !Number.isInteger(f.count) || f.count < 1 || f.count > 100
+      ? 'Use 1–100 whole read attempts.'
+      : f.behavior === 'delay' &&
+          (!Number.isFinite(f.delayMs) || f.delayMs! < 0 || f.delayMs! > 2000)
+        ? 'Delay must be 0–2000 milliseconds.'
+        : '',
+  );
+  function toggleStage(i: number) {
+    setExpanded((previous) => {
+      const next = new Set(previous);
+      next.has(i) ? next.delete(i) : next.add(i);
+      return next;
+    });
+  }
   const total = frames.reduce((n, f) => n + f.count, 0);
   const valid =
     !!name.trim() &&
@@ -162,12 +182,16 @@ export default function ScenarioLibrary({
     ) &&
     total <= 200;
   function load(s: Scenario, copy = false) {
+    setEditorFocus((previous) => previous + 1);
+    setExpanded(new Set());
+    setError('');
     setEditing(copy ? undefined : s);
     setName(copy ? `${s.name.slice(0, 90)} copy` : s.name);
     setDescription(s.description);
     setFrames(s.frames.map((f) => ({ ...f })));
   }
   function reset() {
+    setExpanded(new Set([0]));
     setError('');
     setEditing(undefined);
     setName('My recovery scenario');
@@ -202,9 +226,11 @@ export default function ScenarioLibrary({
           <NavLink to="/settings">Connect Flask in Settings</NavLink>.
         </p>
       )}
-      <div className="catalog-grid">
-        <section className="panel settings-panel">
-          <h2>{editing ? 'Edit scenario' : 'New scenario'}</h2>
+      <div className="scenario-management-grid">
+        <section className="panel settings-panel scenario-editor" aria-label="Scenario editor">
+          <h2 ref={editorHeading} tabIndex={-1}>
+            {editing ? 'Edit scenario' : 'New scenario'}
+          </h2>
           <label>
             Name
             <input
@@ -231,78 +257,134 @@ export default function ScenarioLibrary({
             <b>{frames.length}</b> {frames.length === 1 ? 'stage' : 'stages'} · <b>{total}</b>{' '}
             staged {total === 1 ? 'read' : 'reads'}
           </div>
+          <div className="scenario-stage-controls">
+            <span>RESPONSE STAGES</span>
+            <button
+              className="text-button"
+              onClick={() => setExpanded(new Set(frames.map((_, i) => i)))}
+            >
+              Expand all stages
+            </button>
+            <button className="text-button" onClick={() => setExpanded(new Set())}>
+              Collapse all stages
+            </button>
+          </div>
           {frames.map((f, i) => (
-            <fieldset className="scenario-frame" key={i}>
-              <legend>Stage {i + 1}</legend>
-              <label>
-                Response
-                <select
-                  aria-label={`Stage ${i + 1} response`}
-                  value={f.behavior}
-                  onChange={(e) =>
-                    update(i, {
-                      behavior: e.target.value as ScenarioFrame['behavior'],
-                      delayMs: 200,
-                    })
-                  }
-                >
-                  {Object.entries(behaviors).map(([id, label]) => (
-                    <option key={id} value={id}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <div className="scenario-fields">
-                <label>
-                  Read attempts
-                  <input
-                    aria-label={`Stage ${i + 1} reads`}
-                    type="number"
-                    min={1}
-                    max={100}
-                    value={f.count}
-                    onChange={(e) => update(i, { count: Number(e.target.value) })}
-                  />
-                </label>
-                {f.behavior === 'delay' && (
+            <article
+              className={`scenario-stage ${expanded.has(i) ? 'expanded' : ''} ${stageErrors[i] ? 'invalid' : ''}`}
+              key={i}
+            >
+              <button
+                className="scenario-stage-toggle"
+                aria-label={`Edit stage ${i + 1}`}
+                aria-expanded={expanded.has(i)}
+                onClick={() => toggleStage(i)}
+              >
+                <span className={`scenario-stage-number ${f.behavior}`}>
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                <span>
+                  <strong>{behaviors[f.behavior]}</strong>
+                  <small>
+                    {f.count} read{f.count === 1 ? '' : 's'}
+                    {f.behavior === 'delay' ? ` · ${f.delayMs} ms delay` : ''}
+                  </small>
+                </span>
+                <FiChevronDown />
+              </button>
+              {stageErrors[i] && (
+                <p className="scenario-stage-error" role="alert">
+                  {stageErrors[i]}
+                </p>
+              )}
+              {expanded.has(i) && (
+                <fieldset className="scenario-frame">
+                  <legend>Stage {i + 1}</legend>
                   <label>
-                    Delay (ms)
-                    <input
-                      aria-label={`Stage ${i + 1} delay`}
-                      type="number"
-                      min={0}
-                      max={2000}
-                      value={f.delayMs ?? 200}
-                      onChange={(e) => update(i, { delayMs: Number(e.target.value) })}
-                    />
+                    Response
+                    <select
+                      aria-label={`Stage ${i + 1} response`}
+                      value={f.behavior}
+                      onChange={(e) =>
+                        update(i, {
+                          behavior: e.target.value as ScenarioFrame['behavior'],
+                          delayMs: 200,
+                        })
+                      }
+                    >
+                      {Object.entries(behaviors).map(([id, label]) => (
+                        <option key={id} value={id}>
+                          {label}
+                        </option>
+                      ))}
+                    </select>
                   </label>
-                )}
-              </div>
-              <div className="scenario-buttons">
-                <button
-                  className="text-button"
-                  aria-label={`Move stage ${i + 1} up`}
-                  disabled={i === 0}
-                  onClick={() =>
-                    setFrames((previous) => {
-                      const next = [...previous];
-                      [next[i - 1], next[i]] = [next[i], next[i - 1]];
-                      return next;
-                    })
-                  }
-                >
-                  Move up
-                </button>
-                <button
-                  className="text-button danger"
-                  disabled={frames.length === 1}
-                  onClick={() => setFrames((prev) => prev.filter((_, j) => i !== j))}
-                >
-                  Remove stage {i + 1}
-                </button>
-              </div>
-            </fieldset>
+                  <div className="scenario-fields">
+                    <label>
+                      Read attempts
+                      <input
+                        aria-label={`Stage ${i + 1} reads`}
+                        type="number"
+                        min={1}
+                        max={100}
+                        value={f.count}
+                        onChange={(e) => update(i, { count: Number(e.target.value) })}
+                      />
+                    </label>
+                    {f.behavior === 'delay' && (
+                      <label>
+                        Delay (ms)
+                        <input
+                          aria-label={`Stage ${i + 1} delay`}
+                          type="number"
+                          min={0}
+                          max={2000}
+                          value={f.delayMs ?? 200}
+                          onChange={(e) => update(i, { delayMs: Number(e.target.value) })}
+                        />
+                      </label>
+                    )}
+                  </div>
+                  <div className="scenario-buttons">
+                    <button
+                      className="text-button"
+                      aria-label={`Move stage ${i + 1} up`}
+                      disabled={i === 0}
+                      onClick={() => {
+                        setFrames((previous) => {
+                          const next = [...previous];
+                          [next[i - 1], next[i]] = [next[i], next[i - 1]];
+                          return next;
+                        });
+                        setExpanded(
+                          (previous) =>
+                            new Set(
+                              [...previous].map((n) => (n === i ? i - 1 : n === i - 1 ? i : n)),
+                            ),
+                        );
+                      }}
+                    >
+                      Move up
+                    </button>
+                    <button
+                      className="text-button danger"
+                      disabled={frames.length === 1}
+                      onClick={() => {
+                        setFrames((prev) => prev.filter((_, j) => i !== j));
+                        setExpanded(
+                          (previous) =>
+                            new Set(
+                              [...previous].filter((n) => n !== i).map((n) => (n > i ? n - 1 : n)),
+                            ),
+                        );
+                      }}
+                    >
+                      Remove stage {i + 1}
+                    </button>
+                  </div>
+                </fieldset>
+              )}
+            </article>
           ))}
           {!valid && (
             <p role="alert" className="helper danger">
@@ -313,7 +395,10 @@ export default function ScenarioLibrary({
             <button
               className="button secondary"
               disabled={frames.length >= 20}
-              onClick={() => setFrames((prev) => [...prev, { behavior: 'healthy', count: 1 }])}
+              onClick={() => {
+                setExpanded((previous) => new Set([...previous, frames.length]));
+                setFrames((prev) => [...prev, { behavior: 'healthy', count: 1 }]);
+              }}
             >
               Add stage
             </button>
@@ -326,7 +411,11 @@ export default function ScenarioLibrary({
                   editing ? 'PUT' : 'POST',
                   { name, description, frames, version: editing?.version },
                 );
-                if (result) reset();
+                if (result) {
+                  setRevealId(result.scenarioId ?? editing?.id ?? '');
+                  setRevealVersion((previous) => previous + 1);
+                  reset();
+                }
               }}
             >
               {editing ? 'Save scenario changes' : 'Save scenario'}
@@ -354,7 +443,11 @@ export default function ScenarioLibrary({
                 try {
                   if (file.size > 100000) throw new Error('Choose a JSON file under 100 KB.');
                   const result = await action('/scenarios', 'POST', JSON.parse(await file.text()));
-                  if (result) reset();
+                  if (result) {
+                    setRevealId(result.scenarioId ?? '');
+                    setRevealVersion((previous) => previous + 1);
+                    reset();
+                  }
                 } catch (error) {
                   setError(error instanceof Error ? error.message : 'Invalid scenario JSON.');
                 }
@@ -363,59 +456,18 @@ export default function ScenarioLibrary({
             />
           </label>
         </section>
-        <section className="panel settings-panel">
-          <h2>Saved scenarios</h2>
-          <p>
-            Apply a scenario from a simulated device’s inspector. Admins save copies; operators
-            apply, restart, or clear them. Delayed responses obey the test step’s timeout.
-          </p>
-          {lab.scenarios?.map((s) => (
-            <article className="catalog-item scenario-card" key={s.id}>
-              <h3>{s.name}</h3>
-              <span className="scenario-tag">
-                {s.builtin ? 'PRESET' : 'CUSTOM'} · v{s.version}
-              </span>
-              <p>{s.description}</p>
-              <ol className="scenario-sequence">
-                {s.frames.map((f, i) => (
-                  <li key={i}>
-                    <b>{f.count}×</b> {behaviors[f.behavior]}
-                    {f.behavior === 'delay' ? ` · ${f.delayMs} ms` : ''}
-                  </li>
-                ))}
-              </ol>
-              <div className="scenario-buttons">
-                {!s.builtin && (
-                  <button className="button secondary" disabled={!enabled} onClick={() => load(s)}>
-                    Edit
-                  </button>
-                )}
-                <button
-                  className="button secondary"
-                  disabled={!enabled}
-                  onClick={() => load(s, true)}
-                >
-                  Duplicate
-                </button>
-                <button className="button secondary" onClick={() => exportScenario(s)}>
-                  Export
-                </button>
-                {!s.builtin && (
-                  <button
-                    className="text-button danger"
-                    disabled={!enabled}
-                    onClick={() => {
-                      if (confirm(`Delete ${s.name}? Applied snapshots remain on their devices.`))
-                        void action(`/scenarios/${s.id}`, 'DELETE', { version: s.version });
-                    }}
-                  >
-                    Delete
-                  </button>
-                )}
-              </div>
-            </article>
-          ))}
-        </section>
+        <SavedScenarioLibrary
+          lab={lab}
+          enabled={enabled}
+          revealId={revealId}
+          revealVersion={revealVersion}
+          onEdit={load}
+          onExport={exportScenario}
+          onDelete={(s) => {
+            if (confirm(`Delete ${s.name}? Applied snapshots remain on their devices.`))
+              void action(`/scenarios/${s.id}`, 'DELETE', { version: s.version });
+          }}
+        />
       </div>
     </>
   );
