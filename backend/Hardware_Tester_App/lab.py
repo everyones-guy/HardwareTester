@@ -168,6 +168,8 @@ class Lab:
                 if d and d["adapter"] == "simulation":
                     d["value"] = run["originalValue"]
                     d["enabled"] = run["originalEnabled"]
+                    if d.get("scenario"):
+                        d["scenarioOutput"] = run["originalValue"]
                 elif d:
                     d["lastError"] = (
                         "Server restarted during a run. Physical output state is unknown; inspect hardware before reconnecting."
@@ -325,6 +327,10 @@ class Lab:
     def fault(self, device_id, fault):
         with self.lock:
             d = self.device(device_id)
+            if d.get("scenario"):
+                raise LabError(
+                    "Clear the emulator scenario before injecting a manual fault.", 409
+                )
             if fault not in ("none", "timeout", "out-of-range"):
                 raise LabError("Unknown fault profile.")
             if d["adapter"] != "simulation":
@@ -470,7 +476,11 @@ class Lab:
                 "plan": title,
                 "startedAt": now(),
                 "status": "running",
-                "originalValue": d["value"],
+                "originalValue": (
+                    d.get("scenarioOutput", d["value"])
+                    if d.get("scenario")
+                    else d["value"]
+                ),
                 "originalEnabled": d["enabled"],
                 "steps": [
                     {"name": name, "status": "pending", "detail": "Waiting to execute"}
@@ -528,6 +538,8 @@ class Lab:
         d, run = active["device"], active["run"]
         if d["adapter"] == "simulation":
             d["value"], d["enabled"] = run["originalValue"], run["originalEnabled"]
+            if d.get("scenario"):
+                d["scenarioOutput"] = run["originalValue"]
             run["restoration"] = "restored"
             return
         try:
@@ -789,7 +801,8 @@ class Lab:
                         self.last_tick = time.monotonic()
                         for d in self.state["devices"]:
                             if (
-                                not d["connected"]
+                                d.get("scenario")
+                                or not d["connected"]
                                 or self.active
                                 and self.active["device"]["id"] == d["id"]
                             ):
@@ -830,10 +843,12 @@ class Lab:
                 self.disconnect(d)
             revision = self.state.get("revision", 0)
             blueprints = self.state["blueprints"]
+            scenarios = self.state.get("scenarios", [])
             test_plans = self.state["testPlans"]
             self.state = initial_state()
             self.state.update(peripherals=[], blueprints=blueprints)
             self.state["testPlans"] = test_plans
+            self.state["scenarios"] = scenarios
             self.state["revision"] = revision
             self.save()
 

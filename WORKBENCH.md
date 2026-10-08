@@ -5,6 +5,18 @@ Hardware Tester now supports two execution engines through the same React UI:
 - **Browser simulator:** private localStorage state; no backend needed.
 - **Flask workspace:** shared SQLite persistence, server-side telemetry and tests, simulated devices, and optional serial/MQTT adapters.
 
+## Reusable emulator scenarios
+
+**Emulator scenarios** is a shared Flask library for simulated devices. It includes five protected presets: Healthy device, Intermittent timeout, Delayed responses, Bad telemetry, and Timeout and recovery. Duplicate a preset to customize it, or create, reorder, import, export, edit, and delete custom sequences. Admins manage the library; operators apply, restart, and clear scenarios from the selected device inspector. Browser-only mode keeps the existing manual fault injection; reusable scenarios require the Flask engine. Serial/MQTT hardware adapters reject scenario application.
+
+Each stage selects healthy responses, timeouts, out-of-range readings, or delayed responses for a specified number of read attempts. Command acknowledgements also count as reads; a control step can make several reads. The final response behavior repeats after the staged sequence is consumed. Restart resets the applied snapshot's cursor to zero without replacing its definition. Reapplying a library entry picks up its latest version. Editing or deleting the saved entry does not affect devices already using its snapshot, and a deleted applied sequence can still be restarted or cleared.
+
+Background telemetry polling does not advance scenarios. Diagnostic checks, manual command reads, and test steps do. Application and restart do not connect a device. Scenario changes require an idle bench, clear manual fault injection, and preserve the simulated output; clear the scenario before using manual faults again. Out-of-range readings do not replace the underlying simulated output. Delays really wait and obey each step's remaining response timeout; cancellation is processed after an in-flight bounded read completes. Maximum delay is 2000 ms, with 1–20 stages and at most 200 staged read attempts. Counts are 1–100 per stage. A preset timeout is an immediate simulated missing acknowledgement; delayed scenarios measure actual waiting.
+
+The library, applied snapshot, and current position persist in SQLite. After a server restart, transports are disconnected and the sequence position is retained. Workspace reset preserves the library and clears device applications. Results capture the scenario definition, version, and starting position in their device configuration; reruns continue at the current sequence position and warn when it differs. Restart from the device inspector to reproduce the initial experiment.
+
+API: `POST /api/lab/scenarios`, `PUT/DELETE /api/lab/scenarios/<id>` (version checked), and `POST /api/lab/devices/<id>/scenario` with `scenarioId`, `scenarioId: null`, or `restart: true`. Scenario JSON exports can be imported as new custom entries.
+
 ## Compact plan editing
 
 The plan editor shows numbered action rows. Open a row to edit it, or use **Expand all / Collapse all**. Loading or duplicating a saved plan starts with its editors collapsed; newly added steps open automatically. The summary shows configured step count and explicit wait time, not an estimated run duration.

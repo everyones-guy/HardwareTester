@@ -30,11 +30,21 @@ export default function RunReport({
     !!run.configuration &&
     ((saved && saved.version !== run.configuration.plan.version) ||
       (!!target &&
-        ['name', 'kind', 'protocol', 'adapter', 'endpoint', 'baudrate', 'fault'].some(
+        [
+          'name',
+          'kind',
+          'protocol',
+          'adapter',
+          'endpoint',
+          'baudrate',
+          'fault',
+          'scenarioCursor',
+        ].some(
           (k) => target[k as keyof Device] !== run.configuration!.device[k as keyof Device],
         )) ||
       JSON.stringify(lab.peripherals?.filter((p) => p.device_id === run.deviceId) ?? []) !==
-        JSON.stringify(run.configuration.peripherals));
+        JSON.stringify(run.configuration.peripherals) ||
+      JSON.stringify(target?.scenario) !== JSON.stringify(run.configuration.device.scenario));
   const passed = run.steps.filter((s) => s.status === 'passed').length;
   const duration = run.finishedAt
     ? Math.max(0, new Date(run.finishedAt).getTime() - new Date(run.startedAt).getTime())
@@ -52,6 +62,14 @@ export default function RunReport({
         </div>
         <span className={`report-verdict ${run.status}`}>{run.status}</span>
       </header>
+      {run.configuration?.device.scenario && (
+        <p className="helper">
+          Scenario: {run.configuration.device.scenario.name} · v
+          {run.configuration.device.scenario.version} ·{' '}
+          {run.configuration.device.scenarioCursor ?? 0} staged reads consumed before this run.
+          Restart the sequence in the device inspector to repeat its initial conditions.
+        </p>
+      )}
       <div className="report-metrics">
         <div>
           <strong>
@@ -98,7 +116,7 @@ export default function RunReport({
               target &&
               (!changed ||
                 window.confirm(
-                  'The device settings or plan version have changed. Rerun using the current configuration?',
+                  'The device settings, scenario position, or plan version have changed. Rerun using the current configuration?',
                 ))
             )
               onRerun(target, id);

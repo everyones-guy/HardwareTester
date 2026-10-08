@@ -1,3 +1,4 @@
+import ScenarioLibrary, { ScenarioControls } from './ScenarioLibrary';
 import RunReport from './RunReport';
 import EventLog from './EventLog';
 import ConnectionDiagnostics from './ConnectionDiagnostics';
@@ -728,6 +729,14 @@ export default function Workbench() {
             <FiLink />
             {device.connected ? 'Disconnect device' : 'Connect device'}
           </button>
+          <ScenarioControls
+            key={device.id}
+            device={device}
+            lab={lab}
+            enabled={canOperate && serverMode && serverReady && !busy && !activeRun}
+            serverMode={serverMode}
+            action={serverAction}
+          />
           <ConnectionDiagnostics
             device={device}
             disabled={!canOperate || busy || !!activeRun || (serverMode && !serverReady)}
@@ -745,7 +754,8 @@ export default function Workbench() {
               disabled={
                 !canOperate ||
                 busy ||
-                (device.adapter !== undefined && device.adapter !== 'simulation')
+                (device.adapter !== undefined && device.adapter !== 'simulation') ||
+                !!device.scenario
               }
               value={device.fault}
               onChange={(e) => setFault(e.target.value as Fault)}
@@ -754,7 +764,11 @@ export default function Workbench() {
               <option value="timeout">Transport timeout</option>
               <option value="out-of-range">Out-of-range reading</option>
             </select>
-            <p className="helper">Introduce a failure to verify that your tests catch it.</p>
+            <p className="helper">
+              {device.scenario
+                ? 'Clear the scenario before injecting a manual fault.'
+                : 'Introduce a failure to verify that your tests catch it.'}
+            </p>
           </div>
           {device.kind !== 'temperature' && (
             <div className="inspector-section">
@@ -1023,6 +1037,7 @@ export default function Workbench() {
             ['/devices', 'Devices', FiCpu],
             ['/blueprints', 'Blueprints', FiBox],
             ['/plans', 'Plan library', FiCheck],
+            ['/scenarios', 'Emulator scenarios', FiRadio],
             ['/tests', 'Test bench', FiPlay],
             ['/results', 'Results', FiActivity],
             ['/logs', 'Activity log', FiTerminal],
@@ -1300,6 +1315,17 @@ export default function Workbench() {
                     />
                   )}
                 </>
+              }
+            />
+            <Route
+              path="/scenarios"
+              element={
+                <ScenarioLibrary
+                  lab={lab}
+                  enabled={canAdmin && serverMode && serverReady && !busy && !activeRun}
+                  serverMode={serverMode}
+                  action={serverAction}
+                />
               }
             />
             <Route

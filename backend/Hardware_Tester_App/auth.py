@@ -248,7 +248,8 @@ def required_role(path, method):
         path in ("/api/lab/runs", "/api/lab/runs/cancel", "/api/lab/connect-bench")
         or path.endswith("/run")
         or re.fullmatch(
-            r"/api/lab/devices/[^/]+/(connection|command|fault|diagnostics)", path
+            r"/api/lab/devices/[^/]+/(connection|command|fault|diagnostics|scenario)",
+            path,
         )
     ):
         return "operator"

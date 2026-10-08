@@ -34,6 +34,31 @@ class SimulationTransport:
 
     def read(self):
         d = self.device
+        scenario = d.get("scenario")
+        if scenario:
+            cursor = d.get("scenarioCursor", 0)
+            total = sum(f["count"] for f in scenario["frames"])
+            position = min(cursor, total - 1)
+            frame = scenario["frames"][-1]
+            for candidate in scenario["frames"]:
+                if position < candidate["count"]:
+                    frame = candidate
+                    break
+                position -= candidate["count"]
+            d["scenarioCursor"] = min(cursor + 1, total)
+            behavior = frame["behavior"]
+            if behavior == "timeout":
+                raise TransportError("Scenario timeout: no acknowledgement received.")
+            if behavior == "out-of-range":
+                return 95 if d["kind"] == "temperature" else 150
+            if behavior == "delay":
+                delay = frame["delayMs"] / 1000
+                timeout = getattr(self, "timeout", 2)
+                time.sleep(min(delay, timeout))
+                if delay > timeout:
+                    raise TransportError("Scenario response exceeded its timeout.")
+            return d.get("scenarioOutput", d["value"])
+
         if d["fault"] == "timeout":
             raise TransportError(
                 "Simulated transport timeout: no acknowledgement received."
@@ -45,6 +70,8 @@ class SimulationTransport:
     def write(self, value):
         self.read()  # A timeout must never look like a successful command.
         self.device["value"] = value
+        if self.device.get("scenario"):
+            self.device["scenarioOutput"] = value
         return self.read()
 
 

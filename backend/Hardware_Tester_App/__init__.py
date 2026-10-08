@@ -53,6 +53,10 @@ def create_app(config_name="development", overrides=None, **kwargs):
     from .test_plans import register_plans
 
     register_plans(app, lab)
+    from .scenarios import register_scenarios
+
+    with lab.lock:
+        register_scenarios(app, lab)
     from .auth import register_auth, required_role
 
     with lab.lock:

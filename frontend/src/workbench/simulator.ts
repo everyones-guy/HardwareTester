@@ -1,3 +1,4 @@
+import type { Scenario } from './ScenarioLibrary';
 export type DeviceKind = 'temperature' | 'valve' | 'relay';
 export type Fault = 'none' | 'timeout' | 'out-of-range';
 export interface ConnectionCheck {
@@ -8,6 +9,9 @@ export interface ConnectionCheck {
   value: number | null;
 }
 export interface Device {
+  scenario?: Scenario | null;
+  scenarioCursor?: number;
+  scenarioOutput?: number;
   lastContactAt?: string | null;
   diagnostics?: ConnectionCheck[];
   adapter?: 'simulation' | 'serial' | 'mqtt';
@@ -68,6 +72,7 @@ export interface LogEntry {
   message: string;
 }
 export interface LabState {
+  scenarios?: Scenario[];
   version: 1;
   devices: Device[];
   runs: TestRun[];

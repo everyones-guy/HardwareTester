@@ -111,6 +111,20 @@ def test_role_enforcement_is_on_server(app, role):
         f"/api/lab/devices/{device['id']}/diagnostics", json={}, headers=headers
     )
     assert diagnostic.status_code == (200 if role == "operator" else 403)
+    scenario = client.post(
+        f"/api/lab/devices/{device['id']}/scenario",
+        json={"scenarioId": "preset-healthy"},
+        headers=headers,
+    )
+    assert scenario.status_code == (200 if role == "operator" else 403)
+    assert (
+        client.post(
+            "/api/lab/scenarios",
+            json={"name": "S", "frames": [{"behavior": "healthy", "count": 1}]},
+            headers=headers,
+        ).status_code
+        == 403
+    )
     run = client.post(
         "/api/lab/runs",
         json={"deviceId": device["id"], "plan": "smoke"},
