@@ -166,6 +166,7 @@ class Lab:
                         d['value'] = numeric(adapter.read())
                     self.adapters[d['id']] = adapter
                     d['connected'] = True
+                    d['lastContactAt'] = now() if d['adapter'] != 'simulation' else d.get('lastContactAt')
                     d['lastError'] = None
                 except Exception as error:
                     adapter.close()
@@ -201,7 +202,31 @@ class Lab:
             raise TransportError('Device disconnected. Connect the device and retry.')
         d['value'] = numeric(self.adapters[d['id']].read())
         d['lastError'] = None
+        d['lastContactAt'] = now()
         return d['value']
+
+    def diagnose(self, device_id):
+        with self.lock:
+            if self.active:
+                raise LabError('Connection checks are disabled during a test.', 409)
+            d = self.device(device_id)
+            started = time.monotonic()
+            checked_at = now()
+            value = None
+            try:
+                value = self.read(d)
+                maximum = {'temperature': 50, 'valve': 100, 'relay': 1}[d['kind']]
+                healthy = 0 <= value <= maximum
+                status = 'passed' if healthy else 'warning'
+                detail = f'Received {value}; within expected range 0–{maximum}.' if healthy else f'Transport responded, but reading {value} is outside expected range 0–{maximum}.'
+            except Exception as error:
+                status = 'failed'
+                detail = str(error)[:300]
+                d['lastError'] = detail
+            check = {'checkedAt': checked_at, 'status': status, 'detail': detail, 'durationMs': round((time.monotonic() - started) * 1000), 'value': value}
+            d['diagnostics'] = [check, *d.get('diagnostics', [])][:5]
+            self.log(f"{d['name']}: connection check {status}: {detail}", 'success' if status == 'passed' else 'error')
+            self.save()
 
     def write(self, d, value):
         if not d['connected'] or d['id'] not in self.adapters:

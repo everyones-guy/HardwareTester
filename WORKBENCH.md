@@ -5,6 +5,14 @@ Hardware Tester now supports two execution engines through the same React UI:
 - **Browser simulator:** private localStorage state; no backend needed.
 - **Flask workspace:** shared SQLite persistence, server-side telemetry and tests, simulated devices, and optional serial/MQTT adapters.
 
+## Connection diagnostics
+
+The selected device inspector includes **Test connection** for operators and admins. It reads telemetry through the existing adapter without sending an output command or opening a disconnected transport. Connect the device explicitly first. Checks are blocked while a test is running.
+
+The panel shows the adapter, endpoint, last recorded successful response, and up to five checks with timestamps and durations. A response outside the profile range is a warning; a timeout or disconnected device is a failure. Simulator timings describe an immediate simulated read, not network latency. Use fault injection to exercise timeout, out-of-range readings, and recovery. Diagnostic history persists with the selected workspace, is included in exports, and remains historical after a restart; connection state still resets to disconnected.
+
+`POST /api/lab/devices/<id>/diagnostics` returns the updated workspace. An executed failed check is recorded with HTTP 200; forbidden, missing-device, and running-test requests use the normal API errors. Diagnostic checks are separate from test runs and do not count toward run pass rates.
+
 ## Launch locally
 
 Requires Node.js 22.12+ and Python 3.11+ (verified here with Node 22 and Python 3.13).

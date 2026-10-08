@@ -54,6 +54,8 @@ def test_role_enforcement_is_on_server(app,role):
     connection=client.post('/api/lab/connect-bench',json={},headers=headers)
     assert connection.status_code==(200 if role=='operator' else 403)
     device=admin.get('/api/lab').json['state']['devices'][0]
+    diagnostic=client.post(f"/api/lab/devices/{device['id']}/diagnostics",json={},headers=headers)
+    assert diagnostic.status_code==(200 if role=='operator' else 403)
     run=client.post('/api/lab/runs',json={'deviceId':device['id'],'plan':'smoke'},headers=headers)
     assert run.status_code==(202 if role=='operator' else 403)
     if role=='operator':

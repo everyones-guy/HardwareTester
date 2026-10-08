@@ -1,6 +1,8 @@
 export type DeviceKind = 'temperature' | 'valve' | 'relay';
 export type Fault = 'none' | 'timeout' | 'out-of-range';
+export interface ConnectionCheck {checkedAt:string;status:'passed'|'warning'|'failed';detail:string;durationMs:number;value:number|null}
 export interface Device {
+  lastContactAt?:string|null; diagnostics?:ConnectionCheck[];
   adapter?: 'simulation' | 'serial' | 'mqtt'; baudrate?: number; lastError?: string | null; safetyWarning?: string | null;
   id: string; name: string; kind: DeviceKind; protocol: 'MQTT' | 'Serial' | 'USB';
   endpoint: string; connected: boolean; fault: Fault; value: number; enabled: boolean;

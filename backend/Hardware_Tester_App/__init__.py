@@ -117,6 +117,12 @@ def create_app(config_name='development', overrides=None, **kwargs):
         lab.connect(device_id, body().get('connected'))
         return result()
 
+    @app.post('/api/lab/devices/<device_id>/diagnostics')
+    def diagnostics(device_id):
+        body()
+        lab.diagnose(device_id)
+        return result()
+
     @app.post('/api/lab/connect-bench')
     def connect_bench():
         body()

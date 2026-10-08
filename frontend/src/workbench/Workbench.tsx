@@ -1,3 +1,4 @@
+import ConnectionDiagnostics from './ConnectionDiagnostics';
 import UserManagement from './UserDirectory';
 import { useEffect, useRef, useState } from 'react';
 import { NavLink, Navigate, Route, Routes } from 'react-router-dom';
@@ -156,6 +157,17 @@ export default function Workbench() {
     return () => clearInterval(timer);
   }, []);
 
+  function diagnose() {
+    if (!device || !canOperate || busy || activeRun) return;
+    if (serverMode) {void serverAction(`/devices/${device.id}/diagnostics`);return;}
+    const checkedAt = new Date().toISOString();
+    const response = device.connected && device.fault !== 'timeout';
+    const value = response ? telemetry(device,tickRef.current) : null;
+    const maximum = device.kind === 'temperature' ? 50 : device.kind === 'valve' ? 100 : 1;
+    const status = !response ? 'failed' as const : value! >= 0 && value! <= maximum ? 'passed' as const : 'warning' as const;
+    const detail = !device.connected ? 'Device disconnected. Connect the device and retry.' : !response ? 'Simulated transport timeout: no acknowledgement received.' : status === 'warning' ? `Transport responded, but reading ${value} is outside expected range 0–${maximum}.` : `Received ${value}; within expected range 0–${maximum}.`;
+    update(state => record({...state,devices:state.devices.map(d=>d.id===device.id?{...d,value:value??d.value,lastError:response?null:detail,lastContactAt:response?checkedAt:d.lastContactAt,diagnostics:[{checkedAt,status,detail,durationMs:0,value},...(d.diagnostics??[])].slice(0,5)}:d)},`${device.name}: connection check ${status}: ${detail}`,status==='passed'?'success':'error'));
+  }
   function connect(id: string) {
     if (serverMode) { void serverAction(`/devices/${id}/connection`, 'POST', { connected: !lab.devices.find(d => d.id === id)?.connected }); return; }
     update(state => {
@@ -219,6 +231,7 @@ export default function Workbench() {
     <div className="inspect-reading"><span>{device.connected && !device.lastError && device.fault !== 'timeout' ? reading(device) : '—'}</span><Status value={device.connected ? device.lastError ? 'fault' : device.fault === 'none' ? 'connected' : 'fault' : 'offline'} /></div>
     <dl><div><dt>Transport</dt><dd>{device.protocol} · {device.adapter && device.adapter !== 'simulation' ? 'hardware' : 'emulated'}</dd></div><div><dt>Endpoint</dt><dd className="mono">{device.endpoint}</dd></div><div><dt>Update interval</dt><dd>1,000 ms</dd></div></dl>
     <button disabled={!canOperate || busy || (serverMode && !serverReady)} className={`button ${device.connected ? 'secondary' : 'primary'} full`} onClick={() => connect(device.id)}><FiLink />{device.connected ? 'Disconnect device' : 'Connect device'}</button>
+    <ConnectionDiagnostics device={device} disabled={!canOperate || busy || !!activeRun || (serverMode && !serverReady)} onCheck={diagnose}/>
     {(device.safetyWarning || device.lastError) && <p className="helper danger" style={{padding: 19}} role="alert">{device.safetyWarning || device.lastError}</p>}<div className="inspector-section"><label htmlFor="fault">Fault injection</label><select id="fault" disabled={!canOperate || busy || (device.adapter !== undefined && device.adapter !== 'simulation')} value={device.fault} onChange={e => setFault(e.target.value as Fault)}><option value="none">Healthy · no fault</option><option value="timeout">Transport timeout</option><option value="out-of-range">Out-of-range reading</option></select><p className="helper">Introduce a failure to verify that your tests catch it.</p></div>
     {device.kind !== 'temperature' && <div className="inspector-section"><label>{device.kind === 'valve' ? 'Valve position' : 'Relay output'}</label>{device.kind === 'valve' ? <input aria-label="Valve position" type="range" min="0" max="100" value={Math.min(device.value, 100)} disabled={!canOperate || !device.connected || !!activeRun || busy || (serverMode && !serverReady)} onChange={e => command(Number(e.target.value))} /> : <button className="button secondary full" disabled={!canOperate || !device.connected || !!activeRun || busy || (serverMode && !serverReady)} onClick={() => command(device.value ? 0 : 1)}>{device.value ? 'Switch OFF' : 'Switch ON'}</button>}</div>}
     <button className="text-button danger" disabled={!canAdmin || !!activeRun || busy} onClick={removeDevice}><FiTrash2 /> Remove device</button>
