@@ -10,7 +10,9 @@
     "type-check:all": "tsc --noEmit",
     "test": "node --test tests/simulator.test.cjs",
     "test:e2e": "playwright test",
-    "test:integration": "playwright test -c playwright.integration.config.ts"
+    "test:integration": "playwright test -c playwright.integration.config.ts",
+    "format": "prettier --write \"src/workbench/**/*.{ts,tsx,css}\" \"tests/**/*.{ts,cjs}\" \"vite.config.ts\" \"playwright*.ts\"",
+    "format:check": "prettier --check \"src/workbench/**/*.{ts,tsx,css}\" \"tests/**/*.{ts,cjs}\" \"vite.config.ts\" \"playwright*.ts\""
   },
   "dependencies": {
     "axios": "^1.11.0",
@@ -36,6 +38,7 @@
     "@types/react-router-dom": "^5.3.3",
     "@vitejs/plugin-react": "^4.7.0",
     "jest": "^27.0.6",
+    "prettier": "3.9.9",
     "ts-node": "^10.4.0",
     "typescript": "^5.9.2",
     "vite": "^7.1.3"

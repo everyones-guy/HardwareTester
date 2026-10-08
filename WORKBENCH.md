@@ -217,3 +217,11 @@ The workbench routes call the existing `PeripheralService` CRUD methods using an
 Peripheral `threshold` settings affect server health/control operating-range checks. A number is an upper bound; an object can contain `min`, `max`, or both. A missing bound is unbounded. When several peripherals specify limits for one device, every limit must pass. Without configured thresholds, profile defaults apply (temperature 0–50, valve 0–100, relay 0–1). Other properties remain metadata. Control command limits still follow the device profile. Configuration changes are blocked during a run, and stale peripheral edits/deletes receive HTTP 409 instead of overwriting a newer version.
 
 API routes: `/api/lab/blueprints` (GET/POST), `/preview` and `/capture` beneath that path (POST), `/api/lab/blueprints/<id>/apply` (POST), `/api/lab/blueprints/<id>` (DELETE); `/api/lab/peripherals` (GET/POST), `/api/lab/peripherals/<id>` (PATCH/DELETE). PATCH and peripheral DELETE require the current `version`. Blueprint requests wrap input in `configuration`; capture takes `name` and optional `description`.
+
+## Code formatting
+
+The workbench uses Prettier for TypeScript, JSX, CSS, frontend tests, and Vite/Playwright configuration. From `frontend`, run `npm run format` to format or `npm run format:check` to verify. Prettier is pinned in the development dependencies; run `npm ci` after pulling the formatting setup.
+
+The Python workbench modules and regression tests use Black with an 88-column target. From `backend`, install development tools with `.\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt`, then run `.\.venv\Scripts\python.exe -m black .` or add `--check` to verify. The Black include pattern scopes this command to the workbench files. Black is a development dependency and is not added to the Docker runtime.
+
+The root `.editorconfig` specifies UTF-8, final newlines, two-space frontend indentation, and four-space Python indentation. Formatters may retain individual long strings where wrapping would change their contents.

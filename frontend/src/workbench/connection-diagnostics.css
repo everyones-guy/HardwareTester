@@ -1,1 +1,63 @@
-.workbench .connection-diagnostics dl{padding:0;margin:12px 0 18px}.workbench .connection-diagnostics dl>div{display:block;margin-bottom:12px}.workbench .connection-diagnostics dd{text-align:left;overflow-wrap:anywhere;margin-top:4px;font:10px Consolas,monospace;line-height:1.7}.connection-checks{list-style:none;padding:0;margin:16px 0 0;display:grid;gap:9px}.connection-check{border:1px solid #dbe8df;border-left:3px solid #43896b;border-radius:5px;padding:12px;background:#f7faf8}.connection-check.failed{border-left-color:#b76354;background:#fff8f5}.connection-check.warning{border-left-color:#b39043;background:#fffcf3}.connection-check>div{display:flex;justify-content:space-between;gap:8px;font-size:10px}.connection-check>div span{color:var(--muted);font:9px Consolas,monospace}.workbench .connection-check p{font-size:10px;margin-top:7px;overflow-wrap:anywhere;color:#607469}.connection-check time{display:block;font-size:9px;margin-top:8px;color:#8a9c91}
+.workbench .connection-diagnostics dl {
+  padding: 0;
+  margin: 12px 0 18px;
+}
+.workbench .connection-diagnostics dl > div {
+  display: block;
+  margin-bottom: 12px;
+}
+.workbench .connection-diagnostics dd {
+  text-align: left;
+  overflow-wrap: anywhere;
+  margin-top: 4px;
+  font:
+    10px Consolas,
+    monospace;
+  line-height: 1.7;
+}
+.connection-checks {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0 0;
+  display: grid;
+  gap: 9px;
+}
+.connection-check {
+  border: 1px solid #dbe8df;
+  border-left: 3px solid #43896b;
+  border-radius: 5px;
+  padding: 12px;
+  background: #f7faf8;
+}
+.connection-check.failed {
+  border-left-color: #b76354;
+  background: #fff8f5;
+}
+.connection-check.warning {
+  border-left-color: #b39043;
+  background: #fffcf3;
+}
+.connection-check > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 10px;
+}
+.connection-check > div span {
+  color: var(--muted);
+  font:
+    9px Consolas,
+    monospace;
+}
+.workbench .connection-check p {
+  font-size: 10px;
+  margin-top: 7px;
+  overflow-wrap: anywhere;
+  color: #607469;
+}
+.connection-check time {
+  display: block;
+  font-size: 9px;
+  margin-top: 8px;
+  color: #8a9c91;
+}

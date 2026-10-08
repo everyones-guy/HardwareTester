@@ -8,7 +8,8 @@ async function runAndWait(page: Page, result: string) {
   await expect(page.locator('.result-heading .status')).toHaveText(result);
 }
 test('healthy devices pass checks; faults fail; export contains the results', async ({ page }) => {
-  const errors: string[] = []; page.on('pageerror', e => errors.push(e.message));
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
   await connectBench(page);
   for (const name of ['Ambient temperature', 'Intake valve', 'Pump relay']) {
     await page.getByLabel('Target device').selectOption({ label: name });
@@ -27,9 +28,11 @@ test('healthy devices pass checks; faults fail; export contains the results', as
   await page.getByRole('button', { name: 'Export results', exact: true }).click();
   const file = await download;
   const stream = await file.createReadStream();
-  const chunks: Buffer[] = []; for await (const c of stream!) chunks.push(c);
+  const chunks: Buffer[] = [];
+  for await (const c of stream!) chunks.push(c);
   const report = JSON.parse(Buffer.concat(chunks).toString());
-  expect(report.mode).toBe('simulation'); expect(report.runs).toHaveLength(5);
+  expect(report.mode).toBe('simulation');
+  expect(report.runs).toHaveLength(5);
   expect(errors).toEqual([]);
 });
 test('control responses execute and restore valve and relay states', async ({ page }) => {
@@ -46,7 +49,9 @@ test('control responses execute and restore valve and relay states', async ({ pa
   await runAndWait(page, 'passed');
   await expect(page.locator('.steps')).toContainText('Observed expected response: 30°C');
 });
-test('cancel restores original controls and a disconnect is caught during execution', async ({ page }) => {
+test('cancel restores original controls and a disconnect is caught during execution', async ({
+  page,
+}) => {
   await connectBench(page);
   await page.getByLabel('Target device').selectOption({ label: 'Intake valve' });
   await page.getByLabel('Test plan').selectOption('control');
@@ -89,7 +94,9 @@ test('add, search, control, and remove a virtual relay', async ({ page }) => {
   await expect(page.locator('.device-card')).toHaveCount(0);
   await expect(page.getByText('No devices match your search.')).toBeVisible();
 });
-test('mobile layout and direct route reloads work without horizontal overflow', async ({ page }) => {
+test('mobile layout and direct route reloads work without horizontal overflow', async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await connectBench(page);
   await runAndWait(page, 'passed');

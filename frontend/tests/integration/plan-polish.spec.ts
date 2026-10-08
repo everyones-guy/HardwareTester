@@ -1,46 +1,70 @@
-import {test,expect} from '@playwright/test';
-test('long plans stay compact and preserve edits, previews, validation, and order',async({page,request})=>{
-  await request.post('/api/lab/runs/cancel',{data:{}});
-  const created=await request.post('/api/lab/test-plans',{data:{name:'Compact twenty-step plan',kind:'temperature',steps:Array.from({length:20},(_,i)=>({name:`Record ${i+1}`,action:i===19?'wait':'read',...(i===19?{seconds:3}:{timeout:2})}))}});
-  const id=(await created.json()).planId;
+import { test, expect } from '@playwright/test';
+test('long plans stay compact and preserve edits, previews, validation, and order', async ({
+  page,
+  request,
+}) => {
+  await request.post('/api/lab/runs/cancel', { data: {} });
+  const created = await request.post('/api/lab/test-plans', {
+    data: {
+      name: 'Compact twenty-step plan',
+      kind: 'temperature',
+      steps: Array.from({ length: 20 }, (_, i) => ({
+        name: `Record ${i + 1}`,
+        action: i === 19 ? 'wait' : 'read',
+        ...(i === 19 ? { seconds: 3 } : { timeout: 2 }),
+      })),
+    },
+  });
+  const id = (await created.json()).planId;
   await page.goto('/plans');
-  const saved=page.locator('.catalog-item').filter({has:page.getByRole('heading',{name:'Compact twenty-step plan',exact:true})});
-  await expect(saved.getByRole('button',{name:/View steps/})).toBeVisible();
+  const saved = page
+    .locator('.catalog-item')
+    .filter({ has: page.getByRole('heading', { name: 'Compact twenty-step plan', exact: true }) });
+  await expect(saved.getByRole('button', { name: /View steps/ })).toBeVisible();
   await expect(saved.locator('.plan-index-row')).toHaveCount(0);
-  await saved.getByRole('button',{name:'Edit',exact:true}).click();
-  const editor=page.locator('.plan-library-panel').first();
+  await saved.getByRole('button', { name: 'Edit', exact: true }).click();
+  const editor = page.locator('.plan-library-panel').first();
   await expect(editor.locator('.plan-index-row')).toHaveCount(20);
   await expect(editor.locator('.plan-index-body')).toHaveCount(0);
   await expect(editor).toContainText('20 STEPS · 3.0s CONFIGURED WAITS');
-  if(process.env.LAB_SCREENSHOT_DIR){await page.setViewportSize({width:1440,height:1100});await page.evaluate(()=>scrollTo(0,0));await page.screenshot({path:`${process.env.LAB_SCREENSHOT_DIR}/hardware-tester-plan-library.png`});}
-  await editor.getByRole('button',{name:'Preview step 20: Record 20',exact:true}).hover();
+  if (process.env.LAB_SCREENSHOT_DIR) {
+    await page.setViewportSize({ width: 1440, height: 1100 });
+    await page.evaluate(() => scrollTo(0, 0));
+    await page.screenshot({
+      path: `${process.env.LAB_SCREENSHOT_DIR}/hardware-tester-plan-library.png`,
+    });
+  }
+  await editor.getByRole('button', { name: 'Preview step 20: Record 20', exact: true }).hover();
   await expect(editor.getByRole('tooltip')).toContainText('Wait 3s');
-  await editor.getByRole('button',{name:'Preview step 20: Record 20',exact:true}).focus();
+  await editor.getByRole('button', { name: 'Preview step 20: Record 20', exact: true }).focus();
   await page.keyboard.press('Escape');
   await expect(editor.getByRole('tooltip')).toHaveCount(0);
-  await editor.getByRole('button',{name:'Edit step 20: Record 20',exact:true}).click();
+  await editor.getByRole('button', { name: 'Edit step 20: Record 20', exact: true }).click();
   await page.getByLabel('Step 20 duration').fill('31');
-  await editor.getByRole('button',{name:'Collapse all',exact:true}).click();
+  await editor.getByRole('button', { name: 'Collapse all', exact: true }).click();
   await expect(editor.getByRole('alert')).toContainText('Wait duration must be 0–30 seconds.');
-  await expect(editor.getByRole('button',{name:'Save changes',exact:true})).toBeDisabled();
-  await editor.getByRole('button',{name:'Edit step 20: Record 20',exact:true}).click();
+  await expect(editor.getByRole('button', { name: 'Save changes', exact: true })).toBeDisabled();
+  await editor.getByRole('button', { name: 'Edit step 20: Record 20', exact: true }).click();
   await page.getByLabel('Step 20 duration').fill('4');
-  await editor.getByRole('button',{name:'Move up',exact:true}).click();
+  await editor.getByRole('button', { name: 'Move up', exact: true }).click();
   await expect(page.getByLabel('Step 19 duration')).toHaveValue('4');
-  await editor.getByRole('button',{name:'Remove step',exact:true}).click();
+  await editor.getByRole('button', { name: 'Remove step', exact: true }).click();
   await expect(editor.locator('.plan-index-row')).toHaveCount(19);
-  await editor.getByRole('button',{name:'Add step',exact:true}).click();
+  await editor.getByRole('button', { name: 'Add step', exact: true }).click();
   await expect(page.getByLabel('Step 20 name')).toBeVisible();
   await page.getByLabel('Step 20 name').fill('Final read');
-  await editor.getByRole('button',{name:'Save changes',exact:true}).click();
+  await editor.getByRole('button', { name: 'Save changes', exact: true }).click();
   await expect(saved).toContainText('version 2');
-  const plan=(await(await request.get(`/api/lab/test-plans/${id}`)).json()).plan;
-  expect(plan.steps).toHaveLength(20);expect(plan.steps[19].name).toBe('Final read');
-  await saved.getByRole('button',{name:/View steps/}).click();
+  const plan = (await (await request.get(`/api/lab/test-plans/${id}`)).json()).plan;
+  expect(plan.steps).toHaveLength(20);
+  expect(plan.steps[19].name).toBe('Final read');
+  await saved.getByRole('button', { name: /View steps/ }).click();
   await expect(saved.locator('.plan-index-row')).toHaveCount(20);
-  await page.setViewportSize({width:390,height:844});
-  await saved.getByRole('button',{name:'Preview step 1: Record 1',exact:true}).click();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await saved.getByRole('button', { name: 'Preview step 1: Record 1', exact: true }).click();
   await expect(saved.getByRole('tooltip')).toContainText('timeout 2s');
-  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy();
-  await request.delete(`/api/lab/test-plans/${id}`,{data:{version:2}});
+  expect(
+    await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
+  ).toBeTruthy();
+  await request.delete(`/api/lab/test-plans/${id}`, { data: { version: 2 } });
 });

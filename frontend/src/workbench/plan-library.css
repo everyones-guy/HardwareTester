@@ -1,1 +1,235 @@
-.plan-index-row{position:relative;border:1px solid #dce6df;border-radius:7px;background:#fff;margin-bottom:9px;box-shadow:0 2px 0 #edf2ee}.plan-index-row.is-open{border-color:#8cb6a0}.plan-index-row.has-error{border-color:#c77661}.plan-index-header{display:flex;align-items:center;gap:3px}.workbench .plan-index-toggle{display:flex;align-items:center;gap:12px;background:none;border:0;color:var(--ink);padding:13px;width:100%;text-align:left;min-width:0}.plan-step-number{font:10px Consolas,monospace;color:#7b9688;background:#edf4ef;padding:7px;border-radius:4px}.plan-step-title{flex:1;min-width:0}.plan-step-title strong{display:block;font-size:12px;overflow-wrap:anywhere}.plan-step-title small{display:block;font-size:10px;margin-top:4px;color:var(--muted)}.plan-action-badge{font:9px Consolas,monospace;text-transform:uppercase;background:#eff3f7;border:1px solid #dfe7ee;border-radius:4px;padding:4px 6px;color:#698398;white-space:nowrap}.plan-action-badge.set{background:#faf4e7;color:#9d7d38;border-color:#efe2c6}.plan-action-badge.assert_range,.plan-action-badge.assert_equal{background:#edf6ef;color:#498164;border-color:#dbe9df}.plan-index-toggle>svg{width:13px!important;color:#8ca296}.is-open .plan-index-toggle>svg{transform:rotate(180deg)}.workbench .plan-preview-button{display:grid;place-items:center;margin-right:9px;padding:7px;border:0;background:transparent;color:#91a49b;border-radius:4px}.plan-preview-button:hover{background:#f0f5f1}.plan-step-tooltip{position:absolute;right:8px;top:calc(100% - 4px);max-width:calc(100% - 16px);width:300px;z-index:12;background:#214737;color:white;padding:16px;border-radius:7px;box-shadow:0 8px 22px #173b3030;font-size:12px;pointer-events:auto}.plan-step-tooltip b,.plan-step-tooltip span,.plan-step-tooltip small{display:block;overflow-wrap:anywhere}.plan-step-tooltip span{margin-top:8px;font-size:11px;line-height:1.7}.plan-step-tooltip small{margin-top:10px;font-size:10px;color:#bdcfc4}.plan-index-body{padding:18px;border-top:1px dashed #dce6df;background:#fbfdfb;border-radius:0 0 7px 7px}.workbench .plan-index-body .plan-step-editor{margin:0;padding:0;border:0}.workbench .plan-index-body .plan-step-editor legend{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}.workbench .plan-index-body .inline{margin-bottom:0}.workbench .plan-index-body label{min-width:0}.workbench .plan-index-body .inline>label{flex:1}.workbench .plan-step-error{margin:0;padding:0 14px 12px;font-size:11px;color:#a44c3c;line-height:1.6}.plan-index-controls{display:flex;flex-wrap:wrap;gap:14px;align-items:center;margin:20px 0 14px}.plan-index-controls>span{font:10px Consolas,monospace;color:#779181;margin-right:auto}.plan-index-controls .text-button{font-size:10px!important}.plan-editor-actions{display:flex;flex-wrap:wrap;gap:10px;margin:20px 0}.workbench .plan-library-panel{overflow:visible}.plan-library-panel .catalog-item{overflow:visible}.plan-library-panel .saved-step-index{margin:10px 0 18px}.saved-step-index .plan-index-body p{margin:0;font-size:11px}.saved-step-index .plan-index-toggle{padding:10px}.plan-library-panel .catalog-item .inline{margin-bottom:0}.plan-library-panel .catalog-item>h3{font-size:16px}@media(max-width:600px){.workbench .plan-library-panel{padding:18px}.plan-index-toggle{gap:8px!important;padding:11px!important}.plan-action-badge{display:none}.plan-index-body{padding:14px}.plan-index-controls{gap:12px}.plan-index-controls>span{flex-basis:100%}.plan-editor-actions .button{flex:1}.plan-preview-button{margin-right:3px!important}}
+.plan-index-row {
+  position: relative;
+  border: 1px solid #dce6df;
+  border-radius: 7px;
+  background: #fff;
+  margin-bottom: 9px;
+  box-shadow: 0 2px 0 #edf2ee;
+}
+.plan-index-row.is-open {
+  border-color: #8cb6a0;
+}
+.plan-index-row.has-error {
+  border-color: #c77661;
+}
+.plan-index-header {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+.workbench .plan-index-toggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: none;
+  border: 0;
+  color: var(--ink);
+  padding: 13px;
+  width: 100%;
+  text-align: left;
+  min-width: 0;
+}
+.plan-step-number {
+  font:
+    10px Consolas,
+    monospace;
+  color: #7b9688;
+  background: #edf4ef;
+  padding: 7px;
+  border-radius: 4px;
+}
+.plan-step-title {
+  flex: 1;
+  min-width: 0;
+}
+.plan-step-title strong {
+  display: block;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.plan-step-title small {
+  display: block;
+  font-size: 10px;
+  margin-top: 4px;
+  color: var(--muted);
+}
+.plan-action-badge {
+  font:
+    9px Consolas,
+    monospace;
+  text-transform: uppercase;
+  background: #eff3f7;
+  border: 1px solid #dfe7ee;
+  border-radius: 4px;
+  padding: 4px 6px;
+  color: #698398;
+  white-space: nowrap;
+}
+.plan-action-badge.set {
+  background: #faf4e7;
+  color: #9d7d38;
+  border-color: #efe2c6;
+}
+.plan-action-badge.assert_range,
+.plan-action-badge.assert_equal {
+  background: #edf6ef;
+  color: #498164;
+  border-color: #dbe9df;
+}
+.plan-index-toggle > svg {
+  width: 13px !important;
+  color: #8ca296;
+}
+.is-open .plan-index-toggle > svg {
+  transform: rotate(180deg);
+}
+.workbench .plan-preview-button {
+  display: grid;
+  place-items: center;
+  margin-right: 9px;
+  padding: 7px;
+  border: 0;
+  background: transparent;
+  color: #91a49b;
+  border-radius: 4px;
+}
+.plan-preview-button:hover {
+  background: #f0f5f1;
+}
+.plan-step-tooltip {
+  position: absolute;
+  right: 8px;
+  top: calc(100% - 4px);
+  max-width: calc(100% - 16px);
+  width: 300px;
+  z-index: 12;
+  background: #214737;
+  color: white;
+  padding: 16px;
+  border-radius: 7px;
+  box-shadow: 0 8px 22px #173b3030;
+  font-size: 12px;
+  pointer-events: auto;
+}
+.plan-step-tooltip b,
+.plan-step-tooltip span,
+.plan-step-tooltip small {
+  display: block;
+  overflow-wrap: anywhere;
+}
+.plan-step-tooltip span {
+  margin-top: 8px;
+  font-size: 11px;
+  line-height: 1.7;
+}
+.plan-step-tooltip small {
+  margin-top: 10px;
+  font-size: 10px;
+  color: #bdcfc4;
+}
+.plan-index-body {
+  padding: 18px;
+  border-top: 1px dashed #dce6df;
+  background: #fbfdfb;
+  border-radius: 0 0 7px 7px;
+}
+.workbench .plan-index-body .plan-step-editor {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.workbench .plan-index-body .plan-step-editor legend {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+.workbench .plan-index-body .inline {
+  margin-bottom: 0;
+}
+.workbench .plan-index-body label {
+  min-width: 0;
+}
+.workbench .plan-index-body .inline > label {
+  flex: 1;
+}
+.workbench .plan-step-error {
+  margin: 0;
+  padding: 0 14px 12px;
+  font-size: 11px;
+  color: #a44c3c;
+  line-height: 1.6;
+}
+.plan-index-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: center;
+  margin: 20px 0 14px;
+}
+.plan-index-controls > span {
+  font:
+    10px Consolas,
+    monospace;
+  color: #779181;
+  margin-right: auto;
+}
+.plan-index-controls .text-button {
+  font-size: 10px !important;
+}
+.plan-editor-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 20px 0;
+}
+.workbench .plan-library-panel {
+  overflow: visible;
+}
+.plan-library-panel .catalog-item {
+  overflow: visible;
+}
+.plan-library-panel .saved-step-index {
+  margin: 10px 0 18px;
+}
+.saved-step-index .plan-index-body p {
+  margin: 0;
+  font-size: 11px;
+}
+.saved-step-index .plan-index-toggle {
+  padding: 10px;
+}
+.plan-library-panel .catalog-item .inline {
+  margin-bottom: 0;
+}
+.plan-library-panel .catalog-item > h3 {
+  font-size: 16px;
+}
+@media (max-width: 600px) {
+  .workbench .plan-library-panel {
+    padding: 18px;
+  }
+  .plan-index-toggle {
+    gap: 8px !important;
+    padding: 11px !important;
+  }
+  .plan-action-badge {
+    display: none;
+  }
+  .plan-index-body {
+    padding: 14px;
+  }
+  .plan-index-controls {
+    gap: 12px;
+  }
+  .plan-index-controls > span {
+    flex-basis: 100%;
+  }
+  .plan-editor-actions .button {
+    flex: 1;
+  }
+  .plan-preview-button {
+    margin-right: 3px !important;
+  }
+}
