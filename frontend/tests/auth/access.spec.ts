@@ -16,6 +16,7 @@ test('admin onboarding, viewer enforcement, role changes, session revocation, an
   const users=await(await page.request.get('/api/auth/users')).json();
   let viewer=users.users.find((u:{username:string})=>u.username==='browser-viewer');
   if(!viewer){
+    await page.getByRole('button',{name:'New account',exact:true}).click();
     await page.getByLabel('New username',{exact:true}).fill('browser-viewer');
     await page.getByLabel('New user email').fill('viewer@example.com');
     await page.getByLabel('New user password').fill(password);
@@ -35,6 +36,7 @@ test('admin onboarding, viewer enforcement, role changes, session revocation, an
   const viewerAuth=await(await viewerPage.request.get('/api/auth/session')).json();
   expect((await viewerPage.request.post('/api/lab/connect-bench',{headers:{'X-CSRF-Token':viewerAuth.csrf},data:{}})).status()).toBe(403);
   await page.reload();
+  await page.getByRole('button',{name:'Account browser-viewer',exact:true}).click();
   await page.getByLabel('Role for browser-viewer').selectOption('operator');
   await expect(viewerPage.getByRole('button',{name:'Connect bench',exact:true})).toBeEnabled({timeout:10000});
   await viewerPage.getByRole('button',{name:'Connect bench',exact:true}).click();
@@ -42,7 +44,7 @@ test('admin onboarding, viewer enforcement, role changes, session revocation, an
   await expect(viewerPage.getByRole('button',{name:'Add device',exact:true})).toBeDisabled();
   await viewerPage.getByRole('link',{name:'Workspace settings',exact:true}).click();
   await expect(viewerPage.getByText(/Signed in as/)).toContainText('operator');
-  const account=page.locator('.catalog-item').filter({has:page.getByRole('heading',{name:'browser-viewer',exact:true})});
+  const account=page.locator('.directory-card').filter({has:page.getByRole('heading',{name:'browser-viewer',exact:true})});
   page.once('dialog',dialog=>dialog.accept());
   await account.getByRole('button',{name:'Disable',exact:true}).click();
   await expect(viewerPage.getByLabel('Sign in username')).toBeVisible({timeout:10000});
