@@ -7,14 +7,15 @@ export interface Device {
   id: string; name: string; kind: DeviceKind; protocol: 'MQTT' | 'Serial' | 'USB';
   endpoint: string; connected: boolean; fault: Fault; value: number; enabled: boolean;
 }
-export interface TestStep { name: string; status: 'pending' | 'passed' | 'failed'; detail: string; observed?: number; finishedAt?: string }
+export interface TestStep { name: string; status: 'pending' | 'passed' | 'failed'; detail: string; observed?: number; startedAt?:string; durationMs?:number; expected?:{min?:number;max?:number;value?:number;tolerance?:number}; finishedAt?: string }
 export interface TestRun {
+  restoration?:string; planId?:string;
   configuration?: { device: Device; peripherals: import('./backend').Peripheral[]; plan: { id: string; version: number; name: string; steps: (string | import('./backend').PlanStep)[] }; workspaceRevision: number };
   id: string; deviceId: string; deviceName: string; plan: string; startedAt: string;
   finishedAt?: string; status: 'running' | 'passed' | 'failed' | 'cancelled'; steps: TestStep[];
   originalValue?: number; originalEnabled?: boolean;
 }
-export interface LogEntry { id: string; time: string; level: 'info' | 'error' | 'success'; message: string }
+export interface LogEntry {deviceId?:string|null;runId?:string|null; id: string; time: string; level: 'info' | 'error' | 'success'; message: string }
 export interface LabState { version: 1; devices: Device[]; runs: TestRun[]; logs: LogEntry[]; revision?: number; peripherals?: import('./backend').Peripheral[]; blueprints?: import('./backend').Blueprint[]; testPlans?: import('./backend').SavedPlan[] }
 export const profiles: Record<DeviceKind, { name: string; protocol: Device['protocol']; endpoint: string; unit: string }> = {
   temperature: { name: 'Temperature sensor', protocol: 'MQTT', endpoint: 'sim://mqtt/lab/temperature', unit: '°C' },
@@ -41,7 +42,7 @@ export const planNames = { smoke: 'Connection & health', control: 'Control respo
 export type Plan = keyof typeof planNames;
 export function createRun(device: Device, plan: Plan): TestRun {
   const names = plan === 'smoke' ? ['Connection handshake', 'Read telemetry', 'Validate operating range'] : ['Connection handshake', 'Send control command', 'Verify response', 'Restore initial state'];
-  return { id: uid(), deviceId: device.id, deviceName: device.name, plan: planNames[plan], startedAt: new Date().toISOString(), status: 'running', originalValue: device.value, originalEnabled: device.enabled, steps: names.map(name => ({ name, status: 'pending', detail: 'Waiting to execute' })) };
+  return { id: uid(), deviceId: device.id, deviceName: device.name, plan: planNames[plan], planId:plan, configuration:{device:{...device},peripherals:[],plan:{id:plan,version:1,name:planNames[plan],steps:names},workspaceRevision:0}, startedAt: new Date().toISOString(), status: 'running', originalValue: device.value, originalEnabled: device.enabled, steps: names.map(name => ({ name, status: 'pending', detail: 'Waiting to execute' })) };
 }
 // Each check reads current state. A disconnect or fault during a run is observable.
 export function evaluateStep(device: Device | undefined, name: string): TestStep {

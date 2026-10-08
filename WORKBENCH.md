@@ -5,6 +5,14 @@ Hardware Tester now supports two execution engines through the same React UI:
 - **Browser simulator:** private localStorage state; no backend needed.
 - **Flask workspace:** shared SQLite persistence, server-side telemetry and tests, simulated devices, and optional serial/MQTT adapters.
 
+## Results and event logs
+
+Select **Inspect** in Results to open a report with a prominent verdict, passed-check count, total elapsed time, and output restoration status. Expand a step for recorded expected and actual values, a range/target marker, execution timing, and its explanation. Failed steps and validation checks open automatically. Charts show discrete recorded measurements, not continuous telemetry. Total elapsed time includes scheduling; step timing measures execution (including an explicit wait). Browser simulation steps execute immediately and report 0 ms. Older reports explicitly indicate unavailable fields.
+
+**Rerun test** uses the original target device and plan identifier with their current settings. It requires a connected target, operator/admin access, an available matching plan, and an idle engine. Changed device settings, attached peripherals, or saved-plan versions require confirmation. Removed devices/plans cannot be rerun. A rerun creates a separate history record. Exporting a run includes its original captured configuration and all recorded metrics.
+
+**View run logs** opens Activity log filtered to the report. Logs support text search, severity, device, run, local date/time bounds, and newest/oldest/errors-first sorting. Export logs exports all matching events in the selected order. Filters combine; clear filters restores the complete retained stream. New server events and simulated run events have structured device/run identifiers. Older events without identifiers remain available in the full stream but cannot be attributed reliably by those filters. The event history retains at most 250 entries.
+
 ## Connection diagnostics
 
 The selected device inspector includes **Test connection** for operators and admins. It reads telemetry through the existing adapter without sending an output command or opening a disconnected transport. Connect the device explicitly first. Checks are blocked while a test is running.

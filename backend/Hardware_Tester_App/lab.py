@@ -93,8 +93,8 @@ class Lab:
             self.worker = threading.Thread(target=self.work, name='hardware-lab', daemon=True)
             self.worker.start()
 
-    def log(self, message, level='info'):
-        self.state['logs'].insert(0, {'id': str(uuid.uuid4()), 'time': now(), 'level': level, 'message': message})
+    def log(self, message, level='info', device_id=None, run_id=None):
+        self.state['logs'].insert(0, {'id': str(uuid.uuid4()), 'time': now(), 'level': level, 'message': message, 'deviceId': device_id or (self.active['device']['id'] if self.active else None), 'runId': run_id or (self.active['run']['id'] if self.active else None)})
         del self.state['logs'][250:]
 
     def save(self):
@@ -130,7 +130,7 @@ class Lab:
             if d['adapter'] != 'simulation' and not self.allow_hardware:
                 raise LabError('Real hardware is disabled. Set LAB_ALLOW_HARDWARE=true before adding a real transport.', 403)
             self.state['devices'].append(d)
-            self.log(f"Added {d['name']} ({d['adapter']}).")
+            self.log(f"Added {d['name']} ({d['adapter']}).", device_id=d['id'])
             self.save()
             return d['id']
 
@@ -142,7 +142,7 @@ class Lab:
             self.disconnect(d)
             self.state['devices'].remove(d)
             self.state['peripherals'] = [p for p in self.state['peripherals'] if p['device_id'] != device_id]
-            self.log(f"Removed {d['name']}.")
+            self.log(f"Removed {d['name']}.", device_id=d['id'])
             self.save()
 
     def disconnect(self, d):
@@ -171,12 +171,12 @@ class Lab:
                 except Exception as error:
                     adapter.close()
                     d['lastError'] = str(error)[:300]
-                    self.log(f"{d['name']}: connection failed: {d['lastError']}", 'error')
+                    self.log(f"{d['name']}: connection failed: {d['lastError']}", 'error', device_id=d['id'])
                     self.save()
                     raise LabError(d['lastError'], 502) from error
             elif not connected:
                 self.disconnect(d)
-            self.log(f"{d['name']} {'connected' if connected else 'disconnected'} ({d['adapter']}).", 'success' if connected else 'info')
+            self.log(f"{d['name']} {'connected' if connected else 'disconnected'} ({d['adapter']}).", 'success' if connected else 'info', device_id=d['id'])
             self.save()
 
     def connect_bench(self):
@@ -194,7 +194,7 @@ class Lab:
                 raise LabError('Fault injection is only available for simulated devices.')
             d['fault'] = fault
             d['value'] = (95 if d['kind'] == 'temperature' else 150) if fault == 'out-of-range' else (24 if d['kind'] == 'temperature' else 0) if fault == 'none' else d['value']
-            self.log(f"{d['name']}: {fault} fault profile.", 'error' if fault != 'none' else 'info')
+            self.log(f"{d['name']}: {fault} fault profile.", 'error' if fault != 'none' else 'info', device_id=d['id'])
             self.save()
 
     def read(self, d):
@@ -225,7 +225,7 @@ class Lab:
                 d['lastError'] = detail
             check = {'checkedAt': checked_at, 'status': status, 'detail': detail, 'durationMs': round((time.monotonic() - started) * 1000), 'value': value}
             d['diagnostics'] = [check, *d.get('diagnostics', [])][:5]
-            self.log(f"{d['name']}: connection check {status}: {detail}", 'success' if status == 'passed' else 'error')
+            self.log(f"{d['name']}: connection check {status}: {detail}", 'success' if status == 'passed' else 'error', device_id=d['id'])
             self.save()
 
     def write(self, d, value):
@@ -250,10 +250,10 @@ class Lab:
                 self.write(d, value)
             except Exception as error:
                 d['lastError'] = str(error)[:300]
-                self.log(f"{d['name']}: command failed: {error}", 'error')
+                self.log(f"{d['name']}: command failed: {error}", 'error', device_id=d['id'])
                 self.save()
                 raise LabError(str(error), 502) from error
-            self.log(f"{d['name']}: sent {value}; observed {d['value']}.", 'success')
+            self.log(f"{d['name']}: sent {value}; observed {d['value']}.", 'success', device_id=d['id'])
             d['safetyWarning'] = None
             self.save()
 
@@ -285,22 +285,26 @@ class Lab:
             del self.state['runs'][100:]
             self.active = {'run': run, 'device': d, 'plan': plan, 'definition': definition, 'index': 0, 'changed': False}
             self.next_step = time.monotonic() + self.step_seconds
-            self.log(f"Started {run['plan']} on {d['name']} ({d['adapter']}).")
+            self.log(f"Started {run['plan']} on {d['name']} ({d['adapter']}).", device_id=d['id'])
             self.save()
             return run['id']
 
     def cleanup(self, active):
         if not active['changed']:
+            active['run']['restoration'] = 'not-needed'
             return
         d, run = active['device'], active['run']
         if d['adapter'] == 'simulation':
             d['value'], d['enabled'] = run['originalValue'], run['originalEnabled']
+            run['restoration'] = 'restored'
             return
         try:
             self.write(d, run['originalValue'])
             if self.read(d) != run['originalValue']:
                 raise TransportError('Restore acknowledgement did not match the original output.')
+            run['restoration'] = 'restored'
         except Exception as error:
+            run['restoration'] = 'failed'
             d['lastError'] = f'Output restoration failed; inspect hardware: {error}'[:300]
             d['safetyWarning'] = d['lastError']
             self.log(d['lastError'], 'error')
@@ -314,7 +318,7 @@ class Lab:
             self.cleanup(active)
             active['run'].update(status='cancelled', finishedAt=now())
             self.active = None
-            self.log('Test cancelled. Inspect cleanup results for output restoration.')
+            self.log('Test cancelled. Inspect cleanup results for output restoration.', device_id=active['device']['id'], run_id=active['run']['id'])
             self.save()
 
     def advance(self):
@@ -328,6 +332,12 @@ class Lab:
             if active.get('definition'):
                 self.advance_custom(active, step)
                 return
+            started = time.monotonic()
+            step['startedAt'] = now()
+            maximum = {'temperature': 50, 'valve': 100, 'relay': 1}[d['kind']]
+            if name == 'Validate operating range': step['expected'] = {'min': 0, 'max': maximum}
+            if name == 'Verify response': step['expected'] = {'value': {'temperature': 30, 'valve': 75, 'relay': 1}[d['kind']], 'tolerance': 0}
+            if name == 'Restore initial state': step['expected'] = {'value': run['originalValue'], 'tolerance': 0}
             try:
                 if name == 'Send control command':
                     if any(previous['status'] == 'failed' for previous in run['steps'][:active['index']]):
@@ -348,14 +358,15 @@ class Lab:
             except Exception as error:
                 step.update(status='failed', detail=str(error)[:300])
                 d['lastError'] = step['detail']
+            step['durationMs'] = round((time.monotonic() - started) * 1000)
             step['finishedAt'] = now()
-            self.log(f"{d['name']} · {step['detail']}", 'success' if step['status'] == 'passed' else 'error')
+            self.log(f"{d['name']} · {step['detail']}", 'success' if step['status'] == 'passed' else 'error', device_id=d['id'])
             active['index'] += 1
             if active['index'] == len(run['steps']):
                 self.cleanup(active)
                 run.update(status='passed' if all(s['status'] == 'passed' for s in run['steps']) else 'failed', finishedAt=now())
                 self.active = None
-                self.log(f"{d['name']}: test {run['status']}.", 'success' if run['status'] == 'passed' else 'error')
+                self.log(f"{d['name']}: test {run['status']}.", 'success' if run['status'] == 'passed' else 'error', d['id'], run['id'])
             self.save()
 
     def advance_custom(self, active, step):
@@ -368,6 +379,11 @@ class Lab:
         adapter = self.adapters.get(d['id'])
         previous_timeout = getattr(adapter, 'timeout', 2)
         started = time.monotonic()
+        step.setdefault('startedAt', now())
+        step_started = active.setdefault('step_started', started)
+        if action == 'assert_range': step['expected'] = {'min': operation['min'], 'max': operation['max']}
+        if action in ('assert_equal', 'set'): step['expected'] = {'value': operation['value'], 'tolerance': operation.get('tolerance', 0)}
+        if action == 'restore': step['expected'] = {'value': run['originalValue'], 'tolerance': 0}
         try:
             if action == 'wait':
                 deadline = active.setdefault('wait_until', started + operation['seconds'])
@@ -412,14 +428,16 @@ class Lab:
         finally:
             if adapter:
                 adapter.timeout = previous_timeout
+        step['durationMs'] = round((time.monotonic() - step_started) * 1000)
+        active.pop('step_started', None)
         step['finishedAt'] = now()
-        self.log(f"{d['name']} · {step['detail']}", 'success' if step['status'] == 'passed' else 'error')
+        self.log(f"{d['name']} · {step['detail']}", 'success' if step['status'] == 'passed' else 'error', device_id=d['id'])
         active['index'] += 1
         if active['index'] == len(run['steps']):
             self.cleanup(active)
             run.update(status='passed' if all(s['status'] == 'passed' for s in run['steps']) else 'failed', finishedAt=now())
             self.active = None
-            self.log(f"{d['name']}: test {run['status']}.", 'success' if run['status'] == 'passed' else 'error')
+            self.log(f"{d['name']}: test {run['status']}.", 'success' if run['status'] == 'passed' else 'error', d['id'], run['id'])
         self.save()
 
     def work(self):
@@ -439,7 +457,7 @@ class Lab:
                             except Exception as error:
                                 message = str(error)[:300]
                                 if d.get('lastError') != message:
-                                    self.log(f"{d['name']}: {message}", 'error')
+                                    self.log(f"{d['name']}: {message}", 'error', device_id=d['id'])
                                 d['lastError'] = message
                         self.save()
                     if self.active and time.monotonic() >= self.next_step:

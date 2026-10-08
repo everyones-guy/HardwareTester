@@ -1,7 +1,9 @@
+import RunReport from './RunReport';
+import EventLog from './EventLog';
 import ConnectionDiagnostics from './ConnectionDiagnostics';
 import UserManagement from './UserDirectory';
 import { useEffect, useRef, useState } from 'react';
-import { NavLink, Navigate, Route, Routes } from 'react-router-dom';
+import { NavLink, Navigate, Route, Routes, useNavigate } from 'react-router-dom';
 import { FiActivity, FiArrowUpRight, FiBox, FiCheck, FiChevronRight, FiCpu, FiDownload, FiGrid, FiLink, FiPlay, FiPlus, FiRadio, FiRefreshCw, FiSearch, FiSquare, FiTerminal, FiTrash2, FiX } from 'react-icons/fi';
 import { controlValue, createDevice, createRun, Device, DeviceKind, evaluateStep, Fault, finishRun, initialState, LabState, loadState, logEntry, Plan, planNames, profiles, saveState, telemetry, TestRun } from './simulator';
 import './workbench.css';
@@ -15,11 +17,12 @@ function download(name: string, value: unknown) {
   const url = URL.createObjectURL(new Blob([JSON.stringify(value, null, 2)], { type: 'application/json' }));
   const a = document.createElement('a'); a.href = url; a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
-const clock = (time: string) => new Date(time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 const reading = (device: Device) => device.kind === 'relay' ? (device.value ? 'ON' : 'OFF') : `${device.value}${profiles[device.kind].unit}`;
 function Status({ value }: { value: string }) { return <span className={`status status-${value.toLowerCase()}`}><i />{value}</span>; }
 
 export default function Workbench() {
+  const navigate=useNavigate();
+  const [logRun,setLogRun]=useState('');
   const [lab, setLab] = useState<LabState>(() => savedBackendMode() ? { version: 1, devices: [], runs: [], logs: [] } : loadState());
   const [serverMode, setServerMode] = useState(savedBackendMode);
   const [session,setSession]=useState<Session>();
@@ -47,7 +50,6 @@ export default function Workbench() {
   const [kind, setKind] = useState<DeviceKind>('temperature');
   const [plan, setPlan] = useState<string>('smoke');
   const [query, setQuery] = useState('');
-  const [logFilter, setLogFilter] = useState('all');
   const [viewRun, setViewRun] = useState('');
   const labRef = useRef(lab); labRef.current = lab;
   const activeRef = useRef<{ id: string; index: number; original: Device } | null>(null);
@@ -66,7 +68,7 @@ export default function Workbench() {
     const next = fn(previous); labRef.current = next; return next;
   });
   const announce = (message: string) => setNotice(message);
-  const record = (state: LabState, message: string, level: 'info' | 'error' | 'success' = 'info') => ({ ...state, logs: [logEntry(message, level), ...state.logs].slice(0, 250) });
+  const record = (state: LabState, message: string, level: 'info' | 'error' | 'success' = 'info', deviceId?:string, runId?:string) => ({ ...state, logs: [{...logEntry(message, level),deviceId,runId}, ...state.logs].slice(0, 250) });
 
   function acceptServer(result: ServerResponse) {
     if ((result.state.revision ?? 0) < revisionRef.current) return;
@@ -138,7 +140,7 @@ export default function Workbench() {
         target = { ...target, value: isRestore ? active.original.value : target.fault === 'out-of-range' ? telemetry(target, 0) : controlValue(target), enabled: isRestore ? active.original.enabled : true };
       }
       if (target && target.fault === 'out-of-range') target = { ...target, value: telemetry(target, 0) };
-      const result = evaluateStep(target, stepName);
+      const result = {...evaluateStep(target, stepName),startedAt:new Date().toISOString(),finishedAt:new Date().toISOString(),durationMs:0,observed:target?.connected&&target.fault!=='timeout'?target?.value:undefined,expected:stepName==='Validate operating range'?{min:0,max:target?.kind==='temperature'?50:target?.kind==='valve'?100:1}:stepName==='Verify response'&&target?{value:controlValue(target),tolerance:0}:stepName==='Restore initial state'?{value:active.original.value,tolerance:0}:undefined};
       let nextRun: TestRun = { ...run, steps: run.steps.map((s, i) => i === active.index ? result : s) };
       // A control response must match the command, as well as satisfy its operating range.
       if (stepName === 'Verify response' && result.status === 'passed' && target && target.value !== controlValue(target)) {
@@ -147,11 +149,11 @@ export default function Workbench() {
       active.index++;
       const done = active.index === run.steps.length;
       if (done) {
-        nextRun = finishRun(nextRun); activeRef.current = null;
+        nextRun = {...finishRun(nextRun),restoration:run.plan===planNames.control?'restored':'not-needed'}; activeRef.current = null;
         if (target && run.plan === planNames.control) target = { ...target, value: active.original.value, enabled: active.original.enabled };
       }
       const resolvedTarget = target;
-      update(previous => record({ ...previous, devices: previous.devices.map(d => d.id === run.deviceId && resolvedTarget ? resolvedTarget : d), runs: previous.runs.map(r => r.id === run.id ? nextRun : r) }, `${run.deviceName} · ${stepName}: ${nextRun.steps[active.index - 1].detail}`, nextRun.steps[active.index - 1].status === 'failed' ? 'error' : 'success'));
+      update(previous => record({ ...previous, devices: previous.devices.map(d => d.id === run.deviceId && resolvedTarget ? resolvedTarget : d), runs: previous.runs.map(r => r.id === run.id ? nextRun : r) }, `${run.deviceName} · ${stepName}: ${nextRun.steps[active.index - 1].detail}`, nextRun.steps[active.index - 1].status === 'failed' ? 'error' : 'success',run.deviceId,run.id));
       if (done) announce(`${run.deviceName}: ${nextRun.status}.`);
     }, 750);
     return () => clearInterval(timer);
@@ -166,14 +168,14 @@ export default function Workbench() {
     const maximum = device.kind === 'temperature' ? 50 : device.kind === 'valve' ? 100 : 1;
     const status = !response ? 'failed' as const : value! >= 0 && value! <= maximum ? 'passed' as const : 'warning' as const;
     const detail = !device.connected ? 'Device disconnected. Connect the device and retry.' : !response ? 'Simulated transport timeout: no acknowledgement received.' : status === 'warning' ? `Transport responded, but reading ${value} is outside expected range 0–${maximum}.` : `Received ${value}; within expected range 0–${maximum}.`;
-    update(state => record({...state,devices:state.devices.map(d=>d.id===device.id?{...d,value:value??d.value,lastError:response?null:detail,lastContactAt:response?checkedAt:d.lastContactAt,diagnostics:[{checkedAt,status,detail,durationMs:0,value},...(d.diagnostics??[])].slice(0,5)}:d)},`${device.name}: connection check ${status}: ${detail}`,status==='passed'?'success':'error'));
+    update(state => record({...state,devices:state.devices.map(d=>d.id===device.id?{...d,value:value??d.value,lastError:response?null:detail,lastContactAt:response?checkedAt:d.lastContactAt,diagnostics:[{checkedAt,status,detail,durationMs:0,value},...(d.diagnostics??[])].slice(0,5)}:d)},`${device.name}: connection check ${status}: ${detail}`,status==='passed'?'success':'error',device.id));
   }
   function connect(id: string) {
     if (serverMode) { void serverAction(`/devices/${id}/connection`, 'POST', { connected: !lab.devices.find(d => d.id === id)?.connected }); return; }
     update(state => {
       const target = state.devices.find(d => d.id === id)!;
       const next = !target.connected;
-      return record({ ...state, devices: state.devices.map(d => d.id === id ? { ...d, connected: next } : d) }, `${target.name} ${next ? 'connected to' : 'disconnected from'} ${target.endpoint}.`, next ? 'success' : 'info');
+      return record({ ...state, devices: state.devices.map(d => d.id === id ? { ...d, connected: next } : d) }, `${target.name} ${next ? 'connected to' : 'disconnected from'} ${target.endpoint}.`, next ? 'success' : 'info',target.id);
     });
   }
   function connectAll() {
@@ -184,27 +186,28 @@ export default function Workbench() {
   function setFault(fault: Fault) {
     if (!device) return;
     if (serverMode) { void serverAction(`/devices/${selected}/fault`, 'POST', { fault }); return; }
-    update(state => record({ ...state, devices: state.devices.map(d => d.id === selected ? { ...d, fault, value: fault === 'out-of-range' ? telemetry({ ...d, fault }, 0) : fault === 'none' ? d.kind === 'temperature' ? 24 : 0 : d.value } : d) }, `${device.name}: ${fault === 'none' ? 'fault cleared' : `injected ${fault} fault`}.`, fault === 'none' ? 'info' : 'error'));
+    update(state => record({ ...state, devices: state.devices.map(d => d.id === selected ? { ...d, fault, value: fault === 'out-of-range' ? telemetry({ ...d, fault }, 0) : fault === 'none' ? d.kind === 'temperature' ? 24 : 0 : d.value } : d) }, `${device.name}: ${fault === 'none' ? 'fault cleared' : `injected ${fault} fault`}.`, fault === 'none' ? 'info' : 'error',device.id));
   }
   function command(value: number) {
     if (!device?.connected || activeRun) return;
     if (serverMode) { void serverAction(`/devices/${selected}/command`, 'POST', { value }); return; }
-    if (device.fault === 'timeout') { update(s => record(s, `${device.name}: command timed out.`, 'error')); announce('Command timed out. Clear the injected fault to retry.'); return; }
-    update(state => record({ ...state, devices: state.devices.map(d => d.id === selected ? { ...d, value: d.fault === 'out-of-range' ? telemetry(d, 0) : value, enabled: value > 0 } : d) }, `${device.name}: sent ${value}${profiles[device.kind].unit} command.`, 'success'));
+    if (device.fault === 'timeout') { update(s => record(s, `${device.name}: command timed out.`, 'error',device.id)); announce('Command timed out. Clear the injected fault to retry.'); return; }
+    update(state => record({ ...state, devices: state.devices.map(d => d.id === selected ? { ...d, value: d.fault === 'out-of-range' ? telemetry(d, 0) : value, enabled: value > 0 } : d) }, `${device.name}: sent ${value}${profiles[device.kind].unit} command.`, 'success',device.id));
   }
-  function start() {
-    if (!device?.connected || activeRef.current) return;
-    if (serverMode) { void serverAction('/runs', 'POST', { deviceId: selected, plan }).then(r => { if (r?.runId) setViewRun(r.runId); }); return; }
-    const run = createRun(device, plan as Plan);
-    activeRef.current = { id: run.id, index: 0, original: { ...device } };
+  function start(target=device, chosenPlan=plan) {
+    if (!target?.connected || activeRef.current || activeRun || !canOperate || busy) return;
+    setSelected(target.id);setPlan(chosenPlan);
+    if (serverMode) { void serverAction('/runs', 'POST', { deviceId: target.id, plan:chosenPlan }).then(r => { if (r?.runId) setViewRun(r.runId); }); return; }
+    const run = createRun(target, chosenPlan as Plan);
+    activeRef.current = { id: run.id, index: 0, original: { ...target } };
     setViewRun(run.id);
-    update(state => record({ ...state, runs: [run, ...state.runs].slice(0, 100) }, `Started ${run.plan} on ${device.name}.`));
+    update(state => record({ ...state, runs: [run, ...state.runs].slice(0, 100) }, `Started ${run.plan} on ${target.name}.`,'info',target.id,run.id));
   }
   function cancel() {
     if (serverMode) { void serverAction('/runs/cancel'); return; }
     const active = activeRef.current; if (!active) return;
     activeRef.current = null;
-    update(state => record({ ...state, devices: state.devices.map(d => d.id === active.original.id ? { ...d, value: active.original.value, enabled: active.original.enabled } : d), runs: state.runs.map(r => r.id === active.id ? finishRun(r, true) : r) }, 'Run cancelled. Original control state restored.'));
+    update(state => record({ ...state, devices: state.devices.map(d => d.id === active.original.id ? { ...d, value: active.original.value, enabled: active.original.enabled } : d), runs: state.runs.map(r => r.id === active.id ? {...finishRun(r, true),restoration:r.plan===planNames.control?'restored':'not-needed'} : r) }, 'Run cancelled. Original control state restored.','info',active.original.id,active.id));
     announce('Test cancelled.');
   }
   async function addDevice(event: React.FormEvent) {
@@ -237,11 +240,11 @@ export default function Workbench() {
     <button className="text-button danger" disabled={!canAdmin || !!activeRun || busy} onClick={removeDevice}><FiTrash2 /> Remove device</button>
   </> : <p className="empty">Choose a device from your bench to view telemetry and controls.</p>}</section>;
   const runner = <section className="panel runner"><div className="panel-heading"><div><span className="eyebrow">TEST RUNNER</span><h2>Validate your connection</h2></div><span className="subtle-label">{activeRun ? 'RUNNING' : 'READY'}</span></div>
-    <div className="run-controls"><label>Target device<select value={selected} disabled={!!activeRun} onChange={e => setSelected(e.target.value)}>{!lab.devices.length && <option value="">No devices available</option>}{lab.devices.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}</select></label><label>Test plan<select aria-label="Test plan" value={plan} disabled={!!activeRun} onChange={e => setPlan(e.target.value)}>{Object.entries(planNames).map(([id, label]) => <option key={id} value={id}>{label}</option>)}{serverMode && lab.testPlans?.filter(p => p.kind === device?.kind).map(p => <option key={p.id} value={p.id}>{p.name} · v{p.version}</option>)}</select></label><button className={`button ${activeRun ? 'secondary' : 'primary'}`} disabled={!canOperate || busy || (serverMode && !serverReady) || (!activeRun && !device?.connected)} onClick={activeRun ? cancel : start}>{activeRun ? <FiSquare /> : <FiPlay />}{activeRun ? 'Stop test' : 'Run test'}</button></div>
+    <div className="run-controls"><label>Target device<select value={selected} disabled={!!activeRun} onChange={e => setSelected(e.target.value)}>{!lab.devices.length && <option value="">No devices available</option>}{lab.devices.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}</select></label><label>Test plan<select aria-label="Test plan" value={plan} disabled={!!activeRun} onChange={e => setPlan(e.target.value)}>{Object.entries(planNames).map(([id, label]) => <option key={id} value={id}>{label}</option>)}{serverMode && lab.testPlans?.filter(p => p.kind === device?.kind).map(p => <option key={p.id} value={p.id}>{p.name} · v{p.version}</option>)}</select></label><button className={`button ${activeRun ? 'secondary' : 'primary'}`} disabled={!canOperate || busy || (serverMode && !serverReady) || (!activeRun && !device?.connected)} onClick={activeRun ? cancel : ()=>start()}>{activeRun ? <FiSquare /> : <FiPlay />}{activeRun ? 'Stop test' : 'Run test'}</button></div>
     {!device?.connected && !activeRun && <p className="helper">Connect the selected device before running a test.</p>}
     {currentRun ? <div className="steps"><div className="result-heading"><strong>{currentRun.plan} <span className="muted">/ {currentRun.deviceName}</span></strong><Status value={currentRun.status} /></div>{currentRun.steps.map((step, i) => <div className={`step step-${step.status}`} key={i}><span className="step-icon">{step.status === 'passed' ? <FiCheck /> : step.status === 'failed' ? <FiX /> : i + 1}</span><div><strong>{step.name}</strong><p>{step.detail}</p></div><span className="step-state">{step.status}</span></div>)}</div> : <div className="runner-empty"><span><FiActivity /></span><strong>Your first test starts here</strong><p>Check the handshake, read telemetry, and validate<br />the operating range of a virtual device.</p></div>}
   </section>;
-  const logPanel = (full = false) => <section className="panel log-panel"><div className="panel-heading"><div><span className="eyebrow">EVENT STREAM</span><h2>Activity log</h2></div><div className="inline"><select aria-label="Filter logs" value={logFilter} onChange={e => setLogFilter(e.target.value)}><option value="all">All events</option><option value="error">Errors</option><option value="success">Successes</option><option value="info">Info</option></select><button className="icon-button" aria-label="Export logs" onClick={() => download('hardware-tester-logs.json', lab.logs)}><FiDownload /></button></div></div><div className={`log-stream ${full ? 'tall' : ''}`}>{lab.logs.filter(l => logFilter === 'all' || l.level === logFilter).slice(0, full ? 250 : 12).map(l => <div className="log-line" key={l.id}><time>{clock(l.time)}</time><span className={`log-level ${l.level}`}>{l.level}</span><span>{l.message}</span></div>)}{!lab.logs.filter(l => logFilter === 'all' || l.level === logFilter).length && <p className="empty">{lab.logs.length ? 'No events match this filter.' : 'Waiting for activity. Connect a device to begin.'}</p>}</div></section>;
+  const logPanel = (full = false) => <EventLog key={full?logRun:'preview'} lab={lab} full={full} selectedRun={logRun} onExport={logs=>download('hardware-tester-logs.json',logs)}/>;
   const history = <section className="panel"><div className="panel-heading"><div><span className="eyebrow">RUN HISTORY</span><h2>Results you can inspect</h2></div><button className="button secondary" disabled={!lab.runs.length || !!activeRun} onClick={() => download('hardware-tester-results.json', { version: 1, mode: serverMode ? 'server' : 'simulation', exportedAt: new Date().toISOString(), runs: lab.runs })}><FiDownload /> Export results</button></div><div className="table-wrap"><table><thead><tr><th>Device / plan</th><th>Started</th><th>Checks passed</th><th>Result</th><th /></tr></thead><tbody>{lab.runs.map(r => <tr key={r.id}><td><strong>{r.deviceName}</strong><span className="table-sub">{r.plan}</span></td><td>{new Date(r.startedAt).toLocaleString()}</td><td>{r.steps.filter(s => s.status === 'passed').length} / {r.steps.length}</td><td><Status value={r.status} /></td><td><button className="text-button" onClick={() => setViewRun(r.id)}>Inspect <FiArrowUpRight /></button></td></tr>)}</tbody></table>{!lab.runs.length && <p className="empty">No results yet. Run a test to build your history.</p>}</div></section>;
 
   if(serverMode && (!session || (session.enabled && !session.user))) return <main className="workbench auth-screen"><h1>HardwareTester</h1><SignIn session={session} error={authError} onSession={s=>{revisionRef.current=-1;setSession(s);}}/><button className="button secondary" onClick={()=>void refreshSession()}>Retry connection</button><button className="button secondary" onClick={()=>void chooseEngine(false)}>Use private browser simulator</button><BuildInfo/></main>;
@@ -254,7 +257,7 @@ export default function Workbench() {
           <div className="workspace-grid"><div><div className="section-heading"><h2>Device bench <span>{lab.devices.length}</span></h2><NavLink to="/devices">Manage devices <FiArrowUpRight /></NavLink></div>{deviceCards()}{runner}</div>{inspector}</div>{logPanel()}</>} />
         <Route path="/devices" element={<><div className="page-heading"><div><span className="eyebrow">VIRTUAL HARDWARE</span><h1>Device bench</h1><p>Explore simulated transports and control device behavior.</p></div><button className="button primary" disabled={!canAdmin || lab.devices.length >= 100} onClick={() => setModal(true)}><FiPlus /> Add device</button></div><div className="toolbar"><label className="search"><FiSearch /><input aria-label="Search devices" placeholder="Search by name or transport…" value={query} onChange={e => setQuery(e.target.value)} /></label><button className="button secondary" disabled={!canOperate || busy || (serverMode && !serverReady) || !lab.devices.length} onClick={connectAll}><FiLink /> Connect all</button></div><div className="workspace-grid"><div>{deviceCards(true)}</div>{inspector}</div></>} />
         <Route path="/tests" element={<><div className="page-heading"><div><span className="eyebrow">EXECUTE & OBSERVE</span><h1>Test bench</h1><p>Run reproducible checks. Inject a fault to watch them fail.</p></div></div><div className="workspace-grid"><div>{runner}{logPanel()}</div>{inspector}</div></>} />
-        <Route path="/results" element={<><div className="page-heading"><div><span className="eyebrow">VALIDATION RECORD</span><h1>Test results</h1><p>Inspect every check and export a portable JSON report.</p></div></div>{history}{currentRun && runner}{currentRun?.configuration && <section className="panel settings-panel" style={{marginTop:24}}><h2>Configuration used for this run</h2><p>{currentRun.configuration.plan.name} · version {currentRun.configuration.plan.version} · {currentRun.configuration.device.adapter || 'simulation'} · {currentRun.configuration.device.endpoint}</p><details><summary>View saved plan and device settings</summary><pre className="run-configuration">{JSON.stringify(currentRun.configuration, null, 2)}</pre></details><button className="button secondary" onClick={() => download('hardware-tester-run.json', currentRun)}>Export this run</button></section>}</>} />
+        <Route path="/results" element={<><div className="page-heading"><div><span className="eyebrow">VALIDATION RECORD</span><h1>Test results</h1><p>Inspect every check and export a portable JSON report.</p></div></div>{history}{currentRun && <RunReport run={currentRun} lab={lab} enabled={canOperate&&!busy&&!activeRun&&(!serverMode||serverReady)} onExport={()=>download('hardware-tester-run.json',currentRun)} onLogs={()=>{setLogRun(currentRun.id);navigate('/logs');}} onRerun={(target,id)=>start(target,id)}/>}</>} />
         <Route path="/plans" element={<TestPlanLibrary lab={lab} enabled={canAdmin && serverMode && serverReady && !busy && !activeRun} action={serverAction} />} /><Route path="/blueprints" element={<BlueprintLibrary lab={lab} enabled={canAdmin && serverMode && serverReady && !busy && !activeRun} action={serverAction} />} /><Route path="/logs" element={<><div className="page-heading"><div><span className="eyebrow">TRANSPORT & TEST EVENTS</span><h1>Activity log</h1><p>The latest 250 events from your simulation workspace.</p></div></div>{logPanel(true)}</>} />
         <Route path="/settings" element={<><div className="page-heading"><div><span className="eyebrow">WORKSPACE</span><h1>Lab settings</h1><p>A self-contained environment for developing your hardware test flows.</p></div></div><section className="panel settings-panel"><h2>Account and permissions</h2>{session?.enabled ? session.user ? <><p>Signed in as <strong>{session.user.username}</strong> · {session.user.role}</p><button className="button secondary" onClick={async()=>{try{await authRequest('/logout','POST',{});if(serverMode)setLab({version:1,devices:[],runs:[],logs:[]});revisionRef.current=-1;await refreshSession();}catch(e){announce(e instanceof Error?e.message:'Sign out failed.');}}}>Sign out</button></> : <SignIn session={session} onSession={setSession}/> : <p>Local development mode: account enforcement is disabled on this backend.</p>}<h2>Execution engine</h2><p>Browser mode keeps a private local bench. Flask mode uses shared SQLite state and continues tests when you close or reload a tab. Each workspace is separate.</p><label>Backend API token (optional)<input type="password" value={apiToken} onChange={e => { setApiToken(e.target.value); sessionStorage.setItem('hardware-tester.api-token', e.target.value); }} autoComplete="off" /></label><div className="inline" style={{marginTop: 16}}><button className="button secondary" disabled={serverMode || !!activeRun || busy} onClick={() => chooseEngine(true)}>Connect Flask backend</button><button className="button secondary" disabled={!serverMode || !!activeRun || busy} onClick={() => chooseEngine(false)}>Use browser simulator</button><Status value={serverMode ? serverReady ? 'connected' : 'offline' : 'offline'} /></div><h2>Simulation engine</h2><p>Simulated MQTT, Serial, and USB devices run in the selected engine. Real serial and MQTT adapters are available in Flask mode when the backend explicitly enables hardware.</p><dl><div><dt>Persistence</dt><dd>{serverMode ? 'Device configurations, runs, and logs are stored in SQLite on the server.' : 'Device configurations and the last 100 test runs stay in this browser.'}</dd></div><div><dt>Reconnect behavior</dt><dd>{serverMode ? 'Tests survive tab reloads. Server restarts cancel interrupted tests and disconnect transports.' : 'Devices disconnect on reload; interrupted tests are marked cancelled.'}</dd></div><div><dt>Fault profiles</dt><dd>Transport timeout and out-of-range telemetry.</dd></div></dl><h2>Workspace data</h2><p>Export your complete bench before resetting. Reset removes devices, peripherals, history, and logs. Saved server blueprints and test plans remain in their libraries.</p><div className="inline"><button className="button secondary" onClick={() => download('hardware-tester-workspace.json', lab)}><FiDownload /> Export workspace</button><button className="button secondary danger" disabled={!canAdmin || !!activeRun} onClick={() => { if (window.confirm('Reset the selected workspace? This removes devices, test history, and logs for this workspace.')) { if (serverMode) { void serverAction('/reset'); return; } const next = initialState(); update(() => next); setSelected(next.devices[0].id); setViewRun(''); announce('Workspace reset.'); } }}><FiRefreshCw /> Reset workspace</button></div><h2>Existing dashboards</h2><p>The original dashboards are retained for reference. Their older API contract is separate from this workbench backend and still needs migration.</p><a className="text-button" href="/legacy/emulator">Open original dashboards <FiArrowUpRight /></a></section><BuildInfo/>{session?.user?.role==='admin'&&<UserManagement currentUserId={session.user.id} onChange={()=>void refreshSession()}/>}</>} />
         <Route path="*" element={<div className="empty"><h1>Page not found</h1><NavLink to="/overview">Return to the workbench</NavLink></div>} />
