@@ -5,6 +5,12 @@ Hardware Tester now supports two execution engines through the same React UI:
 - **Browser simulator:** private localStorage state; no backend needed.
 - **Flask workspace:** shared SQLite persistence, server-side telemetry and tests, simulated devices, and optional serial/MQTT adapters.
 
+## Compact plan editing
+
+The plan editor shows numbered action rows. Open a row to edit it, or use **Expand all / Collapse all**. Loading or duplicating a saved plan starts with its editors collapsed; newly added steps open automatically. The summary shows configured step count and explicit wait time, not an estimated run duration.
+
+The information button previews values, ranges, tolerances, and response timeouts on hover, keyboard focus, or tap. Escape dismisses the preview. Validation messages remain visible when an invalid step is collapsed and prevent saving until corrected. Reordering and removal preserve the edited steps and track which editors are open. Saved library cards hide their step indexes until **View steps** is selected; each saved row can be expanded or previewed independently.
+
 ## Results and event logs
 
 Select **Inspect** in Results to open a report with a prominent verdict, passed-check count, total elapsed time, and output restoration status. Expand a step for recorded expected and actual values, a range/target marker, execution timing, and its explanation. Failed steps and validation checks open automatically. Charts show discrete recorded measurements, not continuous telemetry. Total elapsed time includes scheduling; step timing measures execution (including an explicit wait). Browser simulation steps execute immediately and report 0 ms. Older reports explicitly indicate unavailable fields.
