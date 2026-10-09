@@ -37,7 +37,9 @@ test('blueprint import, apply, and peripheral editing work through Flask', async
   await page.getByRole('button', { name: 'Save current bench', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Captured bench', exact: true })).toBeVisible();
   await page.reload();
-  await expect(page.getByRole('heading', { name: 'Controller demo', exact: true })).toBeVisible();
+  await expect(
+    page.getByRole('button', { name: 'Blueprint Controller demo', exact: true }),
+  ).toBeVisible();
   const final = (await (await request.get('/api/lab')).json()).state;
   expect(final.devices).toHaveLength(4);
   expect(final.peripherals[0].properties.threshold.max).toBe(10);

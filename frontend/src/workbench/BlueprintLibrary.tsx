@@ -1,3 +1,4 @@
+import SavedBlueprintLibrary, { BlueprintPreview } from './SavedBlueprintLibrary';
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { Blueprint, ServerResponse } from './backend';
@@ -14,6 +15,12 @@ export default function BlueprintLibrary({
 }) {
   const [source, setSource] = useState('');
   const [preview, setPreview] = useState<Blueprint>();
+  const [revealId, setRevealId] = useState('');
+  const [revealVersion, setRevealVersion] = useState(0);
+  function reveal(result: ServerResponse) {
+    setRevealId(result.blueprintId ?? '');
+    setRevealVersion((n) => n + 1);
+  }
   const [name, setName] = useState('My bench');
   const [error, setError] = useState('');
   const [deviceId, setDeviceId] = useState('');
@@ -60,7 +67,7 @@ export default function BlueprintLibrary({
           {error}
         </p>
       )}
-      <div className="catalog-grid">
+      <div className="blueprint-management-grid">
         <section className="panel settings-panel">
           <h2>Import controller blueprint</h2>
           <p>
@@ -117,11 +124,7 @@ export default function BlueprintLibrary({
               <h3>
                 {preview.name} · {preview.devices.length} devices
               </h3>
-              <ul>
-                {preview.warnings.map((w, i) => (
-                  <li key={i}>{w}</li>
-                ))}
-              </ul>
+              <BlueprintPreview blueprint={preview} showNotes />
               <button
                 className="button primary"
                 disabled={!enabled}
@@ -131,6 +134,7 @@ export default function BlueprintLibrary({
                       configuration: JSON.parse(source),
                     });
                     if (result) {
+                      reveal(result);
                       setSource('');
                       setPreview(undefined);
                     }
@@ -158,57 +162,28 @@ export default function BlueprintLibrary({
           <button
             className="button secondary"
             disabled={!enabled || !lab.devices.length || !name.trim()}
-            onClick={() => void action('/blueprints/capture', 'POST', { name })}
+            onClick={async () => {
+              const result = await action('/blueprints/capture', 'POST', { name });
+              if (result) reveal(result);
+            }}
           >
             Save current bench
           </button>
         </section>
-        <section className="panel settings-panel">
-          <h2>Saved blueprints</h2>
-          {!lab.blueprints?.length && (
-            <p className="empty">Import a configuration or capture your current bench.</p>
-          )}
-          {lab.blueprints?.map((b) => (
-            <article className="catalog-item" key={b.id}>
-              <h3>{b.name}</h3>
-              <p>{b.description || `${b.devices.length} simulated devices`}</p>
-              <div className="inline">
-                <button
-                  className="button primary"
-                  disabled={!enabled}
-                  onClick={() => void action(`/blueprints/${b.id}/apply`)}
-                >
-                  Add to bench
-                </button>
-                <button className="button secondary" onClick={() => exportBlueprint(b)}>
-                  Export JSON
-                </button>
-                <button
-                  className="button secondary danger"
-                  disabled={!enabled}
-                  onClick={() => {
-                    if (
-                      confirm(
-                        `Delete saved blueprint ${b.name}? Devices already added stay on the bench.`,
-                      )
-                    )
-                      void action(`/blueprints/${b.id}`, 'DELETE');
-                  }}
-                >
-                  Delete
-                </button>
-              </div>
-              <details>
-                <summary>Import notes</summary>
-                <ul>
-                  {b.warnings.map((w, i) => (
-                    <li key={i}>{w}</li>
-                  ))}
-                </ul>
-              </details>
-            </article>
-          ))}
-        </section>
+        <SavedBlueprintLibrary
+          blueprints={lab.blueprints ?? []}
+          enabled={enabled}
+          revealId={revealId}
+          revealVersion={revealVersion}
+          onApply={(b) => void action(`/blueprints/${b.id}/apply`)}
+          onExport={exportBlueprint}
+          onDelete={(b) => {
+            if (
+              confirm(`Delete saved blueprint ${b.name}? Devices already added stay on the bench.`)
+            )
+              void action(`/blueprints/${b.id}`, 'DELETE');
+          }}
+        />
       </div>
       <section className="panel settings-panel">
         <h2>Peripheral settings</h2>

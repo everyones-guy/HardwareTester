@@ -1,0 +1,637 @@
+.blueprint-catalog {
+  min-width: 0;
+}
+
+.blueprint-catalog > header {
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  gap: 15px;
+
+  padding: 25px;
+}
+
+.blueprint-catalog header p {
+  font-size: 12px;
+
+  color: var(--muted);
+
+  margin-top: 8px;
+
+  line-height: 1.8;
+}
+
+.blueprint-catalog-count {
+  font:
+    10px Consolas,
+    monospace;
+
+  white-space: nowrap;
+
+  color: #769182;
+
+  background: #eef5f0;
+
+  border: 1px solid #dce8df;
+
+  border-radius: 5px;
+
+  padding: 8px;
+}
+
+.blueprint-catalog-toolbar {
+  display: flex;
+
+  flex-wrap: wrap;
+
+  gap: 12px;
+
+  padding: 20px 25px;
+
+  border-top: 1px solid var(--line);
+
+  background: #fafcfb;
+}
+
+.blueprint-catalog-toolbar > label {
+  flex: 1;
+
+  min-width: 110px;
+
+  font-size: 10px;
+}
+
+.blueprint-catalog-toolbar .blueprint-catalog-search {
+  flex-basis: 100%;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+  border: 1px solid var(--line);
+
+  background: white;
+
+  border-radius: 6px;
+
+  padding: 0 12px;
+}
+
+.workbench .blueprint-catalog .blueprint-catalog-search input {
+  border: 0;
+
+  margin: 0;
+
+  padding: 11px 0;
+
+  background: transparent;
+
+  min-width: 0;
+}
+
+.blueprint-catalog-search svg {
+  color: var(--muted);
+
+  width: 15px;
+}
+
+.blueprint-catalog-tabs {
+  display: flex;
+
+  gap: 6px;
+
+  padding: 0 25px 16px;
+
+  background: #fafcfb;
+
+  flex-wrap: wrap;
+}
+
+.blueprint-catalog-tabs button {
+  background: white;
+
+  border: 1px solid var(--line);
+
+  border-radius: 5px;
+
+  padding: 8px 12px;
+
+  font-size: 11px;
+
+  color: #7d9185;
+}
+
+.blueprint-catalog-tabs button[aria-pressed='true'] {
+  background: #e8f2ec;
+
+  color: #246148;
+
+  border-color: #bcd8c9;
+}
+
+.blueprint-catalog-tabs span {
+  font:
+    9px Consolas,
+    monospace;
+
+  margin-left: 7px;
+}
+
+.blueprint-catalog-tray {
+  padding: 20px 25px;
+
+  background: linear-gradient(135deg, #eef3ef, #e7ede9);
+
+  border-block: 1px solid #dbe5de;
+}
+
+.blueprint-catalog-card {
+  margin-bottom: 12px;
+
+  border: 1px solid #d4e1d8;
+
+  border-radius: 7px;
+
+  background: white;
+
+  box-shadow: 0 3px 0 -1px #d6e1d9;
+}
+
+.blueprint-catalog-card:last-child {
+  margin-bottom: 0;
+}
+
+.blueprint-catalog-card.expanded {
+  border-color: #7dab94;
+}
+
+.workbench .blueprint-card-toggle {
+  display: flex;
+
+  align-items: center;
+
+  gap: 13px;
+
+  text-align: left;
+
+  width: 100%;
+
+  border: 0;
+
+  background: transparent;
+
+  padding: 17px;
+
+  color: var(--ink);
+
+  border-radius: 7px;
+}
+
+.blueprint-card-toggle:hover {
+  background: #f8fbf9;
+}
+
+.blueprint-catalog-icon {
+  width: 34px;
+
+  height: 38px;
+
+  display: grid;
+
+  place-items: center;
+
+  flex-shrink: 0;
+
+  border: 1px solid #dce6ef;
+
+  background: #eef3f8;
+
+  color: #627f99;
+
+  border-radius: 5px;
+
+  font:
+    12px Consolas,
+    monospace;
+}
+
+.blueprint-card-name {
+  min-width: 0;
+
+  flex: 1;
+}
+
+.blueprint-card-name strong {
+  display: block;
+
+  font-size: 12px;
+
+  overflow-wrap: anywhere;
+}
+
+.blueprint-card-name small {
+  display: block;
+
+  font-size: 10px;
+
+  color: var(--muted);
+
+  margin-top: 6px;
+}
+
+.blueprint-card-toggle > svg {
+  width: 13px;
+
+  color: #91a79b;
+
+  flex-shrink: 0;
+}
+
+.expanded .blueprint-card-toggle > svg {
+  transform: rotate(180deg);
+}
+
+.plan-in-use {
+  font:
+    9px Consolas,
+    monospace;
+
+  background: #eef6f0;
+
+  color: #468065;
+
+  border-radius: 4px;
+
+  padding: 5px;
+
+  white-space: nowrap;
+}
+
+.blueprint-lineup-strip {
+  display: flex;
+
+  gap: 3px;
+
+  height: 5px;
+
+  margin: 0 17px 15px;
+
+  overflow: hidden;
+
+  border-radius: 4px;
+}
+
+.blueprint-lineup-strip i {
+  min-width: 3px;
+
+  flex-basis: 0;
+}
+
+.blueprint-lineup-legend {
+  display: flex;
+
+  gap: 15px;
+
+  flex-wrap: wrap;
+
+  padding: 12px 25px;
+
+  font-size: 9px;
+
+  color: #7f9587;
+}
+
+.blueprint-lineup-legend span {
+  display: flex;
+
+  align-items: center;
+
+  gap: 5px;
+}
+
+.blueprint-lineup-legend i {
+  width: 6px;
+
+  height: 6px;
+
+  border-radius: 2px;
+}
+
+.blueprint-card-details {
+  border-top: 1px dashed #dae6dd;
+
+  padding: 20px;
+
+  background: #fbfdfb;
+
+  border-radius: 0 0 7px 7px;
+}
+
+.blueprint-card-details > p {
+  font-size: 12px;
+
+  color: #718979;
+
+  line-height: 1.8;
+
+  margin-top: 10px;
+}
+
+.blueprint-catalog-footer {
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  gap: 14px;
+
+  padding: 20px 25px;
+
+  color: #6e8c7b;
+
+  font-size: 11px;
+}
+
+.blueprint-catalog-footer small {
+  display: block;
+
+  font:
+    8px Consolas,
+    monospace;
+
+  color: #99aca0;
+
+  margin-top: 6px;
+}
+
+.blueprint-catalog-footer > div {
+  display: flex;
+
+  gap: 12px;
+
+  align-items: center;
+
+  font:
+    10px Consolas,
+    monospace;
+}
+
+.blueprint-catalog-empty {
+  padding: 30px 10px;
+
+  text-align: center;
+
+  color: var(--muted);
+}
+
+.blueprint-catalog-empty svg {
+  width: 22px;
+
+  color: #8fa799;
+
+  margin: auto;
+}
+
+.blueprint-catalog-empty h3 {
+  font-size: 14px;
+
+  margin: 14px 0 8px;
+}
+
+.blueprint-catalog-empty p {
+  font-size: 12px;
+
+  margin-bottom: 20px;
+}
+
+.blueprint-management-grid {
+  display: grid;
+
+  grid-template-columns: 0.9fr 1.1fr;
+
+  gap: 24px;
+
+  align-items: start;
+}
+
+.blueprint-management-grid .settings-panel {
+  max-width: none;
+
+  min-width: 0;
+}
+
+.workbench .blueprint-catalog-card {
+  padding: 0;
+}
+
+.blueprint-card-actions {
+  display: flex;
+
+  flex-wrap: wrap;
+
+  gap: 10px;
+
+  align-items: center;
+}
+
+.blueprint-lineup-strip i {
+  flex: 1;
+}
+
+@media (max-width: 1100px) {
+  .blueprint-management-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .blueprint-catalog > header {
+    flex-direction: column;
+
+    align-items: start;
+
+    padding: 20px 18px;
+  }
+
+  .blueprint-catalog-toolbar {
+    padding: 16px 18px;
+  }
+
+  .blueprint-catalog-tabs,
+  .blueprint-lineup-legend {
+    padding-inline: 18px;
+  }
+
+  .blueprint-catalog-tray {
+    padding: 18px 14px;
+  }
+
+  .blueprint-catalog-footer {
+    padding: 18px;
+
+    align-items: start;
+  }
+
+  .blueprint-catalog-footer small {
+    max-width: 135px;
+
+    line-height: 1.6;
+  }
+
+  .workbench .blueprint-card-toggle {
+    padding: 14px 12px;
+
+    gap: 9px;
+  }
+
+  .blueprint-card-details {
+    padding: 18px 14px;
+  }
+}
+
+.blueprint-lineup-strip .temperature,
+.blueprint-lineup-legend .temperature {
+  background: #799cb9;
+}
+
+.blueprint-lineup-strip .valve,
+.blueprint-lineup-legend .valve {
+  background: #c0a161;
+}
+
+.blueprint-lineup-strip .relay,
+.blueprint-lineup-legend .relay {
+  background: #6ea68a;
+}
+
+.blueprint-device-list {
+  display: grid;
+
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  gap: 9px;
+
+  margin: 18px 0;
+
+  max-height: 300px;
+
+  overflow: auto;
+}
+
+.blueprint-device-list > div {
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+  padding: 10px;
+
+  border: 1px solid #dce6df;
+
+  background: white;
+
+  border-radius: 5px;
+
+  min-width: 0;
+}
+
+.blueprint-device-list strong {
+  display: block;
+
+  font-size: 11px;
+
+  overflow-wrap: anywhere;
+}
+
+.blueprint-device-list small {
+  display: block;
+
+  font-size: 10px;
+
+  color: var(--muted);
+
+  margin-top: 4px;
+}
+
+.blueprint-device-icon {
+  padding: 7px;
+
+  font:
+    10px Consolas,
+    monospace;
+
+  border-radius: 4px;
+
+  background: #eef3f8;
+
+  color: #627f99;
+}
+
+.blueprint-device-icon.valve {
+  background: #faf4e7;
+
+  color: #9d7d38;
+}
+
+.blueprint-device-icon.relay {
+  background: #eff5ed;
+
+  color: #6c8b59;
+}
+
+.workbench .blueprint-apply-note {
+  background: #eff5f0;
+
+  padding: 12px;
+
+  border-radius: 5px;
+
+  font-size: 11px;
+
+  line-height: 1.7;
+}
+
+.blueprint-notes {
+  font-size: 11px;
+
+  line-height: 1.8;
+
+  margin: 14px 0;
+}
+
+.blueprint-notes summary {
+  cursor: pointer;
+
+  color: #527662;
+}
+
+.blueprint-notes ul {
+  padding-left: 18px;
+
+  margin-top: 10px;
+
+  overflow-wrap: anywhere;
+}
+
+.blueprint-card-details > h3 {
+  overflow-wrap: anywhere;
+}
+
+.blueprint-management-grid textarea {
+  width: 100%;
+
+  box-sizing: border-box;
+}
+
+@media (max-width: 600px) {
+  .blueprint-device-list {
+    grid-template-columns: 1fr;
+  }
+}

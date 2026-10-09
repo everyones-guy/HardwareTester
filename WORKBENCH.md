@@ -226,6 +226,8 @@ Rebuild and verify Docker with `.\start-workbench.ps1 -Docker -Verify`. The veri
 
 ## Original blueprints and peripherals
 
+Saved blueprints use expandable cards with 1–5 visible per page. Search blueprint names, descriptions, or contained device names; filter by device profile and sort by name or device count. Each card previews its device mix and expands into a device lineup, import notes, and apply/export/delete actions. Import previews show notes immediately; saving an import or capturing a bench reveals the saved card. Applying adds disconnected simulations without replacing existing bench devices.
+
 Select Flask mode in Settings, then open **Blueprints**. Preview a JSON file before saving it to the library. Supported input layouts are root `peripherals`, `controller.peripherals`, and canonical `devices`. Temperature sensors, valves, and relays become disconnected simulated devices when you select **Add to bench**. Generic `Sensor` entries with temperature in their name map to temperature profiles with a visible warning. Unsupported definitions remain in the sanitized source configuration and are reported in the preview; their commands are not executed. Credential fields are excluded from saved/exported blueprints. Original protocol/connection definitions remain metadata and do not open physical connections.
 
 **Save current bench** captures device profiles and peripheral properties for reuse. Applying a saved blueprint appends devices without replacing the bench. Saved blueprints survive workspace reset; reset clears attached peripherals along with devices, history, and logs. Deleting a device also removes its attached peripheral settings.
