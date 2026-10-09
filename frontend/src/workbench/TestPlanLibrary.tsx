@@ -1,6 +1,7 @@
-import PlanStepRow, { SavedSteps } from './PlanStepRow';
+import SavedPlanLibrary from './SavedPlanLibrary';
+import PlanStepRow from './PlanStepRow';
 import './plan-library.css';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { PlanStep, SavedPlan, ServerResponse } from './backend';
 import { LabState } from './simulator';
@@ -46,6 +47,18 @@ export default function TestPlanLibrary({
   ]);
   const [editing, setEditing] = useState<{ id: string; version: number }>();
   const [error, setError] = useState('');
+  const [revealId, setRevealId] = useState('');
+  const [revealVersion, setRevealVersion] = useState(0);
+  const [editorFocus, setEditorFocus] = useState(0);
+  const editorHeading = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    if (editorFocus) editorHeading.current?.focus();
+  }, [editorFocus]);
+  function reveal(result: ServerResponse) {
+    setRevealId(result.planId ?? editing?.id ?? '');
+    setRevealVersion((n) => n + 1);
+    reset();
+  }
   const [expanded, setExpanded] = useState<Set<number>>(new Set([0]));
   const toggle = (i: number) =>
     setExpanded((previous) => {
@@ -86,6 +99,7 @@ export default function TestPlanLibrary({
     setError('');
   }
   function load(p: SavedPlan, clone = false) {
+    setEditorFocus((n) => n + 1);
     setExpanded(new Set());
     setEditing(clone ? undefined : { id: p.id, version: p.version });
     setName(clone ? `${p.name.slice(0, 90)} copy` : p.name);
@@ -124,9 +138,11 @@ export default function TestPlanLibrary({
           {error}
         </p>
       )}
-      <div className="catalog-grid">
-        <section className="panel settings-panel plan-library-panel">
-          <h2>{editing ? 'Edit test plan' : 'New test plan'}</h2>
+      <div className="plan-management-grid">
+        <section className="panel settings-panel plan-library-panel" aria-label="Test plan editor">
+          <h2 ref={editorHeading} tabIndex={-1}>
+            {editing ? 'Edit test plan' : 'New test plan'}
+          </h2>
           <label>
             Plan name
             <input
@@ -356,7 +372,7 @@ export default function TestPlanLibrary({
                   editing ? 'PUT' : 'POST',
                   { name, description, kind, steps, version: editing?.version },
                 );
-                if (result) reset();
+                if (result) reveal(result);
               }}
             >
               {editing ? 'Save changes' : 'Save test plan'}
@@ -380,7 +396,7 @@ export default function TestPlanLibrary({
                   if (file.size > 100000) throw new Error('Choose a JSON file under 100 KB.');
                   const input = JSON.parse(await file.text());
                   const result = await action('/test-plans', 'POST', input);
-                  if (result) reset();
+                  if (result) reveal(result);
                 } catch (e) {
                   setError(e instanceof Error ? e.message : 'Invalid JSON.');
                 }
@@ -389,53 +405,18 @@ export default function TestPlanLibrary({
             />
           </label>
         </section>
-        <section className="panel settings-panel plan-library-panel">
-          <h2>Saved test plans</h2>
-          <p>
-            Choose a matching device on the <NavLink to="/tests">test bench</NavLink>, then select
-            your saved plan. Plan versions and settings are captured in every server result.
-          </p>
-          {!lab.testPlans?.length && (
-            <p className="empty">Save your first plan to start testing.</p>
-          )}
-          {lab.testPlans?.map((p) => (
-            <article className="catalog-item" key={p.id}>
-              <h3>{p.name}</h3>
-              <p>
-                {p.kind} · version {p.version} · {p.steps.length} steps
-              </p>
-              {p.description && <p>{p.description}</p>}
-              <SavedSteps steps={p.steps} />
-              <div className="inline">
-                <button className="button secondary" disabled={!enabled} onClick={() => load(p)}>
-                  Edit
-                </button>
-                <button
-                  className="button secondary"
-                  disabled={!enabled}
-                  onClick={() => load(p, true)}
-                >
-                  Duplicate
-                </button>
-                <button className="button secondary" onClick={() => exportPlan(p)}>
-                  Export JSON
-                </button>
-                <button
-                  className="button secondary danger"
-                  disabled={!enabled}
-                  onClick={() => {
-                    if (
-                      confirm(`Delete test plan ${p.name}? Previous results keep their saved plan.`)
-                    )
-                      void action(`/test-plans/${p.id}`, 'DELETE', { version: p.version });
-                  }}
-                >
-                  Delete
-                </button>
-              </div>
-            </article>
-          ))}
-        </section>
+        <SavedPlanLibrary
+          plans={lab.testPlans ?? []}
+          enabled={enabled}
+          revealId={revealId}
+          revealVersion={revealVersion}
+          onEdit={load}
+          onExport={exportPlan}
+          onDelete={(p) => {
+            if (confirm(`Delete test plan ${p.name}? Previous results keep their saved plan.`))
+              void action(`/test-plans/${p.id}`, 'DELETE', { version: p.version });
+          }}
+        />
       </div>
     </>
   );

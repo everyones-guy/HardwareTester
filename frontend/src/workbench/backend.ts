@@ -36,6 +36,7 @@ export interface SavedPlan {
 }
 export interface ServerResponse {
   scenarioId?: string;
+  planId?: string;
   state: LabState;
   deviceId?: string;
   runId?: string;

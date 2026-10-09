@@ -200,6 +200,8 @@ Auth APIs: `/api/auth/session` GET; `/api/auth/setup`, `/login`, `/logout` POST;
 
 ## Editable test plans and reproducible results
 
+Saved plans use a compact card catalog with 1–5 cards per page. Search names and descriptions, filter by device profile or included action, and sort by name, step count, or version. The labeled color strip previews each sequence; open a card for description, checks, configured waits, expandable step details, and edit/duplicate/export/delete actions. Saving or importing reveals the saved card; editing moves focus to the plan editor. Existing permissions, version checks, and result snapshots still apply.
+
 In Flask mode, open **Plan library** (`/plans`). Create, edit, duplicate, import, export, and delete plans. Each plan declares its device profile and contains 1–30 ordered steps. The runner adds a connection check and, for plans with output commands, an automatic restoration step. Choose a matching target device and a saved plan from **Test bench**. Browser-only mode retains the two existing built-in plans.
 
 Supported actions:

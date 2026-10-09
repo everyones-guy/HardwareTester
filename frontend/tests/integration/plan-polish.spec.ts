@@ -20,6 +20,9 @@ test('long plans stay compact and preserve edits, previews, validation, and orde
   const saved = page
     .locator('.catalog-item')
     .filter({ has: page.getByRole('heading', { name: 'Compact twenty-step plan', exact: true }) });
+  await page
+    .getByRole('button', { name: 'Test plan Compact twenty-step plan', exact: true })
+    .click();
   await expect(saved.getByRole('button', { name: /View steps/ })).toBeVisible();
   await expect(saved.locator('.plan-index-row')).toHaveCount(0);
   await saved.getByRole('button', { name: 'Edit', exact: true }).click();

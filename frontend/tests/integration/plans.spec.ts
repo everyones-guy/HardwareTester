@@ -33,6 +33,7 @@ test('editable plan runs through Flask and keeps its original version in results
   await expect(page.locator('.result-heading .status')).toHaveText('passed', { timeout: 15000 });
   await expect(page.locator('.inspect-reading')).toContainText('0%');
   await page.getByRole('link', { name: 'Plan library', exact: true }).click();
+  await page.getByRole('button', { name: 'Test plan Valve response check', exact: true }).click();
   await saved.getByRole('button', { name: 'Edit', exact: true }).click();
   await page.getByRole('button', { name: /Edit step 1:/ }).click();
   await page.getByLabel('Step 1 value').fill('70');
