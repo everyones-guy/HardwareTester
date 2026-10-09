@@ -1,0 +1,434 @@
+.workbench .panel.instrument-bench {
+  background: #f4f2eb;
+  border-color: #c9cdc4;
+  box-shadow:
+    0 5px 0 #d9dcd3,
+    0 10px 24px #203a3010;
+  overflow: hidden;
+}
+.bench-faceplate {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 26px;
+  border-bottom: 1px solid #cbd0c6;
+  background: linear-gradient(#faf9f5, #eeeee6);
+  position: relative;
+}
+.bench-faceplate::before,
+.bench-faceplate::after {
+  content: '+';
+  position: absolute;
+  top: 7px;
+  color: #9ca799;
+  font:
+    12px Consolas,
+    monospace;
+}
+.bench-faceplate::before {
+  left: 9px;
+}
+.bench-faceplate::after {
+  right: 9px;
+}
+.bench-faceplate h2 {
+  font-size: 20px;
+  margin-top: 8px;
+}
+.bench-state {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  font:
+    9px Consolas,
+    monospace;
+  padding: 9px;
+  border: 1px solid #d6d9ce;
+  border-radius: 5px;
+  color: #806e43;
+  background: #f8f4e5;
+}
+.bench-state i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #b4a16c;
+}
+.bench-state.ready {
+  color: #35634a;
+  background: #e8f0e7;
+}
+.bench-state.ready i {
+  background: #689b72;
+  box-shadow: 0 0 5px #689b7260;
+}
+.bench-state.running {
+  color: #416c84;
+  background: #e7eff1;
+}
+.bench-state.running i {
+  background: #608da2;
+}
+.bench-instrument-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 22px;
+  padding: 24px;
+}
+.bench-display {
+  background: #112d29;
+  border: 7px solid #d6d9cf;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: inset 0 0 22px #041a1650;
+  min-width: 0;
+  align-self: start;
+}
+.bench-display header,
+.bench-display footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 9px;
+  flex-wrap: wrap;
+  color: #9dc1ab;
+  font:
+    8px Consolas,
+    monospace;
+  letter-spacing: 0.5px;
+}
+.bench-reading {
+  padding: 25px 0 18px;
+  color: #c6ebad;
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  flex-wrap: wrap;
+}
+.bench-reading strong {
+  font:
+    46px Consolas,
+    monospace;
+  line-height: 1;
+  overflow-wrap: anywhere;
+}
+.bench-reading > span {
+  font:
+    14px Consolas,
+    monospace;
+}
+.bench-reading small {
+  width: 100%;
+  font:
+    8px Consolas,
+    monospace;
+  letter-spacing: 1px;
+  color: #8aaa95;
+  margin-top: 7px;
+}
+.workbench .bench-display svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  border: 1px solid #47745d50;
+  background: #0c2622;
+  margin-bottom: 12px;
+}
+.bench-display svg line {
+  stroke: #3c685840;
+  stroke-width: 1;
+}
+.bench-display svg polyline {
+  fill: none;
+  stroke: #c0eaa0;
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+.bench-display svg circle {
+  fill: #c0eaa0;
+}
+.bench-display svg text {
+  fill: #799f89;
+  font:
+    10px Consolas,
+    monospace;
+}
+.workbench .bench-display p {
+  font:
+    9px/1.7 Consolas,
+    monospace;
+  color: #8baa99;
+  margin: 12px 0 0;
+}
+.bench-selector-panel {
+  min-width: 0;
+}
+.bench-selector-panel label {
+  display: block;
+  margin-top: 12px;
+  font-size: 11px;
+  color: #607464;
+}
+.workbench .bench-selector-panel select {
+  background: #fffefa;
+  width: 100%;
+}
+.bench-hookup {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 14px 0;
+  color: #5d7666;
+  font:
+    10px Consolas,
+    monospace;
+}
+.bench-hookup > span:last-child {
+  min-width: 0;
+}
+.bench-hookup small {
+  display: block;
+  margin-top: 5px;
+  font:
+    9px Consolas,
+    monospace;
+  color: #8a978b;
+  overflow-wrap: anywhere;
+}
+.bench-jack {
+  width: 23px;
+  height: 23px;
+  flex-shrink: 0;
+  border: 5px solid #b5bcae;
+  border-radius: 50%;
+  background: #46574b;
+  box-shadow:
+    inset 0 0 0 3px #273b30,
+    0 0 0 1px #929c8c;
+}
+.bench-jack.connected {
+  border-color: #84a88c;
+  background: #b9d89c;
+}
+.bench-sequence-label {
+  display: block;
+  margin-top: 22px;
+}
+.workbench .bench-plan-summary {
+  font-size: 11px;
+  color: #738373;
+  line-height: 1.7;
+  margin: 9px 0;
+  overflow-wrap: anywhere;
+}
+.bench-sequence-preview {
+  font-size: 11px;
+  line-height: 1.7;
+  color: #667e6c;
+}
+.bench-sequence-preview summary {
+  cursor: pointer;
+}
+.bench-sequence-preview ol {
+  padding-left: 19px;
+  max-height: 220px;
+  overflow: auto;
+}
+.bench-sequence-preview li {
+  margin: 10px 0;
+}
+.bench-sequence-preview small {
+  display: block;
+}
+.bench-readiness {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 9px;
+  padding: 0 24px 22px;
+}
+.bench-readiness > div {
+  display: flex;
+  align-items: start;
+  gap: 8px;
+  padding: 12px 10px;
+  border: 1px solid #ddd9c9;
+  background: #f9f5e8;
+  border-radius: 5px;
+}
+.bench-readiness > .is-ready {
+  border-color: #d5dfd1;
+  background: #edf2e9;
+}
+.bench-readiness > div > span {
+  color: #a18d5c;
+  flex-shrink: 0;
+}
+.bench-readiness .is-ready > span {
+  color: #618a68;
+}
+.bench-readiness svg {
+  width: 13px;
+}
+.bench-readiness strong {
+  display: block;
+  font-size: 10px;
+  color: #526552;
+}
+.bench-readiness small {
+  display: block;
+  font-size: 9px;
+  color: #7c8979;
+  line-height: 1.6;
+  margin-top: 5px;
+  overflow-wrap: anywhere;
+}
+.bench-emulation {
+  padding: 16px 24px;
+  border-top: 1px dashed #d3d8cb;
+  font-size: 11px;
+  color: #687c68;
+}
+.bench-emulation summary {
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.bench-emulation .scenario-controls {
+  padding: 16px 0 0;
+}
+.bench-run-deck {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding: 24px;
+  border-block: 1px solid #d3d8cb;
+  background: #eeeee4;
+}
+.bench-run-deck strong {
+  display: block;
+  margin-top: 7px;
+  font-size: 13px;
+}
+.workbench .bench-run-deck p {
+  font-size: 10px;
+  line-height: 1.7;
+  color: #7c8776;
+  max-width: 440px;
+  margin: 8px 0 0;
+}
+.workbench .bench-run-deck p.danger {
+  color: #a44c3c;
+}
+.workbench .bench-run-button {
+  flex-shrink: 0;
+  min-height: 60px;
+  padding: 18px 26px;
+  border: 3px solid #d1d9c8;
+  border-radius: 9px;
+  box-shadow: 0 3px 0 #9aab90;
+  font-weight: 700;
+}
+.workbench .bench-run-button:disabled {
+  box-shadow: none;
+}
+.workbench .bench-run-record {
+  margin: 0;
+  padding: 24px;
+  background: #fffefa;
+}
+.bench-progress {
+  margin: 14px 0 18px;
+  font:
+    9px Consolas,
+    monospace;
+  color: #79907b;
+}
+.bench-progress progress {
+  display: block;
+  width: 100%;
+  height: 6px;
+  margin-top: 8px;
+  accent-color: #598d6b;
+}
+.bench-result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-top: 20px;
+}
+.workbench .bench-result-actions p {
+  flex-basis: 100%;
+  font-size: 11px;
+  line-height: 1.7;
+  color: #617c68;
+}
+.bench-awaiting {
+  text-align: center;
+  padding: 28px;
+  color: #7b8d79;
+}
+.bench-awaiting > svg {
+  width: 18px;
+  margin-bottom: 9px;
+}
+.bench-awaiting strong {
+  display: block;
+  font-size: 12px;
+}
+.workbench .bench-awaiting p {
+  font-size: 11px;
+  line-height: 1.8;
+  margin: 9px 0 0;
+}
+@media (max-width: 1400px) {
+  .bench-instrument-body {
+    grid-template-columns: 1fr;
+  }
+  .bench-readiness {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 600px) {
+  .bench-faceplate {
+    flex-direction: column;
+    align-items: start;
+    padding: 22px 18px;
+  }
+  .bench-instrument-body {
+    padding: 18px;
+    gap: 18px;
+  }
+  .bench-readiness {
+    padding: 0 18px 18px;
+  }
+  .bench-run-deck {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 18px;
+  }
+  .bench-emulation {
+    padding: 16px 18px;
+  }
+  .bench-display {
+    padding: 12px;
+    border-width: 5px;
+  }
+  .bench-reading strong {
+    font-size: 40px;
+  }
+  .workbench .bench-run-record {
+    padding: 18px;
+  }
+  .bench-run-record .result-heading {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .bench-run-record .step {
+    gap: 8px;
+  }
+  .bench-run-record .step > div {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+}

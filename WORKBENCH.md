@@ -72,6 +72,8 @@ The user launched the Docker stack and its published application API passed an M
 
 ## Exercise the workflow
 
+The test bench uses an instrument-style panel: choose an input, connect it, select a compatible saved or built-in plan, and review engine/connection/sequence/access readiness before running. The signal display shows up to 40 recent received readings from the selected connected device; it issues no reads and does not advance emulator scenarios. Its horizontal axis is sample order, not a calibrated timebase, and it is not an oscilloscope. Expand emulator setup to apply, restart, or clear a response sequence. Run progress, per-step outcomes, report/export actions, and a repeat-selected-setup action appear below the controls. Repeated tests continue the scenario at its current cursor unless explicitly restarted.
+
 1. Connect the Flask workspace through Settings.
 2. Select **Connect bench**. This bulk action connects simulated devices only.
 3. Run **Connection & health** on the temperature sensor, valve, or relay. Inspect the handshake, telemetry, and range checks.
@@ -81,7 +83,7 @@ The user launched the Docker stack and its published application API passed an M
 7. Cancel a test, add/remove devices, control the valve/relay, filter logs, and export results.
 8. Stop and restart Flask. Stored history persists. Devices disconnect, interrupted tests become cancelled, and simulated outputs recover to their saved values.
 
-Server state retains 100 runs and 250 events. Exports are portable JSON reports/backups; import and custom editable plans are not implemented yet. Polling uses a state revision to reject old responses. A backend outage visibly disables commands; it never falls back to a fake successful result.
+Server state retains 100 runs and 250 events. Exports are portable JSON reports/backups; the plan library supports importing and editing custom plans. Polling uses a state revision to reject old responses. A backend outage visibly disables commands; it never falls back to a fake successful result.
 
 ## Optional hardware adapters
 

@@ -1,3 +1,4 @@
+import TestBench from './TestBench';
 import ScenarioLibrary, { ScenarioControls } from './ScenarioLibrary';
 import RunReport from './RunReport';
 import EventLog from './EventLog';
@@ -20,7 +21,6 @@ import {
   FiRadio,
   FiRefreshCw,
   FiSearch,
-  FiSquare,
   FiTerminal,
   FiTrash2,
   FiX,
@@ -820,111 +820,29 @@ export default function Workbench() {
     </section>
   );
   const runner = (
-    <section className="panel runner">
-      <div className="panel-heading">
-        <div>
-          <span className="eyebrow">TEST RUNNER</span>
-          <h2>Validate your connection</h2>
-        </div>
-        <span className="subtle-label">{activeRun ? 'RUNNING' : 'READY'}</span>
-      </div>
-      <div className="run-controls">
-        <label>
-          Target device
-          <select
-            value={selected}
-            disabled={!!activeRun}
-            onChange={(e) => setSelected(e.target.value)}
-          >
-            {!lab.devices.length && <option value="">No devices available</option>}
-            {lab.devices.map((d) => (
-              <option key={d.id} value={d.id}>
-                {d.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Test plan
-          <select
-            aria-label="Test plan"
-            value={plan}
-            disabled={!!activeRun}
-            onChange={(e) => setPlan(e.target.value)}
-          >
-            {Object.entries(planNames).map(([id, label]) => (
-              <option key={id} value={id}>
-                {label}
-              </option>
-            ))}
-            {serverMode &&
-              lab.testPlans
-                ?.filter((p) => p.kind === device?.kind)
-                .map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name} · v{p.version}
-                  </option>
-                ))}
-          </select>
-        </label>
-        <button
-          className={`button ${activeRun ? 'secondary' : 'primary'}`}
-          disabled={
-            !canOperate ||
-            busy ||
-            (serverMode && !serverReady) ||
-            (!activeRun && !device?.connected)
-          }
-          onClick={activeRun ? cancel : () => start()}
-        >
-          {activeRun ? <FiSquare /> : <FiPlay />}
-          {activeRun ? 'Stop test' : 'Run test'}
-        </button>
-      </div>
-      {!device?.connected && !activeRun && (
-        <p className="helper">Connect the selected device before running a test.</p>
-      )}
-      {currentRun ? (
-        <div className="steps">
-          <div className="result-heading">
-            <strong>
-              {currentRun.plan} <span className="muted">/ {currentRun.deviceName}</span>
-            </strong>
-            <Status value={currentRun.status} />
-          </div>
-          {currentRun.steps.map((step, i) => (
-            <div className={`step step-${step.status}`} key={i}>
-              <span className="step-icon">
-                {step.status === 'passed' ? (
-                  <FiCheck />
-                ) : step.status === 'failed' ? (
-                  <FiX />
-                ) : (
-                  i + 1
-                )}
-              </span>
-              <div>
-                <strong>{step.name}</strong>
-                <p>{step.detail}</p>
-              </div>
-              <span className="step-state">{step.status}</span>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="runner-empty">
-          <span>
-            <FiActivity />
-          </span>
-          <strong>Your first test starts here</strong>
-          <p>
-            Check the handshake, read telemetry, and validate
-            <br />
-            the operating range of a virtual device.
-          </p>
-        </div>
-      )}
-    </section>
+    <TestBench
+      lab={lab}
+      device={device}
+      selected={selected}
+      plan={plan}
+      run={currentRun}
+      activeRun={activeRun}
+      serverMode={serverMode}
+      serverReady={serverReady}
+      busy={busy}
+      canOperate={canOperate}
+      onSelect={setSelected}
+      onPlan={setPlan}
+      onConnect={() => device && connect(device.id)}
+      onStart={() => start()}
+      onCancel={cancel}
+      action={serverAction}
+      onExport={(run) => download('hardware-tester-run.json', run)}
+      onResults={(run) => {
+        setViewRun(run.id);
+        navigate('/results');
+      }}
+    />
   );
   const logPanel = (full = false) => (
     <EventLog
@@ -1276,7 +1194,9 @@ export default function Workbench() {
                     <div>
                       <span className="eyebrow">EXECUTE & OBSERVE</span>
                       <h1>Test bench</h1>
-                      <p>Run reproducible checks. Inject a fault to watch them fail.</p>
+                      <p>
+                        Connect your device, set up the sequence, and watch each check report back.
+                      </p>
                     </div>
                   </div>
                   <div className="workspace-grid">
