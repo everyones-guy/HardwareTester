@@ -65,6 +65,16 @@ test('admin onboarding, viewer enforcement, role changes, session revocation, an
       })
     ).status(),
   ).toBe(403);
+  await viewerPage.goto('http://127.0.0.1:5175/tests');
+  await viewerPage.getByRole('button', { name: 'Start guided setup', exact: true }).click();
+  const guide = viewerPage.getByRole('region', { name: 'Guided test setup' });
+  await expect(guide.getByRole('button', { name: 'Connect guided input' })).toBeDisabled();
+  await guide.getByRole('button', { name: '3 Check & run' }).click();
+  await expect(guide).toContainText('Operator role required');
+  await expect(
+    guide.getByRole('button', { name: 'Start guided test', exact: true }),
+  ).toBeDisabled();
+  await viewerPage.goto('http://127.0.0.1:5175/overview');
   await page.reload();
   await page.getByRole('button', { name: 'Account browser-viewer', exact: true }).click();
   await page.getByLabel('Role for browser-viewer').selectOption('operator');

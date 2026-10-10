@@ -6,6 +6,7 @@ import { ServerResponse } from './backend';
 import { ScenarioControls } from './ScenarioLibrary';
 import { stepSummary } from './PlanStepRow';
 import './test-bench.css';
+import GuidedTest from './GuidedTest';
 
 function SignalMonitor({ device }: { device?: Device }) {
   const [trace, setTrace] = useState<{ id: string; values: number[] }>({ id: '', values: [] });
@@ -94,6 +95,7 @@ export default function TestBench({
   activeRun,
   serverMode,
   serverReady,
+  hardwareAllowed,
   busy,
   canOperate,
   onSelect,
@@ -113,26 +115,45 @@ export default function TestBench({
   activeRun?: TestRun;
   serverMode: boolean;
   serverReady: boolean;
+  hardwareAllowed: boolean;
   busy: boolean;
   canOperate: boolean;
   onSelect: (id: string) => void;
   onPlan: (id: string) => void;
   onConnect: () => void;
-  onStart: () => void;
+  onStart: () => Promise<string | undefined>;
   onCancel: () => void;
   action: (path: string, method?: string, data?: unknown) => Promise<ServerResponse | undefined>;
   onExport: (run: TestRun) => void;
   onResults: (run: TestRun) => void;
 }) {
   const [emulationOpen, setEmulationOpen] = useState(false);
-  const selectedPlan = lab.testPlans?.find((p) => p.id === plan && p.kind === device?.kind);
+  const [guided, setGuided] = useState(false);
+  const selectedPlan = serverMode
+    ? lab.testPlans?.find((p) => p.id === plan && p.kind === device?.kind)
+    : undefined;
   const available = !serverMode || serverReady;
   const planReady = !!device && (!!selectedPlan || plan in planNames);
-  const ready = !!device?.connected && planReady && available && canOperate && !busy && !activeRun;
+  const suiteActive = lab.suiteRuns?.some((r) => r.status === 'running') ?? false;
+  const hardware = !!device?.adapter && device.adapter !== 'simulation';
+  const transportReady = !hardware || (serverMode && serverReady && hardwareAllowed);
+  const editable = canOperate && available && !busy && !activeRun && !suiteActive;
+  const ready = !!device?.connected && planReady && transportReady && editable;
   const shownRun = activeRun ?? run;
   const complete = shownRun?.steps.filter((s) => s.status !== 'pending').length ?? 0;
   const status = activeRun ? 'RUNNING' : ready ? 'READY TO TEST' : 'SETUP REQUIRED';
   const checks = [
+    {
+      label: 'Transport access',
+      good: transportReady,
+      detail: !hardware
+        ? 'Simulation available'
+        : !serverMode
+          ? 'Real devices require Flask mode'
+          : !hardwareAllowed
+            ? 'Hardware disabled on the server; enable LAB_ALLOW_HARDWARE'
+            : `${device?.adapter?.toUpperCase()} enabled on Flask`,
+    },
     {
       label: 'Test engine',
       good: available,
@@ -158,14 +179,16 @@ export default function TestBench({
     },
     {
       label: 'Bench access',
-      good: canOperate && !busy && !activeRun,
+      good: canOperate && !busy && !activeRun && !suiteActive,
       detail: !canOperate
         ? 'Operator role required'
-        : activeRun
-          ? 'A test owns the bench'
-          : busy
-            ? 'Applying a change'
-            : 'Available',
+        : suiteActive
+          ? 'A validation suite owns the bench'
+          : activeRun
+            ? 'A test owns the bench'
+            : busy
+              ? 'Applying a change'
+              : 'Available',
     },
   ];
   return (
@@ -180,6 +203,39 @@ export default function TestBench({
           {status}
         </span>
       </header>
+      <div className="bench-guide-toggle">
+        <div>
+          <strong>New to this bench?</strong>
+          <span>Walk through input, test, readiness, and result.</span>
+        </div>
+        <button
+          className="button secondary"
+          aria-expanded={guided}
+          onClick={() => setGuided(!guided)}
+        >
+          {guided ? 'Close guided setup' : 'Start guided setup'}
+        </button>
+      </div>
+      <div hidden={!guided}>
+        <GuidedTest
+          lab={lab}
+          device={device}
+          plan={plan}
+          ready={ready}
+          checks={checks}
+          editable={editable}
+          canStop={canOperate && available && !busy}
+          connectable={!!device && editable && transportReady}
+          serverMode={serverMode}
+          onSelect={onSelect}
+          onPlan={onPlan}
+          onConnect={onConnect}
+          onStart={onStart}
+          onCancel={onCancel}
+          action={action}
+          onResults={onResults}
+        />
+      </div>
       <div className="bench-instrument-body">
         <SignalMonitor device={device} />
         <div className="bench-selector-panel">
@@ -189,7 +245,7 @@ export default function TestBench({
             <select
               aria-label="Target device"
               value={selected}
-              disabled={!!activeRun}
+              disabled={!!activeRun || suiteActive}
               onChange={(e) => onSelect(e.target.value)}
             >
               {!lab.devices.length && <option value="">No devices available</option>}
@@ -211,9 +267,7 @@ export default function TestBench({
           </div>
           <button
             className="button secondary"
-            disabled={
-              !device || !!device.connected || !canOperate || !available || busy || !!activeRun
-            }
+            disabled={!device || !!device.connected || !editable || !transportReady}
             onClick={onConnect}
           >
             <FiLink />
@@ -225,9 +279,10 @@ export default function TestBench({
             <select
               aria-label="Test plan"
               value={plan}
-              disabled={!!activeRun}
+              disabled={!!activeRun || suiteActive}
               onChange={(e) => onPlan(e.target.value)}
             >
+              {!planReady && <option value={plan}>Choose an available plan</option>}
               {Object.entries(planNames).map(([id, label]) => (
                 <option key={id} value={id}>
                   {label}
@@ -283,7 +338,7 @@ export default function TestBench({
           </div>
         ))}
       </div>
-      {device && (
+      {device && !hardware && (
         <details
           className="bench-emulation"
           onToggle={(e) => setEmulationOpen(e.currentTarget.open)}
@@ -301,7 +356,7 @@ export default function TestBench({
               key={device.id}
               device={device}
               lab={lab}
-              enabled={canOperate && serverMode && serverReady && !busy && !activeRun}
+              enabled={editable && serverMode}
               serverMode={serverMode}
               action={action}
             />

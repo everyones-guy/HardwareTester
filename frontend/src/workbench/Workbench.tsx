@@ -529,15 +529,14 @@ export default function Workbench() {
       ),
     );
   }
-  function start(target = device, chosenPlan = plan) {
+  async function start(target = device, chosenPlan = plan) {
     if (!target?.connected || activeRef.current || activeRun || !canOperate || busy) return;
     setSelected(target.id);
     setPlan(chosenPlan);
     if (serverMode) {
-      void serverAction('/runs', 'POST', { deviceId: target.id, plan: chosenPlan }).then((r) => {
-        if (r?.runId) setViewRun(r.runId);
-      });
-      return;
+      const r = await serverAction('/runs', 'POST', { deviceId: target.id, plan: chosenPlan });
+      if (r?.runId) setViewRun(r.runId);
+      return r?.runId;
     }
     const run = createRun(target, chosenPlan as Plan);
     activeRef.current = { id: run.id, index: 0, original: { ...target } };
@@ -551,6 +550,7 @@ export default function Workbench() {
         run.id,
       ),
     );
+    return run.id;
   }
   function cancel() {
     if (serverMode) {
@@ -834,6 +834,7 @@ export default function Workbench() {
       activeRun={activeRun}
       serverMode={serverMode}
       serverReady={serverReady}
+      hardwareAllowed={hardwareAllowed}
       busy={busy}
       canOperate={canOperate}
       onSelect={setSelected}

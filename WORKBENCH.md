@@ -72,6 +72,10 @@ The user launched the Docker stack and its published application API passed an M
 
 ## Exercise the workflow
 
+For a guided first run, open **Test bench** (`/tests`) and select **Start guided setup**. The bench assistant walks through choosing and connecting an input, choosing a compatible test (and optionally a simulation scenario), reviewing readiness, and reading the result. It uses the same selected device, plan, and runner as the instrument controls. Closing the guide preserves its progress while the page remains open and does not stop a test. The result shows observed readings, expected values, per-check verdicts, and restoration, with report and review/rerun actions. A rejected launch stays on readiness instead of displaying an older result.
+
+Readiness includes the engine connection, device connection, compatible plan, transport access, and operator/bench availability. A running validation suite blocks launch even between its individual attempts. Output plans explicitly identify that they command the device; the default connection/health plan only reads. The guide does not connect, diagnose, restart scenarios, or launch automatically. Real serial/MQTT inputs require Flask with hardware access enabled and a device responder implementing the JSON protocol below. A Raspberry Pi can host that responder; generic USB mice are not currently supported by these adapters.
+
 The test bench uses an instrument-style panel: choose an input, connect it, select a compatible saved or built-in plan, and review engine/connection/sequence/access readiness before running. The signal display shows up to 40 recent received readings from the selected connected device; it issues no reads and does not advance emulator scenarios. Its horizontal axis is sample order, not a calibrated timebase, and it is not an oscilloscope. Expand emulator setup to apply, restart, or clear a response sequence. Run progress, per-step outcomes, report/export actions, and a repeat-selected-setup action appear below the controls. Repeated tests continue the scenario at its current cursor unless explicitly restarted.
 
 1. Connect the Flask workspace through Settings.
