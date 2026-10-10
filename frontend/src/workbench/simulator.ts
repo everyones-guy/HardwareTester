@@ -72,6 +72,8 @@ export interface LogEntry {
   message: string;
 }
 export interface LabState {
+  validationSuites?: import('./backend').ValidationSuite[];
+  suiteRuns?: import('./backend').SuiteRun[];
   scenarios?: Scenario[];
   version: 1;
   devices: Device[];

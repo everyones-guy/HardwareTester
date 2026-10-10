@@ -34,7 +34,44 @@ export interface SavedPlan {
   version: number;
   steps: PlanStep[];
 }
+export interface SuiteCase {
+  name: string;
+  scenarioId: string;
+  expected: ('passed' | 'failed')[];
+}
+export interface ValidationSuite {
+  id: string;
+  version: number;
+  name: string;
+  description: string;
+  kind: 'temperature' | 'valve' | 'relay';
+  planId: string;
+  cases: SuiteCase[];
+}
+export interface SuiteRun {
+  id: string;
+  suite: ValidationSuite;
+  plan: { id: string; name: string; version: number };
+  device: import('./simulator').Device;
+  startedAt: string;
+  finishedAt?: string;
+  status: 'running' | 'passed' | 'failed' | 'cancelled' | 'error';
+  detail?: string;
+  restoration?: string;
+  cases: (SuiteCase & {
+    status: string;
+    scenario: import('./ScenarioLibrary').Scenario;
+    runId?: string;
+    attempts: {
+      expected: 'passed' | 'failed';
+      matched: boolean;
+      run: import('./simulator').TestRun;
+    }[];
+  })[];
+}
 export interface ServerResponse {
+  suiteId?: string;
+  suiteRunId?: string;
   scenarioId?: string;
   planId?: string;
   state: LabState;

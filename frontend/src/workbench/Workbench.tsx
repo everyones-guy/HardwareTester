@@ -1,3 +1,4 @@
+import ValidationSuites from './ValidationSuites';
 import TestBench from './TestBench';
 import ScenarioLibrary, { ScenarioControls } from './ScenarioLibrary';
 import RunReport from './RunReport';
@@ -132,6 +133,7 @@ export default function Workbench() {
   const [plan, setPlan] = useState<string>('smoke');
   const [query, setQuery] = useState('');
   const [viewRun, setViewRun] = useState('');
+  const [suiteInspection, setSuiteInspection] = useState<TestRun>();
   const labRef = useRef(lab);
   labRef.current = lab;
   const activeRef = useRef<{ id: string; index: number; original: Device } | null>(null);
@@ -141,7 +143,10 @@ export default function Workbench() {
   const connected = lab.devices.filter((d) => d.connected).length;
   const finished = lab.runs.filter((r) => r.status === 'passed' || r.status === 'failed');
   const passed = finished.filter((r) => r.status === 'passed').length;
-  const currentRun = lab.runs.find((r) => r.id === viewRun) ?? lab.runs[0];
+  const currentRun =
+    lab.runs.find((r) => r.id === viewRun) ??
+    (suiteInspection?.id === viewRun ? suiteInspection : undefined) ??
+    lab.runs[0];
   useEffect(() => {
     if (
       plan !== 'smoke' &&
@@ -957,6 +962,7 @@ export default function Workbench() {
             ['/plans', 'Plan library', FiCheck],
             ['/scenarios', 'Emulator scenarios', FiRadio],
             ['/tests', 'Test bench', FiPlay],
+            ['/suites', 'Validation suites', FiCheck],
             ['/results', 'Results', FiActivity],
             ['/logs', 'Activity log', FiTerminal],
           ].map(([to, label, Icon]) => {
@@ -1207,6 +1213,23 @@ export default function Workbench() {
                     {inspector}
                   </div>
                 </>
+              }
+            />
+            <Route
+              path="/suites"
+              element={
+                <ValidationSuites
+                  lab={lab}
+                  serverMode={serverMode}
+                  enabled={canOperate && serverMode && serverReady && !busy}
+                  canAdmin={canAdmin}
+                  action={serverAction}
+                  onReport={(run) => {
+                    setSuiteInspection(run);
+                    setViewRun(run.id);
+                    navigate('/results');
+                  }}
+                />
               }
             />
             <Route

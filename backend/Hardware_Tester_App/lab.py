@@ -830,6 +830,8 @@ class Lab:
                     if self.active and time.monotonic() >= self.next_step:
                         self.next_step = time.monotonic() + self.step_seconds
                         self.advance()
+                    if hasattr(self, "suites"):
+                        self.suites.tick()
             except Exception:
                 import logging
 
@@ -845,9 +847,12 @@ class Lab:
             blueprints = self.state["blueprints"]
             scenarios = self.state.get("scenarios", [])
             test_plans = self.state["testPlans"]
+            suites = self.state.get("validationSuites", [])
             self.state = initial_state()
             self.state.update(peripherals=[], blueprints=blueprints)
             self.state["testPlans"] = test_plans
+            self.state["validationSuites"] = suites
+            self.state["suiteRuns"] = []
             self.state["scenarios"] = scenarios
             self.state["revision"] = revision
             self.save()
@@ -859,7 +864,9 @@ class Lab:
         if self.worker:
             self.worker.join(timeout=10)
         with self.lock:
-            if self.active:
+            if getattr(self, "suites", None) and self.suites.active:
+                self.suites.cancel()
+            elif self.active:
                 self.cancel()
             for d in self.state["devices"]:
                 self.disconnect(d)

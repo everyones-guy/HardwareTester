@@ -317,3 +317,64 @@ def test_expiry_and_api_token_do_not_bypass_login(app):
         ).status_code
         == 401
     )
+
+
+def test_validation_suite_roles_are_enforced(app):
+    admin = app.test_client()
+    signed = setup(admin)
+    operator, operator_csrf = user(app, admin, signed["csrf"], "operator")
+    viewer, viewer_csrf = user(app, admin, signed["csrf"], "viewer")
+    data = dict(
+        name="Role suite",
+        kind="temperature",
+        planId="smoke",
+        cases=[dict(name="Healthy", scenarioId="preset-healthy", expected=["passed"])],
+    )
+    assert (
+        operator.post(
+            "/api/lab/validation-suites",
+            json=data,
+            headers={"X-CSRF-Token": operator_csrf},
+        ).status_code
+        == 403
+    )
+    response = admin.post(
+        "/api/lab/validation-suites",
+        json=data,
+        headers={"X-CSRF-Token": signed["csrf"]},
+    )
+    assert response.status_code == 200
+    identity = response.json["suiteId"]
+    lab = app.extensions["lab"]
+    device = lab.state["devices"][0]
+    lab.connect(device["id"], True)
+    path = f"/api/lab/validation-suites/{identity}/run"
+    assert (
+        viewer.post(
+            path, json={"deviceId": device["id"]}, headers={"X-CSRF-Token": viewer_csrf}
+        ).status_code
+        == 403
+    )
+    assert (
+        operator.post(
+            path,
+            json={"deviceId": device["id"]},
+            headers={"X-CSRF-Token": operator_csrf},
+        ).status_code
+        == 200
+    )
+    assert viewer.get("/api/lab").json["state"]["suiteRuns"][0]["status"] == "running"
+    assert (
+        viewer.post(
+            "/api/lab/suite-runs/cancel", json={}, headers={"X-CSRF-Token": viewer_csrf}
+        ).status_code
+        == 403
+    )
+    assert (
+        operator.post(
+            "/api/lab/suite-runs/cancel",
+            json={},
+            headers={"X-CSRF-Token": operator_csrf},
+        ).status_code
+        == 200
+    )

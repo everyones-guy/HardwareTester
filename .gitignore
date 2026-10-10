@@ -392,3 +392,5 @@ FodyWeavers.xsd
 /backend/Hardware_Tester_App/views/views_normalized_20250818_182331_with_legacy.zip
 /backend/Hardware_Tester_App/views/views.zip
 /backend/Hardware_Tester_App/views/route_changes.json
+
+/frontend/test-results-browser/

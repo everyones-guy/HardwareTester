@@ -61,6 +61,10 @@ def create_app(config_name="development", overrides=None, **kwargs):
 
     with lab.lock:
         register_auth(app, lab)
+    from .validation_suites import register_suites
+
+    with lab.lock:
+        register_suites(app, lab)
     source_hash = hashlib.sha256()
     for source in sorted(Path(__file__).parent.rglob("*.py")):
         source_hash.update(
@@ -101,6 +105,26 @@ def create_app(config_name="development", overrides=None, **kwargs):
                     required_role(request.path, request.method),
                     csrf=request.method != "GET",
                 )
+
+    @app.before_request
+    def own_lab_command():
+        if request.path.startswith("/api/lab") and request.method != "GET":
+            lab.lock.acquire()
+            g.lab_command_lock = True
+            if lab.suites.active and request.path not in (
+                "/api/lab/suite-runs/cancel",
+                "/api/lab/runs/cancel",
+            ):
+                raise LabError(
+                    "A validation suite owns the bench. Stop it before changing the workspace.",
+                    409,
+                )
+
+    @app.teardown_request
+    def release_lab_command(error):
+        if getattr(g, "lab_command_lock", False):
+            g.lab_command_lock = False
+            lab.lock.release()
 
     @app.after_request
     def headers(response):
@@ -215,7 +239,10 @@ def create_app(config_name="development", overrides=None, **kwargs):
     @app.post("/api/lab/runs/cancel")
     def cancel():
         body()
-        lab.cancel()
+        if lab.suites.active:
+            lab.suites.cancel()
+        else:
+            lab.cancel()
         return result()
 
     @app.post("/api/lab/reset")

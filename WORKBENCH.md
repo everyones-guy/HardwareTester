@@ -240,6 +240,26 @@ Peripheral `threshold` settings affect server health/control operating-range che
 
 API routes: `/api/lab/blueprints` (GET/POST), `/preview` and `/capture` beneath that path (POST), `/api/lab/blueprints/<id>/apply` (POST), `/api/lab/blueprints/<id>` (DELETE); `/api/lab/peripherals` (GET/POST), `/api/lab/peripherals/<id>` (PATCH/DELETE). PATCH and peripheral DELETE require the current `version`. Blueprint requests wrap input in `configuration`; capture takes `name` and optional `description`.
 
+## Saved validation suites
+
+Open **Validation suites** (`/suites`) in Flask mode. Save the starter suite, connect a matching simulated device on the bench, select the saved suite and device, and run it. Administrators create, edit, duplicate, and delete suites; operators run and stop them; viewers inspect reports. Suites support built-in or compatible saved plans, 1–10 named cases, up to 3 attempts per case, and 20 attempts total.
+
+The editor and saved catalog each collapse independently. Cases expand individually or together, retaining draft edits when collapsed; compact rows show their scenario and expected outcomes. Browse saved suites with search, profile and expectation filters, sorting, and 1–5 cards per page. Open a card to inspect its cases, select it for a run, edit, duplicate, export, or delete it. Saving reveals the updated card automatically. Missing dependencies and invalid case names remain visible in the editor.
+
+Each case applies a fresh snapshot of its chosen scenario at cursor zero. Multiple attempts within that case continue the sequence, allowing expectations such as **Fail → Pass** for timeout recovery. The runner compares the entire test outcome with each expectation: an expected failure earns **Expected failure detected**, while an unexpected pass or failure makes the suite fail. A fail expectation matches any failed test; inspect the embedded test report to confirm its cause. The original short **Bad telemetry** preset can recover before the built-in health plan reaches its range check; use **Sustained bad telemetry** for repeatable rejection checks.
+
+The suite holds the shared bench for its duration. Other workspace commands and library edits are rejected until it completes or is stopped. Runs continue when the page closes or reloads. Completion, cancellation, and server restart restore the device's original simulation output, fault, applied scenario snapshot, and cursor; server restart cancels interrupted suites and disconnects devices. Suites never open physical transports. Restarting a saved suite uses current source versions; missing plans/scenarios must be replaced before running.
+
+The last 10 suite reports retain independent suite/plan/scenario snapshots and full test results, including results that have aged out of ordinary run history. Export a complete report as `validation-suite-report.json`. Saved suite definitions survive workspace reset; reset clears their run reports along with normal history. There are up to 100 saved definitions, with version checks on edits and deletes.
+
+API: POST `/api/lab/validation-suites`; PUT/DELETE `/api/lab/validation-suites/<id>` with `version`; POST `/api/lab/validation-suites/<id>/run` with `deviceId`; POST `/api/lab/suite-runs/cancel`. Definitions and reports are included in `/api/lab` as `validationSuites` and `suiteRuns`. The normal run-cancel endpoint also stops an owning suite.
+
+## Product regression checks
+
+Keep `work/` ignored. Reusable checks live in tracked `backend/tests/workbench`, `frontend/tests`, and the Playwright configurations. Temporary databases, traces, and scratch files are disposable artifacts, not source code or a list of outstanding work.
+
+After the development environment and Playwright Chromium are installed, run `./regression.ps1` from the repository root in PowerShell. It stops on the first failed group and checks backend tests/Black, frontend formatting, simulator unit tests, the production build, browser workflows, Flask integration, and account permissions. Use `./regression.ps1 -SkipBrowsers` for the backend/unit/build checks only. Browser tests use isolated test ports 5001, 5003, 5174, 5175, and 5176; leave those free. The normal development app at 5000/5173 is not used by this command. Test databases stay under `work/`; browser groups use separate ignored output folders.
+
 ## Code formatting
 
 The workbench uses Prettier for TypeScript, JSX, CSS, frontend tests, and Vite/Playwright configuration. From `frontend`, run `npm run format` to format or `npm run format:check` to verify. Prettier is pinned in the development dependencies; run `npm ci` after pulling the formatting setup.

@@ -46,6 +46,12 @@ def presets():
             ],
         ),
         (
+            "sustained-bad-reading",
+            "Sustained bad telemetry",
+            "Readings remain outside the device profile range for repeatable rejection checks.",
+            [{"behavior": "out-of-range", "count": 1}],
+        ),
+        (
             "recovery",
             "Timeout and recovery",
             "Two timeouts followed by normal responses.",
@@ -114,6 +120,10 @@ def normalize(data):
 
 def register_scenarios(app, lab):
     lab.state.setdefault("scenarios", presets())
+    known = {s["id"] for s in lab.state["scenarios"]}
+    for preset in presets():
+        if preset["id"] not in known:
+            lab.state["scenarios"].append(preset)
     lab.save()
 
     def find(identity):

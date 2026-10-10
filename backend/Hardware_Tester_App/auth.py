@@ -245,7 +245,8 @@ def required_role(path, method):
     if method == "GET" or path.endswith("/blueprints/preview"):
         return "viewer"
     if (
-        path in ("/api/lab/runs", "/api/lab/runs/cancel", "/api/lab/connect-bench")
+        path == "/api/lab/suite-runs/cancel"
+        or path in ("/api/lab/runs", "/api/lab/runs/cancel", "/api/lab/connect-bench")
         or path.endswith("/run")
         or re.fullmatch(
             r"/api/lab/devices/[^/]+/(connection|command|fault|diagnostics|scenario)",
