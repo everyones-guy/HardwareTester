@@ -65,6 +65,11 @@ test('admin onboarding, viewer enforcement, role changes, session revocation, an
       })
     ).status(),
   ).toBe(403);
+  await viewerPage.goto('http://127.0.0.1:5175/settings');
+  const backup = viewerPage.getByRole('region', { name: 'Workspace backup and restore' });
+  await expect(backup).toContainText('require an administrator account');
+  await expect(backup.getByRole('button', { name: 'Download workspace archive' })).toBeDisabled();
+  await expect(backup.getByLabel('Workspace archive file')).toBeDisabled();
   await viewerPage.goto('http://127.0.0.1:5175/tests');
   await viewerPage.getByRole('button', { name: 'Start guided setup', exact: true }).click();
   const guide = viewerPage.getByRole('region', { name: 'Guided test setup' });

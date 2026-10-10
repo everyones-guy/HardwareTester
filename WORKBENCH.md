@@ -258,6 +258,16 @@ The last 10 suite reports retain independent suite/plan/scenario snapshots and f
 
 API: POST `/api/lab/validation-suites`; PUT/DELETE `/api/lab/validation-suites/<id>` with `version`; POST `/api/lab/validation-suites/<id>/run` with `deviceId`; POST `/api/lab/suite-runs/cancel`. Definitions and reports are included in `/api/lab` as `validationSuites` and `suiteRuns`. The normal run-cancel endpoint also stops an owning suite.
 
+## Workspace backup and restore
+
+In **Settings → Backup & restore**, an administrator can download a versioned `hardware-tester-workspace-YYYY-MM-DD.json` archive of the shared Flask workspace. It includes device configurations and diagnostics, peripherals, blueprint source configurations, test plans, scenarios, validation suites, test results, suite reports with embedded attempts, and event logs. Accounts, passwords, sessions, API tokens, and server deployment settings are excluded; accounts on the receiving installation stay intact. Archives contain device endpoints and recorded measurements. Browser simulator snapshots remain separate and are not accepted as portable archives.
+
+Choose an archive up to 20 MB, select **Keep existing definitions** or **Import conflicting definitions as copies**, optionally include history, and select **Validate & preview import**. Conflicts match saved IDs or definition names (peripherals and history match IDs). Built-in scenarios and duplicate history records are always kept once. Copies get new IDs and copied definitions start at version 1; device/peripheral/suite/history links are rebound together. Archived measurements and blueprint source configurations are retained. Neither policy overwrites existing definitions. Imported devices are disconnected; importing does not open transports or command hardware, and existing kept connections stay as they were.
+
+The preview lists additions, copies, conflicts, skipped entries, missing suite dependencies, and records outside the retained history limits (100 tests, 10 suite reports, 250 logs, including one import event). Library capacities are enforced before applying. A changed workspace or changed import choices require a fresh preview. Imports are validated again and committed atomically; active tests/suites block export and import. A deleted plan/scenario may still appear in an archived report; such historical snapshots remain inspectable, and saved suites with missing dependencies require repair before running. This is an additive portable import rather than an overwrite or a backup of the account database. Keep the exported file separately before resetting or moving installations.
+
+API: GET `/api/lab/workspace/backup`; POST `/api/lab/workspace/preview` with `archive`, `policy` (`keep`/`copy`), and boolean `includeHistory`; POST `/api/lab/workspace/import` with the same payload plus the preview's `revision` and `digest`. All routes require an administrator when authentication is enabled. The two upload routes allow 20 MB; ordinary lab commands retain their 128 KB limit.
+
 ## Product regression checks
 
 Keep `work/` ignored. Reusable checks live in tracked `backend/tests/workbench`, `frontend/tests`, and the Playwright configurations. Temporary databases, traces, and scratch files are disposable artifacts, not source code or a list of outstanding work.

@@ -81,11 +81,7 @@ export interface ServerResponse {
   preview?: Blueprint;
   capabilities?: { hardware: boolean };
 }
-export async function labRequest(
-  path = '',
-  method = 'GET',
-  data?: unknown,
-): Promise<ServerResponse> {
+async function requestLab<T>(path = '', method = 'GET', data?: unknown): Promise<T> {
   const token = sessionStorage.getItem('hardware-tester.api-token');
   const response = await fetch(`/api/lab${path}`, {
     method,
@@ -97,7 +93,7 @@ export async function labRequest(
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     body: data === undefined ? undefined : JSON.stringify(data),
-    signal: AbortSignal.timeout(10000),
+    signal: AbortSignal.timeout(path.startsWith('/workspace/') ? 60000 : 10000),
   });
   const payload = await response.json().catch(() => {
     throw new Error('Backend returned an invalid response. Check that Flask is running.');
@@ -106,9 +102,39 @@ export async function labRequest(
     if (response.status === 401) window.dispatchEvent(new Event('ht-auth-changed'));
     throw new Error(payload.error || `Backend request failed (${response.status}).`);
   }
+  return payload;
+}
+export async function labRequest(
+  path = '',
+  method = 'GET',
+  data?: unknown,
+): Promise<ServerResponse> {
+  const payload = await requestLab<ServerResponse>(path, method, data);
   if (!isLabState(payload.state)) throw new Error('Backend returned an incompatible workspace.');
   return payload;
 }
+export interface WorkspaceArchive {
+  format: 'hardware-tester-workspace';
+  version: 1;
+  exportedAt: string;
+  workspace: Record<string, unknown[]>;
+}
+export interface BackupPreview {
+  revision: number;
+  digest: string;
+  added: number;
+  warnings: string[];
+  rows: {
+    collection: string;
+    incoming: number;
+    added: number;
+    copied: number;
+    skipped: number;
+    trimmed: number;
+    conflicts: { name: string; existingName: string }[];
+  }[];
+}
+export const workspaceRequest = requestLab;
 export function savedBackendMode(): boolean {
   try {
     return (

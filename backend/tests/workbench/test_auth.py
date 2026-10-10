@@ -338,6 +338,7 @@ def test_validation_suite_roles_are_enforced(app):
         ).status_code
         == 403
     )
+
     response = admin.post(
         "/api/lab/validation-suites",
         json=data,
@@ -378,3 +379,42 @@ def test_validation_suite_roles_are_enforced(app):
         ).status_code
         == 200
     )
+
+
+def test_workspace_archive_requires_admin_and_preserves_accounts(app):
+    admin = app.test_client()
+    signed = setup(admin)
+    operator, operator_csrf = user(app, admin, signed["csrf"], "operator")
+    viewer, viewer_csrf = user(app, admin, signed["csrf"], "viewer")
+    before = admin.get("/api/auth/users").json
+    exported = admin.get("/api/lab/workspace/backup")
+    assert exported.status_code == 200
+    data = dict(archive=exported.json, policy="copy", includeHistory=True)
+    for client, csrf in ((operator, operator_csrf), (viewer, viewer_csrf)):
+        assert client.get("/api/lab/workspace/backup").status_code == 403
+        for path in ("preview", "import"):
+            assert (
+                client.post(
+                    "/api/lab/workspace/" + path,
+                    json=data,
+                    headers={"X-CSRF-Token": csrf},
+                ).status_code
+                == 403
+            )
+    assert admin.post("/api/lab/workspace/preview", json=data).status_code == 403
+    reviewed = admin.post(
+        "/api/lab/workspace/preview",
+        json=data,
+        headers={"X-CSRF-Token": signed["csrf"]},
+    )
+    assert reviewed.status_code == 200
+    data.update(
+        revision=reviewed.json["preview"]["revision"],
+        digest=reviewed.json["preview"]["digest"],
+    )
+    result = admin.post(
+        "/api/lab/workspace/import", json=data, headers={"X-CSRF-Token": signed["csrf"]}
+    )
+    assert result.status_code == 200
+    assert admin.get("/api/auth/users").json == before
+    assert admin.get("/api/auth/session").json["user"]["username"] == "admin"

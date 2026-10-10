@@ -242,6 +242,8 @@ class Accounts:
 
 
 def required_role(path, method):
+    if path.startswith("/api/lab/workspace/"):
+        return "admin"
     if method == "GET" or path.endswith("/blueprints/preview"):
         return "viewer"
     if (

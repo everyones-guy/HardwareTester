@@ -1,5 +1,6 @@
 import ValidationSuites from './ValidationSuites';
 import TestBench from './TestBench';
+import WorkspaceBackup from './WorkspaceBackup';
 import ScenarioLibrary, { ScenarioControls } from './ScenarioLibrary';
 import RunReport from './RunReport';
 import EventLog from './EventLog';
@@ -1419,17 +1420,21 @@ export default function Workbench() {
                     </dl>
                     <h2>Workspace data</h2>
                     <p>
-                      Export your complete bench before resetting. Reset removes devices,
-                      peripherals, history, and logs. Saved server blueprints and test plans remain
-                      in their libraries.
+                      {serverMode
+                        ? 'Use Backup & restore below to save a portable archive before resetting. '
+                        : 'Export a browser snapshot before resetting. '}
+                      Reset removes devices, peripherals, history, and logs. Saved server libraries
+                      remain.
                     </p>
                     <div className="inline">
-                      <button
-                        className="button secondary"
-                        onClick={() => download('hardware-tester-workspace.json', lab)}
-                      >
-                        <FiDownload /> Export workspace
-                      </button>
+                      {!serverMode && (
+                        <button
+                          className="button secondary"
+                          onClick={() => download('hardware-tester-workspace.json', lab)}
+                        >
+                          <FiDownload /> Export browser snapshot
+                        </button>
+                      )}
                       <button
                         className="button secondary danger"
                         disabled={!canAdmin || !!activeRun}
@@ -1463,6 +1468,18 @@ export default function Workbench() {
                       Open original dashboards <FiArrowUpRight />
                     </a>
                   </section>
+                  <WorkspaceBackup
+                    serverMode={serverMode}
+                    canAdmin={canAdmin}
+                    enabled={
+                      serverReady &&
+                      !busy &&
+                      !activeRun &&
+                      !lab.suiteRuns?.some((r) => r.status === 'running')
+                    }
+                    revision={lab.revision ?? 0}
+                    action={serverAction}
+                  />
                   <BuildInfo />
                   {session?.user?.role === 'admin' && (
                     <UserManagement

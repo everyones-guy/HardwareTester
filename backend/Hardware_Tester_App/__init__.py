@@ -65,6 +65,9 @@ def create_app(config_name="development", overrides=None, **kwargs):
 
     with lab.lock:
         register_suites(app, lab)
+    from .workspace_backup import register_backup
+
+    register_backup(app, lab)
     source_hash = hashlib.sha256()
     for source in sorted(Path(__file__).parent.rglob("*.py")):
         source_hash.update(
@@ -78,6 +81,8 @@ def create_app(config_name="development", overrides=None, **kwargs):
 
     @app.before_request
     def guard_api():
+        if request.path in ("/api/lab/workspace/preview", "/api/lab/workspace/import"):
+            request.max_content_length = 20 * 1024 * 1024
         if not request.path.startswith(("/api/lab", "/api/auth")):
             return
         if request.method != "GET":
