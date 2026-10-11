@@ -1,11 +1,13 @@
 .result-analysis {
   margin: 20px 0;
+  padding: 26px;
+  min-width: 0;
 }
 .result-analysis header p {
   margin-bottom: 0;
 }
 .analysis-count {
-  color: #8edbd0;
+  color: var(--green);
   white-space: nowrap;
   font: 600 12px monospace;
 }
@@ -26,11 +28,11 @@
   margin-top: 6px;
 }
 .baseline-strip small {
-  color: #b3c4cc;
+  color: #607775;
 }
 .analysis-disclosure {
   margin-top: 16px;
-  border: 1px solid #344752;
+  border: 1px solid var(--line);
   border-radius: 8px;
   overflow: hidden;
 }
@@ -42,7 +44,7 @@
 }
 .analysis-disclosure > summary span {
   margin-left: 14px;
-  color: #b3c4cc;
+  color: #607775;
   font-size: 12px;
   font-weight: 400;
 }
@@ -52,7 +54,7 @@
 .analysis-control {
   display: grid;
   gap: 8px;
-  color: #c6d6de;
+  color: var(--ink);
   font-size: 13px;
   min-width: 0;
 }
@@ -65,15 +67,15 @@
   margin: 16px 0;
   border-left: 3px solid #55d6b7;
   padding: 12px 16px;
-  background: #183329;
+  background: #eef6f0;
 }
 .comparison-context.changed {
-  border-color: #f0bc68;
-  background: #352c1f;
+  border-color: #80551b;
+  background: #fff4df;
 }
 .comparison-context p {
   margin: 6px 0 0;
-  color: #c6d6de;
+  color: var(--ink);
 }
 .comparison-summary {
   display: grid;
@@ -83,8 +85,8 @@
 }
 .comparison-summary > div {
   padding: 14px;
-  background: #152630;
-  border: 1px solid #344752;
+  background: #f1f6f3;
+  border: 1px solid var(--line);
   border-radius: 6px;
 }
 .comparison-summary span,
@@ -93,7 +95,7 @@
   overflow-wrap: anywhere;
 }
 .comparison-summary span {
-  color: #b3c4cc;
+  color: #607775;
   font-size: 12px;
   margin-bottom: 8px;
 }
@@ -106,7 +108,7 @@
 .comparison-row {
   display: grid;
   grid-template-columns: 1.1fr 1fr 1fr 0.8fr;
-  border-bottom: 1px solid #344752;
+  border-bottom: 1px solid var(--line);
 }
 .comparison-row > * {
   padding: 14px 10px;
@@ -118,14 +120,14 @@
   display: block;
 }
 .comparison-row small {
-  color: #b3c4cc;
+  color: #607775;
   font-size: 11px;
   margin-top: 6px;
   font-weight: 400;
 }
 .comparison-head {
   background: #172934;
-  color: #c6d6de;
+  color: var(--ink);
   font-size: 12px;
 }
 .analysis-outcome {
@@ -136,13 +138,13 @@
   margin-bottom: 8px;
 }
 .analysis-outcome.passed {
-  color: #79e7b7;
+  color: #167152;
 }
 .analysis-outcome.failed {
-  color: #ffa1a5;
+  color: #ac4438;
 }
 .analysis-outcome.pending {
-  color: #f0bc68;
+  color: #80551b;
 }
 .trend-controls {
   display: grid;
@@ -160,12 +162,12 @@
 .trend-toggle input {
   width: auto;
 }
-.trend-chart {
+.workbench .trend-chart {
   width: 100%;
   height: auto;
   min-height: 180px;
   background: #0b1c24;
-  border: 1px solid #344752;
+  border: 1px solid var(--line);
   border-radius: 8px;
 }
 .trend-chart text {
@@ -202,13 +204,13 @@
   fill: #f0bc68;
 }
 .trend-legend {
-  color: #b3c4cc;
+  color: #607775;
   font-size: 12px;
   line-height: 1.7;
 }
 .trend-records > summary {
   cursor: pointer;
-  color: #9cceea;
+  color: var(--green);
   padding: 12px 0;
 }
 .trend-records > div {
@@ -221,7 +223,7 @@
   gap: 16px;
   text-align: left;
   background: #172934;
-  border: 1px solid #344752;
+  border: 1px solid var(--line);
   padding: 12px;
   border-radius: 6px;
   color: #d8e4eb;
@@ -255,5 +257,36 @@
   .trend-record {
     flex-direction: column;
     gap: 6px;
+  }
+}
+
+.baseline-strip {
+  color: #edf8f6;
+}
+.baseline-strip .eyebrow {
+  color: #83d9c5;
+}
+.baseline-strip small {
+  color: #bcd2cf;
+}
+.analysis-disclosure > summary {
+  color: #edf8f6;
+}
+.analysis-disclosure > summary span {
+  color: #bcd2cf;
+}
+.comparison-head {
+  color: #edf8f6;
+}
+.result-analysis header p {
+  color: var(--muted);
+  margin-top: 6px;
+}
+.workbench .trend-chart {
+  display: block;
+}
+@media (max-width: 760px) {
+  .result-analysis {
+    padding: 16px;
   }
 }

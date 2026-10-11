@@ -56,10 +56,9 @@ export default function ResultAnalysis({
   const trend = (includeChanged ? series : comparable).slice(0, windowSize).reverse();
   const readings = trend.map(measure);
   const baselineChanged = baseline ? configurationChanges(run, baseline).length > 0 : false;
-  const baselineValue = baseline && (includeChanged || !baselineChanged) ? measure(baseline) : undefined;
-  const values = [...readings, ...(range ?? []), baselineValue].filter(
-    numeric,
-  );
+  const baselineValue =
+    baseline && (includeChanged || !baselineChanged) ? measure(baseline) : undefined;
+  const values = [...readings, ...(range ?? []), baselineValue].filter(numeric);
   const low = values.length ? Math.min(...values) : 0;
   const high = values.length ? Math.max(...values) : 1;
   const padding = Math.max((high - low) * 0.12, Math.abs(high) * 0.02, 0.5);
@@ -305,8 +304,14 @@ export default function ResultAnalysis({
               ? 'Changed setups are included. Review each report’s configuration.'
               : `${series.length - comparable.length} runs with changed or missing configuration excluded.`}{' '}
             Oldest → newest, equally spaced by run order. Measurements are discrete test readings.
-            Missing values leave gaps.
-            {' '}Values in {index < 0 ? 'milliseconds' : unit || 'profile units (unit not recorded for older reports)'}.{baselineChanged && !includeChanged ? ' Baseline line omitted because its configuration differs.' : ''}
+            Missing values leave gaps. Values in{' '}
+            {index < 0
+              ? 'milliseconds'
+              : unit || 'profile units (unit not recorded for older reports)'}
+            .
+            {baselineChanged && !includeChanged
+              ? ' Baseline line omitted because its configuration differs.'
+              : ''}
           </p>
           {values.length && readings.some(numeric) ? (
             <>
@@ -415,4 +420,3 @@ export default function ResultAnalysis({
     </section>
   );
 }
-

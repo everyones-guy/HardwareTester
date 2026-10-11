@@ -104,3 +104,70 @@ test('blocked storage does not crash the simulator', () => {
   assert.equal(sim.loadState().devices.length, 3);
   global.localStorage = original;
 });
+
+const metricsFilename = path.resolve(__dirname, '../src/workbench/resultMetrics.ts');
+const metricsCompiled = ts.transpileModule(fs.readFileSync(metricsFilename, 'utf8'), {
+  compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+});
+const metricsModule = new Module(metricsFilename, module);
+metricsModule._compile(metricsCompiled.outputText, metricsFilename);
+const metrics = metricsModule.exports;
+const complete = (device, plan = 'smoke') => {
+  const run = sim.createRun(device, plan);
+  run.steps = run.steps.map((s) => ({ ...s, status: 'passed', observed: 24 }));
+  return sim.finishRun(run);
+};
+test('baselines replace only their device/plan reference without mutating measurements', () => {
+  const state = sim.initialState();
+  const old = complete(state.devices[0]);
+  const otherPlan = { ...complete(state.devices[0], 'control'), baseline: true };
+  const next = complete(state.devices[0]);
+  state.runs = [{ ...old, baseline: true }, next, otherPlan];
+  const marked = metrics.markBaseline(state, next.id, true);
+  assert.equal(marked.runs[0].baseline, false);
+  assert.equal(marked.runs[1].baseline, true);
+  assert.equal(marked.runs[2].baseline, true);
+  assert.equal(state.runs[0].baseline, true);
+  assert.deepEqual(marked.runs[0].steps, old.steps);
+  assert.throws(() =>
+    metrics.markBaseline({ ...state, runs: [{ ...next, status: 'failed' }] }, next.id, true),
+  );
+});
+test('comparison ignores telemetry and workspace revision but flags plan, faults, scenarios and outputs', () => {
+  const a = complete(sim.initialState().devices[0]);
+  const b = structuredClone(a);
+  b.configuration.workspaceRevision = 100;
+  b.configuration.device.value = 26;
+  assert.deepEqual(metrics.configurationChanges(a, b), []);
+  b.configuration.plan.version++;
+  b.configuration.device.fault = 'timeout';
+  b.configuration.device.scenarioCursor = 4;
+  assert.deepEqual(metrics.configurationChanges(a, b), [
+    'Plan version or steps',
+    'Injected fault',
+    'Scenario starting position',
+  ]);
+  const control = complete(sim.initialState().devices[1], 'control');
+  const changed = { ...structuredClone(control), originalValue: 40 };
+  assert.ok(metrics.configurationChanges(control, changed).includes('Initial output value'));
+});
+test('missing timestamps, readings, configuration and changed step identities are not fabricated', () => {
+  const run = complete(sim.initialState().devices[0]);
+  assert.equal(metrics.elapsedMs({ ...run, finishedAt: undefined }), undefined);
+  assert.equal(metrics.elapsedMs({ ...run, finishedAt: 'invalid' }), undefined);
+  assert.equal(metrics.numeric(0), true);
+  assert.equal(metrics.numeric(undefined), false);
+  assert.equal(metrics.matchingStep(run, { ...run, configuration: undefined }, 0), false);
+  const renamed = structuredClone(run);
+  renamed.steps[1].name = 'Different reading';
+  assert.equal(metrics.matchingStep(run, renamed, 1), false);
+  assert.deepEqual(metrics.expectedRange({ expected: { value: 0, tolerance: 0 } }), [0, 0]);
+});
+test('step matching distinguishes different actions even when labels are reused', () => {
+  const a = complete(sim.initialState().devices[0]);
+  a.configuration.plan.steps = [{ name: 'Check', action: 'read' }];
+  a.steps[1].name = 'Check';
+  const b = structuredClone(a);
+  b.configuration.plan.steps[0].action = 'set';
+  assert.equal(metrics.matchingStep(a, b, 1), false);
+});

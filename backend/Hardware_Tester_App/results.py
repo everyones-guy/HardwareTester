@@ -5,7 +5,9 @@ from .lab import LabError
 
 
 def series(run):
-    plan = (run.get("configuration") or {}).get("plan", {}).get("id") or run.get("planId")
+    plan = (run.get("configuration") or {}).get("plan", {}).get("id") or run.get(
+        "planId"
+    )
     if not plan:
         plan = {"Connection & health": "smoke", "Control response": "control"}.get(
             run["plan"], run["plan"]
@@ -46,7 +48,8 @@ def register_results(app, lab):
             run.pop("baseline", None)
         lab.log(
             f'{"Marked" if data["enabled"] else "Cleared"} baseline for {run["deviceName"]}: {run["plan"]}.',
-            device_id=run["deviceId"], run_id=run["id"],
+            device_id=run["deviceId"],
+            run_id=run["id"],
         )
         lab.save()
         return jsonify(state=lab.snapshot())

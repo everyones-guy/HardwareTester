@@ -77,7 +77,11 @@ export function expectedRange(step?: TestStep): [number, number] | undefined {
   const e = step?.expected;
   const low = e?.min ?? (e?.value === undefined ? undefined : e.value - (e.tolerance ?? 0));
   const high = e?.max ?? (e?.value === undefined ? undefined : e.value + (e.tolerance ?? 0));
-  return low !== undefined && high !== undefined && Number.isFinite(low) && Number.isFinite(high) && low <= high
+  return low !== undefined &&
+    high !== undefined &&
+    Number.isFinite(low) &&
+    Number.isFinite(high) &&
+    low <= high
     ? [low, high]
     : undefined;
 }
