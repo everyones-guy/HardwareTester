@@ -1,4 +1,4 @@
 [tool.black]
 line-length = 88
 target-version = ["py311"]
-include = '(Hardware_Tester_App/(lab|auth|transports|catalog|test_plans|scenarios|validation_suites|workspace_backup|__init__)\.py|tests/workbench/.*\.py|tools/release_check\.py|runserver\.py)$'
+include = '(Hardware_Tester_App/(lab|auth|transports|catalog|test_plans|scenarios|validation_suites|workspace_backup|results|__init__)\.py|tests/workbench/.*\.py|tools/release_check\.py|runserver\.py)$'

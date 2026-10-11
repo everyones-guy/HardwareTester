@@ -250,6 +250,7 @@ def required_role(path, method):
         path == "/api/lab/suite-runs/cancel"
         or path in ("/api/lab/runs", "/api/lab/runs/cancel", "/api/lab/connect-bench")
         or path.endswith("/run")
+        or re.fullmatch(r"/api/lab/runs/[^/]+/baseline", path)
         or re.fullmatch(
             r"/api/lab/devices/[^/]+/(connection|command|fault|diagnostics|scenario)",
             path,

@@ -68,6 +68,9 @@ def create_app(config_name="development", overrides=None, **kwargs):
     from .workspace_backup import register_backup
 
     register_backup(app, lab)
+    from .results import register_results
+
+    register_results(app, lab)
     source_hash = hashlib.sha256()
     for source in sorted(Path(__file__).parent.rglob("*.py")):
         source_hash.update(

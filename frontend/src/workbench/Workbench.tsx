@@ -3,6 +3,8 @@ import TestBench from './TestBench';
 import WorkspaceBackup from './WorkspaceBackup';
 import ScenarioLibrary, { ScenarioControls } from './ScenarioLibrary';
 import RunReport from './RunReport';
+import ResultAnalysis from './ResultAnalysis';
+import { markBaseline } from './resultMetrics';
 import EventLog from './EventLog';
 import ConnectionDiagnostics from './ConnectionDiagnostics';
 import UserManagement from './UserDirectory';
@@ -898,7 +900,10 @@ export default function Workbench() {
               <tr key={r.id}>
                 <td>
                   <strong>{r.deviceName}</strong>
-                  <span className="table-sub">{r.plan}</span>
+                  <span className="table-sub">
+                    {r.plan}
+                    {r.baseline ? ' · BASELINE' : ''}
+                  </span>
                 </td>
                 <td>{new Date(r.startedAt).toLocaleString()}</td>
                 <td>
@@ -1242,10 +1247,43 @@ export default function Workbench() {
                     <div>
                       <span className="eyebrow">VALIDATION RECORD</span>
                       <h1>Test results</h1>
-                      <p>Inspect every check and export a portable JSON report.</p>
+                      <p>
+                        Compare recorded checks, track changes, and keep a known-good reference.
+                      </p>
                     </div>
                   </div>
                   {history}
+                  {currentRun && (
+                    <ResultAnalysis
+                      key={currentRun.id}
+                      run={currentRun}
+                      lab={lab}
+                      canMark={
+                        canOperate &&
+                        !busy &&
+                        !activeRun &&
+                        !lab.suiteRuns?.some((r) => r.status === 'running') &&
+                        (!serverMode || serverReady)
+                      }
+                      onInspect={setViewRun}
+                      onBaseline={(run, enabled) => {
+                        if (serverMode)
+                          void serverAction(`/runs/${run.id}/baseline`, 'POST', { enabled });
+                        else {
+                          update((state) =>
+                            record(
+                              markBaseline(state, run.id, enabled),
+                              `${enabled ? 'Marked' : 'Cleared'} baseline for ${run.deviceName}: ${run.plan}.`,
+                              'info',
+                              run.deviceId,
+                              run.id,
+                            ),
+                          );
+                          announce(enabled ? 'Known-good baseline saved.' : 'Baseline cleared.');
+                        }
+                      }}
+                    />
+                  )}
                   {currentRun && (
                     <RunReport
                       run={currentRun}
@@ -1650,3 +1688,4 @@ export default function Workbench() {
     </div>
   );
 }
+

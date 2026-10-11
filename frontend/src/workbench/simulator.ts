@@ -39,6 +39,7 @@ export interface TestStep {
   finishedAt?: string;
 }
 export interface TestRun {
+  baseline?: boolean;
   restoration?: string;
   planId?: string;
   configuration?: {
@@ -270,6 +271,7 @@ export function isLabState(input: unknown): input is LabState {
         typeof r.deviceName === 'string' &&
         typeof r.plan === 'string' &&
         typeof r.startedAt === 'string' &&
+        (r.baseline === undefined || typeof r.baseline === 'boolean') &&
         (r.originalValue === undefined || Number.isFinite(r.originalValue)) &&
         (r.originalEnabled === undefined || typeof r.originalEnabled === 'boolean') &&
         ['running', 'passed', 'failed', 'cancelled'].includes(r.status) &&

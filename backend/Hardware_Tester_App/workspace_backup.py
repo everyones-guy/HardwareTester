@@ -9,6 +9,7 @@ from datetime import datetime
 from flask import jsonify, request
 from .lab import LabError, PLANS, new_device, now
 from .blueprints import normalize_configuration, peripheral
+from .results import eligible, series
 from .test_plans import normalize_plan
 from .scenarios import normalize as normalize_scenario, presets
 from .validation_suites import normalize as normalize_suite
@@ -192,6 +193,10 @@ def recorded_run(item):
         text(item.get(field), field, 150)
     if item.get("status") not in ("passed", "failed", "cancelled"):
         raise LabError("Only completed or cancelled tests can be imported.")
+    if "baseline" in item and (
+        type(item["baseline"]) is not bool or (item["baseline"] and not eligible(item))
+    ):
+        raise LabError("Only a completed passing run can be a baseline.")
     timestamp(item.get("startedAt"))
     if item.get("finishedAt"):
         timestamp(item["finishedAt"])
@@ -507,6 +512,17 @@ def prepare(lab, payload):
                 409,
             )
         candidate[collection] = combined
+    # Retained existing baselines win collisions; otherwise prefer the newest import.
+    existing_baselines = {r["id"] for r in lab.state["runs"] if r.get("baseline")}
+    chosen = set()
+    for run in sorted(
+        candidate["runs"], key=lambda r: r["id"] not in existing_baselines
+    ):
+        if run.get("baseline"):
+            if series(run) in chosen:
+                run.pop("baseline", None)
+            else:
+                chosen.add(series(run))
     devices = {d["id"]: d for d in candidate["devices"]}
     plans = {p["id"]: p for p in candidate["testPlans"]}
     scenarios = {s["id"] for s in candidate["scenarios"]}
