@@ -136,6 +136,10 @@ Alternatively run the mock peer against an existing local broker:
 backend\.venv\Scripts\python.exe backend\tools\mqtt_fixture.py
 ```
 
+## Clean-install release check
+
+Run `./release-check.ps1` with Docker Desktop's Linux engine available. It builds two disposable four-service stacks with unique project names, separate data volumes, automatically allocated loopback ports, and isolated environment settings. It checks frontend assets, first-admin setup, saved libraries, expected failure/recovery validation, MQTT command restoration, persistence after a full stack restart, and archive import/rerun in the second installation. It removes only its test projects and volumes, retaining an archive/result or failure diagnostics under ignored `work/release-check/`. See [QUICKSTART.md](QUICKSTART.md) for details. Physical hardware validation remains separate.
+
 ## Verification
 
 ```powershell

@@ -7,7 +7,7 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "127.0.0.1:8080:80"
+      - "127.0.0.1:${LAB_HTTP_PORT:-8080}:80"
     restart: unless-stopped
   backend:
     depends_on:
@@ -28,7 +28,7 @@ services:
   broker:
     image: eclipse-mosquitto:2
     ports:
-      - "127.0.0.1:1883:1883"
+      - "127.0.0.1:${LAB_MQTT_PORT:-1883}:1883"
     volumes:
       - ./deployment/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
     healthcheck:
