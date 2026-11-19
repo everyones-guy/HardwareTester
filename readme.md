@@ -1,255 +1,135 @@
 # Hardware Tester
 
-## Interactive React workbench
+### A shared workbench for device testing, simulation, and repeatable validation
 
-Start Docker Desktop's Linux engine, then run:
+Hardware Tester connects a React interface to a Python/Flask test engine so you can configure devices, run test plans, inspect failures, and compare results. Start with simulated devices; explore serial and MQTT integration when a compatible device or mock responder is available.
+
+**Built by [Gary Will](https://github.com/everyones-guy)** · Systems integration, backend engineering, and automation
+
+[Quick start](QUICKSTART.md) · [Detailed workbench guide](WORKBENCH.md) · [Five-minute walkthrough](#five-minute-project-walkthrough)
+
+## See the workbench
+
+![Hardware Tester browser simulator with a connected simulated valve and signal display](workbench-simulator.jpg)
+
+*Browser simulator demonstration. The screenshot shows simulated behavior, not measurements from physical hardware.*
+
+## What it does
+
+- Connects test workflows, device profiles, configuration, telemetry, and recorded results in one interface.
+- Provides a browser-only simulator and a shared Flask workspace with SQLite persistence.
+- Supports reusable test plans, emulator scenarios, validation suites, logs, and result comparisons in the shared workspace.
+- Exercises serial/MQTT adapters through explicit connections and a documented request/response protocol.
+- Separates viewer, operator, and administrator permissions in the authenticated Flask workspace.
+
+## Run the current application
+
+### Recommended: Docker Compose
+
+Install Git and Docker Desktop with its **Linux container engine** running. From a terminal:
 
 ```powershell
+git clone https://github.com/everyones-guy/HardwareTester.git
+cd HardwareTester
 docker compose up --build -d --wait --wait-timeout 180
 ```
 
-Open http://localhost:8080 and create your administrator. See [QUICKSTART.md](QUICKSTART.md) for the guided first run, local development, and the disposable `./release-check.ps1` clean-install check. [WORKBENCH.md](WORKBENCH.md) covers the current features, roles, persistence, backups, and serial/MQTT protocols.
+Open **[http://localhost:8080](http://localhost:8080)**, create your first administrator account, then choose **Test bench → Start guided setup** for a simulated test. There is no default administrator password.
 
-The older Flask setup instructions below describe the original backend. The current workbench does not require the universal infrastructure installer, PostgreSQL, Kubernetes, or a separate WSL shell. Generic USB devices are not currently supported by its serial/MQTT adapters.
+The stack includes React/nginx, Flask, a local Mosquitto broker, and a mock MQTT valve. No host Python or Node installation is required for this route. Ports 8080 (web) and 1883 (MQTT) bind to loopback by default.
 
-Hardware Tester is a Flask-based application for testing and managing hardware devices such as valves, peripherals, and MQTT-connected devices. The app provides a robust interface for hardware interaction, configuration, and real-time monitoring.
+Stop the bench with `docker compose stop`. Restart with the startup command above. `docker compose down` removes the containers but preserves saved workspace data in the `lab-data` volume; adding `--volumes` deletes that data.
 
-## Features
+For a transport demonstration, add a valve using `mqtt://broker:1883/lab/demo-valve`, connect it explicitly, and run **Control response**. This exercises MQTT through the included mock responder; it does not establish physical-device compatibility.
 
-- **Valve Management**
-  - Add, remove, and view valves in the system.
-  - Upload and manage valve specification sheets.
-  - Save and load valve configurations.
+### Local development
 
-- **Test Plan Management**
-  - Upload and execute test plans.
-  - View test results and logs.
-  - Configure test plans dynamically.
+Requires **Node.js 22.12+**, **Python 3.11+**, and PowerShell. From the repository root, run these in separate terminals:
 
-- **Real-Time Logs**
-  - View real-time logs using WebSocket updates.
-  - Search and filter logs for better debugging.
-
-- **Configuration Management**
-  - Save configurations for valves and peripherals.
-  - Load previously saved configurations.
-  - Visualize configurations with an interactive canvas.
-
-- **MQTT Management**
-  - Connect to MQTT brokers.
-  - Publish and subscribe to topics.
-  - Discover devices over MQTT.
-
-- **Serial Communication**
-  - Communicate with hardware via serial (USB-to-serial) connections.
-  - Send and receive data.
-  - Parse JSON responses from connected devices.
-
-- **Hardware Visualization**
-  - Interactive, drag-and-drop canvas to visualize hardware configurations.
-  - Animated components showing real-time states (e.g., open/closed valves).
-  - Clickable UI elements to simulate and control hardware functions.
-
-- **User Management**
-  - User authentication and registration.
-  - Profile management.
-
----
-
-## Setup Instructions
-
-### Prerequisites
-
-- Python 3.8 or later
-- A virtual environment tool (recommended)
-- Node.js and npm (for managing front-end dependencies)
-
-### Installation
-
-1. **Clone the Repository**
-   ```bash
-   git clone https://github.com/everyones-guy/HardwareTester.git
-   cd hardware-tester
-   ```
-
-2. **Set Up a Virtual Environment**
-   ```bash
-   python -m venv venv
-   source henv/bin/activate  # On Windows: henv\Scripts\activate
-   ```
-
-3. **Install Dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. **Set Up Environment Variables**
-   Create a `.env` file in the root directory with the following:
-   ```env
-   FLASK_ENV=development
-   SECRET_KEY=your-secret-key
-   DATABASE_URL=postgresql://postgres:postgres@localhost/hardware_tester
-   BASE_URL=http://localhost:5000
-   MQTT_BROKER=test.mosquitto.org
-   MQTT_PORT=1883
-   MQTT_USERNAME=your-username
-   MQTT_PASSWORD=your-password
-   DEFAULT_SERIAL_PORT=COM6
-   DEFAULT_BAUDRATE=115200
-   ```
-
-5. **Initialize the Database**
-   ```bash
-   flask db init
-   flask db migrate
-   flask db upgrade
-   ```
-
-6. **Run the Application**
-   ```bash
-   flask run
-   ```
-
-7. **Access the Application**
-   Open your browser and navigate to `http://localhost:5000`.
-
----
-
-## Usage Instructions
-
-### Valve Management
-
-1. Navigate to the **Valve Management** page.
-2. Add new valves by providing the name, type, and optional API endpoint.
-3. Upload specification sheets in supported formats (PDF, DOCX, XLSX).
-4. View valve statuses and configurations in real-time.
-
-### Test Plan Management
-
-1. Navigate to the **Test Plan Management** page.
-2. Upload test plans in supported formats (PDF, CSV, TXT).
-3. Run test plans and view detailed results.
-4. Save and load test plans for reuse.
-
-### Real-Time Logs
-
-1. Navigate to the **Real-Time Logs** page.
-2. View live logs streamed from the server.
-3. Use search and filter options for easier debugging.
-
-### Configuration Management
-
-1. Navigate to the **Configuration Management** page.
-2. Use the interactive canvas to visualize and manage configurations.
-3. Drag and drop components to set up hardware layouts.
-4. Save configurations for future use.
-
-### MQTT Management
-
-1. Navigate to the **MQTT Management** page.
-2. Connect to an MQTT broker using the provided credentials.
-3. Publish messages to topics or subscribe to receive data.
-4. Discover connected devices over MQTT.
-
-### Serial Communication
-
-1. Navigate to the **Hardware Devices** page.
-2. Connect to devices using the configured serial port and baud rate.
-3. Send and receive data in real-time.
-4. Parse JSON responses or view raw data.
-
----
-
-## Configuration
-
-- All settings are managed through the `.env` file. Update the variables as needed for your environment.
-- Custom configurations can also be added by modifying `config.py`.
-
----
-
-## Development
-
-### Testing
-
-Run unit tests with:
-```bash
-pytest
+```powershell
+.\start-backend.ps1
 ```
 
-### Linting
-
-Ensure code quality with:
-```bash
-flake8
+```powershell
+.\start-workbench.ps1
 ```
 
-### Static Files
+Open **[http://localhost:5173](http://localhost:5173)**. Use **Workspace settings → Connect Flask backend** for the shared workspace. The browser simulator is a separate local workspace; switching engines does not migrate its data.
 
-If you need to rebuild static assets:
-```bash
-npm install
-npm run build
+See [QUICKSTART.md](QUICKSTART.md) for installation and release checks, and [WORKBENCH.md](WORKBENCH.md) for configuration and transport details.
+
+## Architecture at a glance
+
+```mermaid
+flowchart LR
+    UI[React / TypeScript workbench]
+    SIM[Browser simulator]
+    LOCAL[(Browser localStorage)]
+    API[Flask API and account permissions]
+    RUN[Test runner and device adapters]
+    DB[(SQLite workspace)]
+    MOCK[Simulated devices]
+    SERIAL[Compatible serial responder]
+    MQTT[MQTT broker and compatible responder]
+    UI -->|Browser mode| SIM
+    SIM --> LOCAL
+    UI -->|Shared workspace: HTTP API| API
+    API --> RUN
+    API --> DB
+    RUN --> MOCK
+    RUN --> SERIAL
+    RUN --> MQTT
 ```
 
----
+In Docker, nginx serves the frontend and proxies `/api/` to Flask. Flask owns shared test execution and persistence; a server test can continue after the browser closes. One backend owner process manages the test/transport lifecycle for each SQLite workspace. Browser simulation runs independently and cannot control the shared server's hardware.
 
-## Deployment
+## Five-minute project walkthrough
 
-1. Set the `FLASK_ENV` to `production` in your `.env` file.
-2. Use a production WSGI server like Gunicorn:
-   ```bash
-   gunicorn -w 4 -b 0.0.0.0:8000  sqlite///Hardware_Tester_App:create_app()
-   ```
+1. **Explain the problem.** Device testing involves more than sending a command: configuration, connection state, expected behavior, failure diagnosis, and repeatability all matter.
+2. **Show a healthy test.** Start guided setup, choose a simulated device and compatible plan, connect it, and review readiness before running. Open the result and explain expected versus observed values.
+3. **Make failure visible.** On a simulated device, inject **Transport timeout** or **Out-of-range reading**, rerun, and inspect the failed check and related logs. Clear the fault afterward.
+4. **Show a control workflow.** On a simulated valve or relay, run **Control response** and inspect the command, verification, and restoration outcome. Keep this demonstration on simulated devices or the included mock fixture.
+5. **Connect the architecture to the behavior.** Explain which work happens in React, which happens in Flask, and how adapters keep transport-specific details separate. In Flask mode, reload to show retained results; contrast this with the separate browser-only workspace.
 
----
+For a recorded demo, narrate the problem, one passing test, one expected failure, and the architecture. Use a disposable simulation workspace with no personal account or device information visible. A failure you can explain is more informative than a screen full of green checks.
 
-## Contributing
+## Verify changes
 
-1. Fork the repository.
-2. Create a new branch:
-   ```bash
-   git checkout -b feature-name
-   ```
-3. Commit your changes:
-   ```bash
-   git commit -m "Description of changes"
-   ```
-4. Push to your fork and create a pull request.
+From the repository root:
 
----
+```powershell
+.\regression.ps1
+```
 
-## Support
+This runs the project's backend, formatting, simulator, build, browser, integration, and account-permission checks. Dependencies and Playwright browser setup are described in [WORKBENCH.md](WORKBENCH.md#verification).
 
-If you encounter issues or have feature requests, please open an issue in the repository.
+With Docker Desktop running, the clean-install check is:
 
----
+```powershell
+.\release-check.ps1
+```
+
+It creates disposable stacks and volumes for installation, MQTT, persistence, and archive-recovery checks. It does not prove compatibility with physical hardware. See [QUICKSTART.md](QUICKSTART.md#check-a-release-from-a-clean-installation) for isolation and retained diagnostics.
+
+## Scope and current limits
+
+- This is a local test workbench foundation. Production multiuser deployment and arbitrary hardware compatibility are not claimed.
+- Serial and MQTT devices must implement the documented JSON protocol. Generic USB devices are not supported by these adapters.
+- Physical-device validation, device-specific adapters, and TLS/authenticated MQTT remain separate work.
+- A physical command's outcome can be uncertain after a transport failure or server crash; inspect the restoration result and device state.
+- The original application is retained as reference material. Legacy factories, installers, Docker files, and older dashboard features are not the current default stack. PostgreSQL, Kubernetes, and a separate WSL shell are unnecessary for the current workbench.
+
+## Explore the code
+
+| Area | Start here |
+| --- | --- |
+| Frontend workbench | [`frontend/src/workbench/`](frontend/src/workbench/) |
+| Backend and test engine | [`backend/`](backend/) |
+| Deployment and fixture configuration | [`deployment/`](deployment/), [`docker-compose.yml`](docker-compose.yml) |
+| Detailed behavior and APIs | [`WORKBENCH.md`](WORKBENCH.md) |
+
+Questions or reproducible problems? [Open an issue](https://github.com/everyones-guy/HardwareTester/issues).
 
 ## License
 
-This project is licensed under the MIT License.
-```
-
-This format ensures clarity, proper markdown structure, and detailed instructions for using the application.
-```
-
----
-
-## FAQ
-
-If you're having setup issues try thse steps:
-
-Dependencies:
-```bash
-pip install tree-sitter==0.19.0
-```
-
-Environment Variables:
-```bash
-set NODE_OPTIONS=--openssl-legacy-provider
-```
-
-View Routes: 
-```bash
-python -c "from Hardware_Tester_App import create_app; app = create_app(); print('\n'.join([str(rule) for rule in app.url_map.iter_rules()]))"
-```
-
+[MIT](LICENSE.txt).
