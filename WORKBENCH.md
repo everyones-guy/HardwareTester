@@ -33,6 +33,15 @@ Select **Inspect** in Results to open a report with a prominent verdict, passed-
 
 **Compare & track** groups retained results by device ID and plan ID. Choose another completed run for a side-by-side view of verdicts, recorded readings, each run's expectations, step timings, elapsed difference, and restoration. Checks align by position, name, action, and profile; renamed, missing, or different-action checks do not receive a numeric delta. A regression count means a matched check passed in the reference and failed in the selected run, not that a changed number is automatically bad. Changed plans, transport settings, fault injection, scenarios/starting position, peripherals, or initial commanded output are called out; older reports without configuration are flagged.
 
+Use **Reference device** to compare a run against another device that completed
+the same plan. The comparison shows each run's recorded adapter. MQTT can serve
+both physical equipment and protocol fixtures, so use the device names to
+identify the actual bench. Baselines and trends stay scoped to the selected
+device's own run series.
+
+See [Raspberry Pi testing](RASPBERRY-PI.md) for role-based controller system
+plans, Pi provisioning and boot verification, and firmware programming.
+
 Operators/admins can **Use this run as baseline** on an idle bench. It requires a completed passing run with no recorded restoration failure. One marker is retained per device/plan; replacing it preserves measurements and verdicts. Browser markers stay in localStorage; Flask markers persist in SQLite and history exports/workspace archives. Additive archive imports keep an existing baseline when imported history has another for the same series. Baselines are subject to the normal last-100-run retention limit; export important history for longer storage. Suite attempts no longer in retained history can be inspected but cannot be marked.
 
 The trend chart shows total elapsed milliseconds or a selected step reading over the latest 10/30/100 completed runs. Matching recorded configurations are included by default; explicitly enable **Include changed configurations** to broaden the view. Missing measurements leave gaps, and missing timing is not zero. Expected bands come from the selected run; a compatible baseline appears as a dashed line. Changed baseline configurations are omitted unless enabled. Points use equally spaced run order, not a continuous time axis. **View plotted runs and exact values** provides keyboard-accessible report selection. Both browser simulation and Flask use the same analysis.

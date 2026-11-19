@@ -1,0 +1,5 @@
+{
+  "mode": "modeled",
+  "normal": {"inletValve": 75, "outletValve": 25, "temperatureSensor": 22, "pump": 1},
+  "sensorFailed": {"inletValve": 0, "outletValve": 0, "temperatureSensor": -99, "pump": 0}
+}

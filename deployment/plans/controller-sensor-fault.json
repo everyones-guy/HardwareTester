@@ -1,0 +1,22 @@
+{
+  "name": "Controller response to temperature-sensor failure",
+  "roles": {
+    "inletValve": "telemetry",
+    "outletValve": "telemetry",
+    "temperatureSensor": "telemetry",
+    "pump": "telemetry",
+    "temperatureFaultRelay": "faultRelay"
+  },
+  "steps": [
+    {"name": "Inlet valve in operating position", "role": "inletValve", "action": "expect", "value": 75, "tolerance": 2, "withinSeconds": 2},
+    {"name": "Outlet valve in operating position", "role": "outletValve", "action": "expect", "value": 25, "tolerance": 2, "withinSeconds": 2},
+    {"name": "Temperature sensor reading", "role": "temperatureSensor", "action": "expect", "value": 22, "tolerance": 1, "withinSeconds": 2},
+    {"name": "Pump running before fault", "role": "pump", "action": "expect", "value": 1, "tolerance": 0, "withinSeconds": 2},
+    {"name": "Inject temperature-sensor failure", "role": "temperatureFaultRelay", "action": "fault", "active": true},
+    {"name": "Controller stopped the pump", "role": "pump", "action": "expect", "value": 0, "tolerance": 0, "withinSeconds": 2},
+    {"name": "Controller closed the inlet valve", "role": "inletValve", "action": "expect", "value": 0, "tolerance": 2, "withinSeconds": 2},
+    {"name": "Controller closed the outlet valve", "role": "outletValve", "action": "expect", "value": 0, "tolerance": 2, "withinSeconds": 2},
+    {"name": "Clear temperature-sensor failure", "role": "temperatureFaultRelay", "action": "fault", "active": false},
+    {"name": "Expected temperature reading after recovery", "role": "temperatureSensor", "action": "expect", "value": 22, "tolerance": 1, "withinSeconds": 2}
+  ]
+}

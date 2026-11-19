@@ -8,6 +8,8 @@ import { markBaseline } from './resultMetrics';
 import EventLog from './EventLog';
 import ConnectionDiagnostics from './ConnectionDiagnostics';
 import UserManagement from './UserDirectory';
+import PiInventories from './PiInventories';
+import FirmwareLibrary from './FirmwareLibrary';
 import { useEffect, useRef, useState } from 'react';
 import { NavLink, Navigate, Route, Routes, useNavigate } from 'react-router-dom';
 import {
@@ -25,8 +27,10 @@ import {
   FiRadio,
   FiRefreshCw,
   FiSearch,
+  FiServer,
   FiTerminal,
   FiTrash2,
+  FiUpload,
   FiX,
 } from 'react-icons/fi';
 import {
@@ -219,7 +223,9 @@ export default function Workbench() {
         acceptServer(result);
       } catch (error) {
         setNotice(
-          `Could not switch to Flask: ${error instanceof Error ? error.message : 'Backend unavailable.'}`,
+          `Could not switch to Flask: ${
+            error instanceof Error ? error.message : 'Backend unavailable.'
+          }`,
         );
         return;
       }
@@ -965,6 +971,8 @@ export default function Workbench() {
           {[
             ['/overview', 'Overview', FiGrid],
             ['/devices', 'Devices', FiCpu],
+            ['/pi', 'Raspberry Pi', FiServer],
+            ['/firmware', 'Firmware', FiUpload],
             ['/blueprints', 'Blueprints', FiBox],
             ['/plans', 'Plan library', FiCheck],
             ['/scenarios', 'Emulator scenarios', FiRadio],
@@ -1200,6 +1208,28 @@ export default function Workbench() {
               }
             />
             <Route
+              path="/pi"
+              element={
+                <PiInventories
+                  serverMode={serverMode}
+                  serverReady={serverReady}
+                  canAdmin={canAdmin}
+                  canOperate={canOperate}
+                />
+              }
+            />
+            <Route
+              path="/firmware"
+              element={
+                <FirmwareLibrary
+                  serverMode={serverMode}
+                  serverReady={serverReady}
+                  canAdmin={canAdmin}
+                  canOperate={canOperate}
+                />
+              }
+            />
+            <Route
               path="/tests"
               element={
                 <>
@@ -1273,7 +1303,9 @@ export default function Workbench() {
                           update((state) =>
                             record(
                               markBaseline(state, run.id, enabled),
-                              `${enabled ? 'Marked' : 'Cleared'} baseline for ${run.deviceName}: ${run.plan}.`,
+                              `${enabled ? 'Marked' : 'Cleared'} baseline for ${run.deviceName}: ${
+                                run.plan
+                              }.`,
                               'info',
                               run.deviceId,
                               run.id,

@@ -8,6 +8,7 @@ import {
   expectedRange,
   matchingStep,
   numeric,
+  planKey,
   sameSeries,
 } from './resultMetrics';
 import './result-analysis.css';
@@ -18,6 +19,17 @@ const delta = (a: number | undefined, b: number | undefined, unit = '') =>
   numeric(a) && numeric(b) ? `${a - b > 0 ? '+' : ''}${Number((a - b).toFixed(2))}${unit}` : '—';
 const label = (run: TestRun) =>
   `${new Date(run.startedAt).toLocaleString()} · ${run.status} · ${run.id.slice(0, 8)}`;
+function transportLabel(run: TestRun) {
+  const device = run.configuration?.device;
+  if (device?.adapter === 'serial') return 'Serial adapter';
+  if (device?.adapter === 'mqtt') return 'MQTT adapter';
+  if (
+    device?.adapter === 'simulation' ||
+    (typeof device?.endpoint === 'string' && device.endpoint.startsWith('sim://'))
+  )
+    return 'Simulated';
+  return 'Transport unrecorded';
+}
 
 export default function ResultAnalysis({
   run,
@@ -33,6 +45,7 @@ export default function ResultAnalysis({
   onInspect: (id: string) => void;
 }) {
   const [referenceId, setReferenceId] = useState('');
+  const [referenceDeviceId, setReferenceDeviceId] = useState(run.deviceId);
   const [metric, setMetric] = useState('elapsed');
   const [includeChanged, setIncludeChanged] = useState(false);
   const [windowSize, setWindowSize] = useState(30);
@@ -40,12 +53,34 @@ export default function ResultAnalysis({
     .filter((r) => r.status !== 'running' && sameSeries(r, run))
     .sort((a, b) => Date.parse(b.startedAt) - Date.parse(a.startedAt));
   const baseline = series.find((r) => r.baseline);
-  const choices = series.filter((r) => r.id !== run.id);
+  const profile = run.configuration?.device.kind;
+  const plan = planKey(run);
+  const alternateRuns = profile
+    ? lab.runs
+        .filter(
+          (r) =>
+            r.deviceId !== run.deviceId &&
+            (r.status === 'passed' || r.status === 'failed') &&
+            r.configuration?.device.kind === profile &&
+            planKey(r) === plan,
+        )
+        .sort((a, b) => Date.parse(b.startedAt) - Date.parse(a.startedAt))
+    : [];
+  const alternateDevices = new Map<string, string>();
+  for (const candidate of alternateRuns) {
+    if (!alternateDevices.has(candidate.deviceId))
+      alternateDevices.set(candidate.deviceId, candidate.deviceName);
+  }
+  const otherDevice = alternateDevices.has(referenceDeviceId);
+  const choices = otherDevice
+    ? alternateRuns.filter((r) => r.deviceId === referenceDeviceId)
+    : series.filter((r) => r.id !== run.id);
   const reference =
     choices.find((r) => r.id === referenceId) ??
     choices.find((r) => r.id === baseline?.id) ??
     choices[0];
   const changes = reference ? configurationChanges(run, reference) : [];
+  if (otherDevice) changes.unshift('Device target');
   const unit = run.configuration ? profiles[run.configuration.device.kind].unit : '';
   const index = metric === 'elapsed' ? -1 : Number(metric);
   const range = index < 0 ? undefined : expectedRange(run.steps[index]);
@@ -94,7 +129,8 @@ export default function ResultAnalysis({
           <span className="eyebrow">BENCH MEMORY</span>
           <h2>Compare & track</h2>
           <p>
-            {run.deviceName} · {run.plan}. Comparing retained runs for this device and plan.
+            {run.deviceName} · {run.plan}. Compare runs of this plan and track this device over
+            time.
           </p>
         </div>
         <span className="analysis-count">{series.length} completed runs</span>
@@ -132,27 +168,49 @@ export default function ResultAnalysis({
           <span>
             {reference
               ? `${regressed} checks regressed · ${improved} improved`
-              : 'Run this test again to compare'}
+              : 'Choose a reference run to compare'}
           </span>
         </summary>
         <div className="analysis-body">
-          <label className="analysis-control">
-            Reference run
-            <select
-              aria-label="Reference run"
-              value={reference?.id ?? ''}
-              disabled={!choices.length}
-              onChange={(e) => setReferenceId(e.target.value)}
-            >
-              {!choices.length && <option value="">No other completed runs</option>}
-              {choices.map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.baseline ? 'BASELINE · ' : ''}
-                  {label(r)}
-                </option>
-              ))}
-            </select>
-          </label>
+          <div className="comparison-controls">
+            {alternateDevices.size > 0 && (
+              <label className="analysis-control">
+                Reference device
+                <select
+                  aria-label="Reference device"
+                  value={otherDevice ? referenceDeviceId : run.deviceId}
+                  onChange={(e) => {
+                    setReferenceDeviceId(e.target.value);
+                    setReferenceId('');
+                  }}
+                >
+                  <option value={run.deviceId}>Selected device · {run.deviceName}</option>
+                  {[...alternateDevices].map(([id, name]) => (
+                    <option value={id} key={id}>
+                      {name} · {id.slice(0, 8)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+            <label className="analysis-control">
+              Reference run
+              <select
+                aria-label="Reference run"
+                value={reference?.id ?? ''}
+                disabled={!choices.length}
+                onChange={(e) => setReferenceId(e.target.value)}
+              >
+                {!choices.length && <option value="">No other completed runs</option>}
+                {choices.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {r.baseline ? 'BASELINE · ' : ''}
+                    {label(r)} · {transportLabel(r)}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
           {reference ? (
             <>
               <div
@@ -191,11 +249,20 @@ export default function ResultAnalysis({
               <div className="comparison-scroll">
                 <div className="comparison-table" role="table" aria-label="Check comparison">
                   <div role="row" className="comparison-row comparison-head">
-                    {['Check', 'Reference run', 'Selected run', 'Reading difference'].map((s) => (
-                      <strong role="columnheader" key={s}>
-                        {s}
-                      </strong>
-                    ))}
+                    <strong role="columnheader">Check</strong>
+                    <strong role="columnheader">
+                      Reference run
+                      <small>
+                        {reference.deviceName} · {transportLabel(reference)}
+                      </small>
+                    </strong>
+                    <strong role="columnheader">
+                      Selected run
+                      <small>
+                        {run.deviceName} · {transportLabel(run)}
+                      </small>
+                    </strong>
+                    <strong role="columnheader">Reading difference</strong>
                   </div>
                   {Array.from(
                     { length: Math.max(run.steps.length, reference.steps.length) },
@@ -249,8 +316,7 @@ export default function ResultAnalysis({
             </>
           ) : (
             <p className="empty">
-              No second run for this device and plan yet. Rerun the test below to build a
-              comparison.
+              Run this plan again on this device or another device with the same profile.
             </p>
           )}
         </div>

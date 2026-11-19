@@ -81,19 +81,27 @@ export interface ServerResponse {
   preview?: Blueprint;
   capabilities?: { hardware: boolean };
 }
-async function requestLab<T>(path = '', method = 'GET', data?: unknown): Promise<T> {
+function labAuthorization() {
   const token = sessionStorage.getItem('hardware-tester.api-token');
+  return token ? { Authorization: `Bearer ${token}` } : undefined;
+}
+
+async function requestLab<T>(path = '', method = 'GET', data?: unknown): Promise<T> {
+  const multipart = data instanceof FormData;
   const response = await fetch(`/api/lab${path}`, {
     method,
     credentials: 'same-origin',
     headers: {
       ...(method !== 'GET'
-        ? { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken() }
+        ? {
+            ...(!multipart ? { 'Content-Type': 'application/json' } : {}),
+            'X-CSRF-Token': csrfToken(),
+          }
         : {}),
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...labAuthorization(),
     },
-    body: data === undefined ? undefined : JSON.stringify(data),
-    signal: AbortSignal.timeout(path.startsWith('/workspace/') ? 60000 : 10000),
+    body: multipart ? data : data === undefined ? undefined : JSON.stringify(data),
+    signal: AbortSignal.timeout(multipart || path.startsWith('/workspace/') ? 60000 : 10000),
   });
   const payload = await response.json().catch(() => {
     throw new Error('Backend returned an invalid response. Check that Flask is running.');
@@ -135,6 +143,19 @@ export interface BackupPreview {
   }[];
 }
 export const workspaceRequest = requestLab;
+
+export async function fetchFirmwareBinary(digest: string): Promise<Blob> {
+  const response = await fetch(`/api/lab/firmware/${encodeURIComponent(digest)}/binary`, {
+    headers: labAuthorization(),
+    signal: AbortSignal.timeout(60000),
+  });
+  if (!response.ok) {
+    if (response.status === 401) window.dispatchEvent(new Event('ht-auth-changed'));
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.error || `Firmware download failed (${response.status}).`);
+  }
+  return response.blob();
+}
 export function savedBackendMode(): boolean {
   try {
     return (

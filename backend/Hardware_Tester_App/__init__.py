@@ -71,6 +71,16 @@ def create_app(config_name="development", overrides=None, **kwargs):
     from .results import register_results
 
     register_results(app, lab)
+    from .pi_inventories import register_pi_inventories
+
+    register_pi_inventories(app, lab)
+    from .firmware_artifacts import (
+        FIRMWARE_API,
+        FIRMWARE_UPLOAD_LIMIT,
+        register_firmware,
+    )
+
+    register_firmware(app, lab)
     source_hash = hashlib.sha256()
     for source in sorted(Path(__file__).parent.rglob("*.py")):
         source_hash.update(
@@ -84,6 +94,9 @@ def create_app(config_name="development", overrides=None, **kwargs):
 
     @app.before_request
     def guard_api():
+        firmware_upload = request.path == FIRMWARE_API and request.method == "POST"
+        if firmware_upload:
+            request.max_content_length = FIRMWARE_UPLOAD_LIMIT + 64 * 1024
         if request.path in ("/api/lab/workspace/preview", "/api/lab/workspace/import"):
             request.max_content_length = 20 * 1024 * 1024
         if not request.path.startswith(("/api/lab", "/api/auth")):
@@ -96,7 +109,9 @@ def create_app(config_name="development", overrides=None, **kwargs):
                 and origin not in app.config["LAB_ALLOWED_ORIGINS"]
             ):
                 raise LabError("This origin is not allowed to control the lab.", 403)
-            if not request.is_json:
+            if firmware_upload and request.mimetype != "multipart/form-data":
+                raise LabError("Use multipart/form-data to upload firmware.", 415)
+            if not firmware_upload and not request.is_json:
                 raise LabError("Use application/json for lab commands.", 415)
         token = app.config["LAB_API_TOKEN"]
         if (
@@ -116,7 +131,11 @@ def create_app(config_name="development", overrides=None, **kwargs):
 
     @app.before_request
     def own_lab_command():
-        if request.path.startswith("/api/lab") and request.method != "GET":
+        if (
+            request.path.startswith("/api/lab")
+            and request.path != FIRMWARE_API
+            and request.method != "GET"
+        ):
             lab.lock.acquire()
             g.lab_command_lock = True
             if lab.suites.active and request.path not in (

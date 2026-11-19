@@ -1,0 +1,53 @@
+.firmware-library {
+  display: grid;
+  gap: 1rem;
+}
+
+.firmware-library [role='status']:empty {
+  display: none;
+}
+
+.firmware-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  align-items: end;
+  gap: 0.75rem;
+  padding: 0;
+  border: 0;
+  margin: 0;
+  min-width: 0;
+}
+
+.firmware-fields .firmware-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.firmware-fields .firmware-checkbox input {
+  width: auto;
+}
+
+.firmware-versions {
+  display: grid;
+  list-style: none;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+}
+
+.firmware-versions li {
+  padding: 0.75rem 0;
+  border-top: 1px solid var(--border);
+  min-width: 0;
+}
+
+.firmware-versions code {
+  overflow-wrap: anywhere;
+}
+
+.firmware-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}

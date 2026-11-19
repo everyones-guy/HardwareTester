@@ -3,6 +3,7 @@
 from contextlib import contextmanager
 import importlib.util
 from pathlib import Path
+import shutil
 import threading
 import urllib.error
 
@@ -77,7 +78,9 @@ def test_frontend_probe_fetches_compiled_assets_and_rejects_missing_files(tmp_pa
     (assets / "app.css").write_text("body { color: black; }", encoding="utf-8")
     with server(tmp_path / "web.sqlite3", frontend) as client:
         client.web_assets()
-        (assets / "app.js").unlink()
+    missing_frontend = tmp_path / "missing-frontend"
+    shutil.copytree(frontend, missing_frontend, ignore=shutil.ignore_patterns("app.js"))
+    with server(tmp_path / "missing-web.sqlite3", missing_frontend) as client:
         with pytest.raises(urllib.error.HTTPError) as error:
             client.web_assets()
         assert error.value.code == 404

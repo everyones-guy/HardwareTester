@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "initialState": "ready",
+  "initialValue": 0,
+  "states": {
+    "ready": [
+      {
+        "command": "read",
+        "target": "ready",
+        "reply": { "type": "value", "delayMs": 35 }
+      },
+      {
+        "command": "set",
+        "when": { "below": 90 },
+        "target": "ready",
+        "updateOutput": true,
+        "reply": { "type": "value", "delayMs": 120 }
+      },
+      {
+        "command": "set",
+        "when": { "atLeast": 90 },
+        "target": "overload",
+        "reply": {
+          "type": "error",
+          "message": "Actuator overload. Send a zero setpoint to recover.",
+          "delayMs": 150
+        }
+      }
+    ],
+    "overload": [
+      {
+        "command": "read",
+        "target": "overload",
+        "reply": { "type": "drop" }
+      },
+      {
+        "command": "set",
+        "when": { "exactly": 0 },
+        "target": "recovering",
+        "updateOutput": true,
+        "reply": { "type": "value", "delayMs": 120 }
+      }
+    ],
+    "recovering": [
+      {
+        "command": "read",
+        "target": "ready",
+        "reply": { "type": "value", "delayMs": 450 }
+      }
+    ]
+  }
+}

@@ -44,9 +44,35 @@ test('compares recorded values, filters changed setups, and persists a replaceme
         detail: 'Recorded check',
       })),
     }));
+    const mqttDevice = {
+      ...device,
+      id: 'mqtt-fixture',
+      name: 'MQTT temperature fixture',
+      adapter: 'mqtt',
+      endpoint: 'mqtt://broker:1883/lab/temperature',
+    };
+    const mqttReference = {
+      ...runs[2],
+      id: 'mqtt-reference',
+      deviceId: mqttDevice.id,
+      deviceName: mqttDevice.name,
+      startedAt: '2026-10-10T12:00:00Z',
+      finishedAt: '2026-10-10T12:00:03Z',
+      baseline: false,
+      configuration: { ...runs[2].configuration, device: mqttDevice },
+      steps: runs[2].steps.map((step) => ({
+        ...step,
+        observed: step.observed === undefined ? undefined : 28,
+      })),
+    };
     localStorage.setItem(
       'hardware-tester.lab.v1',
-      JSON.stringify({ version: 1, devices: [device], runs, logs: [] }),
+      JSON.stringify({
+        version: 1,
+        devices: [device, mqttDevice],
+        runs: [...runs, mqttReference],
+        logs: [],
+      }),
     );
   });
   await page.goto('/results');
@@ -63,6 +89,15 @@ test('compares recorded values, filters changed setups, and persists a replaceme
   expect((await analysis.locator('.trend-chart').boundingBox())!.width).toBeGreaterThan(300);
   await analysis.getByText('View plotted runs and exact values (3)').click();
   await expect(analysis.locator('.trend-record')).toHaveCount(3);
+  await analysis.getByLabel('Reference device').selectOption('mqtt-fixture');
+  await expect(analysis.getByLabel('Reference run')).toHaveValue('mqtt-reference');
+  await expect(analysis.getByRole('columnheader', { name: /MQTT adapter/ })).toBeVisible();
+  await expect(analysis.getByRole('columnheader', { name: /Simulated/ })).toBeVisible();
+  await expect(analysis).toContainText('Device target · Transport adapter');
+  await expect(analysis).toContainText('+67°C');
+  await expect(analysis.locator('.trend-record')).toHaveCount(3);
+  await analysis.getByLabel('Reference device').selectOption('result-device');
+  await expect(analysis.getByLabel('Reference run')).toHaveValue('result-2');
   if (process.env.LAB_SCREENSHOT_DIR)
     await analysis.screenshot({
       path: `${process.env.LAB_SCREENSHOT_DIR}/hardware-tester-result-comparison.png`,

@@ -18,6 +18,10 @@ Use **Test bench > Start guided setup** for your first simulated test. To exerci
 MQTT, add a valve with endpoint `mqtt://broker:1883/lab/demo-valve`, connect it,
 and run **Control response**.
 
+For a Raspberry Pi controller, open **Raspberry Pi** in the shared workbench.
+See [Raspberry Pi testing](RASPBERRY-PI.md) for inventory collection, inventory
+checks, and the separate Docker/QEMU boot check for an approved Pi 3B image.
+
 The four services are the web workbench, backend, broker, and MQTT fixture.
 `docker compose stop` stops them; the startup command restarts them and builds
 updates. `docker compose down` removes containers while keeping saved data in the

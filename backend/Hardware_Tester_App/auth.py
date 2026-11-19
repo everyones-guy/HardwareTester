@@ -244,6 +244,8 @@ class Accounts:
 def required_role(path, method):
     if path.startswith("/api/lab/workspace/"):
         return "admin"
+    if method == "GET" and re.fullmatch(r"/api/lab/firmware/[a-f0-9]{64}/binary", path):
+        return "operator"
     if method == "GET" or path.endswith("/blueprints/preview"):
         return "viewer"
     if (
@@ -251,6 +253,10 @@ def required_role(path, method):
         or path in ("/api/lab/runs", "/api/lab/runs/cancel", "/api/lab/connect-bench")
         or path.endswith("/run")
         or re.fullmatch(r"/api/lab/runs/[^/]+/baseline", path)
+        or (
+            method == "POST"
+            and re.fullmatch(r"/api/lab/pi-inventories/[^/]+/checks", path)
+        )
         or re.fullmatch(
             r"/api/lab/devices/[^/]+/(connection|command|fault|diagnostics|scenario)",
             path,
