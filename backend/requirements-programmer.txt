@@ -1,0 +1,5 @@
+cryptography==50.0.2
+
+# Transitive dependencies for the rack-side verifier.
+cffi==2.1.1
+pycparser==3.12

@@ -186,8 +186,9 @@ any available ELF headers. An exact declaration with no observed ELF is labeled
 require review. The capture records kernel architecture. Bootability, userspace
 compatibility, and live target identity require separate checks.
 
-Operators can download verified uploads and export the manifest. Use approved
-`.bin` images with the rack programmer. Release ZIPs support inspection and
+Operators can download hash-checked uploads and export the manifest. Use a
+publisher-signed manifest with approved `.bin` images on the rack programmer.
+Release ZIPs support inspection and
 comparison. Firmware files live next to the Workbench database. Retain both
 together for a full installation backup.
 
@@ -206,23 +207,49 @@ procedure must read a live board identifier and return the exact approved
 `targetIdentity`. Configure adapter selection in the board profile and use
 a board/revision-specific identity supported by the hardware.
 
-From the repository root, preflight the binary on the rack:
+Install the verifier on the rack operator's environment with
+`python -m pip install -r backend/requirements-programmer.txt`. Obtain the
+version 1 JSON manifest and detached Ed25519 signature from the release
+publisher. The signer signs the exact UTF-8 manifest bytes, including
+whitespace and line endings. The manifest includes the binary's SHA-256,
+size, model, and architecture. A Workbench export can serve as the input to
+the publisher's signing process.
+
+The signature sidecar has `schemaVersion` set to `1`, a `keyId`, and a
+`signature` containing the 64-byte signature as 128 lowercase hex characters.
+For a Python Ed25519 signing key, this value is
+`release_key.sign(manifest_path.read_bytes()).hex()`. The rack operator keeps
+an independently provisioned trust store with `schemaVersion` set to `1` and
+a `keys` object mapping each approved key ID to its raw 32-byte Ed25519 public
+key in lowercase hex. For a Python Ed25519 public key, use
+`public_key.public_bytes_raw().hex()`. Store only public keys on the rack and
+manage the trust store separately from release bundles. [Ed25519 signing and verification](https://cryptography.io/en/50.0.2/hazmat/primitives/asymmetric/ed25519/)
+
+From the repository root, preflight the signed binary on the rack:
 
 ```powershell
 python backend/tools/flash_openocd.py --profile .\rack-profile.json `
   --manifest .\approved-firmware.json --binary .\approved-firmware.bin `
+  --signature .\approved-firmware.signature.json `
+  --trust-store .\trusted-publishers.json `
   --report .\flash-preflight.jsonl
 ```
 
-For a permitted programming cycle on the lab target, supply `--apply` and a
-fresh report filename. Optionally supply `--recovery-manifest` and
-`--recovery-binary` for a known-good approved image. The tool checks live
-identity, writes, verifies flash contents, and resets into run mode after
-verification. With recovery configured, a completed write followed by failed
-verification can trigger a separate recovery attempt. The recovery attempt
-checks the live identity and verifies the known-good image. A write failure or
-unknown device state requires rack inspection. Review the JSONL attempt log
-and use the target's documented recovery procedure. [OpenOCD programming](https://openocd.org/doc/html/Flash-Programming.html)
+Preflight checks the signature, image, and profile locally. For an approved
+programming cycle, supply `--apply` and a fresh report filename. The tool checks
+live identity before the write, verifies the programmed bytes, and then resets
+into run mode. The JSONL report records the signer key ID, public key fingerprint,
+manifest digest, programmer outcome, and the last confirmed target state.
+
+Optional recovery requires `--recovery-manifest`, `--recovery-signature`, and
+`--recovery-binary` for a distinct known-good image that covers the candidate's
+erase blocks. The tool verifies both releases before it calls OpenOCD. It
+attempts recovery once after a completed write and an explicit verification
+failure. It checks the live identity again before the recovery write and
+verifies the recovery bytes before reset. A timeout or interruption skips
+automatic recovery. Review the report and inspect the rack when the target
+state is unknown. A successful recovery still returns a failing exit code
+for the requested deployment. [OpenOCD programming](https://openocd.org/doc/html/Flash-Programming.html)
 
 ## Hardware and firmware catalog design
 
