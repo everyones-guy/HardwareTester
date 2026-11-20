@@ -7,6 +7,8 @@ import time
 import uuid
 from urllib.parse import urlparse
 
+from .run_audit import exchange
+
 
 class TransportError(Exception):
     pass
@@ -33,6 +35,9 @@ class SimulationTransport:
         pass
 
     def read(self):
+        return exchange("simulation", "read", lambda _: self._read())
+
+    def _read(self):
         d = self.device
         scenario = d.get("scenario")
         if scenario:
@@ -68,11 +73,14 @@ class SimulationTransport:
         return d["value"]
 
     def write(self, value):
-        self.read()  # A timeout must never look like a successful command.
+        return exchange("simulation", "set", lambda _: self._write(value), value)
+
+    def _write(self, value):
+        self._read()  # A timeout must never look like a successful command.
         self.device["value"] = value
         if self.device.get("scenario"):
             self.device["scenarioOutput"] = value
-        return self.read()
+        return self._read()
 
 
 class SerialTransport:
@@ -103,9 +111,17 @@ class SerialTransport:
             self.port = None
 
     def exchange(self, command, value=None):
+        return exchange(
+            "serial",
+            command,
+            lambda identity: self._exchange(identity, command, value),
+            value,
+            wire=True,
+        )
+
+    def _exchange(self, request_id, command, value):
         if not self.port:
             raise TransportError("Serial device is disconnected.")
-        request_id = str(uuid.uuid4())
         payload = {"id": request_id, "command": command}
         if value is not None:
             payload["value"] = value
@@ -221,9 +237,18 @@ class MQTTTransport:
             self.client = None
 
     def exchange(self, command, value=None):
+        return exchange(
+            "mqtt",
+            command,
+            lambda identity: self._exchange(identity, command, value),
+            value,
+            wire=True,
+        )
+
+    def _exchange(self, request_id, command, value):
         if not self.client or not self.client.is_connected():
             raise TransportError("MQTT broker is disconnected.")
-        self.pending = str(uuid.uuid4())
+        self.pending = request_id
         self.replied.clear()
         self.error = None
         payload = {"id": self.pending, "command": command}

@@ -1,6 +1,7 @@
 """Persistent, single-owner lab engine. One process owns transports and the runner."""
 
 import copy
+from contextlib import nullcontext
 import json
 import math
 import sqlite3
@@ -11,6 +12,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import urlparse
 from .transports import TransportError, create_transport, numeric
+from .run_audit import append_request, audit_record, release_reference, request_scope
 
 PROFILES = {
     "temperature": ("MQTT", "sim://mqtt/lab/temperature"),
@@ -161,6 +163,23 @@ class Lab:
             if run["status"] == "running":
                 run["status"] = "cancelled"
                 run["finishedAt"] = now()
+                audit = run.get("audit") or {}
+                if audit.get("kind") == "system":
+                    audit["error"] = "System run interrupted by a server restart."
+                    run["restoration"] = "not-needed"
+                    for saved in self.state["devices"]:
+                        if any(
+                            provider.get("deviceId") == saved["id"]
+                            and provider.get("roleKind")
+                            in ("commandRelay", "faultRelay")
+                            for provider in audit.get("providers", ())
+                        ):
+                            saved["safetyWarning"] = (
+                                "System run was interrupted. Confirm relay state before running again."
+                            )
+                            run["restoration"] = "failed"
+                    self.log(audit["error"], "error", run_id=run["id"])
+                    continue
                 d = next(
                     (d for d in self.state["devices"] if d["id"] == run["deviceId"]),
                     None,
@@ -359,10 +378,29 @@ class Lab:
             )
             self.save()
 
+    def request_trace(self, d):
+        active = self.active
+        if not active or active.get("system") or active["device"] is not d:
+            return nullcontext()
+        run = active["run"]
+        index = active["index"]
+        context = {
+            "phase": "restoration" if active.get("cleaning") else "step",
+            "deviceId": d["id"],
+        }
+        if index < len(run["steps"]) and not active.get("cleaning"):
+            context["stepIndex"] = index
+            if run["steps"][index]["name"] == "Restore initial state":
+                context["phase"] = "restoration"
+        return request_scope(
+            lambda event: append_request(run["audit"], event), **context
+        )
+
     def read(self, d):
         if not d["connected"] or d["id"] not in self.adapters:
             raise TransportError("Device disconnected. Connect the device and retry.")
-        d["value"] = numeric(self.adapters[d["id"]].read())
+        with self.request_trace(d):
+            d["value"] = numeric(self.adapters[d["id"]].read())
         d["lastError"] = None
         d["lastContactAt"] = now()
         return d["value"]
@@ -407,7 +445,8 @@ class Lab:
     def write(self, d, value):
         if not d["connected"] or d["id"] not in self.adapters:
             raise TransportError("Device disconnected. Connect the device and retry.")
-        d["value"] = numeric(self.adapters[d["id"]].write(value))
+        with self.request_trace(d):
+            d["value"] = numeric(self.adapters[d["id"]].write(value))
         d["enabled"] = d["value"] > 0
 
     def command(self, device_id, value):
@@ -441,7 +480,7 @@ class Lab:
             d["safetyWarning"] = None
             self.save()
 
-    def start(self, device_id, plan, actor=None):
+    def start(self, device_id, plan, actor=None, release_sha256=None):
         with self.lock:
             if self.active:
                 raise LabError("A test is already running.", 409)
@@ -450,6 +489,10 @@ class Lab:
             d = self.device(device_id)
             if not d["connected"]:
                 raise LabError("Connect the device before running a test.", 409)
+            try:
+                release = release_reference(self.connection, release_sha256)
+            except ValueError as error:
+                raise LabError(str(error)) from error
             definition = None
             if plan not in PLANS:
                 from .test_plans import PlanRepository, normalize_plan
@@ -495,10 +538,14 @@ class Lab:
                     for name in names
                 ],
             }
-            if actor:
-                run["startedBy"] = {
-                    key: actor[key] for key in ("id", "username", "role")
-                }
+            run["audit"] = audit_record(
+                "device",
+                actor,
+                [{"deviceId": d["id"], "name": d["name"], "adapter": d["adapter"]}],
+                release,
+            )
+            if run["audit"]["operator"]:
+                run["startedBy"] = run["audit"]["operator"]
             run["configuration"] = {
                 "device": copy.deepcopy(d),
                 "peripherals": copy.deepcopy(
@@ -540,6 +587,7 @@ class Lab:
             return run["id"]
 
     def cleanup(self, active):
+        active["cleaning"] = True
         if not active["changed"]:
             active["run"]["restoration"] = "not-needed"
             return
@@ -577,6 +625,9 @@ class Lab:
             if not self.active:
                 raise LabError("No test is running.", 409)
             active = self.active
+            if active.get("system"):
+                active["cancel"].set()
+                return
             self.cleanup(active)
             active["run"].update(status="cancelled", finishedAt=now())
             self.active = None
@@ -589,7 +640,7 @@ class Lab:
 
     def advance(self):
         with self.lock:
-            if not self.active:
+            if not self.active or self.active.get("system"):
                 return
             active = self.active
             d, run = active["device"], active["run"]
@@ -836,6 +887,8 @@ class Lab:
         while not self.stop_event.wait(0.1):
             try:
                 with self.lock:
+                    if self.active and self.active.get("system"):
+                        continue
                     if time.monotonic() - self.last_tick >= 1:
                         self.tick += 1
                         self.last_tick = time.monotonic()
@@ -912,6 +965,12 @@ class Lab:
         self.stop_event.set()
         if self.worker:
             self.worker.join(timeout=10)
+        with self.lock:
+            system = self.active if self.active and self.active.get("system") else None
+            if system:
+                system["cancel"].set()
+        if system:
+            system["worker"].join()
         with self.lock:
             if getattr(self, "suites", None) and self.suites.active:
                 self.suites.cancel()

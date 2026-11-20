@@ -280,3 +280,10 @@
 .report-check[open] summary:after {
   content: '−';
 }
+.run-audit {
+  overflow-wrap: anywhere;
+}
+
+.run-audit li {
+  margin-block: 0.5rem;
+}

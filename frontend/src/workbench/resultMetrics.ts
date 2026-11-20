@@ -40,6 +40,12 @@ function stable(value: unknown): string {
   return JSON.stringify(value) ?? 'undefined';
 }
 export function configurationChanges(a: TestRun, b: TestRun): string[] {
+  if (a.audit?.kind === 'system' && b.audit?.kind === 'system') {
+    const changes: string[] = [];
+    if (a.audit.planSha256 !== b.audit.planSha256) changes.push('System plan');
+    if (a.audit.release?.sha256 !== b.audit.release?.sha256) changes.push('Selected release');
+    return changes;
+  }
   const ac = a.configuration,
     bc = b.configuration;
   if (!ac || !bc) return ['Configuration not recorded'];
@@ -86,6 +92,14 @@ export function expectedRange(step?: TestStep): [number, number] | undefined {
     : undefined;
 }
 export function matchingStep(a: TestRun, b: TestRun, index: number): boolean {
+  if (a.audit?.kind === 'system' && b.audit?.kind === 'system') {
+    return (
+      !!a.audit.planSha256 &&
+      a.audit.planSha256 === b.audit.planSha256 &&
+      !!a.steps[index] &&
+      a.steps[index].name === b.steps[index]?.name
+    );
+  }
   const action = (r: TestRun) => {
     const definitions = r.configuration?.plan.steps;
     if (!definitions?.length || typeof definitions[0] === 'string') return r.steps[index]?.name;

@@ -81,6 +81,9 @@ def create_app(config_name="development", overrides=None, **kwargs):
     )
 
     register_firmware(app, lab)
+    from .system_runs import register_system_runs
+
+    register_system_runs(app, lab)
     from .ui_catalogs import (
         UI_CATALOG_API,
         UI_CATALOG_REQUEST_LIMIT,
@@ -147,6 +150,15 @@ def create_app(config_name="development", overrides=None, **kwargs):
         ):
             lab.lock.acquire()
             g.lab_command_lock = True
+            if (
+                lab.active
+                and lab.active.get("system")
+                and request.path != "/api/lab/runs/cancel"
+            ):
+                raise LabError(
+                    "A system run owns the bench. Cancel it before changing the workspace.",
+                    409,
+                )
             if lab.suites.active and request.path not in (
                 "/api/lab/suite-runs/cancel",
                 "/api/lab/runs/cancel",
@@ -261,6 +273,7 @@ def create_app(config_name="development", overrides=None, **kwargs):
                 payload.get("deviceId"),
                 payload.get("plan"),
                 actor=getattr(g, "workbench_user", None),
+                release_sha256=payload.get("releaseSha256"),
             )
         else:
             from .services.test_plan_service import TestPlanService
@@ -269,6 +282,7 @@ def create_app(config_name="development", overrides=None, **kwargs):
                 payload.get("plan"),
                 device_id=payload.get("deviceId"),
                 repository=app.extensions["plan_repository"],
+                release_sha256=payload.get("releaseSha256"),
             )["runId"]
         return result(runId=run_id), 202
 

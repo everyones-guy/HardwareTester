@@ -271,7 +271,7 @@ class PlanRepository:
     def preview_test_plan(self, identity):
         return {"success": True, "plan": copy.deepcopy(self.find(identity))}
 
-    def run_test_plan(self, identity, device_id):
+    def run_test_plan(self, identity, device_id, release_sha256=None):
         return {
             "success": True,
             "runId": self.lab.start(
@@ -282,6 +282,7 @@ class PlanRepository:
                     if has_request_context()
                     else None
                 ),
+                release_sha256=release_sha256,
             ),
         }
 
@@ -325,7 +326,10 @@ def register_plans(app, lab):
             extra = {}
             if request.path.endswith("/run"):
                 extra = TestPlanService.run_test_plan(
-                    identity, device_id=data.get("deviceId"), repository=repository
+                    identity,
+                    device_id=data.get("deviceId"),
+                    repository=repository,
+                    release_sha256=data.get("releaseSha256"),
                 )
             elif request.method == "GET":
                 extra = (

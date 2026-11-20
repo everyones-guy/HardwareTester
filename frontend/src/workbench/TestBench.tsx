@@ -2,11 +2,12 @@ import { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { FiCheck, FiCpu, FiLink, FiPlay, FiSquare, FiX } from 'react-icons/fi';
 import { Device, LabState, TestRun, profiles, planNames } from './simulator';
-import { ServerResponse } from './backend';
+import { ServerResponse, workspaceRequest } from './backend';
 import { ScenarioControls } from './ScenarioLibrary';
 import { stepSummary } from './PlanStepRow';
 import './test-bench.css';
 import GuidedTest from './GuidedTest';
+import SystemRunForm from './SystemRunForm';
 
 function SignalMonitor({ device }: { device?: Device }) {
   const [trace, setTrace] = useState<{ id: string; values: number[] }>({ id: '', values: [] });
@@ -121,7 +122,7 @@ export default function TestBench({
   onSelect: (id: string) => void;
   onPlan: (id: string) => void;
   onConnect: () => void;
-  onStart: () => Promise<string | undefined>;
+  onStart: (releaseSha256?: string) => Promise<string | undefined>;
   onCancel: () => void;
   action: (path: string, method?: string, data?: unknown) => Promise<ServerResponse | undefined>;
   onExport: (run: TestRun) => void;
@@ -129,6 +130,25 @@ export default function TestBench({
 }) {
   const [emulationOpen, setEmulationOpen] = useState(false);
   const [guided, setGuided] = useState(false);
+  const [releases, setReleases] = useState<{ sha256: string; name: string; version: string }[]>([]);
+  const [releaseSha256, setReleaseSha256] = useState('');
+  const [releaseError, setReleaseError] = useState('');
+  useEffect(() => {
+    if (!serverMode || !serverReady) return;
+    let current = true;
+    void workspaceRequest<{ artifacts: typeof releases }>('/firmware')
+      .then(({ artifacts }) => {
+        if (current)
+          setReleases(Array.from(new Map(artifacts.map((item) => [item.sha256, item])).values()));
+      })
+      .catch((error: Error) => {
+        if (current) setReleaseError(error.message);
+      });
+    return () => {
+      current = false;
+    };
+  }, [serverMode, serverReady]);
+  const launch = () => onStart(releaseSha256 || undefined);
   const selectedPlan = serverMode
     ? lab.testPlans?.find((p) => p.id === plan && p.kind === device?.kind)
     : undefined;
@@ -230,7 +250,7 @@ export default function TestBench({
           onSelect={onSelect}
           onPlan={onPlan}
           onConnect={onConnect}
-          onStart={onStart}
+          onStart={launch}
           onCancel={onCancel}
           action={action}
           onResults={onResults}
@@ -363,6 +383,34 @@ export default function TestBench({
           )}
         </details>
       )}
+      {serverMode && serverReady && (
+        <div className="firmware-fields">
+          <label>
+            Firmware release for this run
+            <select
+              value={releaseSha256}
+              disabled={!editable}
+              onChange={(event) => setReleaseSha256(event.target.value)}
+            >
+              <option value="">No release selected</option>
+              {releases.map((release) => (
+                <option key={release.sha256} value={release.sha256}>
+                  {release.name} · {release.version}
+                </option>
+              ))}
+            </select>
+          </label>
+          {releaseError && <p className="helper">Firmware library unavailable. {releaseError}</p>}
+        </div>
+      )}
+      {serverMode && serverReady && (
+        <SystemRunForm
+          disabled={!editable}
+          releaseSha256={releaseSha256}
+          action={action}
+          onResults={onResults}
+        />
+      )}
       <div className="bench-run-deck">
         <div>
           <span className="eyebrow">03 / EXECUTE & OBSERVE</span>
@@ -387,7 +435,7 @@ export default function TestBench({
         <button
           className={`button bench-run-button ${activeRun ? 'secondary' : 'primary'}`}
           disabled={!canOperate || busy || !available || (!activeRun && !ready)}
-          onClick={activeRun ? onCancel : onStart}
+          onClick={activeRun ? onCancel : launch}
         >
           {activeRun ? <FiSquare /> : <FiPlay />}
           {activeRun ? 'Stop test' : 'Run test'}
@@ -445,7 +493,7 @@ export default function TestBench({
               <button
                 className="button secondary"
                 disabled={!ready || shownRun.deviceId !== selected}
-                onClick={onStart}
+                onClick={launch}
               >
                 Run selected setup again
               </button>

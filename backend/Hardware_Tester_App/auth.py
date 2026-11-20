@@ -252,7 +252,13 @@ def required_role(path, method):
         return "viewer"
     if (
         path == "/api/lab/suite-runs/cancel"
-        or path in ("/api/lab/runs", "/api/lab/runs/cancel", "/api/lab/connect-bench")
+        or path
+        in (
+            "/api/lab/runs",
+            "/api/lab/system-runs",
+            "/api/lab/runs/cancel",
+            "/api/lab/connect-bench",
+        )
         or path.endswith("/run")
         or re.fullmatch(r"/api/lab/runs/[^/]+/baseline", path)
         or (

@@ -20,6 +20,9 @@ const delta = (a: number | undefined, b: number | undefined, unit = '') =>
 const label = (run: TestRun) =>
   `${new Date(run.startedAt).toLocaleString()} · ${run.status} · ${run.id.slice(0, 8)}`;
 function transportLabel(run: TestRun) {
+  if (run.audit?.kind === 'system') {
+    return Array.from(new Set(run.audit.providers.map(({ adapter }) => adapter))).join(', ');
+  }
   const device = run.configuration?.device;
   if (device?.adapter === 'serial') return 'Serial adapter';
   if (device?.adapter === 'mqtt') return 'MQTT adapter';
@@ -55,17 +58,19 @@ export default function ResultAnalysis({
   const baseline = series.find((r) => r.baseline);
   const profile = run.configuration?.device.kind;
   const plan = planKey(run);
-  const alternateRuns = profile
-    ? lab.runs
-        .filter(
-          (r) =>
-            r.deviceId !== run.deviceId &&
-            (r.status === 'passed' || r.status === 'failed') &&
-            r.configuration?.device.kind === profile &&
-            planKey(r) === plan,
-        )
-        .sort((a, b) => Date.parse(b.startedAt) - Date.parse(a.startedAt))
-    : [];
+  const system = run.audit?.kind === 'system';
+  const alternateRuns =
+    profile || system
+      ? lab.runs
+          .filter(
+            (r) =>
+              r.deviceId !== run.deviceId &&
+              (r.status === 'passed' || r.status === 'failed') &&
+              (system ? r.audit?.kind === 'system' : r.configuration?.device.kind === profile) &&
+              planKey(r) === plan,
+          )
+          .sort((a, b) => Date.parse(b.startedAt) - Date.parse(a.startedAt))
+      : [];
   const alternateDevices = new Map<string, string>();
   for (const candidate of alternateRuns) {
     if (!alternateDevices.has(candidate.deviceId))

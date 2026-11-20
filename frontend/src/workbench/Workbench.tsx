@@ -539,12 +539,16 @@ export default function Workbench() {
       ),
     );
   }
-  async function start(target = device, chosenPlan = plan) {
+  async function start(target = device, chosenPlan = plan, releaseSha256?: string) {
     if (!target?.connected || activeRef.current || activeRun || !canOperate || busy) return;
     setSelected(target.id);
     setPlan(chosenPlan);
     if (serverMode) {
-      const r = await serverAction('/runs', 'POST', { deviceId: target.id, plan: chosenPlan });
+      const r = await serverAction('/runs', 'POST', {
+        deviceId: target.id,
+        plan: chosenPlan,
+        releaseSha256,
+      });
       if (r?.runId) setViewRun(r.runId);
       return r?.runId;
     }
@@ -850,7 +854,7 @@ export default function Workbench() {
       onSelect={setSelected}
       onPlan={setPlan}
       onConnect={() => device && connect(device.id)}
-      onStart={() => start()}
+      onStart={(releaseSha256) => start(device, plan, releaseSha256)}
       onCancel={cancel}
       action={serverAction}
       onExport={(run) => download('hardware-tester-run.json', run)}

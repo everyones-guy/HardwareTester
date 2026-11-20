@@ -1,5 +1,6 @@
 import { Device, LabState, profiles, TestRun } from './simulator';
 import './reports.css';
+import RunAudit from './RunAudit';
 export default function RunReport({
   run,
   lab,
@@ -109,28 +110,30 @@ export default function RunReport({
         </div>
       </div>
       <div className="report-actions">
-        <button
-          className="button primary"
-          disabled={
-            !enabled ||
-            !target?.connected ||
-            !available ||
-            run.status === 'running' ||
-            (!!saved && saved.kind !== target?.kind)
-          }
-          onClick={() => {
-            if (
-              target &&
-              (!changed ||
-                window.confirm(
-                  'The device settings, scenario position, or plan version have changed. Rerun using the current configuration?',
-                ))
-            )
-              onRerun(target, id);
-          }}
-        >
-          Rerun test
-        </button>
+        {run.audit?.kind !== 'system' && (
+          <button
+            className="button primary"
+            disabled={
+              !enabled ||
+              !target?.connected ||
+              !available ||
+              run.status === 'running' ||
+              (!!saved && saved.kind !== target?.kind)
+            }
+            onClick={() => {
+              if (
+                target &&
+                (!changed ||
+                  window.confirm(
+                    'The device settings, scenario position, or plan version have changed. Rerun using the current configuration?',
+                  ))
+              )
+                onRerun(target, id);
+            }}
+          >
+            Rerun test
+          </button>
+        )}
         <button className="button secondary" onClick={onExport}>
           Export this run
         </button>
@@ -138,13 +141,16 @@ export default function RunReport({
           View run logs
         </button>
       </div>
-      <p className="helper">
-        Rerun target: {target?.name ?? 'Device removed'} ·{' '}
-        {saved ? `${saved.name} v${saved.version}` : available ? run.plan : 'Plan removed'}.{' '}
-        {changed ? 'Configuration changed since this run. ' : ''}
-        {!target?.connected ? 'Connect the target before rerunning. ' : ''}Reruns use current device
-        settings and the current plan.
-      </p>
+      {run.audit && <RunAudit audit={run.audit} />}
+      {run.audit?.kind !== 'system' && (
+        <p className="helper">
+          Rerun target: {target?.name ?? 'Device removed'} ·{' '}
+          {saved ? `${saved.name} v${saved.version}` : available ? run.plan : 'Plan removed'}.{' '}
+          {changed ? 'Configuration changed since this run. ' : ''}
+          {!target?.connected ? 'Connect the target before rerunning. ' : ''}Reruns use current
+          device settings and the current plan.
+        </p>
+      )}
       <h3>Measurements and checks</h3>
       <p className="helper">
         Each marker is a recorded step reading. The green band shows its expected range; readings

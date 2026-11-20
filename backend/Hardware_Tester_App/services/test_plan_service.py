@@ -62,12 +62,16 @@ class TestPlanService:
             return {"success": False, "error": str(e)}
 
     @staticmethod
-    def run_test_plan(test_plan_id, device_id=None, repository=None):
+    def run_test_plan(test_plan_id, device_id=None, repository=None, release_sha256=None):
         """
         Execute a test plan by ID.
         """
         if repository is not None:
-            return repository.run_test_plan(test_plan_id, device_id)
+            if release_sha256 is None:
+                return repository.run_test_plan(test_plan_id, device_id)
+            return repository.run_test_plan(
+                test_plan_id, device_id, release_sha256=release_sha256
+            )
         try:
             db, TestPlan, TestStep = legacy_context()
             test_plan = TestPlan.query.get(test_plan_id)

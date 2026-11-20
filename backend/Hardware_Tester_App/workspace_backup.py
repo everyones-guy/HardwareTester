@@ -4,12 +4,14 @@ import copy
 import hashlib
 import json
 import math
+import re
 import uuid
 from datetime import datetime
 from flask import jsonify, request
 from .lab import LabError, PLANS, new_device, now
 from .blueprints import normalize_configuration, peripheral
 from .results import eligible, series
+from .run_audit import MAX_REQUESTS
 from .test_plans import normalize_plan
 from .scenarios import normalize as normalize_scenario, presets
 from .validation_suites import normalize as normalize_suite
@@ -228,6 +230,8 @@ def recorded_run(item):
     for field in ("planId", "restoration"):
         if field in item:
             text(item[field], field, 150)
+    if "audit" in item:
+        recorded_audit(item["audit"], len(steps))
     config = item.get("configuration")
     if config is not None:
         if not isinstance(config, dict):
@@ -242,6 +246,80 @@ def recorded_run(item):
         for p in config["peripherals"]:
             attached(p)
     return copy.deepcopy(item)
+
+
+def recorded_audit(audit, step_count):
+    if (
+        not isinstance(audit, dict)
+        or audit.get("schemaVersion") != 1
+        or audit.get("kind") not in ("device", "system")
+    ):
+        raise LabError("Invalid run provenance.")
+    operator = audit.get("operator")
+    if operator is not None:
+        if not isinstance(operator, dict):
+            raise LabError("Invalid recorded operator.")
+        for key in ("id", "username", "role"):
+            text(operator.get(key), key, 150)
+    release = audit.get("release")
+    if release is not None:
+        if not isinstance(release, dict) or not re.fullmatch(
+            r"[0-9a-f]{64}", text(release.get("sha256"), "Release digest", 64)
+        ):
+            raise LabError("Invalid recorded release.")
+        for key in ("name", "version"):
+            if release.get(key) is not None:
+                text(release[key], key, 160)
+    adapters = ("simulation", "mqtt", "serial")
+    providers = audit.get("providers")
+    if not isinstance(providers, list) or not 1 <= len(providers) <= 16:
+        raise LabError("Invalid recorded provider list.")
+    for provider in providers:
+        if not isinstance(provider, dict) or provider.get("adapter") not in adapters:
+            raise LabError("Invalid recorded provider.")
+        text(provider.get("name"), "Provider name", 150)
+        for key in ("deviceId", "role"):
+            if key in provider:
+                text(provider[key], key, 150)
+    if audit["kind"] == "system":
+        if audit.get("benchMode") not in ("modeled", "connected"):
+            raise LabError("Invalid recorded bench mode.")
+        for key in ("planSha256", "bindingSha256"):
+            if not re.fullmatch(r"[0-9a-f]{64}", text(audit.get(key), key, 64)):
+                raise LabError("Invalid recorded plan or binding digest.")
+    restoration = audit.get("restorationByRole", {})
+    if not isinstance(restoration, dict) or len(restoration) > 16:
+        raise LabError("Invalid role restoration records.")
+    for role, outcome in restoration.items():
+        text(role, "Restored role", 40)
+        text(outcome, "Restoration outcome", 300)
+    if "error" in audit:
+        text(audit["error"], "Run error", 300, empty=True)
+    integer(audit.get("droppedRequests"), "Omitted requests")
+    requests = audit.get("requests")
+    if not isinstance(requests, list) or len(requests) > MAX_REQUESTS:
+        raise LabError("Invalid recorded request list.")
+    for event in requests:
+        if (
+            not isinstance(event, dict)
+            or event.get("idSource") not in ("wire", "local")
+            or event.get("phase") not in ("step", "restoration")
+            or event.get("provider") not in adapters
+            or event.get("operation") not in ("read", "set")
+            or event.get("outcome") not in ("succeeded", "failed")
+        ):
+            raise LabError("Invalid recorded request.")
+        text(event.get("requestId"), "Request ID", 64)
+        timestamp(event.get("startedAt"))
+        timestamp(event.get("finishedAt"))
+        if "stepIndex" in event:
+            integer(event["stepIndex"], "Recorded step index", 0, step_count - 1)
+        for key in ("requested", "observed"):
+            if key in event and type(event[key]) is not bool:
+                finite(event[key])
+        for key in ("role", "deviceId", "error"):
+            if key in event:
+                text(event[key], key, 300, empty=True)
 
 
 def recorded_suite(item):

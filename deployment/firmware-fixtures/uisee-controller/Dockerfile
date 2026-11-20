@@ -12,7 +12,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PYTHONPATH=/app
 WORKDIR /app
 RUN pip install --no-cache-dir --no-deps paho-mqtt==2.1.0
 COPY backend/tools/mqtt_fixture.py ./tools/
-COPY backend/Hardware_Tester_App/transports.py ./Hardware_Tester_App/
+COPY backend/Hardware_Tester_App/transports.py backend/Hardware_Tester_App/run_audit.py ./Hardware_Tester_App/
 COPY deployment/firmware-fixtures/uisee-controller/bridge.py deployment/firmware-fixtures/uisee-controller/smoke.py ./
 COPY --from=builder /out/ ./bin/
 USER 65532:65532

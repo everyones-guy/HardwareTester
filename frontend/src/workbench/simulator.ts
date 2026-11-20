@@ -39,6 +39,7 @@ export interface TestStep {
   finishedAt?: string;
 }
 export interface TestRun {
+  audit?: import('./RunAudit').AuditRecord;
   baseline?: boolean;
   restoration?: string;
   planId?: string;
