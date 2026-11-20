@@ -11,6 +11,7 @@ from pathlib import Path
 from flask import g, jsonify, request, send_file
 
 from .firmware_inventory import inspect_firmware
+from .firmware_runtime import make_runtime_profile, runtime_entrypoints
 from .lab import LabError, now
 from .pi_inventories import text_value
 from .ui_catalogs import save_ui_catalog
@@ -127,8 +128,7 @@ def register_firmware(app, lab):
             artifacts.append(artifact)
         return jsonify(artifacts=artifacts)
 
-    @app.get(FIRMWARE_API + "/<digest>/inventory")
-    def firmware_inventory(digest):
+    def load_inventory(digest):
         if not SHA256.fullmatch(digest):
             raise LabError("Firmware inventory was not found.", 404)
         with lab.lock:
@@ -140,7 +140,28 @@ def register_firmware(app, lab):
                 "Firmware inventory was not found. Reupload an older binary to inspect it.",
                 404,
             )
-        return jsonify(inventory=json.loads(row[0]))
+        return json.loads(row[0])
+
+    @app.get(FIRMWARE_API + "/<digest>/inventory")
+    def firmware_inventory(digest):
+        return jsonify(inventory=load_inventory(digest))
+
+    @app.get(FIRMWARE_API + "/<digest>/runtime-profile")
+    def firmware_runtime_profile(digest):
+        inventory = load_inventory(digest)
+        entrypoints = runtime_entrypoints(inventory)
+        entry = request.args.get("entrypoint")
+        if entry is None and len(entrypoints) == 1:
+            entry = entrypoints[0]["path"]
+        try:
+            profile = (
+                make_runtime_profile(inventory, entry, request.args.get("argument"))
+                if entry is not None
+                else None
+            )
+        except ValueError as error:
+            raise LabError(str(error)) from error
+        return jsonify(entrypoints=entrypoints, profile=profile)
 
     @app.post(FIRMWARE_API)
     def upload_firmware():

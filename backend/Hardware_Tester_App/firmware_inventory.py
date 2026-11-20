@@ -8,6 +8,7 @@ import tempfile
 import tomllib
 import zipfile
 import zlib
+from contextlib import contextmanager
 from pathlib import Path, PurePosixPath
 
 from .elf_inventory import ElfError, inspect_elf
@@ -235,11 +236,13 @@ def summarize_inventory(digest, package_format, paths):
     return inventory, summary, catalog
 
 
-def inspect_firmware(path, digest, package_format):
+@contextmanager
+def firmware_members(path, package_format, *, scratch=None):
     if package_format == "bin":
-        return summarize_inventory(digest, package_format, {"firmware.bin": path})
+        yield {"firmware.bin": path}
+        return
     with tempfile.TemporaryDirectory(
-        prefix="release-inspection-", dir=path.parent
+        prefix="release-inspection-", dir=scratch
     ) as temporary:
         root = Path(temporary)
         stage = StagedArchive(
@@ -274,4 +277,9 @@ def inspect_firmware(path, digest, package_format):
         }
         if not paths:
             raise FirmwareArchiveError("ZIP must contain at least one regular file.")
+        yield paths
+
+
+def inspect_firmware(path, digest, package_format):
+    with firmware_members(path, package_format, scratch=path.parent) as paths:
         return summarize_inventory(digest, package_format, paths)

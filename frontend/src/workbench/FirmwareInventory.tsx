@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { workspaceRequest } from './backend';
+import FirmwareRuntimeProfile from './FirmwareRuntimeProfile';
 
 type Abi = { architecture: string; bits: number; endianness: string };
 export type InventorySummary = { fileCount: number; elfAbis: Abi[]; unknownElfCount: number };
@@ -35,7 +36,13 @@ type Inventory = InventorySummary & {
   }[];
 };
 
-export default function FirmwareInventory({ digest }: { digest: string }) {
+export default function FirmwareInventory({
+  digest,
+  saveFile,
+}: {
+  digest: string;
+  saveFile: (file: Blob, name: string) => void;
+}) {
   const [inventory, setInventory] = useState<Inventory>();
   const [error, setError] = useState('');
 
@@ -80,6 +87,7 @@ export default function FirmwareInventory({ digest }: { digest: string }) {
           </NavLink>
         </p>
       )}
+      <FirmwareRuntimeProfile digest={digest} saveFile={saveFile} />
       {inventory.diagnostics.length > 0 && (
         <details>
           <summary>Inspection messages ({inventory.diagnostics.length})</summary>

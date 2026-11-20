@@ -191,6 +191,10 @@ Operators can download verified uploads and export the manifest. Use approved
 comparison. Firmware files live next to the Workbench database. Retain both
 together for a full installation backup.
 
+From an inspected release, export a runtime profile to review library
+resolution and smoke-test approved binaries against a pinned Debian image.
+[Pinned firmware smoke tests](FIRMWARE-RUNTIME.md)
+
 For an OpenOCD-supported NOR-flash target, configure the local rack before
 programming. The profile is a JSON file with `schemaVersion` 1, `model`,
 `architecture`, `targetIdentity`, `openocdConfig`, `flashAddress` (hex string),

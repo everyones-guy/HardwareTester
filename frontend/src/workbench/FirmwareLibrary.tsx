@@ -368,7 +368,11 @@ export default function FirmwareLibrary({
                     </div>
                     {!item.inventory && <p>Reupload this older release to add its inventory.</p>}
                     {item.inventory && openInventory === artifactKey(item) && (
-                      <FirmwareInventory key={item.sha256} digest={item.sha256} />
+                      <FirmwareInventory
+                        key={item.sha256}
+                        digest={item.sha256}
+                        saveFile={saveBlob}
+                      />
                     )}
                   </li>
                 ))}
