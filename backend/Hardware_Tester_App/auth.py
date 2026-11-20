@@ -244,7 +244,9 @@ class Accounts:
 def required_role(path, method):
     if path.startswith("/api/lab/workspace/"):
         return "admin"
-    if method == "GET" and re.fullmatch(r"/api/lab/firmware/[a-f0-9]{64}/binary", path):
+    if method == "GET" and re.fullmatch(
+        r"/api/lab/firmware/[a-f0-9]{64}/(binary|archive)", path
+    ):
         return "operator"
     if method == "GET" or path.endswith("/blueprints/preview"):
         return "viewer"

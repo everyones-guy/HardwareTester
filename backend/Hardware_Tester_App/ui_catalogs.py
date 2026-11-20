@@ -193,6 +193,40 @@ def compare_catalogs(before, after):
     return result
 
 
+def save_ui_catalog(lab, name, catalog):
+    """Upsert discovery from the same source bytes inside the caller's transaction."""
+    identity = catalog["catalogSha256"]
+    row = lab.connection.execute(
+        "SELECT entry FROM ui_catalogs WHERE id = ?", (identity,)
+    ).fetchone()
+    if row:
+        entry = json.loads(row[0])
+        if entry["catalog"] != catalog:
+            entry["catalog"] = catalog
+            lab.connection.execute(
+                "UPDATE ui_catalogs SET entry = ? WHERE id = ?",
+                (json.dumps(entry, allow_nan=False), identity),
+            )
+        return entry, False
+    if (
+        lab.connection.execute("SELECT COUNT(*) FROM ui_catalogs").fetchone()[0]
+        >= MAX_CATALOGS
+    ):
+        raise LabError(f"The library supports {MAX_CATALOGS} UI catalogs.", 409)
+    entry = {
+        "id": identity,
+        "name": name,
+        "createdAt": now(),
+        "catalog": catalog,
+        "bindings": {},
+    }
+    lab.connection.execute(
+        "INSERT INTO ui_catalogs VALUES (?, ?)",
+        (identity, json.dumps(entry, allow_nan=False)),
+    )
+    return entry, True
+
+
 def register_ui_catalogs(app, lab):
     with lab.lock, lab.connection:
         lab.connection.execute(
@@ -238,37 +272,9 @@ def register_ui_catalogs(app, lab):
             raise LabError(str(exc)) from exc
         if not catalog["pages"] and not catalog["controls"]:
             raise LabError("The files contain no recognized UISee pages or controls.")
-        identity = catalog["catalogSha256"]
-        entry = {
-            "id": identity,
-            "name": name,
-            "createdAt": now(),
-            "catalog": catalog,
-            "bindings": {},
-        }
         with lab.connection:
-            existing = lab.connection.execute(
-                "SELECT 1 FROM ui_catalogs WHERE id = ?", (identity,)
-            ).fetchone()
-            if existing:
-                existing_entry = get_entry(identity)
-                if existing_entry["catalog"] != catalog:
-                    existing_entry["catalog"] = catalog
-                    lab.connection.execute(
-                        "UPDATE ui_catalogs SET entry = ? WHERE id = ?",
-                        (json.dumps(existing_entry, allow_nan=False), identity),
-                    )
-                return jsonify(catalog=existing_entry)
-            count = lab.connection.execute(
-                "SELECT COUNT(*) FROM ui_catalogs"
-            ).fetchone()[0]
-            if count >= MAX_CATALOGS:
-                raise LabError(f"The library supports {MAX_CATALOGS} UI catalogs.", 409)
-            lab.connection.execute(
-                "INSERT INTO ui_catalogs VALUES (?, ?)",
-                (identity, json.dumps(entry, allow_nan=False)),
-            )
-        return jsonify(catalog=entry), 201
+            entry, created = save_ui_catalog(lab, name, catalog)
+        return jsonify(catalog=entry), 201 if created else 200
 
     @app.get(UI_CATALOG_API + "/<identity>")
     def get_ui_catalog(identity):

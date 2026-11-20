@@ -1,11 +1,12 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { fetchFirmwareBinary, workspaceRequest } from './backend';
+import FirmwareInventory, { type InventorySummary } from './FirmwareInventory';
 import './firmware-library.css';
 
 interface Artifact {
   schemaVersion: number;
-  format: string;
+  format: 'bin' | 'zip';
   name: string;
   version: string;
   model: string;
@@ -14,8 +15,20 @@ interface Artifact {
   sizeBytes: number;
   uploadedAt: string;
   uploadedBy: string | null;
-  compatibility?: 'mismatch' | 'declaredMatch';
+  compatibility?: 'mismatch' | 'declaredMatch' | 'inventoryMatch' | 'reviewRequired';
   differences?: string[];
+  inventory?: InventorySummary;
+}
+
+const compatibilityLabels = {
+  declaredMatch: 'Declared match',
+  inventoryMatch: 'Board declaration and ELF architecture match',
+  mismatch: 'Mismatch',
+  reviewRequired: 'Needs review',
+};
+
+function artifactKey(item: Artifact) {
+  return JSON.stringify([item.name, item.version, item.model, item.architecture]);
 }
 
 function saveBlob(blob: Blob, filename: string) {
@@ -42,6 +55,8 @@ export default function FirmwareLibrary({
   const [inventoryId, setInventoryId] = useState('');
   const [artifacts, setArtifacts] = useState<Artifact[]>([]);
   const [matchesOnly, setMatchesOnly] = useState(false);
+  const [selectedFirmware, setSelectedFirmware] = useState('');
+  const [openInventory, setOpenInventory] = useState('');
   const [error, setError] = useState('');
   const [status, setStatus] = useState('');
   const [pending, setPending] = useState(false);
@@ -106,7 +121,7 @@ export default function FirmwareLibrary({
     void perform(async () => {
       const file = fields.get('binary');
       if (!(file instanceof File) || !file.size || file.size > 16 * 1024 * 1024) {
-        throw new Error('Choose a .bin file between 1 byte and 16 MiB.');
+        throw new Error('Choose a .bin or .zip file between 1 byte and 16 MiB.');
       }
       const metadata = Object.fromEntries(
         ['name', 'version', 'model', 'architecture', 'sha256'].map((field) => [
@@ -119,21 +134,28 @@ export default function FirmwareLibrary({
       payload.set('binary', file);
       await workspaceRequest('/firmware', 'POST', payload);
       form.reset();
-      setStatus('Firmware saved. SHA-256 verified.');
+      setSelectedFirmware('');
+      setStatus('Firmware saved. SHA-256 verified and inventory recorded.');
       setRefresh((value) => value + 1);
     });
   }
 
-  const visible = artifacts.filter(
-    (item) => !inventoryId || !matchesOnly || item.compatibility === 'declaredMatch',
-  );
+  const compatible =
+    inventoryId && !loading
+      ? artifacts.filter(
+          (item) =>
+            item.compatibility === 'declaredMatch' || item.compatibility === 'inventoryMatch',
+        )
+      : [];
+  const selected = compatible.find((item) => artifactKey(item) === selectedFirmware);
+  const visible = selected ? [selected] : inventoryId && matchesOnly ? compatible : artifacts;
 
   return (
     <>
       <div className="page-heading">
         <div>
           <h1>Firmware library</h1>
-          <p>Store checksummed binaries and find declared matches for a captured board.</p>
+          <p>Inspect firmware files and find candidate releases for a captured board.</p>
         </div>
       </div>
       {!serverMode ? (
@@ -176,11 +198,11 @@ export default function FirmwareLibrary({
                     <input name="sha256" required pattern="[A-Fa-f0-9]{64}" maxLength={64} />
                   </label>
                   <label>
-                    Binary (.bin)
-                    <input name="binary" type="file" accept=".bin" required />
+                    Firmware file (.bin or .zip)
+                    <input name="binary" type="file" accept=".bin,.zip" required />
                   </label>
                   <button type="submit" className="button primary">
-                    Upload binary
+                    Upload and inspect
                   </button>
                 </fieldset>
               </form>
@@ -195,6 +217,8 @@ export default function FirmwareLibrary({
                   value={inventoryId}
                   onChange={(event) => {
                     setError('');
+                    setLoading(true);
+                    setSelectedFirmware('');
                     setInventoryId(event.target.value);
                   }}
                 >
@@ -207,20 +231,39 @@ export default function FirmwareLibrary({
                 </select>
               </label>
               {inventoryId && (
+                <label>
+                  Compatible firmware
+                  <select
+                    value={selected ? selectedFirmware : ''}
+                    disabled={loading || !compatible.length}
+                    onChange={(event) => setSelectedFirmware(event.target.value)}
+                  >
+                    <option value="">
+                      {compatible.length ? 'Choose a release' : 'No matching releases'}
+                    </option>
+                    {compatible.map((item) => (
+                      <option value={artifactKey(item)} key={artifactKey(item)}>
+                        {item.name} · {item.version} · {item.architecture}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
+              {inventoryId && (
                 <label className="firmware-checkbox">
                   <input
                     type="checkbox"
                     checked={matchesOnly}
                     onChange={(event) => setMatchesOnly(event.target.checked)}
                   />
-                  Show only declared matches
+                  Show only matches
                 </label>
               )}
             </div>
             {inventoryId && (
               <p>
-                Matches use the captured model and kernel architecture. A programmer must verify the
-                live target.
+                Matches use board declarations and available ELF headers. A programmer must verify
+                the live target before deployment.
               </p>
             )}
             {loading ? (
@@ -230,82 +273,102 @@ export default function FirmwareLibrary({
             ) : (
               <ul className="firmware-versions">
                 {visible.map((item) => (
-                  <li
-                    key={JSON.stringify([item.name, item.version, item.model, item.architecture])}
-                  >
+                  <li key={artifactKey(item)}>
                     <h3>
                       {item.name} · {item.version}
                     </h3>
                     <p>
-                      {item.model} · {item.architecture} · {item.sizeBytes.toLocaleString()} bytes
+                      {item.model} · {item.architecture} · {item.format.toUpperCase()} ·{' '}
+                      {item.sizeBytes.toLocaleString()} bytes
                     </p>
                     <p>
                       <code>{item.sha256}</code>
                     </p>
                     {item.compatibility && (
                       <p>
-                        {item.compatibility === 'declaredMatch'
-                          ? 'Declared match'
-                          : `Mismatch (${item.differences?.join(', ')})`}
+                        {compatibilityLabels[item.compatibility]}
+                        {!!item.differences?.length && ` (${item.differences.join(', ')})`}
                       </p>
                     )}
-                    {canOperate && (
-                      <div className="firmware-actions">
+                    <div className="firmware-actions">
+                      {item.inventory && (
                         <button
                           className="button"
-                          disabled={pending}
+                          type="button"
+                          aria-expanded={openInventory === artifactKey(item)}
                           onClick={() =>
-                            void perform(async () => {
-                              saveBlob(
-                                await fetchFirmwareBinary(item.sha256),
-                                `${item.sha256}.bin`,
-                              );
-                            })
+                            setOpenInventory(
+                              openInventory === artifactKey(item) ? '' : artifactKey(item),
+                            )
                           }
                         >
-                          Download binary
+                          {openInventory === artifactKey(item)
+                            ? 'Hide inventory'
+                            : 'Inspect release'}
                         </button>
-                        <button
-                          className="button"
-                          disabled={pending}
-                          onClick={() => {
-                            const {
-                              schemaVersion,
-                              format,
-                              name,
-                              version,
-                              model,
-                              architecture,
-                              sha256,
-                              sizeBytes,
-                            } = item;
-                            saveBlob(
-                              new Blob(
-                                [
-                                  JSON.stringify(
-                                    {
-                                      schemaVersion,
-                                      format,
-                                      name,
-                                      version,
-                                      model,
-                                      architecture,
-                                      sha256,
-                                      sizeBytes,
-                                    },
-                                    null,
-                                    2,
-                                  ),
-                                ],
-                                { type: 'application/json' },
-                              ),
-                              `${sha256}.json`,
-                            );
-                          }}
-                        >
-                          Download manifest
-                        </button>
-                      </div>
+                      )}
+                      {canOperate && (
+                        <>
+                          <button
+                            className="button"
+                            disabled={pending}
+                            onClick={() =>
+                              void perform(async () => {
+                                saveBlob(
+                                  await fetchFirmwareBinary(item.sha256, item.format),
+                                  `${item.sha256}.${item.format}`,
+                                );
+                              })
+                            }
+                          >
+                            {item.format === 'bin' ? 'Download binary' : 'Download bundle'}
+                          </button>
+                          <button
+                            className="button"
+                            disabled={pending}
+                            onClick={() => {
+                              const {
+                                schemaVersion,
+                                format,
+                                name,
+                                version,
+                                model,
+                                architecture,
+                                sha256,
+                                sizeBytes,
+                              } = item;
+                              saveBlob(
+                                new Blob(
+                                  [
+                                    JSON.stringify(
+                                      {
+                                        schemaVersion,
+                                        format,
+                                        name,
+                                        version,
+                                        model,
+                                        architecture,
+                                        sha256,
+                                        sizeBytes,
+                                      },
+                                      null,
+                                      2,
+                                    ),
+                                  ],
+                                  { type: 'application/json' },
+                                ),
+                                `${sha256}.json`,
+                              );
+                            }}
+                          >
+                            Download manifest
+                          </button>
+                        </>
+                      )}
+                    </div>
+                    {!item.inventory && <p>Reupload this older release to add its inventory.</p>}
+                    {item.inventory && openInventory === artifactKey(item) && (
+                      <FirmwareInventory key={item.sha256} digest={item.sha256} />
                     )}
                   </li>
                 ))}

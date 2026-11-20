@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, useSearchParams } from 'react-router-dom';
 import { SavedPlan, ServerResponse, workspaceRequest } from './backend';
 import type { Device } from './simulator';
 import './ui-catalog.css';
@@ -68,6 +68,8 @@ export default function UiCatalog({
   serverAction,
   start,
 }: Props) {
+  const [parameters] = useSearchParams();
+  const requestedCatalog = parameters.get('catalog');
   const [items, setItems] = useState<CatalogItem[]>([]);
   const [catalogId, setCatalogId] = useState('');
   const [entry, setEntry] = useState<Catalog>();
@@ -96,7 +98,11 @@ export default function UiCatalog({
       .then(({ catalogs }) => {
         if (current) {
           setItems(catalogs);
-          setCatalogId((id) => id || catalogs[0]?.id || '');
+          setCatalogId(
+            (id) =>
+              catalogs.find((catalog) => catalog.id === requestedCatalog)?.id ??
+              (id || catalogs[0]?.id || ''),
+          );
         }
       })
       .catch((error: Error) => {
@@ -105,7 +111,7 @@ export default function UiCatalog({
     return () => {
       current = false;
     };
-  }, [ready]);
+  }, [ready, requestedCatalog]);
 
   useEffect(() => {
     if (!ready || !catalogId) return;

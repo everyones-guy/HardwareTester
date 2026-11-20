@@ -51,3 +51,23 @@
   flex-wrap: wrap;
   gap: 0.5rem;
 }
+
+.firmware-inventory {
+  margin-top: 0.75rem;
+  overflow-wrap: anywhere;
+}
+
+.firmware-inventory dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  gap: 0.35rem 1rem;
+}
+
+.firmware-inventory dd {
+  margin: 0;
+}
+
+.firmware-inventory-files {
+  list-style: none;
+  padding: 0;
+}

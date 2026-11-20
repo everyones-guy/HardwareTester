@@ -1,4 +1,4 @@
-"""Authenticated storage for immutable, checksummed binary firmware."""
+"""Authenticated firmware storage, static inventory, and captured-board pairing."""
 
 import hashlib
 import hmac
@@ -10,12 +10,57 @@ from pathlib import Path
 
 from flask import g, jsonify, request, send_file
 
+from .firmware_inventory import inspect_firmware
 from .lab import LabError, now
 from .pi_inventories import text_value
+from .ui_catalogs import save_ui_catalog
+from .utils.firmware_utils import FirmwareArchiveError
 
 FIRMWARE_API = "/api/lab/firmware"
 FIRMWARE_UPLOAD_LIMIT = 16 * 1024 * 1024
 SHA256 = re.compile(r"[a-f0-9]{64}")
+ARCH_ALIASES = {"arm64": "aarch64", "amd64": "x86_64", "x86-64": "x86_64"}
+BOARD_ABIS = {
+    "aarch64": ("aarch64", 64, "little"),
+    "armv6l": ("arm", 32, "little"),
+    "armv7l": ("arm", 32, "little"),
+    "armv8l": ("arm", 32, "little"),
+    "arm": ("arm", 32, "little"),
+    "x86_64": ("x86_64", 64, "little"),
+}
+
+
+def normalized_architecture(value):
+    name = value.casefold()
+    return ARCH_ALIASES.get(name, name)
+
+
+def compare_target(artifact, capture):
+    differences = []
+    if artifact["model"] != capture["model"]:
+        differences.append("model")
+    target_arch = normalized_architecture(capture["architecture"])
+    if normalized_architecture(artifact["architecture"]) != target_arch:
+        differences.append("architecture")
+    if differences:
+        return "mismatch", differences
+    summary = artifact.get("inventory") or {}
+    observed = {
+        (abi["architecture"], abi["bits"], abi["endianness"])
+        for abi in summary.get("elfAbis", [])
+    }
+    known = {abi for abi in observed if abi[0] != "unknown"}
+    expected = BOARD_ABIS.get(target_arch)
+    if expected and known and expected not in known:
+        return "mismatch", ["observed ELF architecture"]
+    if (
+        summary.get("unknownElfCount")
+        or len(known) > 1
+        or (known and expected is None)
+        or target_arch == "unknown"
+    ):
+        return "reviewRequired", ["mixed, unknown, or unsupported ABI"]
+    return ("inventoryMatch" if known else "declaredMatch"), []
 
 
 def parse_manifest(raw):
@@ -49,13 +94,18 @@ def register_firmware(app, lab):
             "model TEXT NOT NULL, architecture TEXT NOT NULL, metadata TEXT NOT NULL, "
             "PRIMARY KEY (name, version, model, architecture))"
         )
+        lab.connection.execute(
+            "CREATE TABLE IF NOT EXISTS firmware_inspections ("
+            "digest TEXT PRIMARY KEY, format TEXT NOT NULL, summary TEXT NOT NULL, inventory TEXT NOT NULL)"
+        )
 
     @app.get(FIRMWARE_API)
     def firmware_library():
         inventory_id = request.args.get("inventoryId")
         with lab.lock:
             rows = lab.connection.execute(
-                "SELECT metadata FROM firmware_artifacts ORDER BY rowid DESC"
+                "SELECT a.metadata, i.format, i.summary FROM firmware_artifacts a "
+                "LEFT JOIN firmware_inspections i ON a.digest = i.digest ORDER BY a.rowid DESC"
             ).fetchall()
             inventory = None
             if inventory_id is not None:
@@ -65,19 +115,32 @@ def register_firmware(app, lab):
                 if row is None:
                     raise LabError("Raspberry Pi inventory not found.", 404)
                 inventory = json.loads(row[0])
-        artifacts = [json.loads(row[0]) for row in rows]
-        if inventory is not None:
-            for artifact in artifacts:
-                differences = [
-                    field
-                    for field in ("model", "architecture")
-                    if artifact[field] != inventory[field]
-                ]
-                artifact["compatibility"] = (
-                    "mismatch" if differences else "declaredMatch"
+        artifacts = []
+        for metadata, package_format, summary in rows:
+            artifact = json.loads(metadata)
+            if artifact["format"] == package_format:
+                artifact["inventory"] = json.loads(summary)
+            if inventory is not None:
+                artifact["compatibility"], artifact["differences"] = compare_target(
+                    artifact, inventory
                 )
-                artifact["differences"] = differences
+            artifacts.append(artifact)
         return jsonify(artifacts=artifacts)
+
+    @app.get(FIRMWARE_API + "/<digest>/inventory")
+    def firmware_inventory(digest):
+        if not SHA256.fullmatch(digest):
+            raise LabError("Firmware inventory was not found.", 404)
+        with lab.lock:
+            row = lab.connection.execute(
+                "SELECT inventory FROM firmware_inspections WHERE digest = ?", (digest,)
+            ).fetchone()
+        if row is None:
+            raise LabError(
+                "Firmware inventory was not found. Reupload an older binary to inspect it.",
+                404,
+            )
+        return jsonify(inventory=json.loads(row[0]))
 
     @app.post(FIRMWARE_API)
     def upload_firmware():
@@ -87,11 +150,12 @@ def register_firmware(app, lab):
             or set(request.files) != {"binary"}
             or len(request.files.getlist("binary")) != 1
         ):
-            raise LabError("Send one firmware binary and its metadata.")
+            raise LabError("Send one firmware file and its metadata.")
         artifact = parse_manifest(request.form["metadata"])
         binary = request.files["binary"]
-        if not binary.filename or not binary.filename.lower().endswith(".bin"):
-            raise LabError("Upload firmware in .bin format.")
+        package_format = Path(binary.filename or "").suffix.lower().lstrip(".")
+        if package_format not in {"bin", "zip"}:
+            raise LabError("Upload a .bin firmware binary or .zip release bundle.")
         expected = artifact["sha256"]
         hash_result = hashlib.sha256()
         size = 0
@@ -103,22 +167,26 @@ def register_firmware(app, lab):
                 while chunk := binary.stream.read(64 * 1024):
                     size += len(chunk)
                     if size > FIRMWARE_UPLOAD_LIMIT:
-                        raise LabError("Firmware binaries must be at most 16 MiB.", 413)
+                        raise LabError("Firmware uploads must be at most 16 MiB.", 413)
                     hash_result.update(chunk)
                     destination.write(chunk)
                 destination.flush()
                 os.fsync(destination.fileno())
             if not size:
-                raise LabError("The firmware binary is empty.")
+                raise LabError("The firmware file is empty.")
             if not hmac.compare_digest(hash_result.hexdigest(), expected):
-                raise LabError(
-                    "The firmware binary does not match its expected SHA-256."
+                raise LabError("The firmware file does not match its expected SHA-256.")
+            try:
+                inventory, summary, catalog = inspect_firmware(
+                    temporary, expected, package_format
                 )
+            except FirmwareArchiveError as error:
+                raise LabError(str(error)) from error
 
             actor = getattr(g, "workbench_user", None)
             artifact.update(
                 schemaVersion=1,
-                format="bin",
+                format=package_format,
                 sizeBytes=size,
                 uploadedAt=now(),
                 uploadedBy=actor["username"] if actor else None,
@@ -138,33 +206,71 @@ def register_firmware(app, lab):
                         "This target and firmware version already have another digest.",
                         409,
                     )
-                final = storage / f"{expected}.bin"
+                inspection = lab.connection.execute(
+                    "SELECT format FROM firmware_inspections WHERE digest = ?",
+                    (expected,),
+                ).fetchone()
+                if (inspection and inspection[0] != package_format) or (
+                    existing and json.loads(existing[1])["format"] != package_format
+                ):
+                    raise LabError(
+                        "The same bytes were already registered in a different firmware format.",
+                        409,
+                    )
+                if inspection is None:
+                    if catalog:
+                        save_ui_catalog(
+                            lab,
+                            f"{artifact['name']} · {artifact['version']}"[
+                                :100
+                            ].rstrip(),
+                            catalog,
+                        )
+                    lab.connection.execute(
+                        "INSERT INTO firmware_inspections VALUES (?, ?, ?, ?)",
+                        (
+                            expected,
+                            package_format,
+                            json.dumps(summary),
+                            json.dumps(inventory),
+                        ),
+                    )
+                final = storage / f"{expected}.{package_format}"
                 if not final.exists():
                     os.replace(temporary, final)
                 if existing:
-                    return jsonify(artifact=json.loads(existing[1]))
+                    return jsonify(
+                        artifact=json.loads(existing[1]) | {"inventory": summary}
+                    )
                 lab.connection.execute(
                     "INSERT INTO firmware_artifacts "
                     "(digest, name, version, model, architecture, metadata) "
                     "VALUES (?, ?, ?, ?, ?, ?)",
                     (expected, *manifest_key, json.dumps(artifact)),
                 )
-            return jsonify(artifact=artifact), 201
+            return jsonify(artifact=artifact | {"inventory": summary}), 201
         finally:
             if temporary is not None:
                 temporary.unlink(missing_ok=True)
 
-    @app.get(FIRMWARE_API + "/<digest>/binary")
-    def download_firmware(digest):
+    def download_firmware(digest, package_format, mimetype):
         if not SHA256.fullmatch(digest):
             raise LabError("Firmware was not found.", 404)
         with lab.lock:
             exists = lab.connection.execute(
-                "SELECT 1 FROM firmware_artifacts WHERE digest = ?", (digest,)
+                "SELECT 1 FROM firmware_artifacts WHERE digest = ? "
+                "AND json_extract(metadata, '$.format') = ?",
+                (digest, package_format),
             ).fetchone()
-        artifact = storage / f"{digest}.bin"
+        artifact = storage / f"{digest}.{package_format}"
         if not exists or not artifact.is_file():
             raise LabError("Firmware was not found.", 404)
-        return send_file(
-            artifact, as_attachment=True, mimetype="application/octet-stream"
-        )
+        return send_file(artifact, as_attachment=True, mimetype=mimetype)
+
+    @app.get(FIRMWARE_API + "/<digest>/binary")
+    def download_binary(digest):
+        return download_firmware(digest, "bin", "application/octet-stream")
+
+    @app.get(FIRMWARE_API + "/<digest>/archive")
+    def download_archive(digest):
+        return download_firmware(digest, "zip", "application/zip")

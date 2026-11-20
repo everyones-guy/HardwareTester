@@ -164,12 +164,32 @@ reads can advance the model when the active state has a read transition.
 
 ## Firmware library and rack programming
 
-Administrators use **Firmware** to upload a `.bin` image up to 16 MiB with its
-expected SHA-256, version, target board model and revision, and architecture.
-Use the digest supplied with the approved build. Model and architecture match
-against imported Pi inventory. Operators can export both the binary and its
-manifest for rack programming. The binaries live next to the workbench
-database. Retain both together for a full installation backup.
+Administrators use **Firmware** to upload a `.bin` image or a `.zip` release
+bundle up to 16 MiB. Enter the expected SHA-256 supplied with the approved
+build, version, target board model and revision, and architecture. A release
+bundle can include source, build manifests, executables, libraries, service
+definitions, and UI resources. ZIP entries must be regular files or directories
+using stored or deflated compression. A bundle can expand to at most 64 MiB
+across 512 entries, with a 16 MiB limit per file.
+
+Open **Inspect release** to see file hashes, source and manifest evidence, ELF
+headers and linked libraries. The scan reads file data and records uncertainty
+when format or architecture is unrecognized. Libraries absent from the bundle
+may be provided by the target operating system. Supported SQL sources link to
+their discovered UI catalog. A previously saved binary can be reuploaded
+with its exact metadata and digest to add an inspection.
+
+Choose a saved Pi capture, then select a **Compatible firmware** candidate.
+Pairing uses the declared board model and revision, declared architecture, and
+any available ELF headers. An exact declaration with no observed ELF is labeled
+**Declared match**. Architecture conflicts are excluded and ambiguous ELF results
+require review. The capture records kernel architecture. Bootability, userspace
+compatibility, and live target identity require separate checks.
+
+Operators can download verified uploads and export the manifest. Use approved
+`.bin` images with the rack programmer. Release ZIPs support inspection and
+comparison. Firmware files live next to the Workbench database. Retain both
+together for a full installation backup.
 
 For an OpenOCD-supported NOR-flash target, configure the local rack before
 programming. The profile is a JSON file with `schemaVersion` 1, `model`,

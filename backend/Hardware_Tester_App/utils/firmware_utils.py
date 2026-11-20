@@ -53,18 +53,27 @@ def member_parts(name):
 
 
 class StagedArchive:
-    def __init__(self, root):
+    def __init__(
+        self, root, *, max_members=None, max_member_bytes=None, max_expanded_bytes=None
+    ):
         self.root = root
+        self.max_members = MAX_MEMBERS if max_members is None else max_members
+        self.max_member_bytes = (
+            MAX_MEMBER_BYTES if max_member_bytes is None else max_member_bytes
+        )
+        self.max_expanded_bytes = (
+            MAX_EXTRACTED_BYTES if max_expanded_bytes is None else max_expanded_bytes
+        )
         self.members = {}
         self.total = 0
         self.count = 0
 
     def add(self, name, size, directory):
         self.count += 1
-        if self.count > MAX_MEMBERS or not 0 <= size <= MAX_MEMBER_BYTES:
+        if self.count > self.max_members or not 0 <= size <= self.max_member_bytes:
             raise FirmwareArchiveError("Archive member limits exceeded.")
         self.total += size
-        if self.total > MAX_EXTRACTED_BYTES:
+        if self.total > self.max_expanded_bytes:
             raise FirmwareArchiveError("Archive exceeds its expanded byte limit.")
         if directory and size:
             raise FirmwareArchiveError("Archive directories must be empty entries.")
@@ -108,12 +117,16 @@ def copy_member(source, destination, size, *, checksum=None):
         raise FirmwareArchiveError("CPIO member checksum failed.")
 
 
-def read_zip(source, stage):
+def read_zip(source, stage, *, compression=None):
     with zipfile.ZipFile(source) as package:
         infos = package.infolist()
-        if len(infos) > MAX_MEMBERS:
+        if len(infos) > stage.max_members:
             raise FirmwareArchiveError("ZIP has too many members.")
         for info in infos:
+            if compression is not None and info.compress_type not in compression:
+                raise FirmwareArchiveError(
+                    "ZIP uses an unsupported compression method."
+                )
             directory = info.is_dir()
             unix_type = stat.S_IFMT(info.external_attr >> 16)
             if (

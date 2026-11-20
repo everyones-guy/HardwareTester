@@ -172,8 +172,12 @@ export interface BackupPreview {
 }
 export const workspaceRequest = requestLab;
 
-export async function fetchFirmwareBinary(digest: string): Promise<Blob> {
-  const response = await fetch(`/api/lab/firmware/${encodeURIComponent(digest)}/binary`, {
+export async function fetchFirmwareBinary(
+  digest: string,
+  format: 'bin' | 'zip' = 'bin',
+): Promise<Blob> {
+  const endpoint = format === 'bin' ? 'binary' : 'archive';
+  const response = await fetch(`/api/lab/firmware/${encodeURIComponent(digest)}/${endpoint}`, {
     headers: labAuthorization(),
     signal: AbortSignal.timeout(60000),
   });
