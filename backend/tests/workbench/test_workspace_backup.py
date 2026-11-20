@@ -1,4 +1,5 @@
 import copy
+import json
 import pytest
 from Hardware_Tester_App import create_app
 from Hardware_Tester_App.workspace_backup import validate_archive, remap
@@ -159,6 +160,34 @@ def test_stale_preview_and_changed_choices_do_not_apply(app):
     before = copy.deepcopy(lab.state)
     assert client.post("/api/lab/workspace/import", json=payload).status_code == 409
     assert lab.state == before
+
+
+@pytest.mark.parametrize("connected", [False, True])
+def test_preview_survives_idle_worker_poll(app, monkeypatch, connected):
+    client, lab = app.test_client(), app.extensions["lab"]
+    device = lab.state["devices"][0]
+    if connected:
+        lab.connect(device["id"], True)
+    payload, _ = preview(client, archive(app))
+    revision = lab.state["revision"]
+    reading = device["value"]
+    turns = iter([False, True])
+    monkeypatch.setattr(lab.stop_event, "wait", lambda timeout: next(turns))
+    lab.last_tick -= 2
+
+    lab.work()
+
+    assert lab.state["archiveRevision"] == payload["revision"]
+    assert lab.state["revision"] == revision + int(connected)
+    if connected:
+        assert lab.state["devices"][0]["value"] != reading
+        stored = lab.connection.execute("SELECT payload FROM lab_state").fetchone()[0]
+        assert (
+            json.loads(stored)["devices"][0]["value"]
+            == lab.state["devices"][0]["value"]
+        )
+    response = client.post("/api/lab/workspace/import", json=payload)
+    assert response.status_code == 200, response.json
 
 
 @pytest.mark.parametrize(

@@ -1,0 +1,30 @@
+services:
+  broker:
+    networks:
+      - default
+      - compiled-fixture
+
+  compiled-controller:
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: deployment/firmware-fixtures/uisee-controller/Dockerfile
+    depends_on:
+      broker:
+        condition: service_healthy
+    networks:
+      - compiled-fixture
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 128m
+    pids_limit: 32
+    healthcheck:
+      test: ["CMD", "python", "-m", "tools.mqtt_fixture", "--broker", "broker", "--topic", "lab/compiled-valve", "--check"]
+      interval: 3s
+      timeout: 6s
+      retries: 5
+
+networks:
+  compiled-fixture:
+    internal: true

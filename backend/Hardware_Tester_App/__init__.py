@@ -81,6 +81,13 @@ def create_app(config_name="development", overrides=None, **kwargs):
     )
 
     register_firmware(app, lab)
+    from .ui_catalogs import (
+        UI_CATALOG_API,
+        UI_CATALOG_REQUEST_LIMIT,
+        register_ui_catalogs,
+    )
+
+    register_ui_catalogs(app, lab)
     source_hash = hashlib.sha256()
     for source in sorted(Path(__file__).parent.rglob("*.py")):
         source_hash.update(
@@ -97,6 +104,8 @@ def create_app(config_name="development", overrides=None, **kwargs):
         firmware_upload = request.path == FIRMWARE_API and request.method == "POST"
         if firmware_upload:
             request.max_content_length = FIRMWARE_UPLOAD_LIMIT + 64 * 1024
+        if request.path == UI_CATALOG_API and request.method == "POST":
+            request.max_content_length = UI_CATALOG_REQUEST_LIMIT
         if request.path in ("/api/lab/workspace/preview", "/api/lab/workspace/import"):
             request.max_content_length = 20 * 1024 * 1024
         if not request.path.startswith(("/api/lab", "/api/auth")):

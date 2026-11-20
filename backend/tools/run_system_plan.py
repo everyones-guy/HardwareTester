@@ -11,6 +11,8 @@ from urllib.parse import urlsplit
 
 from Hardware_Tester_App.transports import TransportError, create_transport
 
+RELAY_ACTIONS = {"fault": "faultRelay", "command": "commandRelay"}
+
 
 def object_file(path):
     with path.open("rb") as source:
@@ -37,10 +39,13 @@ def validate_plan(plan):
     if not isinstance(roles, dict) or not 1 <= len(roles) <= 16:
         raise ValueError("Define 1 to 16 bench roles.")
     if any(
-        not 1 <= len(role) <= 40 or kind not in ("telemetry", "faultRelay")
+        not 1 <= len(role) <= 40
+        or kind not in ("telemetry", "faultRelay", "commandRelay")
         for role, kind in roles.items()
     ):
-        raise ValueError("Roles must be named telemetry or faultRelay bindings.")
+        raise ValueError(
+            "Roles must be telemetry, faultRelay or commandRelay bindings."
+        )
     if not isinstance(steps, list) or not 1 <= len(steps) <= 30:
         raise ValueError("Define 1 to 30 system steps.")
     for step in steps:
@@ -71,13 +76,13 @@ def validate_plan(plan):
                     f"Use a finite value and tolerance and 0.1–30 seconds for {title}."
                 )
         elif (
-            action != "fault"
-            or roles[role] != "faultRelay"
+            action not in ("fault", "command")
+            or roles[role] != RELAY_ACTIONS[action]
             or type(step.get("active")) is not bool
             or step.keys() != {"name", "role", "action", "active"}
         ):
             raise ValueError(
-                f"Use expect for telemetry and fault with active true/false for a fault relay ({title})."
+                f"Use expect for telemetry, or the corresponding relay action with active true/false ({title})."
             )
     return roles, steps
 
@@ -86,7 +91,7 @@ class ModelBench:
     def __init__(self, roles, binding):
         telemetry = {role for role, kind in roles.items() if kind == "telemetry"}
         fault_relays = [role for role, kind in roles.items() if kind == "faultRelay"]
-        if len(fault_relays) != 1:
+        if len(fault_relays) != 1 or "commandRelay" in roles.values():
             raise ValueError("A modeled bench needs exactly one sensor fault relay.")
         self.states = {False: binding.get("normal"), True: binding.get("sensorFailed")}
         for state in self.states.values():
@@ -103,11 +108,113 @@ class ModelBench:
     def read(self, role, timeout=2):
         return self.states[self.active][role]
 
-    def write_fault(self, role, value):
+    def write_relay(self, role, value):
         self.active = value
 
-    def fault_read(self, role):
+    def relay_read(self, role):
         return self.active
+
+
+class StateMachineBench:
+    """A finite-state machine keyed by verified command and fault relay positions."""
+
+    def __init__(self, roles, binding):
+        telemetry = {role for role, kind in roles.items() if kind == "telemetry"}
+        relays = set(roles) - telemetry
+        self.states = binding.get("states")
+        self.current = binding.get("initialState")
+        if (
+            not isinstance(self.states, dict)
+            or not 1 <= len(self.states) <= 32
+            or not isinstance(self.current, str)
+            or self.current not in self.states
+        ):
+            raise ValueError(
+                "Choose an initial state and define up to 32 model states."
+            )
+        for name, state in self.states.items():
+            if not isinstance(state, dict) or state.keys() != {
+                "readings",
+                "relays",
+                "transitions",
+            }:
+                raise ValueError(
+                    f"State {name} requires readings, relays and transitions."
+                )
+            readings, outputs, transitions = (
+                state[key] for key in ("readings", "relays", "transitions")
+            )
+            if (
+                not isinstance(readings, dict)
+                or readings.keys() != telemetry
+                or not all(
+                    value is None or number(value) for value in readings.values()
+                )
+            ):
+                raise ValueError(
+                    f"Use a numeric value or null for each telemetry role in {name}."
+                )
+            if (
+                not isinstance(outputs, dict)
+                or outputs.keys() != relays
+                or not all(type(value) is bool for value in outputs.values())
+            ):
+                raise ValueError(f"Use a boolean state for each relay in {name}.")
+            if not isinstance(transitions, dict) or transitions.keys() - relays:
+                raise ValueError(f"Transitions in {name} must name a relay role.")
+            for role, changes in transitions.items():
+                if (
+                    not isinstance(changes, dict)
+                    or changes.keys() - {"on", "off"}
+                    or not all(
+                        isinstance(target, str) and target in self.states
+                        for target in changes.values()
+                    )
+                ):
+                    raise ValueError(
+                        f"Transitions for {role} must point to known states."
+                    )
+        for state in self.states.values():
+            for role, changes in state["transitions"].items():
+                for position, target in changes.items():
+                    outputs = self.states[target]["relays"]
+                    if any(
+                        value
+                        != (
+                            (position == "on")
+                            if other == role
+                            else state["relays"][other]
+                        )
+                        for other, value in outputs.items()
+                    ):
+                        raise ValueError(
+                            f"A transition for {role} may change only that relay."
+                        )
+
+    def read(self, role, timeout=2):
+        value = self.states[self.current]["readings"][role]
+        if value is None:
+            raise TransportError(
+                f"No modeled response from {role} in state {self.current}."
+            )
+        return value
+
+    def relay_read(self, role):
+        return self.states[self.current]["relays"][role]
+
+    def write_relay(self, role, value):
+        if self.relay_read(role) == value:
+            return
+        target = (
+            self.states[self.current]["transitions"]
+            .get(role, {})
+            .get("on" if value else "off")
+        )
+        if target is None:
+            raise TransportError(
+                f"{role} cannot change position from state {self.current}."
+            )
+        self.current = target
 
 
 class ConnectedBench:
@@ -156,6 +263,13 @@ class ConnectedBench:
                 and spec.get("approvedFaultRelay") is not True
             ):
                 raise ValueError(f"Bind an explicitly approved fault relay for {role}.")
+            if (
+                roles[role] == "commandRelay"
+                and spec.get("approvedCommandRelay") is not True
+            ):
+                raise ValueError(
+                    f"Bind an explicitly approved command relay for {role}."
+                )
             self.transports[role] = create_transport(
                 dict(adapter=adapter, endpoint=endpoint, baudrate=baudrate)
             )
@@ -180,19 +294,17 @@ class ConnectedBench:
         transport.timeout = timeout
         return transport.read()
 
-    def fault_read(self, role):
+    def relay_read(self, role):
         value = self.read(role)
         if value not in (0, 1):
-            raise TransportError(f"{role} did not report its fault relay state.")
+            raise TransportError(f"{role} did not report a binary relay state.")
         return bool(value)
 
-    def write_fault(self, role, value):
+    def write_relay(self, role, value):
         transport = self.transports[role]
         transport.timeout = 2
-        if transport.write(int(value)) != int(value) or self.fault_read(role) != value:
-            raise TransportError(
-                f"{role} did not verify the requested fault relay state."
-            )
+        if transport.write(int(value)) != int(value) or self.relay_read(role) != value:
+            raise TransportError(f"{role} did not verify the requested relay state.")
 
 
 def run_steps(bench, steps, report):
@@ -204,16 +316,17 @@ def run_steps(bench, steps, report):
             record = {"name": step["name"], "role": role, "action": step["action"]}
             report["steps"].append(record)
             try:
-                if step["action"] == "fault":
+                if step["action"] in RELAY_ACTIONS:
                     if role not in touched:
-                        if bench.fault_read(role):
+                        position = bench.relay_read(role)
+                        if step["action"] == "fault" and position:
                             raise TransportError(
                                 f"{role} is already injecting a fault. Check the bench before running."
                             )
-                        touched[role] = False
+                        touched[role] = position
                     record["expected"] = step["active"]
-                    bench.write_fault(role, step["active"])
-                    record["actual"] = bench.fault_read(role)
+                    bench.write_relay(role, step["active"])
+                    record["actual"] = bench.relay_read(role)
                     record["passed"] = record["actual"] == step["active"]
                 else:
                     record.update(expected=step["value"], tolerance=step["tolerance"])
@@ -245,9 +358,9 @@ def run_steps(bench, steps, report):
     finally:
         for role, value in reversed(list(touched.items())):
             try:
-                bench.write_fault(role, value)
+                bench.write_relay(role, value)
                 report["restoration"][role] = (
-                    "verified" if bench.fault_read(role) == value else "failed"
+                    "verified" if bench.relay_read(role) == value else "failed"
                 )
             except (OSError, TransportError) as error:
                 report["restoration"][role] = f"failed: {error}"
@@ -291,7 +404,11 @@ def main():
                         "Compare with a completed report for the same plan file."
                     )
             if binding.get("mode") == "modeled":
-                bench = ModelBench(roles, binding)
+                bench = (
+                    StateMachineBench(roles, binding)
+                    if "states" in binding
+                    else ModelBench(roles, binding)
+                )
             elif binding.get("mode") == "connected" and args.allow_connected:
                 connected = bench = ConnectedBench(roles, binding)
                 connected.connect()

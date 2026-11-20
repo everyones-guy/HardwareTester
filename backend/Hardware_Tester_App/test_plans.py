@@ -1,8 +1,12 @@
 """Validated executable plans and persistent adapter for the original plan service."""
 
 import copy
+import hashlib
+import json
 import math
+import re
 import uuid
+from pathlib import PurePosixPath
 from flask import jsonify, request, g, has_request_context
 from .lab import LabError, now
 from .utils.validators import validate_json
@@ -12,13 +16,78 @@ def number(value, label, minimum=-1e9, maximum=1e9):
     if (
         isinstance(value, bool)
         or not isinstance(value, (int, float))
-        or not math.isfinite(value)
         or not minimum <= value <= maximum
+        or not math.isfinite(value)
     ):
         raise LabError(
             f"{label} must be a finite number between {minimum} and {maximum}."
         )
     return value
+
+
+def ui_plan_steps_digest(plan):
+    steps = [
+        {
+            key: (
+                int(value) if isinstance(value, float) and value.is_integer() else value
+            )
+            for key, value in step.items()
+        }
+        for step in plan["steps"]
+    ]
+    encoded = json.dumps(
+        {"kind": plan["kind"], "steps": steps},
+        sort_keys=True,
+        separators=(",", ":"),
+        allow_nan=False,
+    ).encode()
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def normalize_ui_source(origin, plan):
+    fields = {
+        "catalogSha256",
+        "controlId",
+        "handler",
+        "bindingReference",
+        "source",
+        "stepsSha256",
+    }
+    if not isinstance(origin, dict) or origin.keys() != fields:
+        raise LabError("Invalid UI source provenance.")
+    limits = {"controlId": 220, "handler": 100, "bindingReference": 240}
+    for field, limit in limits.items():
+        value = origin[field]
+        if (
+            not isinstance(value, str)
+            or not 1 <= len(value) <= limit
+            or not value.isprintable()
+        ):
+            raise LabError("Invalid UI source provenance.")
+    if not isinstance(origin["catalogSha256"], str) or not re.fullmatch(
+        r"[0-9a-f]{64}", origin["catalogSha256"]
+    ):
+        raise LabError("UI source provenance needs a SHA-256 catalog digest.")
+    if origin["stepsSha256"] != ui_plan_steps_digest(plan):
+        raise LabError("The plan steps differ from the recorded UI source plan.")
+    source = origin["source"]
+    if not isinstance(source, dict) or source.keys() != {"path", "line", "table"}:
+        raise LabError("Invalid UI source location.")
+    path = source["path"]
+    if (
+        not isinstance(path, str)
+        or not 1 <= len(path) <= 180
+        or not path.isprintable()
+        or any(char in path for char in "\\:")
+        or PurePosixPath(path).is_absolute()
+        or ".." in PurePosixPath(path).parts
+        or not path.lower().endswith(".sql")
+        or type(source["line"]) is not int
+        or not 1 <= source["line"] <= 524288
+        or source["table"] != "WidgetsInstalled"
+    ):
+        raise LabError("Invalid UI source location.")
+    return copy.deepcopy(origin)
 
 
 def normalize_plan(data):
@@ -80,12 +149,15 @@ def normalize_plan(data):
             if step["min"] > step["max"]:
                 raise LabError("Range minimum cannot exceed maximum.")
         steps.append(step)
-    return {
+    plan = {
         "name": data["name"].strip(),
         "kind": data["kind"],
         "description": description,
         "steps": steps,
     }
+    if "uiSource" in data:
+        plan["uiSource"] = normalize_ui_source(data["uiSource"], plan)
+    return plan
 
 
 class PlanRepository:
@@ -147,6 +219,9 @@ class PlanRepository:
         if data.get("version") != previous["version"]:
             raise LabError("This plan changed. Reload it before saving.", 409)
         normalized = normalize_plan(data)
+        if "uiSource" not in normalized and "uiSource" in previous:
+            if previous["uiSource"]["stepsSha256"] != ui_plan_steps_digest(normalized):
+                previous.pop("uiSource")
         previous.update(normalized, version=previous["version"] + 1, updatedAt=now())
         self.lab.log(f"Updated test plan {previous['name']}.")
         self.lab.save()

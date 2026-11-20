@@ -10,6 +10,7 @@ import ConnectionDiagnostics from './ConnectionDiagnostics';
 import UserManagement from './UserDirectory';
 import PiInventories from './PiInventories';
 import FirmwareLibrary from './FirmwareLibrary';
+import UiCatalog from './UiCatalog';
 import { useEffect, useRef, useState } from 'react';
 import { NavLink, Navigate, Route, Routes, useNavigate } from 'react-router-dom';
 import {
@@ -973,6 +974,7 @@ export default function Workbench() {
             ['/devices', 'Devices', FiCpu],
             ['/pi', 'Raspberry Pi', FiServer],
             ['/firmware', 'Firmware', FiUpload],
+            ['/ui-see', 'UISee', FiGrid],
             ['/blueprints', 'Blueprints', FiBox],
             ['/plans', 'Plan library', FiCheck],
             ['/scenarios', 'Emulator scenarios', FiRadio],
@@ -1226,6 +1228,21 @@ export default function Workbench() {
                   serverReady={serverReady}
                   canAdmin={canAdmin}
                   canOperate={canOperate}
+                />
+              }
+            />
+            <Route
+              path="/ui-see"
+              element={
+                <UiCatalog
+                  serverMode={serverMode}
+                  serverReady={serverReady}
+                  canAdmin={canAdmin}
+                  canOperate={canOperate}
+                  benchBusy={busy || !!activeRun}
+                  devices={lab.devices}
+                  serverAction={serverAction}
+                  start={start}
                 />
               }
             />
@@ -1547,7 +1564,7 @@ export default function Workbench() {
                       !activeRun &&
                       !lab.suiteRuns?.some((r) => r.status === 'running')
                     }
-                    revision={lab.revision ?? 0}
+                    revision={lab.archiveRevision ?? lab.revision ?? 0}
                     action={serverAction}
                   />
                   <BuildInfo />

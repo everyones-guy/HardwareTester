@@ -26,7 +26,7 @@ services:
       - lab-data:/data
     restart: unless-stopped
   broker:
-    image: eclipse-mosquitto:2
+    image: eclipse-mosquitto:2@sha256:38c0da4f2ef84284d47b3b3eeea1cb3bdeabe81ee10caf0cd5c5ff61ee3ea408
     ports:
       - "127.0.0.1:${LAB_MQTT_PORT:-1883}:1883"
     volumes:

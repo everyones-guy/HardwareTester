@@ -3,3 +3,16 @@ waitress==3.0.2
 paho-mqtt==2.1.0
 pyserial==3.5
 pytest==8.4.2
+
+# Transitive versions from the tested workbench image.
+blinker==1.9.0
+click==8.5.1
+colorama==0.4.6; sys_platform == "win32"
+iniconfig==2.3.1
+itsdangerous==2.2.0
+Jinja2==3.1.6
+MarkupSafe==3.0.4
+packaging==26.3
+pluggy==1.7.0
+Pygments==2.21.0
+Werkzeug==3.1.9

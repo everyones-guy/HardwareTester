@@ -1,0 +1,36 @@
+{
+  "name": "Synthetic controller start, stop and protective states",
+  "roles": {
+    "inletValve": "telemetry",
+    "outletValve": "telemetry",
+    "temperatureSensor": "telemetry",
+    "pump": "telemetry",
+    "controllerEnable": "commandRelay",
+    "temperatureFaultRelay": "faultRelay",
+    "outletFaultRelay": "faultRelay"
+  },
+  "steps": [
+    {"name": "Pump idle before start", "role": "pump", "action": "expect", "value": 0, "tolerance": 0, "withinSeconds": 2},
+    {"name": "Start controller", "role": "controllerEnable", "action": "command", "active": true},
+    {"name": "Pump running", "role": "pump", "action": "expect", "value": 1, "tolerance": 0, "withinSeconds": 2},
+    {"name": "Inlet valve at operating position", "role": "inletValve", "action": "expect", "value": 75, "tolerance": 2, "withinSeconds": 2},
+    {"name": "Outlet valve at operating position", "role": "outletValve", "action": "expect", "value": 25, "tolerance": 2, "withinSeconds": 2},
+    {"name": "Stop controller", "role": "controllerEnable", "action": "command", "active": false},
+    {"name": "Pump idle after stop", "role": "pump", "action": "expect", "value": 0, "tolerance": 0, "withinSeconds": 2},
+    {"name": "Restart for fault checks", "role": "controllerEnable", "action": "command", "active": true},
+    {"name": "Inject out-of-range sensor", "role": "temperatureFaultRelay", "action": "fault", "active": true},
+    {"name": "Read out-of-range temperature", "role": "temperatureSensor", "action": "expect", "value": -99, "tolerance": 0, "withinSeconds": 2},
+    {"name": "Sensor fault stops pump", "role": "pump", "action": "expect", "value": 0, "tolerance": 0, "withinSeconds": 2},
+    {"name": "Sensor fault closes inlet valve", "role": "inletValve", "action": "expect", "value": 0, "tolerance": 2, "withinSeconds": 2},
+    {"name": "Sensor fault closes outlet valve", "role": "outletValve", "action": "expect", "value": 0, "tolerance": 2, "withinSeconds": 2},
+    {"name": "Clear temperature fault", "role": "temperatureFaultRelay", "action": "fault", "active": false},
+    {"name": "Read recovered temperature", "role": "temperatureSensor", "action": "expect", "value": 22, "tolerance": 1, "withinSeconds": 2},
+    {"name": "Simulate stuck outlet", "role": "outletFaultRelay", "action": "fault", "active": true},
+    {"name": "Stuck outlet retains prior position", "role": "outletValve", "action": "expect", "value": 25, "tolerance": 2, "withinSeconds": 2},
+    {"name": "Stuck outlet stops pump", "role": "pump", "action": "expect", "value": 0, "tolerance": 0, "withinSeconds": 2},
+    {"name": "Stuck outlet closes inlet valve", "role": "inletValve", "action": "expect", "value": 0, "tolerance": 2, "withinSeconds": 2},
+    {"name": "Clear outlet fault", "role": "outletFaultRelay", "action": "fault", "active": false},
+    {"name": "Return controller to idle", "role": "controllerEnable", "action": "command", "active": false},
+    {"name": "Verify final pump state", "role": "pump", "action": "expect", "value": 0, "tolerance": 0, "withinSeconds": 2}
+  ]
+}

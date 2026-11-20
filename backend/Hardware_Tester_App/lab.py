@@ -201,8 +201,13 @@ class Lab:
         )
         del self.state["logs"][250:]
 
-    def save(self):
-        self.state["revision"] = self.state.get("revision", 0) + 1
+    def save(self, *, telemetry_only=False):
+        revision = self.state.get("revision", 0)
+        self.state["revision"] = revision + 1
+        if not telemetry_only:
+            self.state["archiveRevision"] = (
+                self.state.get("archiveRevision", revision) + 1
+            )
         self.connection.execute(
             "INSERT INTO lab_state VALUES(1, ?) ON CONFLICT(id) DO UPDATE SET payload=excluded.payload",
             (json.dumps(self.state, allow_nan=False),),
@@ -799,6 +804,8 @@ class Lab:
                     if time.monotonic() - self.last_tick >= 1:
                         self.tick += 1
                         self.last_tick = time.monotonic()
+                        polled = False
+                        logged_error = False
                         for d in self.state["devices"]:
                             if (
                                 d.get("scenario")
@@ -807,6 +814,7 @@ class Lab:
                                 and self.active["device"]["id"] == d["id"]
                             ):
                                 continue
+                            polled = True
                             if (
                                 d["adapter"] == "simulation"
                                 and d["kind"] == "temperature"
@@ -820,13 +828,17 @@ class Lab:
                             except Exception as error:
                                 message = str(error)[:300]
                                 if d.get("lastError") != message:
+                                    logged_error = True
                                     self.log(
                                         f"{d['name']}: {message}",
                                         "error",
                                         device_id=d["id"],
                                     )
                                 d["lastError"] = message
-                        self.save()
+                        if polled:
+                            # Poll readings update snapshots without changing an import's
+                            # conflicts. A new log entry can affect history retention.
+                            self.save(telemetry_only=not logged_error)
                     if self.active and time.monotonic() >= self.next_step:
                         self.next_step = time.monotonic() + self.step_seconds
                         self.advance()
@@ -844,6 +856,7 @@ class Lab:
             for d in self.state["devices"]:
                 self.disconnect(d)
             revision = self.state.get("revision", 0)
+            archive_revision = self.state.get("archiveRevision", revision)
             blueprints = self.state["blueprints"]
             scenarios = self.state.get("scenarios", [])
             test_plans = self.state["testPlans"]
@@ -855,6 +868,7 @@ class Lab:
             self.state["suiteRuns"] = []
             self.state["scenarios"] = scenarios
             self.state["revision"] = revision
+            self.state["archiveRevision"] = archive_revision
             self.save()
 
     def close(self):

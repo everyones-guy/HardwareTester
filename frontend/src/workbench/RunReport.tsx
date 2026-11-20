@@ -70,6 +70,13 @@ export default function RunReport({
           Restart the sequence in the device inspector to repeat its initial conditions.
         </p>
       )}
+      {run.configuration?.plan.uiSource && (
+        <p>
+          UISee handler {run.configuration.plan.uiSource.handler} ·{' '}
+          {run.configuration.plan.uiSource.source.path}:
+          {run.configuration.plan.uiSource.source.line}
+        </p>
+      )}
       <div className="report-metrics">
         <div>
           <strong>

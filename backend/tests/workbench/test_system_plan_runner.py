@@ -77,3 +77,26 @@ def test_unchanged_plan_model_and_connected_report(monkeypatch, tmp_path):
     assert commands[0][1] == 1 and commands[-1][1] == 0
     assert report["restoration"] == {"temperatureFaultRelay": "verified"}
     assert not connected and not faulted
+
+
+def test_multi_state_model_start_stop_faults_and_recovery():
+    source = ROOT / "deployment"
+    plan, _ = runner.object_file(source / "plans/controller-start-stop.json")
+    model, _ = runner.object_file(source / "fixtures/controller-start-stop.json")
+    roles, steps = runner.validate_plan(plan)
+    good = {"steps": [], "restoration": {}}
+    bench = runner.StateMachineBench(roles, model)
+    runner.run_steps(bench, steps, good)
+    assert len(good["steps"]) == 22
+    assert all(step["passed"] for step in good["steps"])
+    assert set(good["restoration"].values()) == {"verified"}
+    assert bench.current == "stopped"
+
+    model["states"]["sensorFault"]["readings"]["temperatureSensor"] = None
+    bench = runner.StateMachineBench(roles, model)
+    failure = {"steps": [], "restoration": {}}
+    runner.run_steps(bench, steps, failure)
+    assert failure["steps"][-1]["passed"] is False
+    assert "No modeled response" in failure["steps"][-1]["error"]
+    assert bench.current == "stopped"
+    assert set(failure["restoration"].values()) == {"verified"}

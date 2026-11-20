@@ -50,6 +50,7 @@ export interface TestRun {
       version: number;
       name: string;
       steps: (string | import('./backend').PlanStep)[];
+      uiSource?: import('./backend').UiPlanSource;
     };
     workspaceRevision: number;
   };
@@ -81,6 +82,7 @@ export interface LabState {
   runs: TestRun[];
   logs: LogEntry[];
   revision?: number;
+  archiveRevision?: number;
   peripherals?: import('./backend').Peripheral[];
   blueprints?: import('./backend').Blueprint[];
   testPlans?: import('./backend').SavedPlan[];

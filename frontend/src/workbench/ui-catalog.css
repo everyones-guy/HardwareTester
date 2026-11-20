@@ -1,0 +1,25 @@
+.ui-catalog {
+  display: grid;
+  gap: 1rem;
+}
+
+.ui-catalog-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+  align-items: end;
+  gap: 0.75rem;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.ui-catalog-fields legend {
+  margin: 0.8rem 0;
+  font-weight: 600;
+}
+
+.ui-catalog dd,
+.ui-catalog li {
+  overflow-wrap: anywhere;
+}

@@ -21,6 +21,8 @@ and run **Control response**.
 For a Raspberry Pi controller, open **Raspberry Pi** in the shared workbench.
 See [Raspberry Pi testing](RASPBERRY-PI.md) for inventory collection, inventory
 checks, and the separate Docker/QEMU boot check for an approved Pi 3B image.
+See [UISee and compiled controller testing](UISEE.md) to discover touchscreen
+controls from SQL and run a generated test against the C++ reference fixture.
 
 The four services are the web workbench, backend, broker, and MQTT fixture.
 `docker compose stop` stops them; the startup command restarts them and builds

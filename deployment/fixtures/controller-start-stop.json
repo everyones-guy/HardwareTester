@@ -1,0 +1,30 @@
+{
+  "mode": "modeled",
+  "initialState": "stopped",
+  "states": {
+    "stopped": {
+      "readings": {"inletValve": 0, "outletValve": 0, "temperatureSensor": 22, "pump": 0},
+      "relays": {"controllerEnable": false, "temperatureFaultRelay": false, "outletFaultRelay": false},
+      "transitions": {"controllerEnable": {"on": "running"}}
+    },
+    "running": {
+      "readings": {"inletValve": 75, "outletValve": 25, "temperatureSensor": 22, "pump": 1},
+      "relays": {"controllerEnable": true, "temperatureFaultRelay": false, "outletFaultRelay": false},
+      "transitions": {
+        "controllerEnable": {"off": "stopped"},
+        "temperatureFaultRelay": {"on": "sensorFault"},
+        "outletFaultRelay": {"on": "stuckOutlet"}
+      }
+    },
+    "sensorFault": {
+      "readings": {"inletValve": 0, "outletValve": 0, "temperatureSensor": -99, "pump": 0},
+      "relays": {"controllerEnable": true, "temperatureFaultRelay": true, "outletFaultRelay": false},
+      "transitions": {"temperatureFaultRelay": {"off": "running"}}
+    },
+    "stuckOutlet": {
+      "readings": {"inletValve": 0, "outletValve": 25, "temperatureSensor": 22, "pump": 0},
+      "relays": {"controllerEnable": true, "temperatureFaultRelay": false, "outletFaultRelay": true},
+      "transitions": {"outletFaultRelay": {"off": "running"}}
+    }
+  }
+}

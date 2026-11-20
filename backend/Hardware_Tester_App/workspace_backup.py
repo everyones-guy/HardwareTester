@@ -426,7 +426,7 @@ def prepare(lab, payload):
     ).hexdigest()
     candidate = copy.deepcopy(lab.state)
     maps, imports, rows = {}, {}, []
-    revision = lab.state.get("revision", 0)
+    revision = lab.state.get("archiveRevision", lab.state.get("revision", 0))
     for collection, entries in incoming.items():
         current = candidate.get(collection, [])
         by_id = {i["id"]: i for i in current}

@@ -33,6 +33,15 @@ export interface SavedPlan {
   kind: 'temperature' | 'valve' | 'relay';
   version: number;
   steps: PlanStep[];
+  uiSource?: UiPlanSource;
+}
+export interface UiPlanSource {
+  catalogSha256: string;
+  controlId: string;
+  handler: string;
+  bindingReference: string;
+  source: { path: string; line: number; table: string };
+  stepsSha256: string;
 }
 export interface SuiteCase {
   name: string;
