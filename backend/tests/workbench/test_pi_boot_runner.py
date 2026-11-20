@@ -1,15 +1,10 @@
 import hashlib
-import importlib.util
-from pathlib import Path
 import sys
 
 import pytest
 
-spec = importlib.util.spec_from_file_location(
-    "run_pi_boot", Path(__file__).resolve().parents[2] / "tools" / "run_pi_boot.py"
-)
-runner = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(runner)
+from tools import pi_provisioning as provisioning
+from tools import run_pi_boot as runner
 
 
 def fake_boot(script, timeout=5):
@@ -59,7 +54,7 @@ def test_bundle_hashes_and_source_change_detection(tmp_path):
     }
     for name, content in files.items():
         (tmp_path / name).write_bytes(content)
-    artifacts, fingerprints = runner.hash_bundle(tmp_path)
+    artifacts, fingerprints = provisioning.hash_bundle(tmp_path)
     assert artifacts == {
         name: {"sha256": hashlib.sha256(content).hexdigest(), "sizeBytes": len(content)}
         for name, content in files.items()
@@ -70,6 +65,6 @@ def test_bundle_hashes_and_source_change_detection(tmp_path):
     assert command[-2:] == ["-initrd", str(tmp_path / runner.INITRD)]
     (tmp_path / runner.DISK).write_bytes(b"shorter")
     with pytest.raises(ValueError, match="changed"):
-        runner.verify_bundle(tmp_path, fingerprints)
+        provisioning.verify_bundle(tmp_path, fingerprints)
     with pytest.raises(ValueError, match="power-of-two"):
-        runner.hash_bundle(tmp_path)
+        provisioning.hash_bundle(tmp_path)

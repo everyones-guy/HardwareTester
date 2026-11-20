@@ -15,12 +15,18 @@ bash deployment/raspberry-pi/bootstrap.sh
 ~/.local/bin/hardware-tester-capture-pi > pi-inventory.json
 ```
 
+For a planned 64-bit Pi 3 Model B installation, add
+`--plan /path/to/pi3b-provisioning-plan.json`. The installer checks the
+bootstrap file hashes, running board and revision, kernel architecture,
+and expected OS release before installing. Use the boot runner to verify
+the image bytes separately. [Create a plan](../../RASPBERRY-PI.md#plan-and-verify-a-pi-3b-deployment)
+
 For a Pi without a checkout, create and copy the same bundle from the repository
 root on your workstation. Replace `USER@PI_HOST` with the Pi account you enrolled.
 Verify and add the Pi's SSH host key to `known_hosts` before copying the bundle.
 
 ```sh
-tar -czf hardware-tester-pi.tgz deployment/raspberry-pi/bootstrap.sh backend/tools/capture_pi_inventory.py backend/tools/mqtt_fixture.py
+tar -czf hardware-tester-pi.tgz deployment/raspberry-pi/bootstrap.sh backend/tools/capture_pi_inventory.py backend/tools/pi_provisioning.py backend/tools/mqtt_fixture.py
 scp -o StrictHostKeyChecking=yes hardware-tester-pi.tgz USER@PI_HOST:hardware-tester-pi.tgz
 ```
 

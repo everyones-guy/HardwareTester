@@ -1,4 +1,4 @@
 [tool.black]
 line-length = 88
 target-version = ["py311"]
-include = '(Hardware_Tester_App/(lab|auth|transports|run_audit|system_plan|system_runs|catalog|test_plans|scenarios|validation_suites|workspace_backup|results|ui_catalogs|ui_discovery|utils/firmware_utils|__init__)\.py|tests/workbench/.*\.py|tools/(flash_openocd|release_check|run_system_plan)\.py|runserver\.py)$'
+include = '(Hardware_Tester_App/(lab|auth|transports|run_audit|system_plan|system_runs|catalog|test_plans|scenarios|validation_suites|workspace_backup|results|ui_catalogs|ui_discovery|pi_inventories|utils/firmware_utils|__init__)\.py|tests/workbench/.*\.py|tools/(capture_pi_inventory|flash_openocd|pi_provisioning|release_check|run_pi_boot|run_system_plan)\.py|runserver\.py)$'

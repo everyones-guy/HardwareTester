@@ -89,6 +89,15 @@
 .pi-fidelity {
   color: var(--muted);
 }
+.pi-provisioning > form {
+  margin-top: 14px;
+}
+.pi-provisioning button {
+  margin-top: 8px;
+}
+.pi-provisioning summary {
+  cursor: pointer;
+}
 @media (max-width: 790px) {
   .pi-library {
     grid-template-columns: minmax(0, 1fr);

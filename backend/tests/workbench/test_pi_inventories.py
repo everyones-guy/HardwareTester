@@ -102,5 +102,9 @@ def test_role_boundaries(db_config):
             assert client.post(f"{path}/checks", json=checks).status_code == 403
             result = client.post(f"{path}/checks", json=checks, headers=headers)
             assert result.status_code == (403 if role == "viewer" else 200)
+            plan = client.post(
+                f"{path}/provisioning-plan", json={"manifest": {}}, headers=headers
+            )
+            assert plan.status_code == (403 if role == "viewer" else 400)
     finally:
         app.extensions["lab"].close()

@@ -4,7 +4,7 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends python3 qemu-system-arm \
     && rm -rf /var/lib/apt/lists/*
 
-COPY backend/tools/run_pi_boot.py /opt/hardware-tester/run_pi_boot.py
+COPY backend/tools/run_pi_boot.py backend/tools/pi_provisioning.py /opt/hardware-tester/
 ENV TMPDIR=/var/tmp
 USER 65532:65532
 ENTRYPOINT ["python3", "/opt/hardware-tester/run_pi_boot.py"]

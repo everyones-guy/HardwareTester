@@ -38,11 +38,24 @@ the expected value and the recorded value. A new capture gives a new snapshot.
 
 Inventory checks describe data at capture time. An observed I²C or GPIO interface
 indicates that Linux exposes it. Verify attached peripherals and wiring separately.
+The collector records the VideoCore revision when available, the installed
+`start.elf` hash, hashes of `config.txt` and `cmdline.txt`, and the systemd
+state of NetworkManager, Mosquitto, and SSH. Configuration contents and
+device identifiers are excluded from this data. The installed firmware file
+hash and the running VideoCore revision are separate observations.
+The collector uses read-only systemd queries. [systemd unit properties](https://freedesktop.org/software/systemd/man/latest/org.freedesktop.systemd1.html)
+
+Import two captures from the same Pi. Select the newer one and choose the
+older snapshot under **Provisioning and drift → Compare captures**. The
+report shows changes in kernel and OS release, firmware, configuration hashes,
+and service states. Unavailable observations appear separately. Version 1
+inventory files still import and supply the platform fields they recorded.
+
 The Pi inventory library persists in the workspace SQLite database across restarts.
 Keep the original JSON for sharing or restoring inventories. The workbench's
 portable workspace archive covers the test bench and its existing libraries.
 
-## Run a Pi 3B boot check
+## Plan and verify a Pi 3B deployment
 
 Have a lab device owner supply an approved 64-bit Raspberry Pi 3 Model B test
 bundle. Build it from a sanitized golden image or a consistent lab snapshot.
@@ -62,6 +75,25 @@ about. A stock image may require a guest-side test fixture to emit this line.
 Use serial evidence for a testable milestone such as completing application
 startup with local fixtures.
 
+Prepare a manifest from the reviewed files. Run the following from the repository
+root. Set the labels and OS release to match the chosen image. When starting from
+a publisher download, verify its published checksum before deriving the QEMU
+bundle and recording the resulting file hashes. [Raspberry Pi OS releases](https://www.raspberrypi.com/software/operating-systems/)
+
+```bash
+python3 backend/tools/pi_provisioning.py manifest --bundle /path/to/pi3b-bundle \
+  --release "Pi 3B lab baseline" --os-id debian --os-version 13 \
+  --ready-marker HARDWARETESTER_BOOT_READY > approved-release.json
+```
+
+Open **Raspberry Pi** in the Flask Workbench as an operator. Select the 64-bit
+Pi 3 Model B inventory and upload the reviewed manifest under **Provisioning
+and drift**. Generate and download the plan to the bundle directory as
+`pi3b-provisioning-plan.json`. The plan records the selected capture, intended
+OS, exact image and bootstrap SHA-256 values, and the QEMU boot settings.
+Plans can also be generated offline with `pi_provisioning.py plan --inventory
+pi-inventory.json --manifest approved-release.json`.
+
 Start Docker Desktop in Linux container mode. Build the runner from the repo root
 and run a bundle from PowerShell:
 
@@ -73,16 +105,20 @@ docker run --rm --init --read-only --network none --cap-drop ALL `
   --security-opt no-new-privileges --memory 2g --cpus 2 --pids-limit 128 `
   --tmpfs /var/tmp:rw,noexec,nosuid,nodev,size=512m,mode=1777 `
   --mount "type=bind,src=$bundle,dst=/artifacts,readonly" `
-  hardware-tester-pi-runner --ready-marker HARDWARETESTER_BOOT_READY |
+  hardware-tester-pi-runner --plan /artifacts/pi3b-provisioning-plan.json |
   Set-Content -Encoding utf8NoBOM -LiteralPath .\boot-report.json
 ```
 
-The runner defaults to `/dev/mmcblk0p2` for the root filesystem and 120 seconds
-for boot. Override with `--root-device` or `--boot-timeout`. It outputs a JSON
-report with the QEMU version, machine, SHA-256 of each artifact, verdict, and a
-bounded serial log. Exit code 0 means the marker was observed, 1 means the boot
-check failed, and 2 means a runner error. Docker can return its own exit code if
-the container fails to start. Keep the JSON with the corresponding test run.
+The runner validates the complete image file list, SHA-256, and size before
+starting QEMU. The report records the plan digest, image pin verification, QEMU
+version, verdict, and bounded serial output. Exit code 0 means the marker was
+observed, 1 means the boot check failed, and 2 means the runner rejected the
+inputs or encountered an error. For an exploratory boot outside the provisioning
+flow, use `--ready-marker` with optional `--root-device` and `--boot-timeout`.
+
+After imaging the physical Pi with the reviewed deployment image, run the
+collector installer with `--plan` to verify the bootstrap inputs and the running
+board, architecture, and OS version. [Bootstrap a Pi](deployment/raspberry-pi/README.md)
 
 This is a direct Linux kernel boot. It bypasses the physical Pi's EEPROM and
 boot firmware. The guest uses a Pi 3B QEMU machine with a virtual SD card and

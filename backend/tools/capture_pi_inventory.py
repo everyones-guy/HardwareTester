@@ -13,10 +13,14 @@ behind a bus, verify wiring, or describe interfaces Linux has disabled.
 
 import argparse
 from datetime import datetime, timezone
+import hashlib
 import json
 import os
 from pathlib import Path
+import re
 import shlex
+import stat
+import subprocess
 import sys
 
 INTERFACE_PATTERNS = {
@@ -36,6 +40,16 @@ INTERFACE_PATTERNS = {
     "usb": ("sys/bus/usb/devices/usb[0-9]*",),
     "bluetooth": ("sys/class/bluetooth/hci[0-9]*",),
 }
+SERVICE_UNITS = ("NetworkManager.service", "mosquitto.service", "ssh.service")
+SERVICE_PROPERTIES = {
+    "LoadState": "loadState",
+    "ActiveState": "activeState",
+    "UnitFileState": "unitFileState",
+}
+FIRMWARE_FIELDS = ("videoCoreRevision", "startElfSha256")
+CONFIG_FILES = {"bootConfigSha256": "config.txt", "bootCmdlineSha256": "cmdline.txt"}
+STATE_TOKEN = re.compile(r"[a-z][a-z0-9-]{0,39}")
+REVISION = re.compile(r"^version ([a-fA-F0-9]{7,64})(?: |$)", re.MULTILINE)
 
 
 def read_model(root):
@@ -96,20 +110,105 @@ def read_interfaces(root):
     return sorted(interfaces)
 
 
-def collect_inventory(root, system):
+def command_output(arguments):
+    try:
+        return subprocess.run(
+            arguments,
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            encoding="utf-8",
+            errors="replace",
+            timeout=3,
+            check=False,
+            env=os.environ | {"LC_ALL": "C", "SYSTEMD_COLORS": "0"},
+        ).stdout
+    except (OSError, subprocess.TimeoutExpired):
+        return ""
+
+
+def read_services(run):
+    output = run(
+        [
+            "systemctl",
+            "show",
+            "--no-pager",
+            "--property=Id,LoadState,ActiveState,UnitFileState",
+            *SERVICE_UNITS,
+        ]
+    )
+    services = dict.fromkeys(SERVICE_UNITS)
+    for block in output.strip().split("\n\n"):
+        details = dict(line.split("=", 1) for line in block.splitlines() if "=" in line)
+        identity = details.get("Id")
+        if identity not in services:
+            continue
+        values = {
+            key: token if STATE_TOKEN.fullmatch(token) else None
+            for system_key, key in SERVICE_PROPERTIES.items()
+            for token in [details.get(system_key, "")]
+        }
+        if values["loadState"] and values["activeState"]:
+            services[identity] = values
+    return services
+
+
+def hash_boot_file(root, name, maximum):
+    for directory in ("boot/firmware", "boot"):
+        path = root / directory / name
+        try:
+            info = path.lstat()
+            if not stat.S_ISREG(info.st_mode) or info.st_size > maximum:
+                return None
+            with path.open("rb") as stream:
+                data = stream.read(maximum + 1)
+            after = path.lstat()
+            if len(data) == info.st_size and all(
+                getattr(info, field) == getattr(after, field)
+                for field in (
+                    "st_dev",
+                    "st_ino",
+                    "st_size",
+                    "st_mtime_ns",
+                    "st_ctime_ns",
+                )
+            ):
+                return hashlib.sha256(data).hexdigest()
+            return None
+        except FileNotFoundError:
+            continue
+        except OSError:
+            return None
+    return None
+
+
+def collect_inventory(root, system, run=command_output):
     os_id, os_version = read_os_release(root)
+    model = read_model(root)
     architecture = system.machine.lower()
+    revision = REVISION.search(run(["vcgencmd", "version"]))
     captured_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
     return {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "capturedAt": captured_at.replace("+00:00", "Z"),
-        "model": read_model(root),
+        "model": model,
         "architecture": "aarch64" if architecture == "arm64" else architecture,
         "kernel": system.release,
         "osId": os_id,
         "osVersion": os_version,
         "memoryMiB": read_memory_mib(root),
         "interfaces": read_interfaces(root),
+        "observations": {
+            "firmware": {
+                "videoCoreRevision": revision[1].lower() if revision else None,
+                "startElfSha256": hash_boot_file(root, "start.elf", 16 * 1024 * 1024),
+            },
+            "services": read_services(run),
+            "configuration": {
+                key: hash_boot_file(root, filename, 1024 * 1024)
+                for key, filename in CONFIG_FILES.items()
+            },
+        },
     }
 
 

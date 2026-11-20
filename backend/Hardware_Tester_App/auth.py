@@ -263,7 +263,9 @@ def required_role(path, method):
         or re.fullmatch(r"/api/lab/runs/[^/]+/baseline", path)
         or (
             method == "POST"
-            and re.fullmatch(r"/api/lab/pi-inventories/[^/]+/checks", path)
+            and re.fullmatch(
+                r"/api/lab/pi-inventories/[^/]+/(checks|provisioning-plan)", path
+            )
         )
         or re.fullmatch(
             r"/api/lab/devices/[^/]+/(connection|command|fault|diagnostics|scenario)",

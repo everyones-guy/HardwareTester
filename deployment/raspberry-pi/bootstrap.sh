@@ -3,16 +3,18 @@ set -euo pipefail
 
 usage() {
     cat <<'EOF'
-Usage: bash deployment/raspberry-pi/bootstrap.sh [--prefix DIRECTORY] [--with-mqtt-fixture]
+Usage: bash deployment/raspberry-pi/bootstrap.sh [--prefix DIRECTORY] [--plan FILE | --with-mqtt-fixture]
 
 Install the Raspberry Pi inventory collector for the current user.
   --prefix DIRECTORY    User-owned installation directory (default: ~/.local)
+  --plan FILE           Verify an exported provisioning plan before installing the collector
   --with-mqtt-fixture    Also install the mock valve and its Python dependency
   -h, --help            Show this help
 EOF
 }
 
 prefix=""
+plan=""
 with_mqtt=false
 while (($#)); do
     case "$1" in
@@ -27,6 +29,14 @@ while (($#)); do
         --with-mqtt-fixture)
             with_mqtt=true
             shift
+            ;;
+        --plan)
+            if [[ -z "${2:-}" || "$2" == -* ]]; then
+                printf 'Pass a provisioning plan after --plan.\n' >&2
+                exit 2
+            fi
+            plan="$2"
+            shift 2
             ;;
         -h|--help)
             usage
@@ -54,6 +64,13 @@ fi
 if [[ "$with_mqtt" == true && ! -r "$tools_dir/mqtt_fixture.py" ]]; then
     printf 'The mock valve is missing from the bootstrap bundle.\n' >&2
     exit 1
+fi
+if [[ -n "$plan" ]]; then
+    if [[ "$with_mqtt" == true ]]; then
+        printf 'The provisioning plan covers the inventory collector install.\n' >&2
+        exit 2
+    fi
+    python3 "$tools_dir/pi_provisioning.py" check-bootstrap --plan "$plan" --source-root "$script_dir/../.."
 fi
 
 install_python_file() (

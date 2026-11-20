@@ -7,6 +7,15 @@ from datetime import datetime
 
 from flask import jsonify, request
 
+from tools.capture_pi_inventory import (
+    CONFIG_FILES,
+    FIRMWARE_FIELDS,
+    SERVICE_PROPERTIES,
+    SERVICE_UNITS,
+    STATE_TOKEN,
+)
+from tools.pi_provisioning import PI3B_MODEL, SHA256, make_plan
+
 from .lab import LabError
 
 INTERFACES = frozenset(
@@ -25,7 +34,7 @@ RECOMMENDED = {
     "known-os-version": "OS version identified",
 }
 SPECIALIZED = {"pi3b-64bit": "64-bit Pi 3 Model B boot candidate"}
-PI3B_MODEL = re.compile(r"Raspberry Pi 3 Model B(?: Rev [0-9]+(?:\.[0-9]+)*)?")
+VIDEOCORE_REVISION = re.compile(r"[a-f0-9]{7,64}")
 UTC_TIMESTAMP = re.compile(
     r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]{1,6})?(?:Z|\+00:00)"
 )
@@ -48,13 +57,11 @@ def normalize_inventory(inventory):
         "interfaces",
         *INVENTORY_TEXT_FIELDS,
     }
-    if (
-        not isinstance(inventory, dict)
-        or inventory.keys() != fields
-        or type(inventory["schemaVersion"]) is not int
-        or inventory["schemaVersion"] != 1
-    ):
-        raise LabError("Use a Raspberry Pi inventory JSON file with schemaVersion 1.")
+    version = inventory.get("schemaVersion") if isinstance(inventory, dict) else None
+    if type(version) is not int or version not in (1, 2):
+        raise LabError("Use a Raspberry Pi inventory with schemaVersion 1 or 2.")
+    if inventory.keys() != (fields | {"observations"} if version == 2 else fields):
+        raise LabError("The inventory fields do not match its schema version.")
 
     values = {
         field: text_value(inventory[field], field) for field in INVENTORY_TEXT_FIELDS
@@ -85,13 +92,87 @@ def normalize_inventory(inventory):
     ):
         raise LabError("interfaces must list unique, supported interface categories.")
 
-    return dict(
+    normalized = dict(
         values,
-        schemaVersion=1,
+        schemaVersion=version,
         capturedAt=timestamp.isoformat().replace("+00:00", "Z"),
         memoryMiB=memory,
         interfaces=sorted(interfaces),
     )
+    if version == 2:
+        normalized["observations"] = normalize_observations(inventory["observations"])
+    return normalized
+
+
+def normalize_observations(observations):
+    allowed = {
+        "firmware": set(FIRMWARE_FIELDS),
+        "configuration": set(CONFIG_FILES),
+        "services": set(SERVICE_UNITS),
+    }
+    if not isinstance(observations, dict) or observations.keys() != allowed.keys():
+        raise LabError(
+            "Use the collector's firmware, configuration, and service observations."
+        )
+    for group, fields in allowed.items():
+        values = observations[group]
+        if not isinstance(values, dict) or values.keys() != fields:
+            raise LabError(f"Unexpected {group} observations.")
+        for key, value in values.items():
+            if value is None:
+                continue
+            if group == "services":
+                if (
+                    not isinstance(value, dict)
+                    or value.keys() != set(SERVICE_PROPERTIES.values())
+                    or any(
+                        not (token is None and property_name == "unitFileState")
+                        and (
+                            not isinstance(token, str)
+                            or not STATE_TOKEN.fullmatch(token)
+                        )
+                        for property_name, token in value.items()
+                    )
+                ):
+                    raise LabError(f"Invalid systemd state in {key}.")
+            else:
+                pattern = VIDEOCORE_REVISION if key == "videoCoreRevision" else SHA256
+                if not isinstance(value, str) or not pattern.fullmatch(value):
+                    raise LabError(f"Invalid revision or SHA-256 in {key}.")
+    return observations
+
+
+def inventory_drift(baseline, current):
+    if any(baseline[key] != current[key] for key in ("model", "architecture")):
+        raise LabError("Compare captures of the same board model and architecture.")
+    if datetime.fromisoformat(baseline["capturedAt"]) > datetime.fromisoformat(
+        current["capturedAt"]
+    ):
+        raise LabError("Select a baseline captured before the current inventory.")
+    items = []
+
+    def compare(group, name, before, after):
+        state = (
+            "unavailable"
+            if before is None or after is None
+            else "unchanged" if before == after else "changed"
+        )
+        items.append(
+            dict(group=group, name=name, before=before, after=after, status=state)
+        )
+
+    for key in ("osId", "osVersion", "kernel"):
+        compare("platform", key, baseline[key], current[key])
+    for group, keys in (
+        ("firmware", FIRMWARE_FIELDS),
+        ("configuration", CONFIG_FILES),
+        ("services", SERVICE_UNITS),
+    ):
+        before = baseline.get("observations", {}).get(group, {})
+        after = current.get("observations", {}).get(group, {})
+        for key in keys:
+            compare(group, key, before.get(key), after.get(key))
+    return items
 
 
 def check_result(name, expected, actual, passed):
@@ -195,6 +276,15 @@ def register_pi_inventories(app, lab):
             raise LabError("Request body must be a JSON object.")
         return payload
 
+    def load_inventory(identity):
+        with lab.lock:
+            row = lab.connection.execute(
+                "SELECT inventory FROM pi_inventories WHERE id = ?", (identity,)
+            ).fetchone()
+        if row is None:
+            raise LabError("Raspberry Pi inventory not found.", 404)
+        return json.loads(row[0])
+
     @app.get(API)
     def list_pi_inventories():
         return response()
@@ -235,9 +325,24 @@ def register_pi_inventories(app, lab):
         payload = body()
         if payload.keys() - {"checkIds", "customChecks"}:
             raise LabError("Request body may only contain inventory checks.")
-        row = lab.connection.execute(
-            "SELECT inventory FROM pi_inventories WHERE id = ?", (identity,)
-        ).fetchone()
-        if row is None:
-            raise LabError("Raspberry Pi inventory not found.", 404)
-        return jsonify(checks=evaluate_checks(json.loads(row[0]), payload))
+        return jsonify(checks=evaluate_checks(load_inventory(identity), payload))
+
+    @app.get(API + "/<identity>/drift")
+    def compare_pi_inventory(identity):
+        baseline = request.args.get("baselineId")
+        if not baseline or baseline == identity:
+            raise LabError("Select a different saved baseline inventory.")
+        with lab.lock:
+            previous, current = load_inventory(baseline), load_inventory(identity)
+        return jsonify(items=inventory_drift(previous, current))
+
+    @app.post(API + "/<identity>/provisioning-plan")
+    def plan_pi_provisioning(identity):
+        payload = body()
+        if payload.keys() != {"manifest"}:
+            raise LabError("Provide the approved provisioning manifest.")
+        try:
+            plan = make_plan(load_inventory(identity), payload["manifest"])
+        except ValueError as exc:
+            raise LabError(str(exc)) from exc
+        return jsonify(plan=plan)

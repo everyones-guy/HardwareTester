@@ -3,54 +3,27 @@
 import argparse
 import hashlib
 import json
-import re
-import stat
 import subprocess
 import threading
 import time
 from pathlib import Path
 
-MACHINE = "raspi3b"
+if __package__:
+    from . import pi_provisioning as provisioning
+else:
+    import pi_provisioning as provisioning
+
+MACHINE = provisioning.MACHINE
 QEMU = "qemu-system-aarch64"
 BUNDLE = Path("/artifacts")
-KERNEL = "kernel8.img"
-DTB = "bcm2710-rpi-3-b.dtb"
-DISK = "sd.img"
-INITRD = "initrd.img"
+KERNEL, DTB, DISK, INITRD = (
+    provisioning.KERNEL,
+    provisioning.DTB,
+    provisioning.DISK,
+    provisioning.INITRD,
+)
 SERIAL_LIMIT = 8192
 DIAGNOSTIC_LIMIT = 4096
-ROOT_DEVICE = re.compile(r"(?:/dev/mmcblk0p[1-9][0-9]*|PARTUUID=[a-fA-F0-9-]+)")
-
-
-def fingerprint(path):
-    info = path.stat(follow_symlinks=False)
-    if not stat.S_ISREG(info.st_mode) or not info.st_size:
-        raise ValueError(f"{path.name} must be a nonempty regular file.")
-    return info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns, info.st_ctime_ns
-
-
-def verify_bundle(bundle, fingerprints):
-    for name, prior in fingerprints.items():
-        if fingerprint(bundle / name) != prior:
-            raise ValueError(f"{name} changed while the runner was using it.")
-
-
-def hash_bundle(bundle):
-    names = [KERNEL, DTB, DISK]
-    optional_initrd = bundle / INITRD
-    if optional_initrd.exists() or optional_initrd.is_symlink():
-        names.append(INITRD)
-    fingerprints = {name: fingerprint(bundle / name) for name in names}
-    disk_size = fingerprints[DISK][2]
-    if disk_size < 512 or disk_size & (disk_size - 1):
-        raise ValueError("sd.img must have a power-of-two size of at least 512 bytes.")
-    artifacts = {}
-    for name in names:
-        with (bundle / name).open("rb") as source:
-            digest = hashlib.file_digest(source, "sha256").hexdigest()
-        artifacts[name] = {"sha256": digest, "sizeBytes": fingerprints[name][2]}
-    verify_bundle(bundle, fingerprints)
-    return artifacts, fingerprints
 
 
 def boot_command(qemu, bundle, root, with_initrd):
@@ -198,21 +171,35 @@ def check_boot(command, marker, timeout_seconds):
 def parse_args():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
+        "--plan",
+        type=Path,
+        help="Use the boot settings and image pins in an exported plan.",
+    )
+    parser.add_argument(
         "--ready-marker",
-        required=True,
         help="Exact newline-terminated guest serial line",
     )
-    parser.add_argument("--boot-timeout", type=int, default=120, metavar="SECONDS")
-    parser.add_argument("--root-device", default="/dev/mmcblk0p2")
+    parser.add_argument("--boot-timeout", type=int, metavar="SECONDS")
+    parser.add_argument("--root-device")
     args = parser.parse_args()
-    if not 1 <= args.boot_timeout <= 600:
-        parser.error("--boot-timeout must be 1–600 seconds.")
-    if not args.ready_marker.strip() or not re.fullmatch(
-        r"[ -~]{1,128}", args.ready_marker
-    ):
-        parser.error("--ready-marker must contain 1–128 printable ASCII characters.")
-    if not ROOT_DEVICE.fullmatch(args.root_device):
-        parser.error("--root-device must be a Pi SD partition or PARTUUID= identifier.")
+    overrides = (args.ready_marker, args.boot_timeout, args.root_device)
+    if args.plan is not None and any(value is not None for value in overrides):
+        parser.error("Boot settings come from the plan. Omit individual overrides.")
+    if args.plan is None:
+        args.boot_timeout = 120 if args.boot_timeout is None else args.boot_timeout
+        args.root_device = (
+            "/dev/mmcblk0p2" if args.root_device is None else args.root_device
+        )
+        try:
+            provisioning.validate_boot(
+                {
+                    "readyMarker": args.ready_marker,
+                    "timeoutSeconds": args.boot_timeout,
+                    "rootDevice": args.root_device,
+                }
+            )
+        except ValueError as error:
+            parser.error(str(error))
     return args
 
 
@@ -228,21 +215,45 @@ def main():
         "emulatorVersion": None,
         "artifacts": {},
     }
+    identity = None
+    plan_checked = args.plan is None
     try:
+        if args.plan is not None:
+            plan = provisioning.validate_plan(provisioning.read_document(args.plan))
+            report["rootDevice"] = plan["boot"]["rootDevice"]
+            report["readyMarker"] = plan["boot"]["readyMarker"]
+            report["bootTimeoutSeconds"] = plan["boot"]["timeoutSeconds"]
+            identity = {
+                "profile": plan["profile"],
+                "release": plan["release"],
+                "target": plan["target"],
+                "planSha256": hashlib.sha256(
+                    json.dumps(plan, sort_keys=True, separators=(",", ":")).encode()
+                ).hexdigest(),
+                "imagePinsVerified": False,
+            }
+            report["provisioning"] = identity
+        artifacts, fingerprints = provisioning.hash_bundle(BUNDLE)
+        report["artifacts"] = artifacts
+        if identity is not None:
+            provisioning.check_pins(artifacts, plan["artifacts"])
+            identity["imagePinsVerified"] = True
+        plan_checked = True
         version = subprocess.check_output([QEMU, "--version"], timeout=5)
         version_line, _, _ = version.decode("utf-8", errors="replace").partition("\n")
         version_line = version_line.strip()
         if not version_line:
             raise ValueError("QEMU returned no version information.")
         report["emulatorVersion"] = version_line[:256]
-        artifacts, fingerprints = hash_bundle(BUNDLE)
-        report["artifacts"] = artifacts
-        command = boot_command(QEMU, BUNDLE, args.root_device, INITRD in artifacts)
-        result = check_boot(command, args.ready_marker, args.boot_timeout)
-        verify_bundle(BUNDLE, fingerprints)
+        command = boot_command(QEMU, BUNDLE, report["rootDevice"], INITRD in artifacts)
+        result = check_boot(
+            command, report["readyMarker"], report["bootTimeoutSeconds"]
+        )
+        provisioning.verify_bundle(BUNDLE, fingerprints)
         report.update(result)
-    except (OSError, ValueError, subprocess.SubprocessError) as error:
-        report.update(verdict="error", reason="runnerError", error=str(error))
+    except (OSError, ValueError, RecursionError, subprocess.SubprocessError) as error:
+        reason = "runnerError" if plan_checked else "provisioningPlanRejected"
+        report.update(verdict="error", reason=reason, error=str(error))
     print(json.dumps(report))
     return {"passed": 0, "failed": 1, "error": 2}[report["verdict"]]
 

@@ -9,11 +9,28 @@ interface CheckOption {
   name: string;
 }
 
+type Observation =
+  | string
+  | null
+  | {
+      loadState: string;
+      activeState: string;
+      unitFileState: string | null;
+    };
+
+interface DriftItem {
+  group: string;
+  name: string;
+  before: Observation;
+  after: Observation;
+  status: 'changed' | 'unchanged' | 'unavailable';
+}
+
 interface PiInventory {
   id: string;
   name: string;
   inventory: {
-    schemaVersion: 1;
+    schemaVersion: 1 | 2;
     capturedAt: string;
     model: string;
     architecture: string;
@@ -22,6 +39,7 @@ interface PiInventory {
     osVersion: string;
     memoryMiB: number;
     interfaces: string[];
+    observations?: Record<string, Record<string, Observation>>;
   };
   recommendedChecks: CheckOption[];
   specializedChecks: CheckOption[];
@@ -35,6 +53,15 @@ interface CheckResult {
 }
 
 const inventoryPath = '/pi-inventories';
+const observationNames: Record<string, string> = {
+  osId: 'OS ID',
+  osVersion: 'OS version',
+  kernel: 'Kernel',
+  videoCoreRevision: 'VideoCore revision',
+  startElfSha256: 'Installed start.elf SHA-256',
+  bootConfigSha256: 'Boot config SHA-256',
+  bootCmdlineSha256: 'Boot command line SHA-256',
+};
 const maxCustomChecks = 10;
 const interfaceCategories = [
   'bluetooth',
@@ -55,6 +82,192 @@ const customFields = {
 };
 
 type CustomCheck = { id: number; field: keyof typeof customFields; value: string };
+
+function observationText(value: Observation) {
+  if (value === null) return 'Unavailable';
+  if (typeof value === 'string') return value;
+  return [value.loadState, value.activeState, value.unitFileState].filter(Boolean).join(' · ');
+}
+
+function PiProvisioning({
+  entry,
+  inventories,
+  enabled,
+  canOperate,
+}: {
+  entry: PiInventory;
+  inventories: PiInventory[];
+  enabled: boolean;
+  canOperate: boolean;
+}) {
+  const [baseline, setBaseline] = useState('');
+  const [drift, setDrift] = useState<DriftItem[]>();
+  const [plan, setPlan] = useState<{ release: string }>();
+  const [error, setError] = useState('');
+  const [pending, setPending] = useState(false);
+  const candidates = inventories.filter(
+    ({ id, inventory }) =>
+      id !== entry.id &&
+      inventory.model === entry.inventory.model &&
+      inventory.architecture === entry.inventory.architecture &&
+      Date.parse(inventory.capturedAt) <= Date.parse(entry.inventory.capturedAt),
+  );
+  const path = `${inventoryPath}/${entry.id}`;
+
+  async function perform(action: () => Promise<void>) {
+    setError('');
+    setPending(true);
+    try {
+      await action();
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'The provisioning request failed.');
+    } finally {
+      setPending(false);
+    }
+  }
+
+  function generatePlan(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const file = new FormData(event.currentTarget).get('manifest');
+    setPlan(undefined);
+    void perform(async () => {
+      if (!(file instanceof File) || !file.size || file.size > 32 * 1024) {
+        throw new Error('Choose a provisioning manifest JSON file up to 32 KiB.');
+      }
+      let manifest: unknown;
+      try {
+        manifest = JSON.parse(await file.text());
+      } catch {
+        throw new Error('The provisioning manifest must contain valid JSON.');
+      }
+      const result = await workspaceRequest<{ plan: { release: string } }>(
+        `${path}/provisioning-plan`,
+        'POST',
+        { manifest },
+      );
+      setPlan(result.plan);
+    });
+  }
+
+  function downloadPlan() {
+    const url = URL.createObjectURL(
+      new Blob([JSON.stringify(plan, null, 2)], { type: 'application/json' }),
+    );
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'pi3b-provisioning-plan.json';
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 0);
+  }
+
+  return (
+    <section className="panel settings-panel pi-panel pi-provisioning">
+      <h2>Provisioning and drift</h2>
+      {error && <p role="alert">{error}</p>}
+      <details>
+        <summary>Firmware, configuration and services</summary>
+        {entry.inventory.observations ? (
+          <dl>
+            {Object.values(entry.inventory.observations).flatMap((group) =>
+              Object.entries(group).map(([name, value]) => (
+                <div key={name}>
+                  <dt>{observationNames[name] ?? name}</dt>
+                  <dd>{observationText(value)}</dd>
+                </div>
+              )),
+            )}
+          </dl>
+        ) : (
+          <p>This capture predates firmware, configuration, and service observations.</p>
+        )}
+      </details>
+      {candidates.length ? (
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            setDrift(undefined);
+            void perform(async () => {
+              const result = await workspaceRequest<{ items: DriftItem[] }>(
+                `${path}/drift?baselineId=${encodeURIComponent(baseline)}`,
+              );
+              setDrift(result.items);
+            });
+          }}
+        >
+          <fieldset disabled={!enabled || pending}>
+            <label>
+              Baseline capture from the same Pi
+              <select
+                required
+                value={baseline}
+                onChange={(event) => {
+                  setBaseline(event.target.value);
+                  setDrift(undefined);
+                }}
+              >
+                <option value="">Choose a baseline</option>
+                {candidates.map(({ id, name, inventory }) => (
+                  <option key={id} value={id}>
+                    {name} · {new Date(inventory.capturedAt).toLocaleString()}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button className="button secondary">Compare captures</button>
+          </fieldset>
+        </form>
+      ) : (
+        <p>Import an earlier capture from this Pi to compare drift.</p>
+      )}
+      {drift && (
+        <div className="pi-check-results" aria-label="Inventory drift results">
+          <p role="status">
+            {drift.filter(({ status }) => status === 'changed').length} changed ·{' '}
+            {drift.filter(({ status }) => status === 'unavailable').length} unavailable
+          </p>
+          <ol>
+            {drift
+              .filter(({ status }) => status !== 'unchanged')
+              .map((item) => (
+                <li key={item.name}>
+                  <strong>{observationNames[item.name] ?? item.name}</strong>
+                  <p>
+                    {observationText(item.before)} → {observationText(item.after)}
+                  </p>
+                </li>
+              ))}
+          </ol>
+        </div>
+      )}
+      {canOperate && (
+        <form onSubmit={generatePlan}>
+          <fieldset disabled={!enabled || pending}>
+            <h3>Raspberry Pi 3 Model B · 64-bit</h3>
+            <label>
+              Approved release manifest
+              <input
+                type="file"
+                name="manifest"
+                accept=".json,application/json"
+                required
+                onChange={() => setPlan(undefined)}
+              />
+            </label>
+            <button className="button primary">Generate provisioning plan</button>
+          </fieldset>
+          {plan && (
+            <p role="status">
+              {plan.release} · Plan ready for local image verification.{' '}
+              <button type="button" className="button secondary" onClick={downloadPlan}>
+                Download plan
+              </button>
+            </p>
+          )}
+        </form>
+      )}
+    </section>
+  );
+}
 
 function InventoryChecks({
   entry,
@@ -462,6 +675,13 @@ export default function PiInventories({
                     ))}
                   </dl>
                 </section>
+                <PiProvisioning
+                  key={`provisioning-${entry.id}`}
+                  entry={entry}
+                  inventories={inventories}
+                  enabled={enabled}
+                  canOperate={canOperate}
+                />
                 {!canOperate && <p>An operator or administrator can run inventory checks.</p>}
                 <InventoryChecks
                   key={entry.id}
