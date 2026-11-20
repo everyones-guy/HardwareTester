@@ -35,6 +35,20 @@ def control_for(entry, identity):
     return control
 
 
+def source_actions(entry, control):
+    if control.get("workflowError"):
+        raise LabError(control["workflowError"])
+    workflow = control.get("workflow")
+    if workflow is None:
+        return None, None
+    controls = {item["id"]: item for item in entry["catalog"]["controls"]}
+    return controls[workflow["navigationId"]], controls[workflow["confirmationId"]]
+
+
+def source_action(control):
+    return {"controlId": control["id"], "source": control["source"]}
+
+
 def make_plan(entry, data):
     control = control_for(entry, data["controlId"])
     binding = entry["bindings"].get(control["id"])
@@ -50,33 +64,69 @@ def make_plan(entry, data):
     expected = number(data["expected"], "Expected device reading")
     tolerance = number(data["tolerance"], "Tolerance", 0, 1e6)
     timeout = number(data["timeout"], "Response timeout", 0.1, 10)
-    plan = normalize_plan(
+    navigation, confirmation = source_actions(entry, control)
+    command_steps = [
         {
-            "name": data["name"],
-            "kind": binding["kind"],
-            "description": f"Built from the UISee control {control['name']}.",
-            "steps": [
-                {
-                    "name": "Read output before command",
-                    "action": "read",
-                    "timeout": timeout,
-                },
-                {
-                    "name": "Apply confirmed UI input",
-                    "action": "set",
-                    "value": command,
-                    "timeout": timeout,
-                },
-                {
-                    "name": "Check device readback",
-                    "action": "assert_equal",
-                    "value": expected,
-                    "tolerance": tolerance,
-                    "timeout": timeout,
-                },
-            ],
+            "name": "Apply bound input",
+            "action": "set",
+            "value": command,
+            "timeout": timeout,
         }
-    )
+    ]
+    if navigation:
+        if confirmation["handler"] and binding["handler"] != confirmation["handler"]:
+            raise LabError(
+                "Review the handler declared by the confirmation button before building a plan.",
+                409,
+            )
+        page = next(
+            item
+            for item in entry["catalog"]["pages"]
+            if item["pageId"] == control["pageId"]
+        )
+        command_steps = [
+            {
+                "name": navigation["name"][:100].strip(),
+                "action": "ui_navigate",
+                "uiAction": {
+                    **source_action(navigation),
+                    "pageId": page["id"],
+                    "pageSource": page["source"],
+                },
+            },
+            {
+                "name": f"Enter {control['name']}"[:100].strip(),
+                "action": "ui_input",
+                "value": command,
+                "uiAction": source_action(control),
+            },
+            {
+                "name": confirmation["name"][:100].strip(),
+                "action": "ui_confirm",
+                "timeout": timeout,
+                "uiAction": source_action(confirmation),
+            },
+        ]
+    plan = {
+        "name": data["name"],
+        "kind": binding["kind"],
+        "description": f"Built from the UISee control {control['name']}.",
+        "steps": [
+            {
+                "name": "Read output before command",
+                "action": "read",
+                "timeout": timeout,
+            },
+            *command_steps,
+            {
+                "name": "Check device readback",
+                "action": "assert_equal",
+                "value": expected,
+                "tolerance": tolerance,
+                "timeout": timeout,
+            },
+        ],
+    }
     plan["uiSource"] = {
         "catalogSha256": entry["id"],
         "controlId": control["id"],
@@ -85,7 +135,7 @@ def make_plan(entry, data):
         "source": control["source"],
         "stepsSha256": ui_plan_steps_digest(plan),
     }
-    return plan
+    return normalize_plan(plan)
 
 
 def compare_catalogs(before, after):
@@ -94,7 +144,16 @@ def compare_catalogs(before, after):
         ("pages", ("name", "attributes")),
         (
             "controls",
-            ("name", "buttonType", "widgetIndex", "handler", "input", "attributes"),
+            (
+                "name",
+                "buttonType",
+                "widgetIndex",
+                "handler",
+                "input",
+                "attributes",
+                "workflow",
+                "workflowError",
+            ),
         ),
     ):
         left = {item["id"]: item for item in before[collection]}
@@ -104,7 +163,9 @@ def compare_catalogs(before, after):
         changed = []
         for key in sorted(left.keys() & right.keys()):
             differences = [
-                field for field in fields if left[key][field] != right[key][field]
+                field
+                for field in fields
+                if left[key].get(field) != right[key].get(field)
             ]
             if differences:
                 changed.append(
@@ -190,7 +251,14 @@ def register_ui_catalogs(app, lab):
                 "SELECT 1 FROM ui_catalogs WHERE id = ?", (identity,)
             ).fetchone()
             if existing:
-                return jsonify(catalog=get_entry(identity))
+                existing_entry = get_entry(identity)
+                if existing_entry["catalog"] != catalog:
+                    existing_entry["catalog"] = catalog
+                    lab.connection.execute(
+                        "UPDATE ui_catalogs SET entry = ? WHERE id = ?",
+                        (json.dumps(existing_entry, allow_nan=False), identity),
+                    )
+                return jsonify(catalog=existing_entry)
             count = lab.connection.execute(
                 "SELECT COUNT(*) FROM ui_catalogs"
             ).fetchone()[0]
@@ -219,10 +287,14 @@ def register_ui_catalogs(app, lab):
         data = body("controlId", "handler", "kind", "reference")
         entry = get_entry(identity)
         control = control_for(entry, data["controlId"])
+        _, confirmation = source_actions(entry, control)
+        declared_handler = control["handler"] or (
+            confirmation and confirmation["handler"]
+        )
         handler = text_value(data["handler"], "Handler", 100)
         if not HANDLER_NAME.fullmatch(handler):
             raise LabError("Use a plain handler name or C++ qualified identifier.")
-        if control.get("handler") and control["handler"] != handler:
+        if declared_handler and declared_handler != handler:
             raise LabError("The reviewed handler must match the source declaration.")
         if data["kind"] not in ("valve", "relay"):
             raise LabError("Choose the valve or relay output profile.")

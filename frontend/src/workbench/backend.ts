@@ -16,9 +16,28 @@ export interface Blueprint {
   devices: { name: string; kind: string }[];
   warnings: string[];
 }
+export interface UiSourceLocation {
+  path: string;
+  line: number;
+  table: string;
+}
 export interface PlanStep {
   name: string;
-  action: 'read' | 'set' | 'assert_range' | 'assert_equal' | 'wait';
+  action:
+    | 'read'
+    | 'set'
+    | 'assert_range'
+    | 'assert_equal'
+    | 'wait'
+    | 'ui_navigate'
+    | 'ui_input'
+    | 'ui_confirm';
+  uiAction?: {
+    controlId: string;
+    source: UiSourceLocation;
+    pageId?: string;
+    pageSource?: UiSourceLocation;
+  };
   timeout?: number;
   value?: number;
   tolerance?: number;
@@ -40,7 +59,7 @@ export interface UiPlanSource {
   controlId: string;
   handler: string;
   bindingReference: string;
-  source: { path: string; line: number; table: string };
+  source: UiSourceLocation;
   stepsSha256: string;
 }
 export interface SuiteCase {

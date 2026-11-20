@@ -430,6 +430,96 @@ def _control_details(attributes, source, diagnose):
     }
 
 
+def _link_id(value):
+    if type(value) is str and re.fullmatch(r"[0-9]{1,16}", value):
+        value = int(value)
+    return value if type(value) is int and 0 <= value <= MAX_DATABASE_ID else None
+
+
+def _link_workflows(pages, controls, duplicate_controls, diagnose):
+    page_by_id = {page["pageId"]: page for page in pages}
+    input_by_id = {
+        (control["pageId"], control["widgetId"], control["widgetConfigId"]): control
+        for control in controls
+        if control["input"] is not None
+    }
+    navigation = defaultdict(list)
+    confirmations = defaultdict(list)
+    invalid_confirm_pages = {
+        control["pageId"]
+        for control in duplicate_controls
+        if (control["buttonType"] or "").casefold() == "confirm"
+    }
+    for control in controls:
+        kind = (control["buttonType"] or "").casefold()
+        if kind not in {"navigate", "confirm"}:
+            continue
+        source = control["source"]
+        meta = _metadata(control["attributes"], source, diagnose)
+        page_id = control["pageId"]
+        if kind == "navigate":
+            destination = _link_id(meta.get("targetpageid"))
+            if (
+                not control["name"]
+                or destination not in page_by_id
+                or destination == page_id
+            ):
+                diagnose(
+                    "invalidNavigation",
+                    "Navigation needs a name and a different existing TargetPageID.",
+                    source,
+                )
+                continue
+            control["targetPageId"] = destination
+            navigation[destination].append(control)
+            continue
+        target = input_by_id.get(
+            (
+                page_id,
+                _link_id(meta.get("targetwidgetid")),
+                _link_id(meta.get("targetwidgetconfigid")),
+            )
+        )
+        if not control["name"] or target is None:
+            invalid_confirm_pages.add(page_id)
+            diagnose(
+                "invalidConfirmation",
+                "Confirmation needs a name and an exact numeric widget and configuration ID on its page.",
+                source,
+            )
+            continue
+        control["targetControlId"] = target["id"]
+        confirmations[target["id"]].append(control)
+
+    for control in input_by_id.values():
+        buttons = confirmations[control["id"]]
+        if not buttons and control["pageId"] not in invalid_confirm_pages:
+            continue
+        links = navigation[control["pageId"]]
+        conflict = (
+            len(buttons) == 1
+            and control["handler"]
+            and buttons[0]["handler"]
+            and control["handler"] != buttons[0]["handler"]
+        )
+        if (
+            len(buttons) != 1
+            or len(links) != 1
+            or conflict
+            or control["pageId"] in invalid_confirm_pages
+        ):
+            control["workflowError"] = (
+                "The source needs one navigation button and one matching confirmation "
+                "button with a consistent handler."
+            )
+            diagnose("unresolvedWorkflow", control["workflowError"], control["source"])
+            continue
+        control["workflow"] = {
+            "navigationId": links[0]["id"],
+            "confirmationId": buttons[0]["id"],
+        }
+
+
 def _source_manifest(sources):
     if not isinstance(sources, Mapping) or not 1 <= len(sources) <= MAX_FILES:
         raise UiDiscoveryError(f"Choose between 1 and {MAX_FILES} UI SQL sources.")
@@ -593,6 +683,12 @@ def discover_ui(sources):
             "No unambiguous PagesInstalled records were discovered.",
             _source(manifest[0]["path"], 1, PAGE_TABLE),
         )
+    _link_workflows(
+        unique_pages,
+        unique_controls,
+        [c for c in controls if ids[c["id"]] > 1],
+        diagnose,
+    )
     catalog_digest = hashlib.sha256(
         json.dumps(
             {"schemaVersion": 1, "sources": manifest},

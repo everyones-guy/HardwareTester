@@ -149,6 +149,7 @@ export default function SavedPlanLibrary({
       <div className="plan-catalog-tray">
         {filtered.slice(current * rows, (current + 1) * rows).map((p) => {
           const expanded = open === p.id;
+          const sourceWorkflow = p.steps.some((step) => step.action === 'ui_confirm');
           const waits = p.steps.reduce(
             (n, s) => n + (s.action === 'wait' ? (s.seconds ?? 1) : 0),
             0,
@@ -194,26 +195,31 @@ export default function SavedPlanLibrary({
                   <p className="plan-sequence-note">
                     {p.steps.filter((s) => s.action.startsWith('assert_')).length} checks · {waits}s
                     configured waits
-                    {p.steps.some((s) => s.action === 'set')
+                    {p.steps.some((s) => s.action === 'set') || sourceWorkflow
                       ? ' · Original output restored after every run'
                       : ''}
                   </p>
                   <SavedSteps steps={p.steps} />
+                  {sourceWorkflow && <p>Regenerate source workflow steps from the catalog.</p>}
                   <div className="plan-card-actions">
-                    <button
-                      className="button secondary"
-                      disabled={!enabled}
-                      onClick={() => onEdit(p)}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      className="button secondary"
-                      disabled={!enabled}
-                      onClick={() => onEdit(p, true)}
-                    >
-                      Duplicate
-                    </button>
+                    {!sourceWorkflow && (
+                      <>
+                        <button
+                          className="button secondary"
+                          disabled={!enabled}
+                          onClick={() => onEdit(p)}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className="button secondary"
+                          disabled={!enabled}
+                          onClick={() => onEdit(p, true)}
+                        >
+                          Duplicate
+                        </button>
+                      </>
+                    )}
                     <button className="button secondary" onClick={() => onExport(p)}>
                       Export JSON
                     </button>

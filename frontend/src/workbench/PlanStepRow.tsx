@@ -7,8 +7,17 @@ export const stepActions = {
   assert_range: 'Check range',
   assert_equal: 'Check expected value',
   wait: 'Wait to settle',
+  ui_navigate: 'Open source page',
+  ui_input: 'Enter source value',
+  ui_confirm: 'Confirm source input',
 };
 export function stepSummary(s: PlanStep) {
+  if (s.uiAction) {
+    const { source, pageId } = s.uiAction;
+    const detail =
+      pageId ?? (s.action === 'ui_input' ? `Input ${s.value}` : `Timeout ${s.timeout ?? 2}s`);
+    return `${detail} · ${source.path}:${source.line}`;
+  }
   return s.action === 'wait'
     ? `Wait ${s.seconds ?? 1}s`
     : s.action === 'set'

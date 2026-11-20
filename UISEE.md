@@ -7,6 +7,15 @@ source-declared `MinValue`, `MaxValue`, and `Step`. Imports accept up to 16 file
 and 512 KiB of SQL text. Discovery parses the data without executing SQL or
 JavaScript, and leaves unsupported or ambiguous records in the discovery messages.
 
+For a source-defined workflow, use a `Navigate` widget with `TargetPageID` and
+a `Confirm` widget on the destination page with `TargetWidgetID` and
+`TargetWidgetConfigID` pointing to its numeric input. The workflow requires one
+navigation widget and one matching confirmation. Confirm and input handler
+hints must agree when both are present. Broken or ambiguous confirmation links
+are reported and cannot generate a test. Numeric-only catalogs still support
+direct readback plans. Reimport the same SQL to refresh discovery for existing
+catalogs while retaining their reviewed bindings.
+
 ## Discover a control and bind its handler
 
 The two example SQL files under `deployment/ui-fixtures/uisee-controller` use
@@ -15,26 +24,30 @@ approved firmware release, together with the source or interface contract for
 the handler that the touchscreen calls.
 
 1. Open **UISee** in Flask mode as an administrator. Give the catalog a name and
-   import both example SQL files. Select the **Valve Station** page and the
-   discovered **ValveTarget** control. Its numeric range, original IDs, handler
-   hint and SQL location come from the imported rows.
+   import both example SQL files. Select **Maintenance** and the discovered
+   **Open Valve Station** action. Click it to navigate to **Valve Station**, then
+   select **ValveTarget**. The catalog shows its range, handler, and source
+   locations for the navigation, numeric field, and **Apply Valve Target** button.
 2. Review the handler against the provider contract. With the example, the
    `setValveTarget` implementation is in
    `deployment/firmware-fixtures/uisee-controller/controller.cpp`. Save a
    reviewed binding to the **Valve** profile and enter the source reference.
    A handler hint can name an action. The reviewed binding selects the existing
    typed Workbench operation and the compatible device profile.
-3. Enter `54` for Command value and `54` for Expected device reading. Confirm
-   and save the test, select a connected compatible valve, and run it. The plan
-   reads the initial output, sends the setpoint and waits for acknowledgment,
-   then checks an independent device readback. Workbench restores the previous
-   setpoint and records the result. Generate a second plan with expected `55`
-   to verify that a bad expectation fails against an observed `54`.
+3. Enter `54` for Command value and `54` for Expected device reading. Select
+   **Save verification test**, select a connected compatible valve, and run
+   it. The runner reads the initial output, opens the page in its modeled
+   touchscreen, stages the value, and sends the command on confirmation. It
+   requires an acknowledgment and checks an independent device readback before
+   restoring the previous setpoint. Generate a second plan with expected `55`
+   to verify that the assertion fails against an observed `54`.
 4. Export the saved plan from **Plan library**. Importing the unchanged JSON
    preserves source provenance. A generated test stores the catalog SHA-256,
-   control ID, handler, reviewed reference, SQL location and step digest. The
-   result captures the plan and target. Editing the steps in the standard plan
-   editor clears the original source-generated attribution.
+   control ID, handler, reviewed reference, SQL location and step digest. Each
+   workflow action carries its own widget ID and source location. Navigation
+   also carries the destination page ID and location. Regenerate workflow steps
+   in the catalog to change them. Editing numeric-only steps in the standard
+   plan editor clears their original source attribution.
 
 Import a second release as its own catalog to compare pages and controls. The
 comparison reports additions, removals and changes using original IDs. Shared

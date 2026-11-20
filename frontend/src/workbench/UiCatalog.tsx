@@ -17,6 +17,10 @@ type Control = {
   handler: string | null;
   input: { kind: 'number'; min: number; max: number; step: number } | null;
   source: Location;
+  targetPageId?: number;
+  targetControlId?: string;
+  workflow?: { navigationId: string; confirmationId: string };
+  workflowError?: string;
 };
 type Binding = { handler: string; kind: 'valve' | 'relay'; reference: string };
 type CatalogDiff = Record<
@@ -331,6 +335,11 @@ export default function UiCatalog({
               start={start}
               perform={perform}
               onBinding={setEntry}
+              onNavigate={(page) => {
+                setPageId(String(page));
+                setControlId('');
+                setQuery('');
+              }}
             />
           )}
         </div>
@@ -434,6 +443,7 @@ function ControlPlan({
   start,
   perform,
   onBinding,
+  onNavigate,
 }: {
   entry: Catalog;
   control: Control;
@@ -444,10 +454,19 @@ function ControlPlan({
   start: Props['start'];
   perform: (action: () => Promise<void>) => Promise<void>;
   onBinding: (catalog: Catalog) => void;
+  onNavigate: (pageId: number) => void;
 }) {
   const binding = entry.bindings[control.id];
   const output = control.input;
   const title = control.name ?? `Widget ${control.widgetId}`;
+  const navigation = entry.catalog.controls.find(
+    (node) => node.id === control.workflow?.navigationId,
+  );
+  const confirmation = entry.catalog.controls.find(
+    (node) => node.id === control.workflow?.confirmationId,
+  );
+  const handlerHint = control.handler ?? confirmation?.handler;
+  const targetPage = control.targetPageId;
   const [saved, setSaved] = useState<SavedPlan>();
   const [targetId, setTargetId] = useState('');
   const navigate = useNavigate();
@@ -509,8 +528,28 @@ function ControlPlan({
         </div>
         <div>
           <dt>SQL handler hint</dt>
-          <dd>{control.handler ?? 'Unresolved'}</dd>
+          <dd>{handlerHint ?? 'Unresolved'}</dd>
         </div>
+        {navigation && confirmation && (
+          <div>
+            <dt>Source workflow</dt>
+            <dd>
+              {navigation.name} → {title} → {confirmation.name}
+              <br />
+              <code>
+                {navigation.source.path}:{navigation.source.line}
+              </code>{' '}
+              ·{' '}
+              <code>
+                {control.source.path}:{control.source.line}
+              </code>{' '}
+              ·{' '}
+              <code>
+                {confirmation.source.path}:{confirmation.source.line}
+              </code>
+            </dd>
+          </div>
+        )}
         {output && (
           <div>
             <dt>Source range</dt>
@@ -528,7 +567,14 @@ function ControlPlan({
           </div>
         )}
       </dl>
-      {output ? (
+      {targetPage !== undefined && (
+        <button className="button" type="button" onClick={() => onNavigate(targetPage)}>
+          {title}
+        </button>
+      )}
+      {control.workflowError ? (
+        <p role="status">{control.workflowError}</p>
+      ) : output ? (
         <>
           <form key={binding?.reference ?? 'new'} onSubmit={saveBinding}>
             <fieldset className="ui-catalog-fields" disabled={!editable}>
@@ -539,8 +585,8 @@ function ControlPlan({
                   name="handler"
                   required
                   maxLength={100}
-                  defaultValue={binding?.handler ?? control.handler ?? ''}
-                  readOnly={!!control.handler}
+                  defaultValue={handlerHint ?? binding?.handler ?? ''}
+                  readOnly={!!handlerHint}
                 />
               </label>
               <label>
@@ -606,14 +652,17 @@ function ControlPlan({
                   />
                 </label>
                 <button className="button primary" type="submit">
-                  Confirm and save test
+                  {confirmation ? 'Save verification test' : 'Confirm and save test'}
                 </button>
               </fieldset>
             </form>
           )}
         </>
       ) : (
-        <p>Test generation requires a numeric control with source-declared bounds.</p>
+        targetPage === undefined &&
+        !control.targetControlId && (
+          <p>Test generation requires a numeric control with source-declared bounds.</p>
+        )
       )}
       {saved && (
         <div className="ui-catalog-fields">

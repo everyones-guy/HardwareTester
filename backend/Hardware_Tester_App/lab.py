@@ -468,7 +468,10 @@ class Lab:
                 + [s["name"] for s in definition["steps"]]
                 + (
                     ["Restore initial state"]
-                    if any(s["action"] == "set" for s in definition["steps"])
+                    if any(
+                        s["action"] in ("set", "ui_confirm")
+                        for s in definition["steps"]
+                    )
                     else []
                 )
                 if definition
@@ -708,6 +711,12 @@ class Lab:
         if action == "restore":
             step["expected"] = {"value": run["originalValue"], "tolerance": 0}
         try:
+            if action in ("set", "ui_confirm") and any(
+                s["status"] == "failed" for s in run["steps"][:index]
+            ):
+                raise TransportError(
+                    "Control command skipped because a previous check failed."
+                )
             if action == "wait":
                 deadline = active.setdefault(
                     "wait_until", started + operation["seconds"]
@@ -717,14 +726,40 @@ class Lab:
                     return
                 active.pop("wait_until", None)
                 detail = f"Waited {operation['seconds']} seconds."
-            else:
-                # After any failed check, do not issue further control commands.
-                if action == "set" and any(
-                    s["status"] == "failed" for s in run["steps"][:index]
-                ):
+            elif action == "ui_navigate":
+                active["uiPage"] = operation["uiAction"]["pageId"]
+                detail = (
+                    f"Opened source page {active['uiPage']} in the modeled touchscreen."
+                )
+            elif action == "ui_input":
+                page_id = operation["uiAction"]["controlId"].split("/", 1)[0]
+                if active.get("uiPage") != page_id:
                     raise TransportError(
-                        "Control command skipped because a previous check failed."
+                        "Open the source page before entering a value."
                     )
+                active["uiDraft"] = operation["value"]
+                detail = f"Entered {operation['value']} in the source control."
+            elif action == "ui_confirm":
+                page_id = operation["uiAction"]["controlId"].split("/", 1)[0]
+                value = active.pop("uiDraft", None)
+                if active.get("uiPage") != page_id or value is None:
+                    raise TransportError(
+                        "Confirmation needs an entered value on the active source page."
+                    )
+                if adapter:
+                    adapter.timeout = operation["timeout"]
+                step["expected"] = {"value": value, "tolerance": 0}
+                active["changed"] = True
+                self.write(d, value)
+                step["observed"] = d["value"]
+                if time.monotonic() - started > operation["timeout"]:
+                    raise TransportError("Confirmation response exceeded its timeout.")
+                if d["value"] != value:
+                    raise TransportError(
+                        f"Confirmation acknowledged {d['value']} instead of {value}."
+                    )
+                detail = f"Confirmation acknowledged {value} via {d['adapter']}."
+            else:
                 if adapter:
                     adapter.timeout = operation["timeout"]
                 if action == "set":

@@ -65,7 +65,8 @@
   color: #698398;
   white-space: nowrap;
 }
-.plan-action-badge.set {
+.plan-action-badge.set,
+.plan-action-badge.ui_confirm {
   background: #faf4e7;
   color: #9d7d38;
   border-color: #efe2c6;
@@ -542,11 +543,15 @@
   flex: 1;
 }
 .plan-sequence-strip .read,
-.plan-sequence-legend .read {
+.plan-sequence-legend .read,
+.plan-sequence-strip .ui_navigate,
+.plan-sequence-legend .ui_navigate {
   background: #799cb9;
 }
 .plan-sequence-strip .set,
-.plan-sequence-legend .set {
+.plan-sequence-legend .set,
+.plan-sequence-strip .ui_confirm,
+.plan-sequence-legend .ui_confirm {
   background: #c0a161;
 }
 .plan-sequence-strip .assert_range,
@@ -558,7 +563,9 @@
   background: #42785e;
 }
 .plan-sequence-strip .wait,
-.plan-sequence-legend .wait {
+.plan-sequence-legend .wait,
+.plan-sequence-strip .ui_input,
+.plan-sequence-legend .ui_input {
   background: #a294b8;
 }
 .plan-catalog-icon.valve {

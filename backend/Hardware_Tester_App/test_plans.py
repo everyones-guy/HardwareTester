@@ -11,6 +11,9 @@ from flask import jsonify, request, g, has_request_context
 from .lab import LabError, now
 from .utils.validators import validate_json
 
+UI_ACTIONS = ("ui_navigate", "ui_input", "ui_confirm")
+UI_WIDGET_ID = re.compile(r"page:[0-9]{1,16}/widget:[0-9]{1,16}/config:[0-9]{1,16}")
+
 
 def number(value, label, minimum=-1e9, maximum=1e9):
     if (
@@ -70,7 +73,11 @@ def normalize_ui_source(origin, plan):
         raise LabError("UI source provenance needs a SHA-256 catalog digest.")
     if origin["stepsSha256"] != ui_plan_steps_digest(plan):
         raise LabError("The plan steps differ from the recorded UI source plan.")
-    source = origin["source"]
+    normalize_source_location(origin["source"], "WidgetsInstalled")
+    return copy.deepcopy(origin)
+
+
+def normalize_source_location(source, table):
     if not isinstance(source, dict) or source.keys() != {"path", "line", "table"}:
         raise LabError("Invalid UI source location.")
     path = source["path"]
@@ -84,10 +91,64 @@ def normalize_ui_source(origin, plan):
         or not path.lower().endswith(".sql")
         or type(source["line"]) is not int
         or not 1 <= source["line"] <= 524288
-        or source["table"] != "WidgetsInstalled"
+        or source["table"] != table
     ):
         raise LabError("Invalid UI source location.")
-    return copy.deepcopy(origin)
+    return source.copy()
+
+
+def normalize_ui_step(data, action):
+    fields = {"controlId", "source"}
+    if action == "ui_navigate":
+        fields |= {"pageId", "pageSource"}
+    if not isinstance(data, dict) or data.keys() != fields:
+        raise LabError("Invalid source action metadata.")
+    if not isinstance(data["controlId"], str) or not UI_WIDGET_ID.fullmatch(
+        data["controlId"]
+    ):
+        raise LabError("A source action needs an exact widget configuration ID.")
+    step = {
+        "controlId": data["controlId"],
+        "source": normalize_source_location(data["source"], "WidgetsInstalled"),
+    }
+    if action == "ui_navigate":
+        if not isinstance(data["pageId"], str) or not re.fullmatch(
+            r"page:[0-9]{1,16}", data["pageId"]
+        ):
+            raise LabError("Navigation needs a source page ID.")
+        step.update(
+            pageId=data["pageId"],
+            pageSource=normalize_source_location(data["pageSource"], "PagesInstalled"),
+        )
+    return step
+
+
+def validate_ui_sequence(plan):
+    steps = plan["steps"]
+    if [step["action"] for step in steps] != [
+        "read",
+        *UI_ACTIONS,
+        "assert_equal",
+    ] or "uiSource" not in plan:
+        raise LabError(
+            "A source workflow requires navigation, input, confirmation and readback in order with source provenance."
+        )
+    navigation, draft, confirmation = (step["uiAction"] for step in steps[1:4])
+    origin = plan["uiSource"]
+    page_id = navigation["pageId"]
+    if (
+        draft["controlId"] != origin["controlId"]
+        or draft["source"] != origin["source"]
+        or draft["controlId"] == confirmation["controlId"]
+        or navigation["controlId"].split("/", 1)[0] == page_id
+        or any(
+            node["controlId"].split("/", 1)[0] != page_id
+            for node in (draft, confirmation)
+        )
+    ):
+        raise LabError(
+            "Source actions do not match the declared page and numeric control."
+        )
 
 
 def normalize_plan(data):
@@ -108,7 +169,14 @@ def normalize_plan(data):
         if not isinstance(item, dict):
             raise LabError("Every step must be a JSON object.")
         action = item.get("action")
-        if action not in ("read", "set", "assert_range", "assert_equal", "wait"):
+        if action not in (
+            "read",
+            "set",
+            "assert_range",
+            "assert_equal",
+            "wait",
+            *UI_ACTIONS,
+        ):
             raise LabError(
                 "Supported actions: read, set, assert_range, assert_equal, wait."
             )
@@ -116,16 +184,18 @@ def normalize_plan(data):
         if not isinstance(label, str) or not 1 <= len(label.strip()) <= 100:
             raise LabError("Step name must contain 1–100 characters.")
         step = {"name": label.strip(), "action": action}
+        if action in UI_ACTIONS:
+            step["uiAction"] = normalize_ui_step(item.get("uiAction"), action)
         if action == "wait":
             step["seconds"] = number(item.get("seconds"), "Wait duration", 0, 30)
-        else:
+        elif action not in ("ui_navigate", "ui_input"):
             step["timeout"] = number(
                 item.get("timeout", 2), "Response timeout", 0.1, 10
             )
-        if action in ("set", "assert_equal"):
+        if action in ("set", "assert_equal", "ui_input"):
             step["value"] = number(item.get("value"), "Value")
             if (
-                action == "set"
+                action in ("set", "ui_input")
                 and not 0
                 <= step["value"]
                 <= {"temperature": 50, "valve": 100, "relay": 1}[data["kind"]]
@@ -134,7 +204,7 @@ def normalize_plan(data):
                     "Set value is outside the device profile command limits."
                 )
             if (
-                action == "set"
+                action in ("set", "ui_input")
                 and data["kind"] == "relay"
                 and step["value"] not in (0, 1)
             ):
@@ -157,6 +227,8 @@ def normalize_plan(data):
     }
     if "uiSource" in data:
         plan["uiSource"] = normalize_ui_source(data["uiSource"], plan)
+    if any(step["action"] in UI_ACTIONS for step in steps):
+        validate_ui_sequence(plan)
     return plan
 
 

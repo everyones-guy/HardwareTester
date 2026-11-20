@@ -14,7 +14,7 @@ const actions = {
   assert_equal: 'Check expected value',
   wait: 'Wait for response to settle',
 };
-function changeAction(action: PlanStep['action']): PlanStep {
+function changeAction(action: keyof typeof actions): PlanStep {
   return {
     name: actions[action],
     action,
@@ -223,7 +223,7 @@ export default function TestPlanLibrary({
                     onChange={(e) =>
                       setSteps((previous) =>
                         previous.map((step, j) =>
-                          j === i ? changeAction(e.target.value as PlanStep['action']) : step,
+                          j === i ? changeAction(e.target.value as keyof typeof actions) : step,
                         ),
                       )
                     }
