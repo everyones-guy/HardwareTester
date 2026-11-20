@@ -22,6 +22,7 @@ MAX_REMEMBERED_REQUESTS = 512
 STATE_NAME = re.compile(r"[A-Za-z][A-Za-z0-9_-]{0,63}")
 COMMANDS = ("read", "set")
 INVALID_OUTPUT = "Valve value must be a finite number from 0 to 100."
+REQUEST_CONFLICT = "Request ID already used for a different command."
 
 
 def number_in_range(value, low=0, high=100):
@@ -157,14 +158,8 @@ class Model:
         self.state = initial_state
         self.output = initial_value
         self.states = states
-        self.processed = OrderedDict()
 
-    def execute(self, request_id, command, value=0):
-        if request_id in self.processed:
-            return None, 0
-        self.processed[request_id] = None
-        if len(self.processed) > MAX_REMEMBERED_REQUESTS:
-            self.processed.popitem(last=False)
+    def execute(self, command, value=0):
         for transition in self.states[self.state]:
             if transition.command == command and transition.condition.matches(value):
                 if transition.update_output:
@@ -172,6 +167,30 @@ class Model:
                 self.state = transition.target
                 return transition.reply.payload(self.output), transition.reply.delay_ms
         return {"error": f"{command} is unavailable in state {self.state}."}, 0
+
+
+class RequestReplies:
+    """Remember outcomes per fixture topic on the serialized MQTT callback thread."""
+
+    def __init__(self):
+        self.completed = OrderedDict()
+
+    def resolve(self, request, execute):
+        request_id, command, value = request
+        if command == "set" and not number_in_range(value):
+            return {"id": request_id, "error": INVALID_OUTPUT}, 0
+        key = (command, value)
+        if request_id in self.completed:
+            previous_key, reply = self.completed[request_id]
+            if previous_key != key:
+                return {"id": request_id, "error": REQUEST_CONFLICT}, 0
+            return reply, 0
+        payload, delay = execute(command, value)
+        reply = {"id": request_id, **payload} if payload is not None else None
+        self.completed[request_id] = (key, reply)
+        if len(self.completed) > MAX_REMEMBERED_REQUESTS:
+            self.completed.popitem(last=False)
+        return reply, delay
 
 
 def load_model(path):
@@ -267,7 +286,7 @@ def decode_request(message):
     if getattr(message, "retain", False) or len(message.payload) > 4096:
         return None
     try:
-        request = json.loads(message.payload)
+        request = json.loads(message.payload, object_pairs_hook=unique_object)
     except (ValueError, RecursionError):
         return None
     if not isinstance(request, dict):
@@ -323,6 +342,17 @@ def main():
         client.publish(args.topic + "/reply", json.dumps(reply), qos=1, retain=False)
 
     delayed = DelayedReplies(publish) if model is not None else None
+    replies = RequestReplies()
+
+    def execute(command, requested):
+        nonlocal value
+        if model is not None:
+            if not delayed.has_capacity():
+                return {"error": "Fixture reply queue is full."}, 0
+            return model.execute(command, requested)
+        if command == "set":
+            value = requested
+        return {"value": value}, 0
 
     def connected(client, userdata, flags, reason, properties):
         if reason.is_failure:
@@ -336,29 +366,15 @@ def main():
         )
 
     def message(client, userdata, msg):
-        nonlocal value
         request = decode_request(msg)
         if request is None:
             return
-        request_id, command, requested = request
-        if command == "set" and not number_in_range(requested):
-            publish({"id": request_id, "error": INVALID_OUTPUT})
-            return
-        if model is None:
-            if command == "set":
-                value = requested
-            publish({"id": request_id, "value": value})
-            return
-        if not delayed.has_capacity():
-            publish({"id": request_id, "error": "Fixture reply queue is full."})
-            return
-        payload, delay = model.execute(request_id, command, requested)
-        if payload is not None:
-            payload["id"] = request_id
+        reply, delay = replies.resolve(request, execute)
+        if reply is not None:
             if delay:
-                delayed.schedule(delay, payload)
+                delayed.schedule(delay, reply)
             else:
-                publish(payload)
+                publish(reply)
 
     client.on_connect = connected
     client.on_message = message

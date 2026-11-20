@@ -129,11 +129,11 @@ The device must respond with the same ID and a finite numeric value:
 
 An error response may include `error`. Serial replies are bounded to 4 KB; stale IDs and malformed frames are ignored, and requests time out after two seconds.
 
-MQTT endpoints use `mqtt://broker:1883/device/topic`. The adapter subscribes to `<topic>/reply`, waits for subscription acknowledgement, then publishes correlated JSON requests to `<topic>/command` at QoS 1 without retain. It ignores retained responses and unmatched IDs. MQTT connection readiness has a three-second timeout; device responses have a two-second timeout. This initial adapter supports an unauthenticated local development broker, not MQTT TLS/authentication provisioning.
+MQTT endpoints use `mqtt://broker:1883/device/topic`. The adapter subscribes to `<topic>/reply`, waits for subscription acknowledgement, then publishes correlated JSON requests to `<topic>/command` at QoS 1 without retain. It accepts the first valid matching reply and ignores retained messages, unmatched IDs, and malformed replies. Readiness has a three-second timeout. Device responses default to a two-second timeout. This adapter uses an unauthenticated local development broker.
 
-Control plans skip output commands after a failed handshake. Missing acknowledgements do not prove an output stayed unchanged: cleanup attempts to restore the original output and records failures explicitly. A failed physical restoration remains visible in the inspector even after telemetry resumes. A server crash cannot guarantee hardware restoration; restart records that physical output state needs inspection. A successful intentional manual command establishes a new desired state and clears that warning.
+Control plans skip output commands after a failed handshake. A published MQTT write with no valid reply is recorded as uncertain under its request ID. The Workbench does not republish that command or automatically reconnect the MQTT adapter. On a failed or cancelled test, cleanup issues a separate command to restore the saved output, then checks it with a fresh read. A lost reply to that restoration command can still yield verified restoration if readback matches. The original test failure or cancellation remains in Results. A failed physical restoration remains visible in the inspector even after telemetry resumes. A server crash records that the physical output needs inspection. A successful intentional manual command establishes a new desired state and clears that warning.
 
-Serial framing is tested against controlled port peers; MQTT was tested through Paho against a controlled TCP MQTT peer. No physical device has been connected or validated.
+Serial framing is tested against controlled port peers. The MQTT recovery tests use a local Mosquitto broker and a synthetic relay. They drop replies after applying writes, inject malformed frames, repeat the same request ID, and confirm final output from a separate client.
 
 ## MQTT mock fixture
 
@@ -150,6 +150,10 @@ Alternatively run the mock peer against an existing local broker:
 ```powershell
 backend\.venv\Scripts\python.exe backend\tools\mqtt_fixture.py
 ```
+
+The mock valve, state machine, and compiled fixture remember the last 512 valid requests per topic for the life of the peer process. Repeating the same ID and command returns the original reply without executing the command again. A different command or value under the same ID is rejected. A modeled drop stays silent on replay. Cached replies describe the original command result. Use a new read ID to check the current output. The bounded cache clears on restart. External MQTT devices need their own duplicate-delivery contract.
+
+With `mosquitto` on PATH, run `python -m pytest -v tests/workbench/test_mqtt_recovery.py` from `backend` to reproduce the loss and cancellation checks on a temporary loopback port.
 
 ## Clean-install release check
 

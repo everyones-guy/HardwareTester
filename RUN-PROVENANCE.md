@@ -19,6 +19,12 @@ request a local ID. A failed exchange records the attempted ID and error.
 A run retains its first 256 exchanges and counts any later ones. Earlier
 reports display the data they recorded at the time.
 
+After a published MQTT write times out, its correlated request says
+**Command delivery is uncertain**. Look under **Correlated requests** for
+the separate restoration write and fresh readback. The restoration result
+records whether the output returned to its saved value. The failed or
+cancelled run still shows its original verdict.
+
 ## Connected system runs
 
 Use `POST /api/lab/system-runs` or the same Test bench form for a reviewed

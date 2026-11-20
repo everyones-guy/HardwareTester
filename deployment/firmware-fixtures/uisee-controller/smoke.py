@@ -4,6 +4,7 @@ import hashlib
 import json
 from pathlib import Path
 import subprocess
+import uuid
 
 from Hardware_Tester_App.transports import MQTTTransport, TransportError
 
@@ -26,7 +27,8 @@ def main():
         peer.connect()
         initial = peer.read()
         try:
-            if peer.write(37.5) != 37.5 or peer.read() != 37.5:
+            request_id = str(uuid.uuid4())
+            if peer._exchange(request_id, "set", 37.5) != 37.5 or peer.read() != 37.5:
                 raise RuntimeError("Compiled controller did not retain its setpoint.")
             try:
                 peer.write(101)
@@ -39,6 +41,22 @@ def main():
                 raise RuntimeError(
                     "Invalid setpoint unexpectedly changed controller state."
                 )
+            if peer.write(initial) != initial:
+                raise RuntimeError("Failed to restore compiled fixture state.")
+            if (
+                peer._exchange(request_id, "set", 37.5) != 37.5
+                or peer.read() != initial
+            ):
+                raise RuntimeError(
+                    "Duplicate request changed the compiled fixture state."
+                )
+            try:
+                peer._exchange(request_id, "set", 50)
+            except TransportError as error:
+                if "already used" not in str(error):
+                    raise
+            else:
+                raise RuntimeError("Conflicting request ID accepted.")
         finally:
             if peer.write(initial) != initial or peer.read() != initial:
                 raise RuntimeError("Failed to restore compiled fixture state.")
@@ -53,6 +71,8 @@ def main():
                 "transport": "MQTTTransport",
                 "readback": 37.5,
                 "invalidSetpointRejected": True,
+                "duplicateReplyReplayed": True,
+                "conflictingRequestRejected": True,
                 "restored": initial,
                 "physicalEquipmentTested": False,
             }

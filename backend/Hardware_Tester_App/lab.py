@@ -11,7 +11,7 @@ import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import urlparse
-from .transports import TransportError, create_transport, numeric
+from .transports import TransportError, create_transport, numeric, verify_restoration
 from .run_audit import append_request, audit_record, release_reference, request_scope
 
 PROFILES = {
@@ -586,7 +586,9 @@ class Lab:
             self.save()
             return run["id"]
 
-    def cleanup(self, active):
+    def cleanup(self, active, *, as_step=False):
+        if active.get("cleaning"):
+            return
         active["cleaning"] = True
         if not active["changed"]:
             active["run"]["restoration"] = "not-needed"
@@ -599,11 +601,12 @@ class Lab:
             run["restoration"] = "restored"
             return
         try:
-            self.write(d, run["originalValue"])
-            if self.read(d) != run["originalValue"]:
-                raise TransportError(
-                    "Restore acknowledgement did not match the original output."
-                )
+            verify_restoration(
+                lambda value: self.write(d, value),
+                lambda: self.read(d),
+                run["originalValue"],
+            )
+            d["enabled"] = d["value"] > 0
             run["restoration"] = "restored"
         except Exception as error:
             run["restoration"] = "failed"
@@ -619,6 +622,8 @@ class Lab:
                     "detail": d["lastError"],
                 }
             )
+            if as_step:
+                raise TransportError(d["lastError"]) from error
 
     def cancel(self):
         with self.lock:
@@ -649,6 +654,7 @@ class Lab:
             if active.get("definition"):
                 self.advance_custom(active, step)
                 return
+            last_step = active["index"] == len(run["steps"]) - 1
             started = time.monotonic()
             step["startedAt"] = now()
             maximum = {"temperature": 50, "valve": 100, "relay": 1}[d["kind"]]
@@ -677,8 +683,11 @@ class Lab:
                         d, {"temperature": 30, "valve": 75, "relay": 1}[d["kind"]]
                     )
                 elif name == "Restore initial state" and active["changed"]:
-                    self.write(d, run["originalValue"])
-                value = self.read(d)
+                    if d["adapter"] == "simulation":
+                        self.write(d, run["originalValue"])
+                    else:
+                        self.cleanup(active, as_step=True)
+                value = d["value"] if active.get("cleaning") else self.read(d)
                 step["observed"] = value
                 if name in (
                     "Validate operating range",
@@ -713,7 +722,7 @@ class Lab:
                 device_id=d["id"],
             )
             active["index"] += 1
-            if active["index"] == len(run["steps"]):
+            if last_step:
                 self.cleanup(active)
                 run.update(
                     status=(
@@ -737,6 +746,7 @@ class Lab:
         d, run = active["device"], active["run"]
         definitions = active["definition"]["steps"]
         index = active["index"]
+        last_step = index == len(run["steps"]) - 1
         operation = (
             {"action": "read", "timeout": 2}
             if index == 0
@@ -810,6 +820,14 @@ class Lab:
                         f"Confirmation acknowledged {d['value']} instead of {value}."
                     )
                 detail = f"Confirmation acknowledged {value} via {d['adapter']}."
+            elif (
+                action == "restore"
+                and active["changed"]
+                and d["adapter"] != "simulation"
+            ):
+                self.cleanup(active, as_step=True)
+                step["observed"] = d["value"]
+                detail = f'Restore verified {d["value"]} via {d["adapter"]}.'
             else:
                 if adapter:
                     adapter.timeout = operation["timeout"]
@@ -864,7 +882,7 @@ class Lab:
             device_id=d["id"],
         )
         active["index"] += 1
-        if active["index"] == len(run["steps"]):
+        if last_step:
             self.cleanup(active)
             run.update(
                 status=(

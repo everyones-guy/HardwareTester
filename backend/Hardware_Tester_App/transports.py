@@ -14,6 +14,25 @@ class TransportError(Exception):
     pass
 
 
+class UncertainDelivery(TransportError):
+    def __init__(self, message):
+        super().__init__(f"{message} Command delivery is uncertain.")
+
+
+def verify_restoration(write, read, expected):
+    try:
+        write(expected)
+    except UncertainDelivery:
+        # The compensating command can take effect even when its reply is lost.
+        # A fresh read is the only confirmation in that case.
+        pass
+    observed = read()
+    if observed != expected:
+        raise TransportError(
+            f"Restoration readback mismatch: expected {expected}, observed {observed}."
+        )
+
+
 def numeric(value):
     if (
         isinstance(value, bool)
@@ -172,6 +191,7 @@ class MQTTTransport:
         self.client = None
         self.ready = threading.Event()
         self.replied = threading.Event()
+        self.reply_lock = threading.Lock()
         self.pending = None
         self.value = None
         self.error = None
@@ -182,7 +202,9 @@ class MQTTTransport:
         uri = urlparse(self.device["endpoint"])
         self.topic = uri.path.strip("/")
         self.client = mqtt.Client(
-            mqtt.CallbackAPIVersion.VERSION2, client_id=f"ht-{uuid.uuid4().hex[:12]}"
+            mqtt.CallbackAPIVersion.VERSION2,
+            client_id=f"ht-{uuid.uuid4().hex[:12]}",
+            reconnect_on_failure=False,
         )
 
         def on_connect(client, userdata, flags, reason, properties):
@@ -202,15 +224,28 @@ class MQTTTransport:
                 if len(message.payload) > 4096 or message.retain:
                     return
                 response = json.loads(message.payload)
-                if isinstance(response, dict) and response.get("id") == self.pending:
-                    self.error = (
-                        str(response["error"])[:200] if response.get("error") else None
-                    )
+                if not isinstance(response, dict):
+                    return
+                with self.reply_lock:
+                    if (
+                        self.pending is None
+                        or response.get("id") != self.pending
+                        or self.replied.is_set()
+                    ):
+                        return
+                    error = response.get("error")
+                    if error is not None and (
+                        not isinstance(error, str)
+                        or not error.strip()
+                        or "value" in response
+                    ):
+                        return
                     self.value = (
-                        numeric(response.get("value")) if not self.error else None
+                        numeric(response.get("value")) if error is None else None
                     )
+                    self.error = error[:200] if error is not None else None
                     self.replied.set()
-            except (ValueError, TransportError):
+            except (ValueError, OverflowError, RecursionError, TransportError):
                 return
 
         self.client.on_connect = on_connect
@@ -248,22 +283,31 @@ class MQTTTransport:
     def _exchange(self, request_id, command, value):
         if not self.client or not self.client.is_connected():
             raise TransportError("MQTT broker is disconnected.")
-        self.pending = request_id
-        self.replied.clear()
-        self.error = None
-        payload = {"id": self.pending, "command": command}
+        payload = {"id": request_id, "command": command}
         if value is not None:
             payload["value"] = value
-        result = self.client.publish(
-            self.topic + "/command", json.dumps(payload), qos=1, retain=False
-        )
-        if result.rc != 0 or not self.replied.wait(getattr(self, "timeout", 2)):
-            raise TransportError(
-                f'MQTT device response timed out after {getattr(self, "timeout", 2):g} seconds.'
+        with self.reply_lock:
+            self.pending = request_id
+            self.replied.clear()
+            self.error = None
+        try:
+            result = self.client.publish(
+                self.topic + "/command", json.dumps(payload), qos=1, retain=False
             )
-        if self.error:
-            raise TransportError(self.error)
-        return self.value
+            if result.rc != 0:
+                raise TransportError(f"MQTT publish failed (code {result.rc}).")
+            timeout = getattr(self, "timeout", 2)
+            if not self.replied.wait(timeout):
+                error_type = UncertainDelivery if command == "set" else TransportError
+                raise error_type(
+                    f"MQTT device response timed out after {timeout:g} seconds."
+                )
+            if self.error:
+                raise TransportError(self.error)
+            return self.value
+        finally:
+            with self.reply_lock:
+                self.pending = None
 
     def read(self):
         return self.exchange("read")

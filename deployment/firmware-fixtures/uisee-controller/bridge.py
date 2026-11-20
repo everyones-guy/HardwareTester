@@ -11,7 +11,7 @@ import time
 
 import paho.mqtt.client as mqtt
 
-from tools.mqtt_fixture import INVALID_OUTPUT, decode_request, number_in_range
+from tools.mqtt_fixture import RequestReplies, decode_request, number_in_range
 
 CONTROLLER = Path("/app/bin/uisee-controller")
 TOPIC = "lab/compiled-valve"
@@ -47,6 +47,7 @@ def main():
     signal.signal(signal.SIGINT, lambda *_: stopped.set())
     signal.signal(signal.SIGTERM, lambda *_: stopped.set())
     peer = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+    replies = RequestReplies()
     failed = False
 
     with (
@@ -66,24 +67,24 @@ def main():
                 return
             client.subscribe(TOPIC + "/command", qos=1)
 
-        def message(client, userdata, incoming):
+        def execute(command, requested):
             nonlocal failed
-            decoded = decode_request(incoming)
-            if decoded is None:
+            if failed:
+                return {
+                    "error": "Compiled controller unavailable. Restart the fixture."
+                }, 0
+            try:
+                return {"value": exchange(controller, ready, command, requested)}, 0
+            except (OSError, ValueError) as error:
+                failed = True
+                print(f"Compiled controller failed: {error}")
+                return {"error": "Compiled controller failed. Restart the fixture."}, 0
+
+        def message(client, userdata, incoming):
+            request = decode_request(incoming)
+            if request is None:
                 return
-            request_id, command, requested = decoded
-            reply = {"id": request_id}
-            if command == "set" and not number_in_range(requested):
-                reply["error"] = INVALID_OUTPUT
-            elif failed:
-                reply["error"] = "Compiled controller unavailable. Restart the fixture."
-            else:
-                try:
-                    reply["value"] = exchange(controller, ready, command, requested)
-                except (OSError, ValueError) as error:
-                    failed = True
-                    print(f"Compiled controller failed: {error}")
-                    reply["error"] = "Compiled controller failed. Restart the fixture."
+            reply, _ = replies.resolve(request, execute)
             client.publish(TOPIC + "/reply", json.dumps(reply), qos=1, retain=False)
 
         try:

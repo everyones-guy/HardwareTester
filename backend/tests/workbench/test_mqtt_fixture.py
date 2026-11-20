@@ -100,24 +100,54 @@ def example_model_path():
 def test_model_command_transitions_faults_recovery_and_restart():
     fixture = fixture_module()
     model = fixture.load_model(example_model_path())
-    assert model.execute("read", "read") == ({"value": 0}, 35)
-    assert model.execute("move", "set", 89.9) == ({"value": 89.9}, 120)
-    error, delay = model.execute("overload", "set", 90)
+    replies = fixture.RequestReplies()
+
+    def request(identity, command, value=0):
+        return replies.resolve((identity, command, value), model.execute)
+
+    assert request("read", "read") == ({"id": "read", "value": 0}, 35)
+    assert request("move", "set", 89.9) == ({"id": "move", "value": 89.9}, 120)
+    error, delay = request("overload", "set", 90)
     assert "overload" in error["error"]
     assert delay == 150
     assert model.output == 89.9
-    assert model.execute("lost", "read") == (None, 0)
-    assert model.execute("reset", "set", 0) == ({"value": 0}, 120)
+    assert request("lost", "read") == (None, 0)
+    assert request("reset", "set", 0) == ({"id": "reset", "value": 0}, 120)
     assert model.state == "recovering"
-    assert model.execute("reset", "set", 100) == (None, 0)
+    assert request("reset", "set", 100) == (
+        {"id": "reset", "error": fixture.REQUEST_CONFLICT},
+        0,
+    )
+    assert request("lost", "read") == (None, 0)
+    assert request("reset", "set", 0) == ({"id": "reset", "value": 0}, 0)
+    assert request("move", "set", 89.9) == ({"id": "move", "value": 89.9}, 0)
     assert model.state == "recovering"
-    assert model.execute("recover", "read") == ({"value": 0}, 450)
+    assert model.output == 0
+    assert request("recover", "read") == ({"id": "recover", "value": 0}, 450)
     assert model.state == "ready"
-    assert model.execute("next", "read") == ({"value": 0}, 35)
-    assert fixture.load_model(example_model_path()).execute("read", "read") == (
+    assert request("next", "read") == ({"id": "next", "value": 0}, 35)
+    assert fixture.load_model(example_model_path()).execute("read") == (
         {"value": 0},
         35,
     )
+
+
+def test_fixture_limits_remembered_outcomes(monkeypatch):
+    fixture = fixture_module()
+    monkeypatch.setattr(fixture, "MAX_REMEMBERED_REQUESTS", 2)
+    replies = fixture.RequestReplies()
+    applied = []
+
+    def execute(command, value):
+        applied.append(value)
+        return {"value": value}, 0
+
+    for identity, value in [("a", 1), ("b", 2), ("a", 1), ("c", 3), ("a", 1)]:
+        assert replies.resolve((identity, "set", value), execute) == (
+            {"id": identity, "value": value},
+            0,
+        )
+    assert applied == [1, 2, 3, 1]
 
 
 @pytest.mark.parametrize(
@@ -156,8 +186,8 @@ def test_signal_measurement_can_be_out_of_range_without_changing_output(tmp_path
     path = tmp_path / "fixture.json"
     path.write_text(json.dumps(model), encoding="utf-8")
     model = fixture.load_model(path)
-    assert model.execute("set", "set", 20) == ({"value": 20}, 120)
-    assert model.execute("read", "read") == ({"value": -8}, 0)
+    assert model.execute("set", 20) == ({"value": 20}, 120)
+    assert model.execute("read") == ({"value": -8}, 0)
     assert model.output == 20
 
 
@@ -192,7 +222,7 @@ def test_model_fixture_publishes_delayed_correlated_replies(monkeypatch, tmp_pat
             assert topic == "lab/model/reply"
             assert options == {"qos": 1, "retain": False}
             published.append((time.monotonic(), json.loads(payload)))
-            if len(published) == 2:
+            if len(published) == 3:
                 replied.set()
 
         def send(self, request, retain=False):
@@ -209,7 +239,7 @@ def test_model_fixture_publishes_delayed_correlated_replies(monkeypatch, tmp_pat
             self.send({"id": "move", "command": "set", "value": 90})
             self.send({"id": "read", "command": "read"})
             assert replied.wait(3)
-            assert published[1][0] - started >= 0.28
+            assert published[2][0] - started >= 0.28
             handlers[fixture.signal.SIGINT]()
 
     monkeypatch.setattr(mqtt, "Client", Client)
@@ -219,6 +249,7 @@ def test_model_fixture_publishes_delayed_correlated_replies(monkeypatch, tmp_pat
     )
     fixture.main()
     assert [payload for _, payload in published] == [
+        {"id": "move", "error": fixture.REQUEST_CONFLICT},
         {"id": "read", "value": 75},
         {"id": "move", "value": 75},
     ]

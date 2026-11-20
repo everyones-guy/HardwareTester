@@ -8,7 +8,7 @@ import time
 from contextlib import contextmanager, nullcontext
 
 from .run_audit import exchange, now, request_scope
-from .transports import TransportError
+from .transports import TransportError, verify_restoration
 
 RELAY_ACTIONS = {"fault": "faultRelay", "command": "commandRelay"}
 
@@ -260,8 +260,10 @@ class AdapterBench:
         transport = self.transports[role]
         with transport_timeout(transport, 2):
             acknowledged = transport.write(int(value))
-        if acknowledged != int(value) or self.relay_read(role) != value:
-            raise TransportError(f"{role} did not verify the requested relay state.")
+        if acknowledged != int(value):
+            raise TransportError(
+                f"{role} did not acknowledge the requested relay state."
+            )
 
 
 @contextmanager
@@ -323,10 +325,12 @@ def run_steps(
                     if request_sink
                     else nullcontext()
                 ):
-                    bench.write_relay(role, value)
-                    report["restoration"][role] = (
-                        "verified" if bench.relay_read(role) == value else "failed"
+                    verify_restoration(
+                        lambda original: bench.write_relay(role, original),
+                        lambda: bench.relay_read(role),
+                        value,
                     )
+                    report["restoration"][role] = "verified"
             except (OSError, TransportError) as error:
                 report["restoration"][role] = f"failed: {error}"
 
@@ -340,8 +344,9 @@ def execute_step(bench, step, record, touched, started, cancelled):
                 raise TransportError(
                     f"{role} is already injecting a fault. Check the bench before running."
                 )
-            if cancelled():
-                raise TransportError("Cancellation requested before the relay command.")
+        if cancelled():
+            raise TransportError("Cancellation requested before the relay command.")
+        if role not in touched:
             touched[role] = position
         record["expected"] = step["active"]
         bench.write_relay(role, step["active"])
